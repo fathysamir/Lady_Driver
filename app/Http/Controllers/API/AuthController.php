@@ -87,7 +87,7 @@ class AuthController extends ApiController
         $user->device_token=$request->device_token;
         $user->save();
         $user->token=$user->createToken('api')->plainTextToken;
-        $user->picture=getFirstMediaUrl($user,$user->avatarCollection);
+        $user->image=getFirstMediaUrl($user,$user->avatarCollection);
     
         // Send OTP via Email (or SMS)
         //Mail::to($request->email)->send(new SendOTP($otpCode));
@@ -119,7 +119,7 @@ class AuthController extends ApiController
         $user->device_token=$request->device_token;
         $user->save();
         $user->token=$user->createToken('api')->plainTextToken;
-        $user->picture=getFirstMediaUrl($user,$user->avatarCollection);
+        $user->image=getFirstMediaUrl($user,$user->avatarCollection);
        
         
 

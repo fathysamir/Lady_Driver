@@ -7,6 +7,8 @@ use App\Models\Car;
 use App\Models\DriverLicense;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
+use App\Models\Trip;
+use App\Models\Offer;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
@@ -159,8 +161,8 @@ class DriverController extends ApiController
         return $this->sendResponse($car,'Car Updated Successfuly.',200);
     }
 
-    public function car($id){
-        $car=Car::where('id',$id)->with(['mark:id,name','model:id,name','owner:id,name'])->first();
+    public function car(){
+        $car=Car::where('user_id',auth()->user()->id)->with(['mark:id,name','model:id,name','owner:id,name'])->first();
         $car->image=getFirstMediaUrl($car,$car->avatarCollection);
         $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
         $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
@@ -199,5 +201,81 @@ class DriverController extends ApiController
         return $this->sendResponse($driving_license,null,200);
     }
 
-    
+    public function created_trips(){
+        $driver_car=Car::where('user_id',auth()->user()->id)->first();
+        if($driver_car->status=='confirmed'){
+            if(auth()->user()->is_online=='1'){
+                $radius = 6371;
+                $decimalPlaces = 2;
+                $tripsWithin3Km = Trip::select('*')
+                                    ->where('status','created')->with('user:id,name');
+                if( $driver_car->air_conditioned=='0'){
+                    $tripsWithin3Km->where('air_conditioned','0');
+                }
+                $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
+                                    ->having('client_location_away', '<=', 3) // Filter cars within 3 km
+                                    ->get()->map(function ($trip) use ($driver_car) {
+                                        $distance=calculate_distance($driver_car->lat,$driver_car->lng,$trip->start_lat,$trip->start_lng);
+                                        if($distance <= 3){
+                                            $trip->client_location_distance=$distance;
+                                            $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
+                                            $trip->current_offer=Offer::where('user_id',auth()->user()->id)->where('trip_id',$trip->id)->where('status','pending')->first();
+
+                                            return $trip;
+                                        }
+                                    });
+                return $this->sendResponse($tripsWithin3Km,null,200);
+            }else{
+                return $this->sendError(null,"your are offline",400);
+            }
+            
+        }else{
+            return $this->sendError(null,"Sorry your car isn't confirmed on application",400);
+        }
+    }
+
+    public function activation(){
+        $user=auth()->user();
+        if($user->is_online=='1'){
+            $user->is_online='0';
+            $user->save();
+            return $this->sendResponse(null,'you are Offline',200);
+        }else{
+            $user->is_online='1';
+            $user->save();
+            return $this->sendResponse(null,'you are online',200);
+
+        }
+
+    }
+
+    public function create_offer(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'trip_id' => [
+                 'required',
+                 Rule::exists('trips', 'id') 
+             ],
+             'offer' => 'required',
+             
+         ]);
+         // dd($request->all());
+        if ($validator->fails()) {
+
+            return $this->sendError(null,$validator->errors(),400);
+        }
+        $driver_car=Car::where('user_id',auth()->user()->id)->first();
+        $offer=Offer::create(['user_id'=>auth()->user()->id,
+                               'car_id'=>$driver_car->id,
+                               'trip_id'=>intval($request->trip_id),
+                               'offer'=>floatval($request->offer)]);
+        return $this->sendResponse($offer,null,200);
+
+    }
+
+    public function expire_offer($id){
+        $offer=Offer::find($id);
+        $offer->status='expired';
+        $offer->save();
+        return $this->sendResponse(null,'Offer is expired',200);
+    }
 }

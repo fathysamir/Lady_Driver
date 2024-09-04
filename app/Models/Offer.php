@@ -15,7 +15,8 @@ class Offer extends Model
         'car_id',
         'trip_id',
         'status',
-        'offer'
+        'offer',
+        
     ];
 
     protected $allowedSorts = [

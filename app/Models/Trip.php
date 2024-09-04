@@ -30,7 +30,10 @@ class Trip extends Model
         'driver_stare_rate',
         'driver_comment',
         'status',
-        'payment_status'
+        'cancelled_by_id',
+        'payment_status',
+        'type',
+        'air_conditioned'
     ];
 
     protected $allowedSorts = [

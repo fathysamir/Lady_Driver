@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('car_id')->references('id')->on('cars')->onDelete('cascade');
             $table->unsignedBigInteger('trip_id');
             $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-            $table->enum('status', ['pending','accepted'])->default('pending');
+            $table->enum('status', ['pending','accepted','expired'])->default('pending');
             $table->double('offer', 8, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
