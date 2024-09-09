@@ -40,6 +40,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('/created_trips',[DriverController::class,'created_trips'])->name('created_trips');
     Route::get('/expire_offer/{id}',[DriverController::class,'expire_offer'])->name('expire_offer');
     Route::post('/create_offer',[DriverController::class,'create_offer'])->name('create_offer');
+    Route::get('/marks',[DriverController::class,'marks'])->name('marks');
+    Route::get('/models',[DriverController::class,'models'])->name('models');
 
 });
 
