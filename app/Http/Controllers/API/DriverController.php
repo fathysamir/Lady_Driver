@@ -9,6 +9,8 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\Trip;
 use App\Models\Offer;
+use App\Models\CarMark;
+use App\Models\CarModel;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
