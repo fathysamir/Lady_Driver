@@ -16,7 +16,29 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
 class DriverController extends ApiController
-{
+{   
+    public function marks(){
+        $marks=CarMark::all();
+        return $this->sendResponse($marks,null,200);
+
+    }
+    public function models(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'car_mark_id' => [
+                 'required',
+                 Rule::exists('car_marks', 'id') 
+             ]
+         ]);
+         // dd($request->all());
+         if ($validator->fails()) {
+ 
+             return $this->sendError(null,$validator->errors(),400);
+         }
+         
+        $models=CarModel::where('car_mark_id',$request->car_mark_id)->get();
+        return $this->sendResponse($models,null,200);
+
+    }
     public function create_car(Request $request){
         $validator  =   Validator::make($request->all(), [
            'car_mark_id' => [
