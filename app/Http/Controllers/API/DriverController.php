@@ -196,6 +196,9 @@ class DriverController extends ApiController
 
     public function car(){
         $car=Car::where('user_id',auth()->user()->id)->with(['mark:id,name','model:id,name','owner:id,name'])->first();
+        if(!$car){
+            return $this->sendError(null,"You don't create your cat yet",400);
+        }
         $car->image=getFirstMediaUrl($car,$car->avatarCollection);
         $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
         $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
