@@ -80,6 +80,8 @@ class DriverController extends ApiController
                         ]);
         if($request->air_conditioned){
             $car->air_conditioned='1';
+        }else{
+            $car->air_conditioned='0';
         }
         $car->save();
         uploadMedia($request->image,$car->avatarCollection,$car);
@@ -135,10 +137,10 @@ class DriverController extends ApiController
                         ]);
         $car=Car::find($request->car_id);
                         
-        if($request->air_conditioned==1){
-            $car->air_conditioned=1;
+        if($request->air_conditioned=='1'){
+            $car->air_conditioned='1';
         }else{
-            $car->air_conditioned=0;
+            $car->air_conditioned='0';
         }
         $car->save();
         
