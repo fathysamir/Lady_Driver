@@ -217,12 +217,39 @@ class DriverController extends ApiController
  
              return $this->sendError(null,$validator->errors(),400);
          }
-         $driving_license=DriverLicense::create(['user_id'=>auth()->user()->id,
-                                                 'license_num'=>$request->license_number,
-                                                 'expire_date'=>$request->license_expire_date]);
-         uploadMedia($request->license_front_image,$driving_license->LicenseFrontImageCollection,$driving_license);
-         uploadMedia($request->license_back_image,$driving_license->LicenseBackImageCollection,$driving_license);
+         $existed_driving_license=DriverLicense::where('user_id',auth()->user()->id)->first();
+         if(!$existed_driving_license){
+            $license=DriverLicense::create(['user_id'=>auth()->user()->id,
+                                                    'license_num'=>$request->license_number,
+                                                    'expire_date'=>$request->license_expire_date]);
+            uploadMedia($request->license_front_image,$license->LicenseFrontImageCollection,$license);
+            uploadMedia($request->license_back_image,$license->LicenseBackImageCollection,$license);
+         }else{
+            $existed_driving_license->update(['license_num'=>$request->license_number,
+                                              'expire_date'=>$request->license_expire_date]);
+            if($request->file('license_front_image')){
+                $license_front_image=getFirstMediaUrl($existed_driving_license,$existed_driving_license->LicenseFrontImageCollection);
+                if($license_front_image!= null){
+                    deleteMedia($existed_driving_license,$existed_driving_license->LicenseFrontImageCollection);
+                    uploadMedia($request->license_front_image,$existed_driving_license->LicenseFrontImageCollection,$existed_driving_license);
+                }else{
+                    uploadMedia($request->license_front_image,$existed_driving_license->LicenseFrontImageCollection,$existed_driving_license);
+                }
+            }
 
+            if($request->file('license_back_image')){
+                $license_back_image=getFirstMediaUrl($existed_driving_license,$existed_driving_license->LicenseBackImageCollection);
+                if($license_back_image!= null){
+                    deleteMedia($existed_driving_license,$existed_driving_license->LicenseBackImageCollection);
+                    uploadMedia($request->license_back_image,$existed_driving_license->LicenseBackImageCollection,$existed_driving_license);
+                }else{
+                    uploadMedia($request->license_back_image,$existed_driving_license->LicenseBackImageCollection,$existed_driving_license);
+                }
+            }
+         }
+         $driving_license=DriverLicense::where('user_id',auth()->user()->id)->first();
+         $driving_license->license_front_image=getFirstMediaUrl($driving_license,$driving_license->LicenseFrontImageCollection);
+         $driving_license->license_back_image=getFirstMediaUrl($driving_license,$driving_license->LicenseBackImageCollection);
          return $this->sendResponse($driving_license,'License Driving is Created Successfuly',200);
 
     }
