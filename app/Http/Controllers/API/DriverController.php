@@ -88,7 +88,10 @@ class DriverController extends ApiController
         uploadMedia($request->plate_image,$car->PlateImageCollection,$car);
         uploadMedia($request->license_front_image,$car->LicenseFrontImageCollection,$car);
         uploadMedia($request->license_back_image,$car->LicenseBackImageCollection,$car);
-
+        $car->image=getFirstMediaUrl($car,$car->avatarCollection);
+        $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
+        $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
+        $car->license_back_image=getFirstMediaUrl($car,$car->LicenseBackImageCollection);
         return $this->sendResponse($car,'Car Created Successfuly.',200);
     }
 
@@ -183,7 +186,11 @@ class DriverController extends ApiController
                 uploadMedia($request->license_back_image,$car->LicenseBackImageCollection,$car);
             }
         }
-
+        $car=Car::find($request->car_id);
+        $car->image=getFirstMediaUrl($car,$car->avatarCollection);
+        $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
+        $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
+        $car->license_back_image=getFirstMediaUrl($car,$car->LicenseBackImageCollection);
         return $this->sendResponse($car,'Car Updated Successfuly.',200);
     }
 
