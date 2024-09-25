@@ -3,7 +3,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\User;
-use App\Models\OTP;
+use App\Models\FAQ;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -233,5 +233,38 @@ class AuthController extends ApiController
         $user->password = Hash::make($request->password);
         $user->save();
         return $this->sendResponse(null,'Password updated successfully, You can login with new password.',200);
+    }
+
+    public function FAQs(){
+        $FAQs=FAQ::where('is_active',1)->get();
+        return $this->sendResponse($FAQs,null,200);
+    }
+
+    public function update_password(Request $request){
+        // Validate the incoming request
+        $validator = Validator::make($request->all(), [
+            'old_password' => 'required',
+            'password' => 'required|confirmed|min:8',
+        ]);
+    
+        if ($validator->fails()) {
+            
+            return $this->sendError(null,$validator->errors(),401);
+
+        }
+    
+        // Check if the old password matches the user's current password
+        if (!Hash::check($request->old_password, auth()->user()->password)) {
+            return $this->sendError(null,'The old password is incorrect.',400);
+
+        }
+    
+        // Update the user's password
+        $user = auth()->user();
+        $user->password = Hash::make($request->password);
+        $user->save();
+    
+        return $this->sendResponse(null,'Password updated successfully.',200);
+
     }
 }

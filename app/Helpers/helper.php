@@ -92,3 +92,45 @@ function calculate_distance($lat1,$lng1,$lat2,$lng2){
         return 'Error: Unable to calculate the distance.';
     }
 }
+
+function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key) {
+    // بناء رابط API الخاص بالـ Google Directions
+    $url = "https://maps.googleapis.com/maps/api/directions/json?origin={$lat1},{$lng1}&destination={$lat2},{$lng2}&key={$api_key}";
+
+    // إجراء الطلب إلى Google Directions API
+    $response = file_get_contents($url);
+    $data = json_decode($response, true);
+
+    // التحقق من حالة الطلب
+    if ($data['status'] != 'OK') {
+        return "Error fetching route: " . $data['status'];
+    }
+
+    // التحقق من التحذيرات على الطريق لمعرفة وجود بوابات دفع
+    $warnings = $data['routes'][0]['warnings'];
+    
+    // عرض التحذيرات المتعلقة ببوابات الدفع
+    if (!empty($warnings)) {
+        foreach ($warnings as $warning) {
+            if (strpos(strtolower($warning), 'toll') !== false) {
+                echo "Warning: " . $warning . "\n";
+            }
+        }
+    } else {
+        echo "No toll warnings on the route.\n";
+    }
+
+    // استعراض مسار الطريق (للمزيد من المعلومات حول النقاط المختلفة على الطريق)
+    $steps = $data['routes'][0]['legs'][0]['steps'];
+    
+    foreach ($steps as $step) {
+        echo "Start: " . $step['start_location']['lat'] . "," . $step['start_location']['lng'] . "\n";
+        echo "End: " . $step['end_location']['lat'] . "," . $step['end_location']['lng'] . "\n";
+        echo "Instructions: " . $step['html_instructions'] . "\n";
+        echo "-----------------\n";
+    }
+}
+
+
+
+

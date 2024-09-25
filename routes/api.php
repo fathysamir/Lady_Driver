@@ -26,6 +26,8 @@ Route::post('/resend_otp',[AuthController::class,'resend_otp'])->name('resend_ot
 Route::post('/reset_password',[AuthController::class,'reset_password'])->name('reset_password');
 Route::middleware('auth:sanctum')->group( function () {
     Route::post('/logout',[AuthController::class,'logout'])->name('logout');
+    Route::post('/update_password',[AuthController::class,'update_password'])->name('update_password');
+    Route::get('/FAQs',[AuthController::class,'FAQs'])->name('FAQs');
     Route::post('/activation',[DriverController::class,'activation'])->name('activation');
     Route::post('/create_Car',[DriverController::class,'create_car'])->name('create_car');
     Route::post('/edit_car',[DriverController::class,'edit_car'])->name('edit_car');
@@ -40,6 +42,21 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('/created_trips',[DriverController::class,'created_trips'])->name('created_trips');
     Route::get('/expire_offer/{id}',[DriverController::class,'expire_offer'])->name('expire_offer');
     Route::post('/create_offer',[DriverController::class,'create_offer'])->name('create_offer');
+    Route::get('/marks',[DriverController::class,'marks'])->name('marks');
+    Route::get('/models',[DriverController::class,'models'])->name('models');
+
+    Route::get('/current_trip',[ClientController::class,'current_trip'])->name('current_trip');
+    Route::post('/accept_offer',[ClientController::class,'accept_offer'])->name('accept_offer');
+    Route::get('/driver_current_trip',[DriverController::class,'driver_current_trip'])->name('driver_current_trip');
+    Route::post('/start_trip',[DriverController::class,'start_trip'])->name('start_trip');
+    Route::post('/pay_trip',[ClientController::class,'pay_trip'])->name('pay_trip');
+    Route::get('/completed_trips',[ClientController::class,'completed_trips'])->name('completed_trips');
+    Route::get('/cancelled_trips',[ClientController::class,'cancelled_trips'])->name('cancelled_trips');
+    Route::get('/driver_completed_trips',[DriverController::class,'driver_completed_trips'])->name('driver_completed_trips');
+    Route::get('/driver_cancelled_trips',[DriverController::class,'driver_cancelled_trips'])->name('driver_cancelled_trips');
+    Route::post('/update_location_car',[DriverController::class,'update_location_car'])->name('update_location_car');
+    Route::post('/rate_trip',[ClientController::class,'rate_trip'])->name('rate_trip');
+    Route::post('/cancell_trip',[ClientController::class,'cancell_trip'])->name('cancell_trip');
 
 });
 

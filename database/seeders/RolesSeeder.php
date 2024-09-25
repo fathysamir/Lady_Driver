@@ -45,6 +45,7 @@ class RolesSeeder extends Seeder
            
             'statue' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#1'),
+            'theme' => 'theme1'
         ]);
         $user2 = User::create([
             'name' => 'Admin2',
@@ -54,6 +55,7 @@ class RolesSeeder extends Seeder
            
           
             'password' => Hash::make('gmadmin159!48@26#2'),
+            'theme' => 'theme1'
         ]);
         $user3 = User::create([
             'name' => 'Admin3',
@@ -61,6 +63,7 @@ class RolesSeeder extends Seeder
             'email' => 'admin3@gmail.com',
             'statue' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#3'),
+            'theme' => 'theme1'
         ]);
         $user4 = User::create([
             'name' => 'Admin4',
@@ -68,6 +71,7 @@ class RolesSeeder extends Seeder
             'email' => 'admin4@gmail.com',
             'statue' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#4'),
+            'theme' => 'theme1'
         ]);
         $user5 = User::create([
             'name' => 'Admin5',
@@ -75,6 +79,7 @@ class RolesSeeder extends Seeder
             'email' => 'admin5@gmail.com',
             
             'password' => Hash::make('gmadmin159!48@26#5'),
+            'theme' => 'theme1'
         ]);
 
         

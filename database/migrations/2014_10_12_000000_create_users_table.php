@@ -30,6 +30,7 @@ return new class extends Migration
             $table->longText('device_token')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('theme')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

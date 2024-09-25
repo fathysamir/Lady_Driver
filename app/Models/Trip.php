@@ -19,8 +19,10 @@ class Trip extends Model
         'end_time',
         'start_lat',
         'start_lng',
+        'address1',
         'end_lat',
         'end_lng',
+        'address2',
         'total_price',
         'app_rate',
         'driver_rate',
@@ -53,6 +55,9 @@ class Trip extends Model
     }
     public function car(){
         return $this->belongsTo(Car::class,'car_id','id');
+    }
+    public function cancelled_by(){
+        return $this->belongsTo(User::class,'cancelled_by_id','id');
     }
    
    

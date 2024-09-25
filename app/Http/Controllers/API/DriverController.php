@@ -9,6 +9,8 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\Trip;
 use App\Models\Offer;
+use App\Models\CarMark;
+use App\Models\CarModel;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
@@ -16,7 +18,31 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
 class DriverController extends ApiController
-{
+{   
+    public function marks(){
+        $marks=CarMark::all();
+        return $this->sendResponse($marks,null,200);
+
+    }
+
+    public function models(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'car_mark_id' => [
+                 'required',
+                 Rule::exists('car_marks', 'id') 
+             ]
+         ]);
+         // dd($request->all());
+         if ($validator->fails()) {
+ 
+             return $this->sendError(null,$validator->errors(),400);
+         }
+         
+        $models=CarModel::where('car_mark_id',$request->car_mark_id)->get();
+        return $this->sendResponse($models,null,200);
+
+    }
+    
     public function create_car(Request $request){
         $validator  =   Validator::make($request->all(), [
            'car_mark_id' => [
@@ -56,13 +82,18 @@ class DriverController extends ApiController
                         ]);
         if($request->air_conditioned){
             $car->air_conditioned='1';
+        }else{
+            $car->air_conditioned='0';
         }
         $car->save();
         uploadMedia($request->image,$car->avatarCollection,$car);
         uploadMedia($request->plate_image,$car->PlateImageCollection,$car);
         uploadMedia($request->license_front_image,$car->LicenseFrontImageCollection,$car);
         uploadMedia($request->license_back_image,$car->LicenseBackImageCollection,$car);
-
+        $car->image=getFirstMediaUrl($car,$car->avatarCollection);
+        $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
+        $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
+        $car->license_back_image=getFirstMediaUrl($car,$car->LicenseBackImageCollection);
         return $this->sendResponse($car,'Car Created Successfuly.',200);
     }
 
@@ -111,10 +142,10 @@ class DriverController extends ApiController
                         ]);
         $car=Car::find($request->car_id);
                         
-        if($request->air_conditioned==1){
-            $car->air_conditioned=1;
+        if($request->air_conditioned=='1'){
+            $car->air_conditioned='1';
         }else{
-            $car->air_conditioned=0;
+            $car->air_conditioned='0';
         }
         $car->save();
         
@@ -157,12 +188,19 @@ class DriverController extends ApiController
                 uploadMedia($request->license_back_image,$car->LicenseBackImageCollection,$car);
             }
         }
-
+        $car=Car::find($request->car_id);
+        $car->image=getFirstMediaUrl($car,$car->avatarCollection);
+        $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
+        $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
+        $car->license_back_image=getFirstMediaUrl($car,$car->LicenseBackImageCollection);
         return $this->sendResponse($car,'Car Updated Successfuly.',200);
     }
 
     public function car(){
         $car=Car::where('user_id',auth()->user()->id)->with(['mark:id,name','model:id,name','owner:id,name'])->first();
+        if(!$car){
+            return $this->sendError(null,"You don't create your cat yet",400);
+        }
         $car->image=getFirstMediaUrl($car,$car->avatarCollection);
         $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
         $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
@@ -184,18 +222,48 @@ class DriverController extends ApiController
  
              return $this->sendError(null,$validator->errors(),400);
          }
-         $driving_license=DriverLicense::create(['user_id'=>auth()->user()->id,
-                                                 'license_num'=>$request->license_number,
-                                                 'expire_date'=>$request->license_expire_date]);
-         uploadMedia($request->license_front_image,$driving_license->LicenseFrontImageCollection,$driving_license);
-         uploadMedia($request->license_back_image,$driving_license->LicenseBackImageCollection,$driving_license);
+         $existed_driving_license=DriverLicense::where('user_id',auth()->user()->id)->first();
+         if(!$existed_driving_license){
+            $license=DriverLicense::create(['user_id'=>auth()->user()->id,
+                                                    'license_num'=>$request->license_number,
+                                                    'expire_date'=>$request->license_expire_date]);
+            uploadMedia($request->license_front_image,$license->LicenseFrontImageCollection,$license);
+            uploadMedia($request->license_back_image,$license->LicenseBackImageCollection,$license);
+         }else{
+            $existed_driving_license->update(['license_num'=>$request->license_number,
+                                              'expire_date'=>$request->license_expire_date]);
+            if($request->file('license_front_image')){
+                $license_front_image=getFirstMediaUrl($existed_driving_license,$existed_driving_license->LicenseFrontImageCollection);
+                if($license_front_image!= null){
+                    deleteMedia($existed_driving_license,$existed_driving_license->LicenseFrontImageCollection);
+                    uploadMedia($request->license_front_image,$existed_driving_license->LicenseFrontImageCollection,$existed_driving_license);
+                }else{
+                    uploadMedia($request->license_front_image,$existed_driving_license->LicenseFrontImageCollection,$existed_driving_license);
+                }
+            }
 
+            if($request->file('license_back_image')){
+                $license_back_image=getFirstMediaUrl($existed_driving_license,$existed_driving_license->LicenseBackImageCollection);
+                if($license_back_image!= null){
+                    deleteMedia($existed_driving_license,$existed_driving_license->LicenseBackImageCollection);
+                    uploadMedia($request->license_back_image,$existed_driving_license->LicenseBackImageCollection,$existed_driving_license);
+                }else{
+                    uploadMedia($request->license_back_image,$existed_driving_license->LicenseBackImageCollection,$existed_driving_license);
+                }
+            }
+         }
+         $driving_license=DriverLicense::where('user_id',auth()->user()->id)->first();
+         $driving_license->license_front_image=getFirstMediaUrl($driving_license,$driving_license->LicenseFrontImageCollection);
+         $driving_license->license_back_image=getFirstMediaUrl($driving_license,$driving_license->LicenseBackImageCollection);
          return $this->sendResponse($driving_license,'License Driving is Created Successfuly',200);
 
     }
 
     public function driving_license(){
         $driving_license=DriverLicense::where('user_id',auth()->user()->id)->first();
+        if(!$driving_license){
+            return $this->sendError(null,"You don't add information of your driving license yet",400);
+        }
         $driving_license->license_front_image=getFirstMediaUrl($driving_license,$driving_license->LicenseFrontImageCollection);
         $driving_license->license_back_image=getFirstMediaUrl($driving_license,$driving_license->LicenseBackImageCollection);
         return $this->sendResponse($driving_license,null,200);
@@ -277,5 +345,97 @@ class DriverController extends ApiController
         $offer->status='expired';
         $offer->save();
         return $this->sendResponse(null,'Offer is expired',200);
+    }
+    
+    public function driver_current_trip(){
+        $lastAcceptedOffer = Offer::where('user_id',auth()->user()->id)
+                                ->where('status', 'accepted')
+                                ->orderBy('id', 'desc') // Or 'id' if you prefer
+                                ->first();
+        if(!$lastAcceptedOffer){
+            return $this->sendError(null,'no current trip existed',400);
+        }
+        $trip=Trip::where('id',$lastAcceptedOffer->trip_id)->with(['car' => function($query) {
+            $query->with(['mark:id,name','model:id,name']);
+        },'user'])->first();
+        if($trip->status=='completed' || $trip->status=='cancelled'){
+            return $this->sendError(null,'no current trip existed',400);
+        }
+        $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
+        return $this->sendResponse($trip,null,200);
+    }
+
+    public function start_trip(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'trip_id' => [
+                'required',
+                Rule::exists('trips', 'id')
+            ]
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            return $this->sendError(null,$validator->errors(),400);
+        }
+        $trip=Trip::find($request->trip_id);
+        if($trip->status=='pending'){
+            $trip->status='in_progress';
+            $trip->save();
+            return $this->sendResponse(null,'trip started now',200);
+        }elseif($trip->status=='in_progress'){
+            $trip->status='completed';
+            $trip->save();
+            return $this->sendResponse(null,'trip ended now',200);
+        }
+    }
+
+    public function update_location_car(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            
+             'lat' => 'required',
+             'lng' => 'required',
+             
+         ]);
+         // dd($request->all());
+         if ($validator->fails()) {
+ 
+             return $this->sendError(null,$validator->errors(),400);
+         }
+         $car=Car::where('user_id',auth()->user()->id)->first();
+        if(!$car){
+            return $this->sendError(null,"You don't create your cat yet",400);
+        }
+        $car->lat=floatval($request->lat);
+        $car->lng=floatval($request->lng);
+        $car->save();
+        return $this->sendResponse(null,'car location updated successfuly',200);
+    }
+
+    public function driver_completed_trips(){
+        $car=Car::where('user_id',auth()->user()->id)->first();
+        $completed_trips=Trip::where('car_id',$car->id)->where('status','completed')->with(['car' => function($query) {
+            $query->with(['mark:id,name','model:id,name','owner']);
+        },'user'])->get()->map(function ($trip) {
+            
+            $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
+            return $trip;
+        
+        });
+
+        return $this->sendResponse($completed_trips,null,200);
+    }
+
+    public function driver_cancelled_trips(){
+        $car=Car::where('user_id',auth()->user()->id)->first();
+        $cancelled_trips=Trip::where('car_id',$car->id)->where('status','cancelled')->with(['car' => function($query) {
+            $query->with(['mark:id,name','model:id,name','owner']);
+        },'user','cancelled_by'])->get()->map(function ($trip) {
+            
+            $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
+            return $trip;
+        
+        });
+
+        return $this->sendResponse($cancelled_trips,null,200);
     }
 }

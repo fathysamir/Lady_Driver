@@ -36,7 +36,8 @@ class User extends Authenticatable
         'birth_date',
         'device_token',
         'password',
-        'mode'
+        'mode',
+        'theme'
     ];
 
     /**

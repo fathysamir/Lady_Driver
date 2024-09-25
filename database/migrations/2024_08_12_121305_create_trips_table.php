@@ -27,8 +27,10 @@ return new class extends Migration
             $table->double('distance', 8, 2)->nullable();
             $table->double('start_lat', 10, 6)->nullable();
             $table->double('start_lng', 10, 6)->nullable();
+            $table->string('address1',255)->nullable();
             $table->double('end_lat', 10, 6)->nullable();
             $table->double('end_lng', 10, 6)->nullable();
+            $table->string('address2',255)->nullable();
             $table->enum('air_conditioned', ['0','1'])->default('0');
             $table->float('client_stare_rate', 3, 2)->default(0);
             $table->longText('client_comment')->nullable();
