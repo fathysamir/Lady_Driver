@@ -20,8 +20,7 @@ use File;
 
 class UserController extends Controller
 {//done
-    public function index(Request $request)
-    {
+    public function index(Request $request){
         $all_users = User::orderBy('id', 'desc');
 
         if ($request->has('search')) {
