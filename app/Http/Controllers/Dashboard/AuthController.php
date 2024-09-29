@@ -21,8 +21,7 @@ class AuthController extends Controller
 {
 
 ///////////////////////////////////////////  Login  ///////////////////////////////////////////
-    public function login_view()
-    {
+    public function login_view(){
         return view('dashboard.login');
     }
 
