@@ -20,8 +20,7 @@ use File;
 
 class CarMarkController extends ApiController
 {
-    public function index(Request $request)
-    {  
+    public function index(Request $request){  
         $all_marks = CarMark::orderBy('id', 'desc');
 
         if ($request->has('search') && $request->search!=null) {
