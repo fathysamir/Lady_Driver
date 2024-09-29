@@ -24,19 +24,28 @@ class UserController extends Controller
     {
         $all_users = User::orderBy('id', 'desc');
 
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->search!=null ) {
             $all_users->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('phone', 'LIKE', '%' . $request->search . '%');
             });
         }
-        if ($request->has('mode')) {
+        if ($request->has('mode')&& $request->mode!=null) {
             $all_users->where('mode', $request->mode);
         }
     
-        if ($request->has('status')) {
+        if ($request->has('status')&& $request->status!=null) {
             $all_users->where('status', $request->status);
+        }
+        if ($request->has('role') && $request->role != null) {
+            $role = Role::where('name', $request->role)->first();
+            
+            if ($role) {
+                $all_users->whereHas('roles', function ($query) use ($role) {
+                    $query->where('roles.id', $role->id);
+                });
+            }
         }
         $all_users = $all_users->paginate(12);
 
@@ -103,6 +112,10 @@ class UserController extends Controller
         $user=User::where('id',$id)->first();
         $user->image = getFirstMediaUrl($user,$user->avatarCollection);
         $user->driving_license=DriverLicense::where('user_id',$user->id)->first();
+        if($user->driving_license){
+            $user->driving_license->front_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseFrontImageCollection);
+            $user->driving_license->back_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseBackImageCollection);
+        }
         return view('dashboard.users.edit',compact('user'));
     }
 

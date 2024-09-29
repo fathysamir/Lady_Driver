@@ -12,12 +12,49 @@
                 <div class="col-lg-12">
                     <div class="card">
                       <div class="card-body">
-                        <div style="display: flex;">
-                            <h5 class="card-title" style="width: 80%;">Users</h5>
+                        <div>
+                            
                             <form id="searchForm" class="search-bar" style="margin-bottom:1%;margin-right:20px;margin-left:0px;"method="post" action="{{ route('users') }}" enctype="multipart/form-data">
                                 @csrf
-                                <input type="text" class="form-control" placeholder="Enter keywords" name="search">
-                                <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
+                                <div style="display:flex;">
+                                  <h5 class="card-title" style="width: 60%;">Users</h5>
+                                  <div style="display:flex;margin-bottom:1%;margin-left:0px;">
+                                    <button class="btn btn-light px-5" type="button" onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
+                                    <input type="text" class="form-control" placeholder="Enter keywords" name="search">
+                                    <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
+                                  </div>
+                                  
+                                </div>
+                                
+                                
+                                <div id="filterOptions" style="display: none; text-align:center;">
+                                  <div style="display: flex;">
+                                    <select class="form-control" style="width: 33%; margin: 0% 1% 0% 0%;" name="mode">
+                                        <option value="">Select Mode</option>
+                                        <option value="client">Client</option>
+                                        <option value="driver">Driver</option>
+                                        <!-- Add more options as needed -->
+                                    </select>
+                                    
+                                    <select class="form-control"style="width: 33%;margin: 0% 1% 0% 1%;" name="role">
+                                        <option value="">Select Role</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Client">Client</option>
+                                        <!-- Add more options as needed -->
+                                    </select>
+                                    
+                                    <select class="form-control"style="width: 33%;margin: 0% 0% 0% 1%;" name="status">
+                                        <option value="">Select Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="blocked">Blocked</option>
+                                        <!-- Add more options as needed -->
+                                    </select>
+                                  </div>
+                                    
+                                    
+                                    <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
+                                </div>
                             </form>
                             {{-- <a  class="btn btn-light px-5" style="margin-bottom:1%; " href="{{route('add.user')}}">create</a> --}}
                         </div>
@@ -72,7 +109,7 @@
                           </tbody>
                         </table>
                         <div style="text-align: center;">
-                        {!! $all_users->links("pagination::bootstrap-4") !!}
+                          {!! $all_users->appends(['search' => request('search'),'mode'=>request('mode'),'status'=>request('status')])->links("pagination::bootstrap-4") !!}
                         </div>
                       </div>
                       </div>
@@ -92,4 +129,16 @@
         });
     });
     </script>
+    <script>
+      function toggleFilters() {
+          var filterOptions = document.getElementById("filterOptions");
+          if (filterOptions.style.display === "none") {
+              filterOptions.style.display = "block";
+          } else {
+              filterOptions.style.display = "none";
+          }
+      }
+  
+      
+  </script>
 @endpush

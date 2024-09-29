@@ -24,6 +24,7 @@ class DriverController extends ApiController
         return $this->sendResponse($marks,null,200);
 
     }
+
     public function models(Request $request){
         $validator  =   Validator::make($request->all(), [
             'car_mark_id' => [

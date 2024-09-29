@@ -12,10 +12,13 @@
                       <hr>
                        <form method="post" action="{{ route('update.user', ['id' => $user->id]) }}" enctype="multipart/form-data">
                         @csrf
-                      <div class="form-group">
-                       <label>Name</label>
-                        <input type="text" disabled class="form-control"  placeholder="Enter Name"value="{{$user->name}}">
-                      </div>
+                        <div class="form-group"style="text-align: center;">
+                          <div>
+                            <img style="border-radius: 50%;width:200px;height:200px;" @if($user->image!=null) src="{{$user->image}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar">
+                          </div>
+                          <h3>{{$user->name}}</h3>
+                        </div>
+                      
                       <div class="form-group">
                         <label>Email</label>
                         <input type="email" disabled class="form-control"  placeholder="Enter Email"value="{{$user->email}}">
@@ -36,6 +39,25 @@
                       <div class="form-group">
                         <label>Birth Date : {{$user->birth_date}}</label>
                       </div>
+                      @if($user->mode == 'driver')
+                      <div class="form-group" style="display: flex; align-items: center;">
+                        <h4 style="margin-right: 10px;">Driving License</h4>
+                        <hr style="flex: 1; margin: 0;">
+                      </div>
+                      
+                      <div class="form-group">
+                        <label>License Number : {{$user->driving_license->license_num}}</label>
+                      </div>
+                      <div class="form-group">
+                        <label>Expire Date : {{$user->driving_license->expire_date}}</label>
+                      </div>
+                      <div class="form-group"style="display: flex;">
+                        <label>Front Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->front_image}}">
+                      </div>
+                      <div class="form-group"style="display: flex;">
+                        <label>Back Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->back_image}}">
+                      </div>
+                      @endif
                       <div class="form-group">
                         <label>Status</label>
                          

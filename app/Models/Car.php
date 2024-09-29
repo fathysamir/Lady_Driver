@@ -17,6 +17,7 @@ class Car extends Model
     public $LicenseBackImageCollection = 'license_back_image';
 
     protected $fillable = [
+        
         'user_id',
         'car_mark_id',
         'car_model_id',
