@@ -29,9 +29,7 @@ class TripController extends Controller
 
         if ($request->has('search') && $request->search!=null ) {
             $all_trips->where(function ($query) use ($request) {
-                $query->where('car_plate', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('color', 'LIKE', '%' . $request->search . '%');
-                   
+                $query->where('code', 'LIKE', '%' . $request->search . '%');
             });
         }
         // if ($request->has('user')&& $request->user!=null) {
