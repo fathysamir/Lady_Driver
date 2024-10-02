@@ -37,7 +37,7 @@
                                     <select class="form-control"style="width: 33%;display:inline" name="mark">
                                         <option value="">Select Mark</option>
                                         @foreach($marks as $mark)
-                                        <option value="{{$mark->id}}">{{$mark->name}}</option>
+                                        <option value="{{$mark->id}}">{{$mark->en_name}} - {{$mark->ar_name}}</option>
                                         @endforeach
                                         
                                         <!-- Add more options as needed -->
@@ -81,8 +81,8 @@
                             @if(!empty($all_models) && $all_models->count())
                             @foreach($all_models as $model)
                               <tr>
-                                <td>{{$model->name}}</td>
-                                <td>{{$model->mark->name}}</td>
+                                <td>{{$model->en_name}} - {{$model->ar_name}}</td>
+                                <td>{{$model->mark->en_name}} - {{$model->mark->ar_name}}</td>
                                 <td>
                                   
                                   

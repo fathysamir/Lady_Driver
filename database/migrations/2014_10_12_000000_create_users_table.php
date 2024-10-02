@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->unique()->nullable();
             $table->unsignedInteger('age')->nullable();
-            $table->enum('status', ['pending', 'confirmed','blocked'])->default('pending');
+            $table->enum('status', ['pending', 'confirmed','blocked','banned'])->default('pending');
             $table->string('OTP')->nullable();
             $table->enum('is_online', ['0', '1'])->default('1');
             $table->enum('mode', ['client', 'driver'])->default('client');

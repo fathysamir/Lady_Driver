@@ -13,11 +13,15 @@
                        <form method="post" action="{{route('update.car.model',$model->id)}}" enctype="multipart/form-data">
                         @csrf
                       <div class="form-group">
-                       <label>Name</label>
-                        <input type="text" name="name" class="form-control"  placeholder="Enter Name"value="{{ old('name',$model->name) }}">
-                        @if ($errors->has('name'))
-                            <p class="text-error more-info-err" style="color: red;">
-                                {{ $errors->first('name') }}</p>
+                        <label><span style="cursor: pointer;" onclick="change_input('en')">English Name</span> | <span style="cursor: pointer;"onclick="change_input('ar')">Arabic Name</span></label>
+                        <input id="en_name_input" type="text" name="en_name" class="form-control"  placeholder="Enter English Name"value="{{ old('en_name',$model->en_name) }}">
+                        <input id="ar_name_input"type="text" name="ar_name" class="form-control"  placeholder="Enter Arabic Name"value="{{ old('ar_name',$model->ar_name) }}" style="display:none;">
+                        @if ($errors->has('en_name'))
+                            <p class="text-error more-info-err" style="color: red;">{{ $errors->first('en_name') }}</p>
+                        @endif
+                        @if ($errors->has('ar_name'))
+                            <p class="text-error more-info-err" style="color: red;">{{$errors->first('ar_name')}}</p>
+
                         @endif
                       </div>
                       <div class="form-group">
@@ -26,7 +30,7 @@
                         <select class="form-control" name="car_mark">
                           <option value="">Select Car Mark</option>
                           @foreach($marks as $mark)
-                          <option value="{{$mark->id}}" @if($model->car_mark_id==$mark->id) selected @endif>{{$mark->name}}</option>
+                          <option value="{{$mark->id}}" @if($model->car_mark_id==$mark->id) selected @endif>{{$mark->en_name}} - {{$mark->ar_name}}</option>
                           @endforeach
                         </select>
                         @if ($errors->has('car_mark'))
@@ -52,6 +56,14 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-   
+  function change_input(lang) {
+      if (lang === 'en') {
+          document.getElementById('en_name_input').style.display = 'block';
+          document.getElementById('ar_name_input').style.display = 'none';
+      } else if (lang === 'ar') {
+          document.getElementById('en_name_input').style.display = 'none';
+          document.getElementById('ar_name_input').style.display = 'block';
+      }
+  }
 </script>
 @endpush

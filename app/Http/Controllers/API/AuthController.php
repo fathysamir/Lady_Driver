@@ -16,19 +16,23 @@ class AuthController extends ApiController
     public function register(Request $request)
     {
        
-        $validator  =   Validator::make($request->all(), [
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'mode'=> 'required',
-            'phone' =>'required|unique:users,phone'
-            
-            
-        ]);
-        // dd($request->all());
+            'mode' => 'required',
+            'phone' => 'required|unique:users,phone'
+        ];
+        
+        // Add a conditional rule for 'image' based on the 'mode' field
+        if ($request->input('mode') === 'driver') {
+            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:3072'; // Adjust the image validation rules as needed
+        }
+        
+        $validator = Validator::make($request->all(), $rules);
+        
         if ($validator->fails()) {
-
-            return $this->sendError(null,$validator->errors(),400);
+            return $this->sendError(null, $validator->errors(), 400);
         }
         $otpCode = generateOTP();
         $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
@@ -79,7 +83,9 @@ class AuthController extends ApiController
         if (!$user || !Hash::check($request->password, $user->password)) {
             return $this->sendError(null, 'Invalid credentials', 401);
         }
-
+        if($user->status=='blocked'){
+            return $this->sendError(null, 'this account is blocked', 401);
+        }
         // Generate OTP
         // $otpCode = generateOTP();
         // $user->OTP= $otpCode ;

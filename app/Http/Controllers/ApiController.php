@@ -24,4 +24,11 @@ class ApiController extends Controller
             'data' => $data
         ],$code);
     }
+    function check_banned(){
+        if(auth()->user()->status=='banned'){
+            return 'this account is banned, the ban will be lifted soon';
+        }else{
+            return true;
+        }
+    }
 }

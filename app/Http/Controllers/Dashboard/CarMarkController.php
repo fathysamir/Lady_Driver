@@ -23,10 +23,13 @@ class CarMarkController extends ApiController
     public function index(Request $request){  
         $all_marks = CarMark::orderBy('id', 'desc');
 
-        if ($request->has('search') && $request->search!=null) {
-            $all_marks->where('name', 'LIKE', '%' . $request->search . '%');
+       
+        if ($request->has('search') && $request->search!=null ) {
+            $all_marks->where(function ($query) use ($request) {
+                $query->where('en_name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('ar_name', 'LIKE', '%' . $request->search . '%');
+            });
         }
-
         $all_marks = $all_marks->paginate(12);
         return view('dashboard.car_marks.index',compact('all_marks'));
 
@@ -39,7 +42,8 @@ class CarMarkController extends ApiController
     public function store(Request $request){
 
             $validator = Validator::make($request->all(), [
-                'name' => ['required', 'string', 'max:191'],
+                'en_name' => ['required', 'string', 'max:191'],
+                'ar_name' => ['required', 'string', 'max:191'],
 
             ]);
 
@@ -50,7 +54,8 @@ class CarMarkController extends ApiController
             
             
             CarMark::create([
-                'name' => $request->name
+                'en_name' => $request->en_name,
+                'ar_name' => $request->ar_name
 
             ]);
            
@@ -65,7 +70,8 @@ class CarMarkController extends ApiController
 
     public function update(Request $request,$id){
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:191'],
+            'en_name' => ['required', 'string', 'max:191'],
+            'ar_name' => ['required', 'string', 'max:191'],
 
         ]);
 
@@ -74,7 +80,8 @@ class CarMarkController extends ApiController
             return Redirect::back()->withInput()->withErrors($validator);
         }
    
-        CarMark::where('id',$id)->update([ 'name' => $request->name
+        CarMark::where('id',$id)->update([ 'en_name' => $request->en_name,
+                'ar_name' => $request->ar_name
             ]);
         return redirect('/admin-dashboard/car-marks')->with('success', 'Car Mark updated successfully.');
 

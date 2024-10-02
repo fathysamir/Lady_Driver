@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Validator;
 class ClientController extends ApiController
 {
     public function create_trip(Request $request){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $validator  =   Validator::make($request->all(), [
              'start_lat' => 'required',
              'start_lng' => 'required',
@@ -43,8 +47,17 @@ class ClientController extends ApiController
         }
          $app_rate=round(($distance*$kilometer_price*$app_ratio)/100 ,2);
          $total_price=$driver_rate+$app_rate;
-         
+
+         $lastTrip = Trip::orderBy('id', 'desc')->first();
+
+            if ($lastTrip) {
+                $lastCode = $lastTrip->code;
+                $code = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+            } else {
+                $code = 'TRP-000001';
+            }
          $trip=Trip::create(['user_id'=>auth()->user()->id,
+                             'code'=>$code,
                              'car_id'=>$request->car_id,
                              'start_lat'=>floatval($request->start_lat),
                              'start_lng'=>floatval($request->start_lng),
@@ -63,6 +76,9 @@ class ClientController extends ApiController
         }else{
             $trip->air_conditioned='0';
         }
+        
+
+           
         $trip->save();
         return $this->sendResponse($trip,'Trip Created Successfuly.',200);
          //dd($distance);
@@ -78,6 +94,10 @@ class ClientController extends ApiController
     }
     
     public function current_trip(){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $trip=Trip::where('user_id',auth()->user()->id)->whereIn('status',['created','pending', 'in_progress'])->with(['car' => function($query) {
             $query->with(['mark:id,name','model:id,name','owner']);
         }])->first();
@@ -91,6 +111,8 @@ class ClientController extends ApiController
                 $pendingOffers = $trip->offers()->where('status', 'pending')->get()->map(function ($offer) use ($trip,$app_ratio) {
                         $offer->offer=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
                         $offer->user->image=getFirstMediaUrl($offer->user,$offer->user->avatarCollection);
+                        $offer->car->mark;
+                        $offer->car->model;
                         return $offer;
                     
                 });
@@ -105,6 +127,10 @@ class ClientController extends ApiController
     }
 
     public function accept_offer(Request $request){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $validator  =   Validator::make($request->all(), [
             'offer_id' => [
                 'required',
@@ -160,7 +186,7 @@ class ClientController extends ApiController
 
     public function completed_trips(){
         $completed_trips=Trip::where('user_id',auth()->user()->id)->where('status','completed')->with(['car' => function($query) {
-            $query->with(['mark:id,name','model:id,name','owner']);
+            $query->with(['mark','model','owner']);
         }])->get()->map(function ($trip) {
             $trip->car->owner->image=getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection);
             return $trip;
@@ -172,7 +198,7 @@ class ClientController extends ApiController
 
     public function cancelled_trips(){
         $cancelled_trips=Trip::where('user_id',auth()->user()->id)->where('status','cancelled')->with(['car' => function($query) {
-            $query->with(['mark:id,name','model:id,name','owner']);
+            $query->with(['mark','model','owner']);
         },'cancelled_by'])->get()->map(function ($trip) {
             $trip->car->owner->image=getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection);
             return $trip;

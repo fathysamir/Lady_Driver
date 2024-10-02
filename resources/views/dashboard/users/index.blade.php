@@ -5,6 +5,22 @@
     .pagination{
         display: inline-flex;
     }
+    .user-status {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-left: -4%;
+        margin-bottom: 4.65%;
+    }
+
+    .online {
+        background-color: green;
+    }
+
+    .offline {
+        background-color: gray;
+    }
 </style>
     <div class="content-wrapper">
         <div class="container-fluid">
@@ -77,7 +93,7 @@
                             @if(!empty($all_users) && $all_users->count())
                             @foreach($all_users as $user)
                               <tr>
-                                <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span> {{$user->name}}</td>
+                                <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span>@if($user->mode == 'driver') <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> @endif {{$user->name}}</td>
                                 <td>{{$user->email}}</td>
                                 
                                 <td>{{$user->phone}}</td>

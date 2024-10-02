@@ -11,7 +11,8 @@ class CarModel extends Model
     use HasFactory,SoftDeletes;
     protected $table = 'car_models';
     protected $fillable = [
-        'name',
+        'en_name',
+        'ar_name',
         'car_mark_id'
     ];
 
@@ -22,7 +23,19 @@ class CarModel extends Model
     ];
 
     protected $hidden = ['deleted_at'];
+    protected $appends = ['name'];
+    public function getNameAttribute()
+    {
+        // Get the language from the 'Accept-Language' header
+        $locale = request()->header('Accept-Language');
 
+        // Default to 'en' if no language is provided or it's not 'ar'
+        if ($locale == 'ar') {
+            return $this->ar_name;
+        }
+
+        return $this->en_name;
+    }
     public function mark(){
         return $this->belongsTo(CarMark::class,'car_mark_id','id');
     }

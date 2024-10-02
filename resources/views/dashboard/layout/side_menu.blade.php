@@ -27,6 +27,11 @@
           <i class="zmdi zmdi-view-dashboard"></i> <span>Car Models</span>
         </a>
       </li>
+      <li>
+        <a href="{{url('/admin-dashboard/cars')}}">
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Drivers Cars</span>
+        </a>
+      </li>
 
     </ul>
 

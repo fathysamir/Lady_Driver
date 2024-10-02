@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('car_marks', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('ar_name');
+            $table->string('en_name');
             $table->timestamps();
             $table->softDeletes();
         });

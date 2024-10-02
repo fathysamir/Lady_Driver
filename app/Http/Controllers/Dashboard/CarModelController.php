@@ -26,7 +26,10 @@ class CarModelController extends ApiController
         $all_models = CarModel::orderBy('id', 'desc');
 
         if ($request->has('search') && $request->search!=null) {
-            $all_models->where('name', 'LIKE', '%' . $request->search . '%');
+            $all_models->where(function ($query) use ($request) {
+                $query->where('en_name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('ar_name', 'LIKE', '%' . $request->search . '%');
+            });
         }
         if ($request->has('mark')&& $request->mark!=null) {
             $all_models->where('car_mark_id', $request->mark);
@@ -45,7 +48,8 @@ class CarModelController extends ApiController
     public function store(Request $request){
 
             $validator = Validator::make($request->all(), [
-                'name' => ['required', 'string', 'max:191'],
+                'en_name' => ['required', 'string', 'max:191'],
+            'ar_name' => ['required', 'string', 'max:191'],
                 'car_mark' => ['required',Rule::in(CarMark::pluck('id'))]
             ]);
 
@@ -56,7 +60,7 @@ class CarModelController extends ApiController
             
             
             CarModel::create([
-                'name' => $request->name,
+                'en_name' => $request->en_name,'ar_name' => $request->ar_name,
                 'car_mark_id' => $request->car_mark
             ]);
            
@@ -72,7 +76,8 @@ class CarModelController extends ApiController
 
     public function update(Request $request,$id){
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:191'],
+           'en_name' => ['required', 'string', 'max:191'],
+            'ar_name' => ['required', 'string', 'max:191'],
             'car_mark' => ['required',Rule::in(CarMark::pluck('id'))]
         ]);
 
@@ -81,7 +86,7 @@ class CarModelController extends ApiController
             return Redirect::back()->withInput()->withErrors($validator);
         }
    
-        CarModel::where('id',$id)->update([ 'name' => $request->name,'car_mark_id' => $request->car_mark
+        CarModel::where('id',$id)->update([ 'en_name' => $request->en_name,'ar_name' => $request->ar_name,'car_mark_id' => $request->car_mark
             ]);
         return redirect('/admin-dashboard/car-models')->with('success', 'Car Model updated successfully.');
 

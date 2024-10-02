@@ -19,9 +19,11 @@ use Illuminate\Support\Facades\Validator;
 
 class DriverController extends ApiController
 {   
-    public function marks(){
-        $marks=CarMark::all();
-        return $this->sendResponse($marks,null,200);
+    public function marks(Request $request){
+        
+
+        $carMarks = CarMark::all();
+        return $this->sendResponse($carMarks,null,200);
 
     }
 
@@ -44,6 +46,10 @@ class DriverController extends ApiController
     }
     
     public function create_car(Request $request){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $validator  =   Validator::make($request->all(), [
            'car_mark_id' => [
                 'required',
@@ -98,6 +104,10 @@ class DriverController extends ApiController
     }
 
     public function edit_car(Request $request){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $validator  =   Validator::make($request->all(), [
             'car_id' => [
                 'required',
@@ -196,11 +206,14 @@ class DriverController extends ApiController
         return $this->sendResponse($car,'Car Updated Successfuly.',200);
     }
 
-    public function car(){
-        $car=Car::where('user_id',auth()->user()->id)->with(['mark:id,name','model:id,name','owner:id,name'])->first();
+    public function car(Request $request){
+        $acceptedLanguage = $request->header('Accept-Language');
+        $car=Car::where('user_id',auth()->user()->id)->with(['owner:id,name','mark','model'])->first();
         if(!$car){
             return $this->sendError(null,"You don't create your cat yet",400);
         }
+        
+      
         $car->image=getFirstMediaUrl($car,$car->avatarCollection);
         $car->plate_image=getFirstMediaUrl($car,$car->PlateImageCollection);
         $car->license_front_image=getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
@@ -270,6 +283,10 @@ class DriverController extends ApiController
     }
 
     public function created_trips(){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $driver_car=Car::where('user_id',auth()->user()->id)->first();
         if($driver_car->status=='confirmed'){
             if(auth()->user()->is_online=='1'){
@@ -318,6 +335,10 @@ class DriverController extends ApiController
     }
 
     public function create_offer(Request $request){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $validator  =   Validator::make($request->all(), [
             'trip_id' => [
                  'required',
@@ -332,7 +353,16 @@ class DriverController extends ApiController
             return $this->sendError(null,$validator->errors(),400);
         }
         $driver_car=Car::where('user_id',auth()->user()->id)->first();
+        $lastOffer = Offer::orderBy('id', 'desc')->first();
+
+            if ($lastOffer) {
+                $lastCode = $lastOffer->code;
+                $code = 'OFR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+            } else {
+                $code = 'OFR-000001';
+            }
         $offer=Offer::create(['user_id'=>auth()->user()->id,
+                                'code'=>$code,
                                'car_id'=>$driver_car->id,
                                'trip_id'=>intval($request->trip_id),
                                'offer'=>floatval($request->offer)]);
@@ -348,6 +378,10 @@ class DriverController extends ApiController
     }
     
     public function driver_current_trip(){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $lastAcceptedOffer = Offer::where('user_id',auth()->user()->id)
                                 ->where('status', 'accepted')
                                 ->orderBy('id', 'desc') // Or 'id' if you prefer
@@ -356,7 +390,7 @@ class DriverController extends ApiController
             return $this->sendError(null,'no current trip existed',400);
         }
         $trip=Trip::where('id',$lastAcceptedOffer->trip_id)->with(['car' => function($query) {
-            $query->with(['mark:id,name','model:id,name']);
+            $query->with(['mark','model']);
         },'user'])->first();
         if($trip->status=='completed' || $trip->status=='cancelled'){
             return $this->sendError(null,'no current trip existed',400);
@@ -366,6 +400,10 @@ class DriverController extends ApiController
     }
 
     public function start_trip(Request $request){
+        $check_account=$this->check_banned();
+        if($check_account!= true){
+            return $this->sendError(null,$check_account,400);
+        }
         $validator  =   Validator::make($request->all(), [
             'trip_id' => [
                 'required',
@@ -380,10 +418,14 @@ class DriverController extends ApiController
         $trip=Trip::find($request->trip_id);
         if($trip->status=='pending'){
             $trip->status='in_progress';
+            $trip->start_date=date('Y-m-d');
+            $trip->start_time=date('H:i:s');
             $trip->save();
             return $this->sendResponse(null,'trip started now',200);
         }elseif($trip->status=='in_progress'){
             $trip->status='completed';
+            $trip->end_date=date('Y-m-d');
+            $trip->end_time=date('H:i:s');
             $trip->save();
             return $this->sendResponse(null,'trip ended now',200);
         }
@@ -405,6 +447,9 @@ class DriverController extends ApiController
         if(!$car){
             return $this->sendError(null,"You don't create your cat yet",400);
         }
+        if(auth()->user()->is_online=='0'){
+            return $this->sendError(null,"You are Offline, You should be online first",400);
+        }
         $car->lat=floatval($request->lat);
         $car->lng=floatval($request->lng);
         $car->save();
@@ -414,7 +459,7 @@ class DriverController extends ApiController
     public function driver_completed_trips(){
         $car=Car::where('user_id',auth()->user()->id)->first();
         $completed_trips=Trip::where('car_id',$car->id)->where('status','completed')->with(['car' => function($query) {
-            $query->with(['mark:id,name','model:id,name','owner']);
+            $query->with(['mark','model','owner']);
         },'user'])->get()->map(function ($trip) {
             
             $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
@@ -428,7 +473,7 @@ class DriverController extends ApiController
     public function driver_cancelled_trips(){
         $car=Car::where('user_id',auth()->user()->id)->first();
         $cancelled_trips=Trip::where('car_id',$car->id)->where('status','cancelled')->with(['car' => function($query) {
-            $query->with(['mark:id,name','model:id,name','owner']);
+            $query->with(['mark','model','owner']);
         },'user','cancelled_by'])->get()->map(function ($trip) {
             
             $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);

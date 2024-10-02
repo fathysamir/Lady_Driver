@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Car;
 use App\Models\DriverLicense;
 use Image;
 use Str;
@@ -112,6 +113,7 @@ class UserController extends Controller
         $user=User::where('id',$id)->first();
         $user->image = getFirstMediaUrl($user,$user->avatarCollection);
         $user->driving_license=DriverLicense::where('user_id',$user->id)->first();
+        $user->car=Car::where('user_id',$user->id)->first();
         if($user->driving_license){
             $user->driving_license->front_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseFrontImageCollection);
             $user->driving_license->back_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseBackImageCollection);

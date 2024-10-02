@@ -5,6 +5,8 @@ use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\CarMarkController;
 use App\Http\Controllers\Dashboard\CarModelController;
+use App\Http\Controllers\Dashboard\CarController;
+use App\Http\Controllers\Dashboard\TripController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -56,4 +58,15 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
         Route::get('/car-model/delete/{id}', [CarModelController::class, 'delete'])->name('delete.car.model');
         
     /////////////////////////////////////////
+        Route::any('/cars', [CarController::class, 'index'])->name('cars'); 
+        // Route::get('/users/create', [UserController::class, 'create'])->name('add.user');
+        // Route::post('/users/create', [UserController::class, 'store'])->name('create.user');
+        Route::get('/car/edit/{id}', [CarController::class, 'edit'])->name('edit.car');
+        Route::post('/car/update/{id}', [CarController::class, 'update'])->name('update.car');
+        Route::get('/car/delete/{id}', [CarController::class, 'delete'])->name('delete.car');
+        Route::get('/getModels', [CarController::class, 'getModels'])->name('getModels');
+        Route::get('/car-location/{id}', [CarController::class, 'getLocation']);
+        //////////////////////////////////////////
+        Route::any('/trips', [TripController::class, 'index'])->name('trips'); 
+        Route::get('/trip/view/{id}', [TripController::class, 'view'])->name('view.trip');
 });
