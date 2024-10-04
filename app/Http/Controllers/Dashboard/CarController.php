@@ -50,7 +50,7 @@ class CarController extends Controller
             $all_cars->where('status', $request->status);
         }
         if ($request->has('air_conditioned')&& $request->air_conditioned!=null) {
-            $all_cars->where('air_conditioned', 1);
+            $all_cars->where('air_conditioned', '1');
         }
         
         $all_cars = $all_cars->paginate(12);

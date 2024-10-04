@@ -25,126 +25,73 @@ class TripController extends Controller
 {//done
     public function index(Request $request)
     {
-        $all_trips = Trip::orderBy('id', 'desc');
+        //dd($request->all());
+        $all_trips = Trip::orderBy('id', 'desc')->whereIn('status',['pending','in_progress','completed','cancelled']);
 
-        if ($request->has('search') && $request->search!=null ) {
+        if($request->has('search') && $request->search!=null ) {
             $all_trips->where(function ($query) use ($request) {
                 $query->where('code', 'LIKE', '%' . $request->search . '%');
             });
         }
-        // if ($request->has('user')&& $request->user!=null) {
-        //     $all_cars->where('user_id', $request->user);
-        // }
-    
-        // if ($request->has('mark')&& $request->mark!=null) {
-        //     $all_cars->where('car_mark_id', $request->mark);
-        // }
-        // if ($request->has('model')&& $request->model!=null) {
-        //     $all_cars->where('car_model_id', $request->model);
-        // }
-        // if ($request->has('year')&& $request->year!=null) {
-        //     $all_cars->where('year', $request->year);
-        // }
-        // if ($request->has('status')&& $request->status!=null) {
-        //     $all_cars->where('status', $request->status);
-        // }
-        // if ($request->has('air_conditioned')&& $request->air_conditioned!=null) {
-        //     $all_cars->where('air_conditioned', 1);
-        // }
-        
-        // $all_cars = $all_cars->paginate(12);
-        // $users=User::whereHas('roles', function ($query) {
-        //     $query->where('roles.name', 'Client');
-        // })->where('mode','driver')->get();
-        // $car_marks=CarMark::all();
-        // return view('dashboard.cars.index',compact('all_cars','users','car_marks'));
-
-    }
-    public function getModels(Request $request)
-    {
-        $markId = $request->input('markId');
-        $models = CarModel::where('car_mark_id', $markId)->get();
-    
-        return response()->json($models);
-    }
-    // public function create(){
-    //     return view('dashboard.users.create');
-    // }
-
-    // public function store(Request $request){
-
-    //         $validator = Validator::make($request->all(), [
-    //             'first_name' => ['required', 'string', 'max:191'],
-    //             'last_name' => ['required', 'string', 'max:191'],
-    //             'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
-    //             'password' => ['required', 'string', 'min:8','confirmed'],
-    //             'salary' => ['required'],
-    //             'manager' => ['nullable'],
-    //             'department'=>['required' , Rule::in(Department::pluck('id'))],
-    //             'image' => ['required'] ,
-    //             'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
-    //             'role'=>['required',Rule::in(Role::pluck('id'))]
-                
-
-    //         ]);
-
-           
-    //         if ($validator->fails()) {
-    //             return Redirect::back()->withInput()->withErrors($validator);
-    //         }
-            
-    //         $user = User::create([
-    //             'first_name' => $request->first_name,
-    //             'last_name' => $request->last_name,
-    //             'email'=> $request->email ,
-    //             'phone'=>$request->phone_number,
-    //             'salary'=> $request->salary,
-    //             'password'=>  Hash::make($request->password),
-    //             'manager_id'=>$request->manager?$request->manager:null,
-    //             'department_id'=>$request->department,
-    //             'theme'=>'theme1'
-                
-    //         ]);
-    //         $role = Role::where('id',$request->role)->first();
-            
-    //         $user->assignRole([$role->id]);
-    //         if($request->file('image')){
-    //             uploadMedia($request->file('image'),$user->avatarCollection,$user);
-    //         }
-    //       return redirect('/users');
-
-    // }
- 
-
-    public function edit($id){
-        $car=Car::where('id',$id)->first();
-        $car->image = getFirstMediaUrl($car,$car->avatarCollection);
-        $car->plate_image = getFirstMediaUrl($car,$car->PlateImageCollection);
-        $car->license_front_image = getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
-        $car->license_back_image = getFirstMediaUrl($car,$car->LicenseBackImageCollection);
-        return view('dashboard.cars.edit',compact('car'));
-    }
-
-    public function update(Request $request,$id){
-        $validator = Validator::make($request->all(), [
-            'status' => ['required'],
-        ]);
-
-        if ($validator->fails()) {
-            return Redirect::back()->withInput()->withErrors($validator);
+        if($request->has('user')&& $request->user!=null) {
+            $all_trips->where('user_id', $request->user);
         }
-        
-        Car::where('id',$id)->update([ 'status' => $request->status]);
-        return redirect('/admin-dashboard/cars');
+        // if ($request->has('car')&& $request->car!=null) {
+        //     $all_trips->where('car_id', $request->user);
+        // }
+    
+        if($request->has('created_date')&& $request->created_date!=null) {
+            $all_trips->whereDate('created_at', $request->created_date);
+        }
+        if($request->has('type')&& $request->type!=null) {
+            $all_trips->where('type', $request->type);
+        }
+        if($request->has('payment_status')&& $request->payment_status!=null) {
+            $all_trips->where('payment_status', $request->payment_status);
+        }
+        if ($request->has('status')&& $request->status!=null) {
+            $all_trips->where('status', $request->status);
+        }
+        if($request->has('air_conditioned')&& $request->air_conditioned!=null) {
+            $all_trips->where('air_conditioned', '1');
+        }
+        if($request->has('driver')&& $request->driver!=null) {
+            $all_trips->whereHas('car', function ($query) use ($request) {
+                $query->where('user_id', $request->driver);
+            });
+        }
+        if($request->has('mark')&& $request->mark!=null) {
+            $all_trips->whereHas('car', function ($query) use ($request) {
+                $query->where('car_mark_id', $request->mark);
+            });
+        }
+        if($request->has('model')&& $request->model!=null) {
+            $all_trips->whereHas('car', function ($query) use ($request) {
+                $query->where('car_model_id', $request->model);
+            });
+        }
+        $all_trips = $all_trips->paginate(12);
+         $drivers=User::whereHas('roles', function ($query) {
+            $query->where('roles.name', 'Client');
+        })->where('mode','driver')->get();
+        $users=User::whereHas('roles', function ($query) {
+            $query->where('roles.name', 'Client');
+        })->get();
+        $car_marks=CarMark::all();
+
+        // $car_marks=CarMark::all();
+        return view('dashboard.trips.index',compact('all_trips','drivers','users','car_marks'));
 
     }
 
 
-   
-
-     public function delete($id)
-    {
-        Car::where('id', $id)->delete();
-        return redirect('/admin-dashboard/cars');
+    public function view($id){
+        $trip=Trip::where('id',$id)->first();
+        $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
+        $trip->car->image=getFirstMediaUrl($trip->car,$trip->car->avatarCollection);
+        $trip->car->owner->image=getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection);
+        return view('dashboard.trips.view',compact('trip'));
     }
+
+    
 }
