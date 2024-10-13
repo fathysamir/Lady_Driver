@@ -52,7 +52,9 @@ class AuthController extends ApiController
         $user->assignRole([$role->id]);
         // Generate OTP
         
-
+        if($request->file('image')){
+            uploadMedia($request->image,$user->avatarCollection,$user);
+        }
         
         // Send OTP via Email (or SMS)
         Mail::to($request->email)->send(new SendOTP($otpCode));

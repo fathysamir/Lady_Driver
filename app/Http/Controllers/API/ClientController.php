@@ -105,6 +105,8 @@ class ClientController extends ApiController
         if($trip){
             if($trip->status=='pending' || $trip->status=='in_progress'){
                 $trip->car->owner->image=getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection);
+                $trip->car->image=getFirstMediaUrl($trip->car,$trip->car->avatarCollection);
+
             }
             if($trip->status=='created'){
                 $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
