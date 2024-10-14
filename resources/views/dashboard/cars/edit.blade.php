@@ -14,7 +14,7 @@
                         @csrf
                         <div class="form-group"style="text-align: center;">
                           <div>
-                            <img style="border-radius: 5%;width:60%;" @if($car->image!=null) src="{{$car->image}}" @else src="{{asset('dashboard/car_avatar.png')}}" @endif class="img-circle" alt="user avatar">
+                            <img style="border-radius: 2%;width:60%;" @if($car->image!=null) src="{{$car->image}}" @else src="{{asset('dashboard/car_avatar.png')}}" @endif class="img-circle" alt="user avatar">
                           </div>
                           <h3 style="margin-top:10px;">{{$car->mark->en_name}} - {{$car->mark->ar_name}}</h3>
                           <h3 style="margin-top:10px;">{{$car->model->en_name}} - {{$car->model->ar_name}} ({{$car->year}})</h3>
@@ -75,42 +75,229 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
-<script>
-  var map, marker;
+{{-- <script>
+  var map, marker,carIcon,previousLocation;
 
   function initMap() {
       // Initial location of the car
       var userLocation = { lat: {{ $car->lat }}, lng: {{ $car->lng }} };
+      previousLocation = userLocation;
+      map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 12,
+          center: userLocation
+      });
+       carIcon = {
+          url: '{{ asset("dashboard/Travel-car-topview.svg.png") }}', // Path to your custom car image
+          scaledSize: new google.maps.Size(35, 20), // Scale the image to a desired size (optional)
+          origin: new google.maps.Point(0, 0), // Origin of the image (optional)
+          anchor: new google.maps.Point(25, 25), // Anchor point of the image (optional)
+      };
+      // Create a marker at the car's initial position
+      marker = new google.maps.Marker({
+          position: userLocation,
+          map: map,
+          icon: carIcon,
+          rotation: 0
+      });
+      // google.maps.event.addListener(map, 'zoom_changed', function() {
+      //     var zoomLevel = map.getZoom();
+      //     updateIconSize(zoomLevel);
+      // });
+      // Start updating the car's location every 5 seconds
+      setInterval(updateCarLocation, 3000);
+  }
+  // function updateIconSize(zoomLevel) {
+  //     var newSize;
+
+  //     // Adjust the size based on the zoom level
+  //     if (zoomLevel > 15) {
+  //         newSize = new google.maps.Size(50, 30);  // Medium size
+  //     } else {
+  //         newSize = new google.maps.Size(35, 20);  // Smaller size for distant zoom
+  //     }
+
+  //     // Update the marker icon size dynamically
+  //     marker.setIcon({
+  //         url: carIcon.url,   // Keep the same icon URL
+  //         scaledSize: newSize, // Update the size
+  //         origin: carIcon.origin,  // Keep the same origin
+  //         anchor: carIcon.anchor   // Keep the same anchor
+  //     });
+  // }
+  function updateCarLocation() {
+      
+      fetch('/admin-dashboard/car-location/{{ $car->id }}')
+        .then(response => response.json())
+        .then(data => {
+            var newLocation = { lat: data.lat, lng: data.lng };
+            var rotationAngle = calculateBearing(previousLocation, newLocation);
+            // Move the marker to the new location
+            marker.setPosition(newLocation);
+            rotateMarker(rotationAngle);
+            previousLocation = newLocation;
+            // Optionally, center the map on the new location
+            //map.setCenter(newLocation);
+        })
+        .catch(error => console.error('Error fetching car location:', error));
+  }
+  function calculateBearing(start, end) {
+      var startLat = degreesToRadians(start.lat);
+      var startLng = degreesToRadians(start.lng);
+      var endLat = degreesToRadians(end.lat);
+      var endLng = degreesToRadians(end.lng);
+
+      var dLng = endLng - startLng;
+
+      var y = Math.sin(dLng) * Math.cos(endLat);
+      var x = Math.cos(startLat) * Math.sin(endLat) - Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
+      var bearing = Math.atan2(y, x);
+
+      return radiansToDegrees(bearing); // Convert from radians to degrees
+  }
+
+  // Function to rotate the marker to face the direction of movement
+  function rotateMarker(angle) {
+    console.log(angle);
+    
+      marker.setIcon({
+          url: carIcon.url,
+          scaledSize: carIcon.scaledSize,
+          origin: carIcon.origin,
+          anchor: carIcon.anchor,
+          rotation: angle // Apply the rotation angle
+      });
+  }
+
+  // Helper functions to convert between degrees and radians
+  function degreesToRadians(degrees) {
+      return degrees * (Math.PI / 180);
+  }
+
+  function radiansToDegrees(radians) {
+      return radians * (180 / Math.PI);
+  }
+  // Initialize the map
+  window.onload = initMap;
+</script> --}}
+<script>
+  var map, marker, previousLocation;
+
+  function initMap() {
+      // Initial location of the car
+      var userLocation = { lat: {{ $car->lat }}, lng: {{ $car->lng }} };
+      previousLocation = userLocation; // Store the initial location
+
       map = new google.maps.Map(document.getElementById('map'), {
           zoom: 12,
           center: userLocation
       });
 
-      // Create a marker at the car's initial position
-      marker = new google.maps.Marker({
-          position: userLocation,
-          map: map
-      });
-
-      // Start updating the car's location every 5 seconds
+      // Create a custom overlay for the car icon
+      marker = new RotatingMarker(userLocation, map, '{{ asset("dashboard/Travel-car-topview.svg.png") }}');
+      
+      // Start updating the car's location every 3 seconds
       setInterval(updateCarLocation, 3000);
   }
 
   function updateCarLocation() {
       // Fetch the updated car location using AJAX
-      // This assumes you have an endpoint like '/car-location/{{ $car->id }}' that returns the updated lat/lng
       fetch('/admin-dashboard/car-location/{{ $car->id }}')
         .then(response => response.json())
         .then(data => {
             var newLocation = { lat: data.lat, lng: data.lng };
 
-            // Move the marker to the new location
+            // Check if the new location is different from the previous location
+            if (newLocation.lat === previousLocation.lat && newLocation.lng === previousLocation.lng) {
+                // If locations are the same, do nothing
+                console.log('Location is unchanged. No update needed.');
+                return;
+            }
+
+            // Calculate the bearing (rotation angle)
+            var rotationAngle = calculateBearing(previousLocation, newLocation);
+
+            // Move the marker to the new location and rotate it
             marker.setPosition(newLocation);
+            marker.setRotation(rotationAngle);
+
+            // Update previous location to the new location
+            previousLocation = newLocation;
 
             // Optionally, center the map on the new location
             map.setCenter(newLocation);
         })
         .catch(error => console.error('Error fetching car location:', error));
+  }
+
+  // Function to calculate the bearing (angle) between two locations
+  function calculateBearing(start, end) {
+      var startLat = degreesToRadians(start.lat);
+      var startLng = degreesToRadians(start.lng);
+      var endLat = degreesToRadians(end.lat);
+      var endLng = degreesToRadians(end.lng);
+
+      var dLng = endLng - startLng;
+
+      var y = Math.sin(dLng) * Math.cos(endLat);
+      var x = Math.cos(startLat) * Math.sin(endLat) - Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
+      var bearing = Math.atan2(y, x);
+
+      return radiansToDegrees(bearing); // Convert from radians to degrees
+  }
+
+  // Custom RotatingMarker class to handle rotation and position update
+  function RotatingMarker(position, map, imageUrl) {
+      this.position = position;
+      this.rotation = 250;
+
+      // Create the marker div
+      this.div = document.createElement('div');
+      this.div.style.position = 'absolute';
+      this.div.style.width = '50px';
+      this.div.style.height = '50px';
+      this.div.style.backgroundImage = `url(${imageUrl})`;
+      this.div.style.backgroundSize = 'contain';
+      this.div.style.backgroundRepeat = 'no-repeat';
+
+      // Append the marker div to the map
+      this.setMap(map);
+  }
+
+  RotatingMarker.prototype = new google.maps.OverlayView();
+
+  RotatingMarker.prototype.onAdd = function() {
+      this.getPanes().overlayLayer.appendChild(this.div);
+  };
+
+  RotatingMarker.prototype.draw = function() {
+      var overlayProjection = this.getProjection();
+      var position = overlayProjection.fromLatLngToDivPixel(this.position);
+
+      // Position the div
+      this.div.style.left = (position.x - 25) + 'px'; // Center the icon
+      this.div.style.top = (position.y - 25) + 'px';
+
+      // Apply the rotation
+      this.div.style.transform = `rotate(${this.rotation}deg)`;
+  };
+
+  RotatingMarker.prototype.setPosition = function(position) {
+      this.position = position;
+      this.draw();
+  };
+
+  RotatingMarker.prototype.setRotation = function(rotation) {
+      this.rotation = rotation;
+      this.draw();
+  };
+
+  // Helper functions to convert between degrees and radians
+  function degreesToRadians(degrees) {
+      return degrees * (Math.PI / 180);
+  }
+
+  function radiansToDegrees(radians) {
+      return radians * (180 / Math.PI);
   }
 
   // Initialize the map
