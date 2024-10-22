@@ -34,6 +34,7 @@ class Trip extends Model
         'driver_comment',
         'status',
         'cancelled_by_id',
+        'trip_cancelling_reason_id',
         'payment_status',
         'type',
         'air_conditioned'
@@ -60,7 +61,9 @@ class Trip extends Model
     public function cancelled_by(){
         return $this->belongsTo(User::class,'cancelled_by_id','id');
     }
-   
+    public function cancelling_reason(){
+        return $this->belongsTo(TripCancellingReason::class,'trip_cancelling_reason_id','id');
+    }
    
     
 }

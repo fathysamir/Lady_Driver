@@ -7,6 +7,7 @@ use App\Http\Controllers\Dashboard\CarMarkController;
 use App\Http\Controllers\Dashboard\CarModelController;
 use App\Http\Controllers\Dashboard\CarController;
 use App\Http\Controllers\Dashboard\TripController;
+use App\Http\Controllers\Dashboard\SettingController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,6 +22,9 @@ use App\Http\Controllers\Dashboard\TripController;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/terms&conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
+Route::get('/privacy_policy', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
+
 Route::get('/admin-dashboard/login', [AuthController::class, 'login_view'])->name('login.view');
 Route::post('/admin-dashboard/login', [AuthController::class, 'login'])->name('login');
 Route::get('/admin-dashboard', function () {
@@ -69,4 +73,16 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
         //////////////////////////////////////////
         Route::any('/trips', [TripController::class, 'index'])->name('trips'); 
         Route::get('/trip/view/{id}', [TripController::class, 'view'])->name('view.trip');
+        //////////////////////////////////////////
+        Route::any('/settings', [SettingController::class, 'index'])->name('settings'); 
+        Route::get('/setting/edit/{id}', [SettingController::class, 'edit'])->name('edit.setting');
+        Route::post('/setting/update/{id}', [SettingController::class, 'update'])->name('update.setting');
+        ////////////////////////////////////////
+        Route::any('/reasons-cancelling-trips', [SettingController::class, 'reasons_cancelling_trips'])->name('reasons-cancelling-trips'); 
+        Route::get('/reasons-cancelling-trips/create', [SettingController::class, 'create_reason'])->name('add.reason');
+        Route::post('/reasons-cancelling-trips/create', [SettingController::class, 'store_reason'])->name('create.reason');
+        Route::get('/reason-cancelling-trip/edit/{id}', [SettingController::class, 'edit_reason'])->name('edit.reason');
+        Route::post('/reason-cancelling-trip/update/{id}', [SettingController::class, 'update_reason'])->name('update.reason');
+        Route::get('/reason-cancelling-trip/delete/{id}', [SettingController::class, 'delete_reason'])->name('delete.reason');
+
 });

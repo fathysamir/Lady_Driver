@@ -13,6 +13,7 @@ use App\Models\Trip;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
+use App\Models\TripCancellingReason;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
@@ -243,6 +244,10 @@ class ClientController extends ApiController
                 'required',
                 Rule::exists('trips', 'id')
             ],
+
+            'reason_id'=>[
+                'required',Rule::exists('trip_cancelling_reasons', 'id')
+            ]
            
         ]);
         // dd($request->all());
@@ -253,8 +258,24 @@ class ClientController extends ApiController
         $trip=Trip::find($request->trip_id);
         $trip->status='cancelled';
         $trip->cancelled_by_id=auth()->user()->id;
+        $trip->trip_cancelling_reason_id=$request->reason_id;
         $trip->save();
         return $this->sendResponse(null,'trip cancelled successfuly',200);
 
+    }
+
+    public function cancellation_reasons(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'category' => [
+                'required'
+            ]
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            return $this->sendError(null,$validator->errors(),400);
+        }
+        $reasons=TripCancellingReason::where('type',$request->category)->get();
+        return $this->sendResponse($reasons,null,200);
     }
 }

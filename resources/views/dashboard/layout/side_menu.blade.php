@@ -37,6 +37,16 @@
           <i class="zmdi zmdi-view-dashboard"></i> <span>Trips</span>
         </a>
       </li>
+      <li>
+        <a href="{{url('/admin-dashboard/settings')}}">
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Settings</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{url('/admin-dashboard/reasons-cancelling-trips')}}">
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Trip Cancellation Reason</span>
+        </a>
+      </li>
 
     </ul>
 

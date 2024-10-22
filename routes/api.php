@@ -58,6 +58,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('/rate_trip',[ClientController::class,'rate_trip'])->name('rate_trip');
     Route::post('/cancell_trip',[ClientController::class,'cancell_trip'])->name('cancell_trip');
 
+    Route::get('/cancellation_reasons',[ClientController::class,'cancellation_reasons'])->name('cancellation_reasons');
+
+
 });
 
 

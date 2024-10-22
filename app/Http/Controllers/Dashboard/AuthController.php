@@ -69,4 +69,12 @@ class AuthController extends Controller
 
 
     }
+    //////////////////////////////////////////////////////////////////////////////////////
+    public function privacy_policy(){
+        return view('dashboard.privacy_policy');
+    }
+
+    public function terms_conditions(){
+        return view('dashboard.terms_conditions');
+    }
 }

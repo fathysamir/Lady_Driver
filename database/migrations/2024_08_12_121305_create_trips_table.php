@@ -38,6 +38,8 @@ return new class extends Migration
             $table->enum('status', ['created','pending', 'in_progress','completed','cancelled','expired'])->default('created');
             $table->unsignedBigInteger('cancelled_by_id')->nullable();
             $table->foreign('cancelled_by_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('trip_cancelling_reason_id')->nullable();
+            $table->foreign('trip_cancelling_reason_id')->references('id')->on('trip_cancelling_reasons')->onDelete('cascade');
             $table->enum('payment_status', ['unpaid','online paid','cash paid'])->default('unpaid');
             $table->enum('type', ['individual','couple','group'])->default('individual');
             $table->float('driver_stare_rate', 3, 2)->default(0);
