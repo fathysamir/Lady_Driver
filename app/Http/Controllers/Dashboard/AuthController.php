@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use App\Models\User;
+use App\Models\ContactUs;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
@@ -30,7 +30,7 @@ class AuthController extends Controller
         $validator  =   Validator::make($request->all(), [
                
                 'email' => ['required', 'string', 'email'],
-                'password' => ['required', 'string', 'min:8',''],
+                'password' => ['required', 'string', 'min:8'],
                
         ]);
             // dd($request->all());
@@ -76,5 +76,28 @@ class AuthController extends Controller
 
     public function terms_conditions(){
         return view('dashboard.terms_conditions');
+    }
+
+    public function contact_us(){
+        return view('dashboard.contact_us');
+    }
+
+    public function save_contact_us(Request $request){
+       
+        $validator  =   Validator::make($request->all(), [
+               
+            'subject' => ['required', 'string','max:191'],
+            'name' => ['required', 'string', 'max:191'],
+            'email' => ['required', 'string', 'max:191','email'],
+            'phone' => ['required', 'numeric'],
+            'message' => ['required','string']
+        ]);
+            // dd($request->all());
+        if ($validator->fails()) {
+        
+            return Redirect::back()->withErrors($validator)->withInput($request->all());
+        }
+        ContactUs::create(['subject'=>$request->subject,'name'=>$request->name,'email'=>$request->email,'message'=>$request->message,'phone'=>$request->country_code . $request->phone]);
+        return redirect('/');
     }
 }

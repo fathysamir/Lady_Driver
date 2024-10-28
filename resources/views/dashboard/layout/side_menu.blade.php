@@ -47,6 +47,11 @@
           <i class="zmdi zmdi-view-dashboard"></i> <span>Trip Cancellation Reason</span>
         </a>
       </li>
+      <li>
+        <a href="{{url('/admin-dashboard/contact_us')}}">
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Contact Us</span>
+        </a>
+      </li>
 
     </ul>
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\Dashboard\CarModelController;
 use App\Http\Controllers\Dashboard\CarController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\SettingController;
+use App\Http\Controllers\Dashboard\ContactUsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -24,7 +25,8 @@ Route::get('/', function () {
 });
 Route::get('/terms&conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
-
+Route::get('/contact_us', [AuthController::class, 'contact_us'])->name('contact_us');
+Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
 Route::get('/admin-dashboard/login', [AuthController::class, 'login_view'])->name('login.view');
 Route::post('/admin-dashboard/login', [AuthController::class, 'login'])->name('login');
 Route::get('/admin-dashboard', function () {
@@ -84,5 +86,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
         Route::get('/reason-cancelling-trip/edit/{id}', [SettingController::class, 'edit_reason'])->name('edit.reason');
         Route::post('/reason-cancelling-trip/update/{id}', [SettingController::class, 'update_reason'])->name('update.reason');
         Route::get('/reason-cancelling-trip/delete/{id}', [SettingController::class, 'delete_reason'])->name('delete.reason');
-
+        ///////////////////////////////////////////////
+        Route::any('/contact_us', [ContactUsController::class, 'index'])->name('contact_us'); 
+        Route::get('/contact_us/view/{id}', [ContactUsController::class, 'view'])->name('edit.contact_us');
+        Route::post('/contact_us/update/{id}', [ContactUsController::class, 'update'])->name('update.contact_us');
 });

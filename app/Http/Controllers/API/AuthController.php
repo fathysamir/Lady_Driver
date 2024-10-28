@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
+use App\Models\ContactUs;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends ApiController
@@ -274,5 +275,24 @@ class AuthController extends ApiController
     
         return $this->sendResponse(null,'Password updated successfully.',200);
 
+    }
+
+    public function save_contact_us(Request $request){
+       
+        $validator  =   Validator::make($request->all(), [
+               
+            'subject' => ['required', 'string','max:191'],
+            'name' => ['required', 'string', 'max:191'],
+            'email' => ['required', 'string', 'max:191','email'],
+            'phone' => ['required', 'numeric'],
+            'message' => ['required','string'],
+            'country_code' =>['required']
+        ]);
+            // dd($request->all());
+        if ($validator->fails()) {
+            return $this->sendError(null,$validator->errors(),400);
+        }
+        ContactUs::create(['subject'=>$request->subject,'name'=>$request->name,'email'=>$request->email,'message'=>$request->message,'phone'=>$request->country_code . $request->phone]);
+        return $this->sendResponse(null,'Your request has been sent and we will respond to you later.',200);
     }
 }
