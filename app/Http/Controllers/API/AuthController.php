@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
+use App\Models\AboutUs;
 use App\Models\ContactUs;
 use Illuminate\Support\Facades\Validator;
 
@@ -295,4 +296,17 @@ class AuthController extends ApiController
         ContactUs::create(['subject'=>$request->subject,'name'=>$request->name,'email'=>$request->email,'message'=>$request->message,'phone'=>$request->country_code . $request->phone]);
         return $this->sendResponse(null,'Your request has been sent and we will respond to you later.',200);
     }
+
+    public function about_us(){
+       
+        $response['description']=AboutUs::where('key','description')->first()->value;
+        $response['phone']=AboutUs::where('key','phone')->first()->value;
+        $response['email']=AboutUs::where('key','email')->first()->value;
+        $response['facebook']=AboutUs::where('key','facebook')->first()->value;
+        $response['instagram']=AboutUs::where('key','instagram')->first()->value;
+        $response['twitter']=AboutUs::where('key','twitter')->first()->value;
+        return $this->sendResponse($response,null,200);
+
+    }
+
 }

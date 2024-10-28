@@ -22,7 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/register',[AuthController::class,'register'])->name('register');
 Route::post('/login',[AuthController::class,'login'])->name('login');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
-
+Route::get('/about_us',[AuthController::class,'about_us'])->name('about_us');
 Route::post('/verifyOTP',[AuthController::class,'verifyOTP'])->name('verifyOTP');
 Route::post('/resend_otp',[AuthController::class,'resend_otp'])->name('resend_otp');
 Route::post('/reset_password',[AuthController::class,'reset_password'])->name('reset_password');

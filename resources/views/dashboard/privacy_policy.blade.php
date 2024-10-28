@@ -173,10 +173,10 @@
     <p>We take reasonable measures to ensure that overseas recipients handle your data consistently with our practices.</p>
 
     <h2>Your Rights and Choices</h2>
-    <p>You have the right to access, update, and review your personal information. You can do this through the account settings in the app or by contacting us at (          ).</p>
+    <p>You have the right to access, update, and review your personal information. You can do this through the account settings in the app or by contacting us at ( <a style="cursor: pointer;color:rgb(9, 253, 241);"  href="{{url('/contact_us')}}">here</a> ).</p>
 
     <h2>Deleting Your Account and Data</h2>
-    <p>You have the option to delete your account through the app’s settings. If you prefer, you can also request the deletion of your account and all associated data by contacting us at (          ).</p>       
+    <p>You have the option to delete your account through the app’s settings. If you prefer, you can also request the deletion of your account and all associated data by contacting us at ( <a style="cursor: pointer;color:rgb(9, 253, 241);"  href="{{url('/contact_us')}}">here</a> ).</p>       
                         
     <h2>Account Deletion and Retention of Data</h2>
     <p>You may be required to verify your account and identity before deletion. We will not be able to delete your account if there are outstanding payments or unresolved issues related to it (such as a pending complaint). Certain information may be retained after account deletion if we have a legitimate reason to do so. For more details, please see the section on “How we store your information.”</p>
@@ -213,13 +213,13 @@
     
     <h2>General Disclosures</h2>
     <h3>Protecting Children</h3>
-    <p>Lady Driver is not intended for use by children as defined by local laws. If we discover that we have collected personal data from a child, we will take steps to delete the data and ensure it is not further used. If you believe a child has provided us with their information, please contact us at (       ).</p>
+    <p>Lady Driver is not intended for use by children as defined by local laws. If we discover that we have collected personal data from a child, we will take steps to delete the data and ensure it is not further used. If you believe a child has provided us with their information, please contact us at ( <a style="cursor: pointer;color:rgb(9, 253, 241);"  href="{{url('/contact_us')}}">here</a> ).</p>
     
     <h2>Policy Updates</h2>
     <p>We may update this Privacy Policy occasionally to comply with changes in laws or operations. When updated, we will modify the “Last Updated” date at the top of this page and provide the revised policy. By using Lady Driver, you agree to the most current terms.</p>
     
     <h2>Contact Us</h2>
-    <p>If you have any questions or requests, please contact us at (       ). We will respond according to applicable laws, following proper verification of your account and identity.</p>
+    <p>If you have any questions or requests, please contact us at ( <a style="cursor: pointer;color:rgb(9, 253, 241);"  href="{{url('/contact_us')}}">here</a> ). We will respond according to applicable laws, following proper verification of your account and identity.</p>
     
     <h2>For Users in Egypt</h2>
     <p>Lady Driver.</p>

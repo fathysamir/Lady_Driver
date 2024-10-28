@@ -20,7 +20,7 @@ use App\Models\Setting;
 use Image;
 use Str;
 use File;
-
+use App\Models\AboutUs;
 class SettingController extends Controller
 {
     public function index(Request $request){
@@ -171,5 +171,26 @@ class SettingController extends Controller
         $reason->delete();
     
         return redirect('/admin-dashboard/reasons-cancelling-trips')->with('success', 'Reason deleted successfully.');
+    }
+    /////////////////////////////////////////////////////about us///////////////////////////////////
+    public function about_us(){
+       
+        $description=AboutUs::where('key','description')->first()->value;
+        $phone=AboutUs::where('key','phone')->first()->value;
+        $email=AboutUs::where('key','email')->first()->value;
+        $facebook=AboutUs::where('key','facebook')->first()->value;
+        $instagram=AboutUs::where('key','instagram')->first()->value;
+        $twitter=AboutUs::where('key','twitter')->first()->value;
+        return view('dashboard.about_us.view',compact('description','phone','email','facebook','twitter','instagram'));
+    }
+
+    public function update_about_us(Request $request){
+        AboutUs::where('key','description')->update(['value'=>$request->description]);
+        AboutUs::where('key','email')->update(['value'=>$request->email]);
+        AboutUs::where('key','phone')->update(['value'=>$request->phone]);
+        AboutUs::where('key','facebook')->update(['value'=>$request->facebook]);
+        AboutUs::where('key','instagram')->update(['value'=>$request->instagram]);
+        AboutUs::where('key','twitter')->update(['value'=>$request->twitter]);
+        return redirect('/admin-dashboard/about_us/view')->with('success', 'About Us updated successfully.');
     }
 }

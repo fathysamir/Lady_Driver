@@ -90,4 +90,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
         Route::any('/contact_us', [ContactUsController::class, 'index'])->name('contact_us'); 
         Route::get('/contact_us/view/{id}', [ContactUsController::class, 'view'])->name('edit.contact_us');
         Route::post('/contact_us/update/{id}', [ContactUsController::class, 'update'])->name('update.contact_us');
+
+        Route::get('/about_us/view', [SettingController::class, 'about_us'])->name('edit.about_us');
+        Route::post('/about_us/update', [SettingController::class, 'update_about_us'])->name('update.about_us');
+
 });
