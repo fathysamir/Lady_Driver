@@ -81,10 +81,15 @@
                         <label>No data was entered for the driver's license</label>
                       </div>
                       @endif
-
+                      @if($user->car)
                       <div class="form-group">
                         <label>Car : you can show car from <a style="color: blue" href="{{url('/admin-dashboard/car/edit/'.$user->car->id)}}">hear</a></label>
                       </div>
+                      @else
+                      <div class="form-group"style="display: flex;">
+                        <label>No vehicle data has been entered</label>
+                      </div>
+                      @endif
                       @endif
                       <div class="form-group">
                         <label>Status</label>
