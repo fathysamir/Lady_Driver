@@ -14,7 +14,7 @@
       </li>
       <li>
         <a href="{{url('/admin-dashboard/users')}}">
-          <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>@if(app('new_clients_count')>0) <span style="background-color:rgb(50, 134, 50); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{app('new_clients_count')}}</span> @endif
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>@if(app('new_clients_count')>0) <span style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{app('new_clients_count')}}</span> @endif
         </a>
       </li>
       <li>
@@ -29,7 +29,7 @@
       </li>
       <li>
         <a href="{{url('/admin-dashboard/cars')}}">
-          <i class="zmdi zmdi-view-dashboard"></i> <span>Drivers Cars</span>@if(app('new_cars_count')>0) <span style="background-color:rgb(50, 134, 50); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{app('new_cars_count')}}</span> @endif
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Drivers Cars</span>@if(app('new_cars_count')>0) <span style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{app('new_cars_count')}}</span> @endif
         </a>
       </li>
       <li>
@@ -49,7 +49,7 @@
       </li>
       <li>
         <a href="{{url('/admin-dashboard/contact_us')}}">
-          <i class="zmdi zmdi-view-dashboard"></i> <span>Contact Us</span>@if(app('new_contact_us_count')>0) <span style="background-color:rgb(50, 134, 50); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{app('new_contact_us_count')}}</span> @endif
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Contact Us</span>@if(app('new_contact_us_count')>0) <span style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{app('new_contact_us_count')}}</span> @endif
         </a>
       </li>
 
