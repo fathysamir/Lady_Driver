@@ -42,6 +42,8 @@ class ContactUsController extends ApiController
 
     public function view($id){
         $contact_us=ContactUs::where('id',$id)->first();
+        $contact_us->seen='1';
+        $contact_us->save();
         return view('dashboard.contact_us.view',compact('contact_us'));
     }
 

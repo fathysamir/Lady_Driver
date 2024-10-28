@@ -38,7 +38,7 @@
                         </div>
                         <div class="form-group">
                             <label>Reply</label>
-                            <textarea name="reply" class="form-control" rows="5" placeholder="Reply On Message"></textarea>
+                            <textarea name="reply" class="form-control" rows="5" placeholder="Reply On Message">{{ $contact_us->reply }}</textarea>
                         </div>
                       
                       

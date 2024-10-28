@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('subject');
             $table->string('name');
             $table->string('email');
-            
+            $table->enum('seen', ['0','1'])->default('0');
             $table->string('phone');
             $table->longText('message');
-            $table->longText('replay')->nullable();
+            $table->longText('reply')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

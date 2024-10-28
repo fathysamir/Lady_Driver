@@ -16,7 +16,8 @@ class ContactUs extends Model
         'email',
         'message',
         'phone',
-        'replay'
+        'replay',
+        'seen'
     ];
 
     protected $allowedSorts = [

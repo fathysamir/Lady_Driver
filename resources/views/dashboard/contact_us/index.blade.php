@@ -36,7 +36,7 @@
                         <table class="table table-hover">
                           <thead>
                             <tr>
-                              
+                              <td></td>
                               <th scope="col">Name</th>
                               <th scope="col">Email</th>
                               <th scope="col">Phone Number</th>
@@ -51,6 +51,7 @@
                             @if(!empty($all_contact_us) && $all_contact_us->count())
                             @foreach($all_contact_us as $contact_us)
                               <tr>
+                                <td>@if($contact_us->seen=='0') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">New</span> @endif</td>
                                 <td>{{$contact_us->name}}</td>
                                 <td>{{$contact_us->email}}</td>
                                 <td>{{$contact_us->phone}}</td>
