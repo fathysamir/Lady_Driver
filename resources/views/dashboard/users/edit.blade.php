@@ -63,7 +63,7 @@
                         <h4 style="margin-right: 10px;">Driving License</h4>
                         <hr style="flex: 1; margin: 0;">
                       </div>
-                      
+                      @if($user->driving_license)
                       <div class="form-group">
                         <label>License Number : {{$user->driving_license->license_num}}</label>
                       </div>
@@ -76,6 +76,12 @@
                       <div class="form-group"style="display: flex;">
                         <label>Back Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->back_image}}">
                       </div>
+                      @else
+                      <div class="form-group"style="display: flex;">
+                        <label>No data was entered for the driver's license</label>
+                      </div>
+                      @endif
+
                       <div class="form-group">
                         <label>Car : you can show car from <a style="color: blue" href="{{url('/admin-dashboard/car/edit/'.$user->car->id)}}">hear</a></label>
                       </div>
