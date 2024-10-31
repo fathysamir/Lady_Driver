@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\ApiController;
 use App\Models\User;
 use App\Models\FAQ;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -20,18 +21,31 @@ class AuthController extends ApiController
        
         $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->whereNull('deleted_at'),
+            ],
             'password' => 'required|string|min:8|confirmed',
             'mode' => 'required',
-            'phone' => 'required|unique:users,phone'
+            'phone' => [
+                'required',
+                Rule::unique('users', 'phone')->whereNull('deleted_at'),
+            ],
         ];
         
         // Add a conditional rule for 'image' based on the 'mode' field
         if ($request->input('mode') === 'driver') {
-            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:3072'; // Adjust the image validation rules as needed
+            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:3072'; // Adjust as needed
         }
         
         $validator = Validator::make($request->all(), $rules);
+        
+        if ($validator->fails()) {
+            return $this->sendError(null, $validator->errors(), 400);
+        }
         
         if ($validator->fails()) {
             return $this->sendError(null, $validator->errors(), 400);
