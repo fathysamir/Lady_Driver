@@ -40,6 +40,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('/edit_personal_info',[AuthController::class,'edit_personal_info'])->name('edit_personal_info');
     Route::post('/create_trip',[ClientController::class,'create_trip'])->name('create_trip');
     Route::get('/expire_trip/{id}',[ClientController::class,'expire_trip'])->name('expire_trip');
+    Route::post('/remove_account',[AuthController::class,'remove_account'])->name('remove_account');
+    
 
     Route::get('/created_trips',[DriverController::class,'created_trips'])->name('created_trips');
     Route::get('/expire_offer/{id}',[DriverController::class,'expire_offer'])->name('expire_offer');

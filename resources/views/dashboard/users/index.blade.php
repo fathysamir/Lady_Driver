@@ -125,7 +125,7 @@
                           </tbody>
                         </table>
                         <div style="text-align: center;">
-                          {!! $all_users->appends(['search' => request('search'),'mode'=>request('mode'),'status'=>request('status')])->links("pagination::bootstrap-4") !!}
+                          {!! $all_users->appends(['search' => request('search'),'mode'=>request('mode'),'role'=>request('role'),'status'=>request('status')])->links("pagination::bootstrap-4") !!}
                         </div>
                       </div>
                       </div>

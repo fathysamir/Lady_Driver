@@ -309,4 +309,20 @@ class AuthController extends ApiController
 
     }
 
+    public function remove_account(Request $request){
+
+        $user = $request->user(); 
+        if ($user) {
+            $tokens = $user->tokens;
+            foreach ($tokens as $token) {
+                $token->delete();
+            }
+            $user->delete();
+            return $this->sendResponse(null,'Account Removed successfuly',200);
+        } else {
+            // Handle the case when the user is not authenticated
+            return $this->sendError(null,"This Account doesn't existed",400);
+        }
+    }
+
 }
