@@ -25,6 +25,7 @@ Route::get('/', function () {
 });
 Route::get('/terms&conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
+Route::get('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 Route::get('/contact_us', [AuthController::class, 'contact_us'])->name('contact_us');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
 Route::get('/admin-dashboard/login', [AuthController::class, 'login_view'])->name('login.view');

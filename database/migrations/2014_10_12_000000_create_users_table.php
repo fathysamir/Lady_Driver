@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone')->unique()->nullable();
+            $table->string('email');
+            $table->string('phone')->nullable();
             $table->unsignedInteger('age')->nullable();
             $table->enum('status', ['pending', 'confirmed','blocked','banned'])->default('pending');
             $table->string('OTP')->nullable();

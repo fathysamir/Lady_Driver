@@ -100,4 +100,8 @@ class AuthController extends Controller
         ContactUs::create(['subject'=>$request->subject,'name'=>$request->name,'email'=>$request->email,'message'=>$request->message,'phone'=>$request->country_code . $request->phone]);
         return redirect('/');
     }
+
+    public function remove_account(){
+        return view('dashboard.remove_account');
+    }
 }
