@@ -63,7 +63,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('/cancell_trip',[ClientController::class,'cancell_trip'])->name('cancell_trip');
 
     Route::get('/cancellation_reasons',[ClientController::class,'cancellation_reasons'])->name('cancellation_reasons');
-
+    Route::post('/add_feed_back',[AuthController::class,'add_feed_back'])->name('add_feed_back');
+    
 
 });
 

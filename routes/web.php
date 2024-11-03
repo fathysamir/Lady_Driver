@@ -9,6 +9,7 @@ use App\Http\Controllers\Dashboard\CarController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\ContactUsController;
+use App\Http\Controllers\Dashboard\FeedBackController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -94,5 +95,6 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
 
         Route::get('/about_us/view', [SettingController::class, 'about_us'])->name('edit.about_us');
         Route::post('/about_us/update', [SettingController::class, 'update_about_us'])->name('update.about_us');
-
+        Route::any('/feed_back', [FeedBackController::class, 'index'])->name('feed_back'); 
+        Route::get('/feed_back/view/{id}', [FeedBackController::class, 'view'])->name('edit.feed_back');
 });

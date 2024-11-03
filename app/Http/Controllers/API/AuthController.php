@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
+use App\Models\FeedBack;
 use App\Models\AboutUs;
 use App\Models\ContactUs;
 use Illuminate\Support\Facades\Validator;
@@ -338,5 +339,17 @@ class AuthController extends ApiController
             return $this->sendError(null,"This Account doesn't existed",400);
         }
     }
+    
+    public function add_feed_back(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'feed_back' =>['required']
+        ]);
+            // dd($request->all());
+        if ($validator->fails()) {
+            return $this->sendError(null,$validator->errors(),400);
+        }
+        FeedBack::create(['user_id'=>auth()->user()->id,'feed_back'=>$request->feed_back]);
+        return $this->sendResponse(null,'Your Feed Back has been sent and we will respond to you later.',200);
 
+    }
 }
