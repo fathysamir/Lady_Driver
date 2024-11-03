@@ -29,7 +29,8 @@ class CarController extends Controller
         if ($request->has('search') && $request->search!=null ) {
             $all_cars->where(function ($query) use ($request) {
                 $query->where('car_plate', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('color', 'LIKE', '%' . $request->search . '%');
+                    ->orWhere('color', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('code', 'LIKE', '%' . $request->search . '%');
                    
             });
         }

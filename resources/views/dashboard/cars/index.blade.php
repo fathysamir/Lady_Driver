@@ -85,7 +85,7 @@
                         <table class="table table-hover">
                           <thead>
                             <tr>
-                              
+                              <th scope="col">Trip Code</th>
                               <th scope="col">Mark</th>
                               <th scope="col">Model</th>
                               <th scope="col">Driver</th>
@@ -98,6 +98,7 @@
                             @if(!empty($all_cars) && $all_cars->count())
                             @foreach($all_cars as $car)
                               <tr>
+                                <td>{!! highlight($car->code, $search ?? '') !!}</td>
                                 <td>{{$car->mark->en_name}} - {{$car->mark->ar_name}}</td>
                                 <td>{{$car->model->en_name}} - {{$car->model->ar_name}} ({{$car->year}})</td>
                                 

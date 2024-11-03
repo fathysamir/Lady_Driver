@@ -76,8 +76,17 @@ class DriverController extends ApiController
 
             return $this->sendError(null,$validator->errors(),400);
         }
+        $lastCar = Car::orderBy('id', 'desc')->first();
+
+            if ($lastCar) {
+                $lastCode = $lastCar->code;
+                $code = 'CAR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+            } else {
+                $code = 'CAR-000001';
+            }
         $car=Car::create(['user_id'=>auth()->user()->id,
                           'car_mark_id'=>$request->car_mark_id,
+                          'code'=>$code,
                           'car_model_id'=>$request->car_model_id,
                           'color'=>$request->color,
                           'year'=>$request->year,
