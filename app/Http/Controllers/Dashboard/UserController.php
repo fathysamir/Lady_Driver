@@ -29,7 +29,8 @@ class UserController extends Controller
             $all_users->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%');
+                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                     ->orWhere('id', 'LIKE', '%' . $request->search . '%');
             });
         }
         if ($request->has('mode')&& $request->mode!=null) {
@@ -55,58 +56,58 @@ class UserController extends Controller
             $user->image = getFirstMediaUrl($user,$user->avatarCollection);
             return $user;
         });
-         
-        return view('dashboard.users.index',compact('all_users'));
+         $search=$request->search;
+        return view('dashboard.users.index',compact('all_users','search'));
 
     }
 
-    public function create(){
-        return view('dashboard.users.create');
-    }
+    // public function create(){
+    //     return view('dashboard.users.create');
+    // }
 
-    public function store(Request $request){
+    // public function store(Request $request){
 
-            $validator = Validator::make($request->all(), [
-                'first_name' => ['required', 'string', 'max:191'],
-                'last_name' => ['required', 'string', 'max:191'],
-                'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
-                'password' => ['required', 'string', 'min:8','confirmed'],
-                'salary' => ['required'],
-                'manager' => ['nullable'],
-                'department'=>['required' , Rule::in(Department::pluck('id'))],
-                'image' => ['required'] ,
-                'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
-                'role'=>['required',Rule::in(Role::pluck('id'))]
+    //         $validator = Validator::make($request->all(), [
+    //             'first_name' => ['required', 'string', 'max:191'],
+    //             'last_name' => ['required', 'string', 'max:191'],
+    //             'email' => ['required', 'string', 'email', 'max:191', 'unique:users'],
+    //             'password' => ['required', 'string', 'min:8','confirmed'],
+    //             'salary' => ['required'],
+    //             'manager' => ['nullable'],
+    //             'department'=>['required' , Rule::in(Department::pluck('id'))],
+    //             'image' => ['required'] ,
+    //             'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
+    //             'role'=>['required',Rule::in(Role::pluck('id'))]
                 
 
-            ]);
+    //         ]);
 
            
-            if ($validator->fails()) {
-                return Redirect::back()->withInput()->withErrors($validator);
-            }
+    //         if ($validator->fails()) {
+    //             return Redirect::back()->withInput()->withErrors($validator);
+    //         }
             
-            $user = User::create([
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'email'=> $request->email ,
-                'phone'=>$request->phone_number,
-                'salary'=> $request->salary,
-                'password'=>  Hash::make($request->password),
-                'manager_id'=>$request->manager?$request->manager:null,
-                'department_id'=>$request->department,
-                'theme'=>'theme1'
+    //         $user = User::create([
+    //             'first_name' => $request->first_name,
+    //             'last_name' => $request->last_name,
+    //             'email'=> $request->email ,
+    //             'phone'=>$request->phone_number,
+    //             'salary'=> $request->salary,
+    //             'password'=>  Hash::make($request->password),
+    //             'manager_id'=>$request->manager?$request->manager:null,
+    //             'department_id'=>$request->department,
+    //             'theme'=>'theme1'
                 
-            ]);
-            $role = Role::where('id',$request->role)->first();
+    //         ]);
+    //         $role = Role::where('id',$request->role)->first();
             
-            $user->assignRole([$role->id]);
-            if($request->file('image')){
-                uploadMedia($request->file('image'),$user->avatarCollection,$user);
-            }
-          return redirect('/users');
+    //         $user->assignRole([$role->id]);
+    //         if($request->file('image')){
+    //             uploadMedia($request->file('image'),$user->avatarCollection,$user);
+    //         }
+    //       return redirect('/users');
 
-    }
+    // }
  
 
     public function edit($id){

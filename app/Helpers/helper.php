@@ -131,6 +131,14 @@ function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key) {
     }
 }
 
+function highlight($text, $search)
+{
+    if ($search) {
+        return str_ireplace($search, "<mark style='background-color:rgb(143, 118, 9); padding:0px;'>$search</mark>", $text);
+    }
+    return $text;
+}
+
 
 
 

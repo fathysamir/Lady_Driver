@@ -78,9 +78,9 @@ class TripController extends Controller
             $query->where('roles.name', 'Client');
         })->get();
         $car_marks=CarMark::all();
-
+        $search=$request->search;
         // $car_marks=CarMark::all();
-        return view('dashboard.trips.index',compact('all_trips','drivers','users','car_marks'));
+        return view('dashboard.trips.index',compact('all_trips','drivers','users','car_marks','search'));
 
     }
 

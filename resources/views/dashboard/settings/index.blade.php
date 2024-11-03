@@ -75,7 +75,7 @@
                             @if(!empty($all_settings) && $all_settings->count())
                             @foreach($all_settings as $setting)
                               <tr>
-                                <td>{{$setting->label}}</td>
+                                <td>{!! highlight($setting->label, $search ?? '') !!}</td>
                                 <td>{{$setting->category}}</td>
                                 <td>{{$setting->value}}</td>
                                 <td>

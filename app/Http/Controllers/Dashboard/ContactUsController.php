@@ -36,7 +36,8 @@ class ContactUsController extends ApiController
             });
         }
         $all_contact_us = $all_contact_us->paginate(12);
-        return view('dashboard.contact_us.index',compact('all_contact_us'));
+        $search=$request->search;
+        return view('dashboard.contact_us.index',compact('all_contact_us','search'));
 
     }
 

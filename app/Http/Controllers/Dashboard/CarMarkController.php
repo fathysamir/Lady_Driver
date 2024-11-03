@@ -31,7 +31,8 @@ class CarMarkController extends ApiController
             });
         }
         $all_marks = $all_marks->paginate(12);
-        return view('dashboard.car_marks.index',compact('all_marks'));
+        $search=$request->search;
+        return view('dashboard.car_marks.index',compact('all_marks','search'));
 
     }
 

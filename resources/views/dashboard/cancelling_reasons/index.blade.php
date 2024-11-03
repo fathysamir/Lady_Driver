@@ -83,7 +83,7 @@
                             @if(!empty($all_reasons) && $all_reasons->count())
                             @foreach($all_reasons as $reason)
                               <tr>
-                                <td>{{$reason->en_reason}} <br> {{$reason->ar_reason}}</td>
+                                <td>{!! highlight($reason->en_reason, $search ?? '') !!}<br> {!! highlight($reason->ar_reason, $search ?? '') !!}</td>
                                 <td>{{ucwords($reason->type)}}</td>
                                 <td>{{ucwords($reason->value_type)}}</td>
                                 <td>{{$reason->value}}</td>

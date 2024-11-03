@@ -102,7 +102,7 @@
                                 <td>{{$car->model->en_name}} - {{$car->model->ar_name}} ({{$car->year}})</td>
                                 
                                 <td>{{$car->owner->name}}</td>
-                                <td>{{$car->car_plate}}</td>
+                                <td>{!! highlight($car->car_plate, $search ?? '') !!}</td>
                                
                                 <td>@if($car->status=='pending') <span class="badge badge-secondary" style="background-color:rgb(143, 118, 9); width:100%;">Pending</span> @elseif($car->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span> @else <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>
                                 

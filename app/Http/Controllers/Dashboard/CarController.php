@@ -58,7 +58,8 @@ class CarController extends Controller
             $query->where('roles.name', 'Client');
         })->where('mode','driver')->get();
         $car_marks=CarMark::all();
-        return view('dashboard.cars.index',compact('all_cars','users','car_marks'));
+        $search=$request->search;
+        return view('dashboard.cars.index',compact('all_cars','users','car_marks','search'));
 
     }
     public function getModels(Request $request)

@@ -124,7 +124,7 @@
                             @if(!empty($all_trips) && $all_trips->count())
                             @foreach($all_trips as $trip)
                               <tr>
-                                <td>{{$trip->code}}</td>
+                                <td>{!! highlight($trip->code, $search ?? '') !!}</td>
                                 <td><span class="user-profile"><img @if(getFirstMediaUrl($trip->user,$trip->user->avatarCollection)!=null) src="{{getFirstMediaUrl($trip->user,$trip->user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span> {{$trip->user->name}}</td>
                                 
                                 <td><span class="user-profile"><img @if(getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection)!=null) src="{{getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span> {{$trip->car->owner->name}}</td>

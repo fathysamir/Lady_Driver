@@ -36,7 +36,8 @@ class CarModelController extends ApiController
         }
         $all_models = $all_models->paginate(12);
         $marks=CarMark::all();
-        return view('dashboard.car_models.index',compact('all_models','marks'));
+        $search=$request->search;
+        return view('dashboard.car_models.index',compact('all_models','marks','search'));
 
     }
 

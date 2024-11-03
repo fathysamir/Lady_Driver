@@ -34,7 +34,8 @@ class SettingController extends Controller
             $all_settings->where('category', $request->category);
         }
         $all_settings = $all_settings->paginate(12);
-        return view('dashboard.settings.index',compact('all_settings'));
+        $search=$request->search;
+        return view('dashboard.settings.index',compact('all_settings','search'));
     }
     public function edit($id){
         $setting=Setting::where('id',$id)->first();
@@ -74,7 +75,8 @@ class SettingController extends Controller
             $all_reasons->where('value_type', $request->value_type);
         }
         $all_reasons = $all_reasons->paginate(12);
-        return view('dashboard.cancelling_reasons.index',compact('all_reasons'));
+        $search=$request->search;
+        return view('dashboard.cancelling_reasons.index',compact('all_reasons','search'));
     }
     public function create_reason(){
         return view('dashboard.cancelling_reasons.create');

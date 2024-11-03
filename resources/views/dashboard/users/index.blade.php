@@ -79,7 +79,7 @@
                         <table class="table table-hover">
                           <thead>
                             <tr>
-                              
+                              <th scope="col">#</th>
                               <th scope="col">Name</th>
                               <th scope="col">Email</th>
                               <th scope="col">Phone Number</th>
@@ -93,10 +93,11 @@
                             @if(!empty($all_users) && $all_users->count())
                             @foreach($all_users as $user)
                               <tr>
-                                <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span>@if($user->mode == 'driver') <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> @endif {{$user->name}}</td>
-                                <td>{{$user->email}}</td>
+                                <td>{!! highlight($user->id, $search ?? '') !!}</td>
+                                <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span>@if($user->mode == 'driver') <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> @endif {!! highlight($user->name, $search ?? '') !!}</td>
+                                <td>{!! highlight($user->email, $search ?? '') !!}</td>
                                 
-                                <td>{{$user->phone}}</td>
+                                <td>{!! highlight($user->phone, $search ?? '') !!}</td>
                                 <td>{{ucwords($user->mode)}}</td>
                                 <td>{{$user->roles->first()->name}}</td>
                                 <td>@if($user->status=='pending') <span class="badge badge-secondary" style="background-color:rgb(143, 118, 9); width:100%;">Pending</span> @elseif($user->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span> @else <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>

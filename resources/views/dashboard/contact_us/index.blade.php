@@ -52,10 +52,10 @@
                             @foreach($all_contact_us as $contact_us)
                               <tr>
                                 <td>@if($contact_us->seen=='0') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">New</span> @endif</td>
-                                <td>{{$contact_us->name}}</td>
-                                <td>{{$contact_us->email}}</td>
-                                <td>{{$contact_us->phone}}</td>
-                                <td>{{$contact_us->subject}}</td>
+                                <td>{!! highlight($contact_us->name, $search ?? '') !!}</td>
+                                <td>{!! highlight($contact_us->email, $search ?? '') !!}</td>
+                                <td>{!! highlight($contact_us->phone, $search ?? '') !!}</td>
+                                <td>{!! highlight($contact_us->subject, $search ?? '') !!}</td>
                                 <td>@if(strlen($contact_us->message)>50)
                                   {{substr($contact_us->message,0,50)}}...
                                  @else
