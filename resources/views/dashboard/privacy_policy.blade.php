@@ -220,7 +220,9 @@
     
     <h2>Contact Us</h2>
     <p>If you have any questions or requests, please contact us at ( <a style="cursor: pointer;color:rgb(9, 253, 241);"  href="{{url('/contact_us')}}">here</a> ). We will respond according to applicable laws, following proper verification of your account and identity.</p>
-    
+    <h2>Deleting Account</h2>
+    <p>deleting your account is usually an irreversible action, so make sure you are certain about your decision before proceeding. If you have any doubts, consider reaching out to the platform's support team for guidance.</p>
+    <p>You can delete the account from the application or contact technical support</p>
     <h2>For Users in Egypt</h2>
     <p>Lady Driver.</p>
                         
