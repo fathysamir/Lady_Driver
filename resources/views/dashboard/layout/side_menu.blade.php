@@ -57,6 +57,11 @@
           <i class="zmdi zmdi-view-dashboard"></i> <span>About Us</span>
         </a>
       </li>
+      <li>
+        <a href="{{url('/admin-dashboard/feed_back')}}">
+          <i class="zmdi zmdi-view-dashboard"></i> <span>Feed Back</span>
+        </a>
+      </li>
 
     </ul>
 

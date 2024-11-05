@@ -218,7 +218,9 @@ class ClientController extends ApiController
                 Rule::exists('trips', 'id')
             ],
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable'
+            'comment' => 'nullable',
+            'complaint' =>'nullable',
+            'suggestion' => 'nullable'
         ]);
         // dd($request->all());
         if ($validator->fails()) {
