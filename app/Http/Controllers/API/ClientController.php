@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Offer;
 use App\Models\Trip;
+use App\Models\Suggestion;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
+use App\Models\Complaint;
 use App\Models\TripCancellingReason;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
@@ -236,6 +238,12 @@ class ClientController extends ApiController
             $trip->driver_comment=$request->comment;
         }
         $trip->save();
+        if($request->complaint!=null){
+            Complaint::create(['user_id'=>auth()->user()->id,'trip_id'=>$trip->id,'complaint'=>$request->complaint]);
+        }
+        if($request->suggestion!=null){
+            Suggestion::create(['user_id'=>auth()->user()->id,'suggestion'=>$request->suggestion]);
+        }
         return $this->sendResponse(null,'trip rating saved successfuly',200);
     }
 

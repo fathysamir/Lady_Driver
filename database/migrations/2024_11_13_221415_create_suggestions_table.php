@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('complaints', function (Blueprint $table) {
+        Schema::create('suggestions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unsignedBigInteger('trip_id')->nullable();
-            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-            $table->longText('complaint');
+            $table->longText('suggestion');
             $table->enum('seen', ['0','1'])->default('0');
             $table->timestamps();
         });
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('conplaints');
+        Schema::dropIfExists('suggestions');
     }
 };
