@@ -37,7 +37,8 @@ class Trip extends Model
         'trip_cancelling_reason_id',
         'payment_status',
         'type',
-        'air_conditioned'
+        'air_conditioned',
+        'animals',
     ];
 
     protected $allowedSorts = [

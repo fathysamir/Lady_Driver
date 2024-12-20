@@ -25,7 +25,9 @@ return new class extends Migration
             $table->string('car_plate');
             $table->double('lat', 10, 6)->nullable();
             $table->double('lng', 10, 6)->nullable();
+            $table->enum('passenger_type', ['female', 'male_female'])->default('female');
             $table->enum('air_conditioned', ['0','1'])->default('0');
+            $table->enum('animals', ['0','1'])->default('0');
             $table->enum('status', ['pending', 'confirmed','blocked'])->default('pending');
             $table->date('license_expire_date');
             $table->timestamps();

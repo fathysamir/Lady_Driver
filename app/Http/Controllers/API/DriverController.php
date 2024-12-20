@@ -69,7 +69,8 @@ class DriverController extends ApiController
             'license_back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:3072',
             'lat' => 'nullable',
             'lng' => 'nullable',
-            'license_expire_date'=>'required|date'
+            'license_expire_date'=>'required|date',
+            'passenger_type'=>'required|in:female,male_female'
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -93,6 +94,7 @@ class DriverController extends ApiController
                           'car_plate'=>$request->car_plate,
                           'lat'=>floatval($request->lat),
                           'lng'=>floatval($request->lng),
+                          'passenger_type'=>$request->passenger_type,
                           'license_expire_date'=>$request->license_expire_date
                         ]);
         if($request->air_conditioned){
@@ -100,6 +102,13 @@ class DriverController extends ApiController
         }else{
             $car->air_conditioned='0';
         }
+
+        if($request->animal=='1'){
+            $car->animals='1';
+        }else{
+            $car->animals='0';
+        }
+
         $car->save();
         uploadMedia($request->image,$car->avatarCollection,$car);
         uploadMedia($request->plate_image,$car->PlateImageCollection,$car);
@@ -165,6 +174,11 @@ class DriverController extends ApiController
             $car->air_conditioned='1';
         }else{
             $car->air_conditioned='0';
+        }
+        if($request->animal=='1'){
+            $car->animals='1';
+        }else{
+            $car->animals='0';
         }
         $car->save();
         
@@ -306,12 +320,23 @@ class DriverController extends ApiController
                 if( $driver_car->air_conditioned=='0'){
                     $tripsWithin3Km->where('air_conditioned','0');
                 }
+                if( $driver_car->animals=='0'){
+                    $tripsWithin3Km->where('animals','0');
+                }
+                if( $driver_car->passenger_type=='female'){
+                    $tripsWithin3Km->whereHas('user', function ($query) {
+                        $query->where('gendor', 'Female');
+                    });
+                }
                 $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
                                     ->having('client_location_away', '<=', 3) // Filter cars within 3 km
                                     ->get()->map(function ($trip) use ($driver_car) {
-                                        $distance=calculate_distance($driver_car->lat,$driver_car->lng,$trip->start_lat,$trip->start_lng);
+                                        $response=calculate_distance($driver_car->lat,$driver_car->lng,$trip->start_lat,$trip->start_lng);
+                                        $distance=$response['distance_in_km'];
+                                        $duration=$response['duration_in_M'];
                                         if($distance <= 3){
                                             $trip->client_location_distance=$distance;
+                                            $trip->client_location_duration=$duration;
                                             $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
                                             $trip->current_offer=Offer::where('user_id',auth()->user()->id)->where('trip_id',$trip->id)->where('status','pending')->first();
 
@@ -401,6 +426,11 @@ class DriverController extends ApiController
         $trip=Trip::where('id',$lastAcceptedOffer->trip_id)->with(['car' => function($query) {
             $query->with(['mark','model']);
         },'user'])->first();
+        $response=calculate_distance($lastAcceptedOffer->car->lat,$lastAcceptedOffer->car->lng,$trip->start_lat,$trip->start_lng);
+        $distance=$response['distance_in_km'];
+        $duration=$response['duration_in_M'];
+        $trip->client_location_distance=$distance;
+        $trip->client_location_duration=$duration;
         if($trip->status=='completed' || $trip->status=='cancelled'){
             return $this->sendError(null,'no current trip existed',400);
         }

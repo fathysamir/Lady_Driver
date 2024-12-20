@@ -37,7 +37,9 @@ class User extends Authenticatable
         'device_token',
         'password',
         'mode',
-        'theme'
+        'theme',
+        'wallet',
+        'gendor'
     ];
 
     /**

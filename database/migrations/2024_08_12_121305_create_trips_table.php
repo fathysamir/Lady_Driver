@@ -33,6 +33,7 @@ return new class extends Migration
             $table->double('end_lng', 10, 6)->nullable();
             $table->string('address2',255)->nullable();
             $table->enum('air_conditioned', ['0','1'])->default('0');
+            $table->enum('animals', ['0','1'])->default('0');
             $table->float('client_stare_rate', 3, 2)->default(0);
             $table->longText('client_comment')->nullable();
             $table->enum('status', ['created','pending', 'in_progress','completed','cancelled','expired'])->default('created');

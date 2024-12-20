@@ -9,6 +9,7 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Setting;
 use App\Mail\SendOTP;
 use App\Models\FeedBack;
 use App\Models\AboutUs;
@@ -34,12 +35,16 @@ class AuthController extends ApiController
             'phone' => [
                 'required',
                 Rule::unique('users', 'phone')->whereNull('deleted_at'),
-            ],
+            ]
+            
         ];
         
         // Add a conditional rule for 'image' based on the 'mode' field
         if ($request->input('mode') === 'driver') {
             $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:3072'; // Adjust as needed
+        }
+        if ($request->input('mode') === 'client') {
+            $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
         }
         
         $validator = Validator::make($request->all(), $rules);
@@ -48,11 +53,11 @@ class AuthController extends ApiController
             return $this->sendError(null, $validator->errors(), 400);
         }
         
-        if ($validator->fails()) {
-            return $this->sendError(null, $validator->errors(), 400);
-        }
+        
         $otpCode = generateOTP();
-        $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
+        do {
+            $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
+        } while (User::where('invitation_code', $invitation_code)->exists());
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -61,7 +66,7 @@ class AuthController extends ApiController
             'mode' => $request->mode,
             'OTP' => $otpCode,
             'invitation_code' => $invitation_code,
-            
+            'gendor'=>$request->gendor,
             'birth_date' => $request->birth_date
         ]);
         $role = Role::where('name','Client')->first();
@@ -87,6 +92,7 @@ class AuthController extends ApiController
         $validator  =   Validator::make($request->all(), [
             'email' => 'required|string',
             'password' => 'required|string|min:8',
+            'device_token'=>'required'
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -122,11 +128,30 @@ class AuthController extends ApiController
 
     }
 
+    public function device_tocken(Request $request){
+        $validator  =   Validator::make($request->all(), [
+            'device_token'=>'required'
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            return $this->sendError(null,$validator->errors(),400);
+        }
+
+        $user=auth()->user();
+        $user->device_token=$request->device_token;
+        $user->save();
+        return $this->sendResponse(null,'FCM-Tocken saved successfully.',200);
+
+    }
+
     public function verifyOTP(Request $request)
     {
         $validator  =   Validator::make($request->all(), [
             'email' => 'required|string|email',
             'otp' => 'required|string',
+            'device_token'=>'required',
+            'invitation_code'=>'nullable|string'
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -143,6 +168,12 @@ class AuthController extends ApiController
         }
         $user->device_token=$request->device_token;
         $user->save();
+        if($request->invitation_code){
+            $invitation_exchange=floatval(Setting::where('key','invitation_exchange')->where('category','Users')->where('type','number')->first()->value);
+            $invitation_code_owner=User::where('invitation_code', $request->invitation_code)->first();
+            $invitation_code_owner->wallet=$invitation_code_owner->wallet+floatval($invitation_exchange);
+            $invitation_code_owner->save();
+        }
         $user->token=$user->createToken('api')->plainTextToken;
         $user->image=getFirstMediaUrl($user,$user->avatarCollection);
        

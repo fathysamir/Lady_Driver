@@ -28,6 +28,7 @@ Route::post('/resend_otp',[AuthController::class,'resend_otp'])->name('resend_ot
 Route::post('/reset_password',[AuthController::class,'reset_password'])->name('reset_password');
 Route::middleware('auth:sanctum')->group( function () {
     Route::post('/logout',[AuthController::class,'logout'])->name('logout');
+    Route::post('/device_tocken',[AuthController::class,'device_tocken'])->name('device_tocken');
     Route::post('/update_password',[AuthController::class,'update_password'])->name('update_password');
     Route::get('/FAQs',[AuthController::class,'FAQs'])->name('FAQs');
     Route::post('/activation',[DriverController::class,'activation'])->name('activation');

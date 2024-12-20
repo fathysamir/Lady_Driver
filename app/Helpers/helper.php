@@ -77,17 +77,21 @@ function generateOTP() {
 function calculate_distance($lat1,$lng1,$lat2,$lng2){
    
     $api_key = 'AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0';
-    $base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
-    
-    $request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
+    //$base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+    $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&departure_time=now&traffic_model=best_guess&key=$api_key";
+    //$request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
     
     $response = file_get_contents($request_url);
     $data = json_decode($response, true);
     
     if ($data['status'] == 'OK') {
+        
         $distance = $data['rows'][0]['elements'][0]['distance']['value']; // Distance in meters
-        $distance_in_km = round($distance / 1000, 2); // Convert distance to kilometers
-        return  $distance_in_km ;
+        $duration = $data['rows'][0]['elements'][0]['duration_in_traffic']['value'];
+        $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
+        $response2['duration_in_M'] = ceil($duration / 60);
+       
+        return  $response2 ;
     } else {
         return 'Error: Unable to calculate the distance.';
     }

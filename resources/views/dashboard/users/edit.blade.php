@@ -97,7 +97,7 @@
                           <select class="form-control" name="status">
                               <option value="pending" @if($user->status=='pending') selected @endif>Pending</option>
                               <option value="confirmed" @if($user->status=='confirmed') selected @endif>Confirmed</option>
-                              <option value="blocked" @if($user->status=='banned') selected @endif>Banned</option>
+                              <option value="banned" @if($user->status=='banned') selected @endif>Banned</option>
                               <option value="blocked" @if($user->status=='blocked') selected @endif>Blocked</option>
                           </select>
                        </div>

@@ -10,6 +10,7 @@ use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\ContactUsController;
 use App\Http\Controllers\Dashboard\FeedBackController;
+use App\Http\Controllers\Dashboard\ComplaintController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -97,4 +98,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
         Route::post('/about_us/update', [SettingController::class, 'update_about_us'])->name('update.about_us');
         Route::any('/feed_back', [FeedBackController::class, 'index'])->name('feed_back'); 
         Route::get('/feed_back/view/{id}', [FeedBackController::class, 'view'])->name('edit.feed_back');
+        ///////////////////////////////////////////////
+        Route::any('/complaints', [ComplaintController::class, 'index'])->name('complaints'); 
+        Route::get('/complaint/view/{id}', [ComplaintController::class, 'view'])->name('view.complaint');
 });

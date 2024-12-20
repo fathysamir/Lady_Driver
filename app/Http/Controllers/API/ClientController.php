@@ -39,7 +39,10 @@ class ClientController extends ApiController
  
              return $this->sendError(null,$validator->errors(),400);
          }
-         $distance=calculate_distance($request->start_lat,$request->start_lng,$request->end_lat,$request->end_lng);
+         $response=calculate_distance($request->start_lat,$request->start_lng,$request->end_lat,$request->end_lng);
+         $distance=$response['distance_in_km'];
+         $duration=$response['duration_in_M'];
+         
          $kilometer_price=floatval(Setting::where('key','kilometer_price')->where('category','Trips')->where('type','number')->first()->value);
          $Air_conditioning_service_price=floatval(Setting::where('key','Air_conditioning_service_price')->where('category','Trips')->where('type','number')->first()->value);
          $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
@@ -79,10 +82,16 @@ class ClientController extends ApiController
         }else{
             $trip->air_conditioned='0';
         }
-        
+        if($request->animal=='1'){
+            $trip->animals='1';
+        }else{
+            $trip->animals='0';
+        }
 
            
         $trip->save();
+
+        $trip->duration=$duration;
         return $this->sendResponse($trip,'Trip Created Successfuly.',200);
          //dd($distance);
 
@@ -106,10 +115,20 @@ class ClientController extends ApiController
         }])->first();
         
         if($trip){
+            $response=calculate_distance($trip->start_lat,$trip->start_lng,$trip->end_lat,$trip->end_lng);
+            $trip_distance=$response['distance_in_km'];
+            $trip_duration=$response['duration_in_M'];
+            $trip->duration=$trip_duration;
             if($trip->status=='pending' || $trip->status=='in_progress'){
                 $trip->car->owner->image=getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection);
                 $trip->car->image=getFirstMediaUrl($trip->car,$trip->car->avatarCollection);
-
+            }
+            if($trip->status=='pending'){
+                $response=calculate_distance($trip->car->lat,$trip->car->lng,$trip->start_lat,$trip->start_lng);
+                $distance=$response['distance_in_km'];
+                $duration=$response['duration_in_M'];
+                $trip->client_location_distance=$distance;
+                $trip->client_location_duration=$duration;
             }
             if($trip->status=='created'){
                 $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
@@ -118,6 +137,11 @@ class ClientController extends ApiController
                         $offer->user->image=getFirstMediaUrl($offer->user,$offer->user->avatarCollection);
                         $offer->car->mark;
                         $offer->car->model;
+                        $response=calculate_distance($offer->car->lat,$offer->car->lng,$trip->start_lat,$trip->start_lng);
+                        $distance=$response['distance_in_km'];
+                        $duration=$response['duration_in_M'];
+                        $offer->client_location_distance=$distance;
+                        $offer->client_location_duration=$duration;
                         return $offer;
                     
                 });

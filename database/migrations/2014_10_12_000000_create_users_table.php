@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('OTP')->nullable();
             $table->enum('is_online', ['0', '1'])->default('1');
             $table->enum('mode', ['client', 'driver'])->default('client');
+            $table->enum('gendor', ['Male', 'Female'])->default('Female');
             $table->string('national_id')->unique()->nullable();
             $table->double('lat', 10, 6)->nullable();
             $table->double('lng', 10, 6)->nullable();
@@ -30,6 +31,7 @@ return new class extends Migration
             $table->longText('device_token')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->decimal('wallet',15, 2)->default(0);
             $table->string('theme')->nullable();
             $table->rememberToken();
             $table->timestamps();

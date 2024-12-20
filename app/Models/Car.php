@@ -28,7 +28,9 @@ class Car extends Model
         'lng',
         'air_conditioned',
         'status',
-        'license_expire_date'
+        'passenger_type',
+        'license_expire_date',
+        'animals'
     ];
 
     protected $allowedSorts = [

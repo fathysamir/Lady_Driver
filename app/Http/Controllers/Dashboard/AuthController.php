@@ -16,10 +16,14 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-
+use App\Services\FirebaseService;
 class AuthController extends Controller
 {
-
+    protected $firebaseService;
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
 ///////////////////////////////////////////  Login  ///////////////////////////////////////////
     public function login_view(){
         return view('dashboard.login');
@@ -75,6 +79,8 @@ class AuthController extends Controller
     }
 
     public function terms_conditions(){
+        $this->firebaseService->sendNotification('cc_Z3kvBRReDBXLTcCHId3:APA91bGU44gGrZThSg0Z6rfhWrN-b7gfJSz13Ssf1BSrbKGMJmnxtG9pE0g-2NcXLqeATwoeRuHrqtyNaJ5RZuOQjCR9kE2cEIvZoxEzBadREj2Odc5l8Ko',
+                                                 'Lady Driver',"شكرا على مجهودك ي ابو حميد معايا",[]);
         return view('dashboard.terms_conditions');
     }
 

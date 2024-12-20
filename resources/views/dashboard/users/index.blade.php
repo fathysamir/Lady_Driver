@@ -63,6 +63,7 @@
                                         <option value="">Select Status</option>
                                         <option value="pending">Pending</option>
                                         <option value="confirmed">Confirmed</option>
+                                        <option value="banned">Banned</option>
                                         <option value="blocked">Blocked</option>
                                         <!-- Add more options as needed -->
                                     </select>
@@ -100,7 +101,7 @@
                                 <td>{!! highlight($user->phone, $search ?? '') !!}</td>
                                 <td>{{ucwords($user->mode)}}</td>
                                 <td>{{$user->roles->first()->name}}</td>
-                                <td>@if($user->status=='pending') <span class="badge badge-secondary" style="background-color:rgb(143, 118, 9); width:100%;">Pending</span> @elseif($user->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span> @else <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>
+                                <td>@if($user->status=='pending') <span class="badge badge-secondary" style="background-color:rgb(143, 118, 9); width:100%;">Pending</span> @elseif($user->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>@elseif($user->status=='banned') <span class="badge badge-secondary" style="background-color:rgb(61, 27, 255);width:100%;">Banned</span> @else <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>
                                 
                                 <td>
                                   
