@@ -79,7 +79,7 @@ class AuthController extends Controller
     }
 
     public function terms_conditions(){
-        $this->firebaseService->sendNotification('cc_Z3kvBRReDBXLTcCHId3:APA91bGU44gGrZThSg0Z6rfhWrN-b7gfJSz13Ssf1BSrbKGMJmnxtG9pE0g-2NcXLqeATwoeRuHrqtyNaJ5RZuOQjCR9kE2cEIvZoxEzBadREj2Odc5l8Ko',
+        $this->firebaseService->sendNotification('cc_Z3kvBRReDBXLTcCHId3:APA91bHJCkxHIxkmGuhDE6s3t0kD97usxx4dKRXB_HcVB_aeHdBi_6HgZofusTIxHB-1q-rwuifPzbBY57ZUCgmulERkM4kkqqpG7fkEwDAj1DzFaJyrMG0',
                                                  'Lady Driver',"شكرا على مجهودك ي ابو حميد معايا",[]);
         return view('dashboard.terms_conditions');
     }
