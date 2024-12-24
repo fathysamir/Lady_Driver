@@ -25,8 +25,8 @@ use App\Http\Controllers\Dashboard\ComplaintController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/terms&conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
-Route::get('/privacy_policy', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
+Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
+Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
 Route::get('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 Route::get('/contact_us', [AuthController::class, 'contact_us'])->name('contact_us');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');

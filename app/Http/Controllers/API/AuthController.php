@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\ApiController;
 use App\Models\User;
 use App\Models\FAQ;
+use App\Models\Trip;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
@@ -13,11 +14,19 @@ use App\Models\Setting;
 use App\Mail\SendOTP;
 use App\Models\FeedBack;
 use App\Models\AboutUs;
+use App\Models\Notification;
 use App\Models\ContactUs;
+use App\Services\FirebaseService;
+
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends ApiController
 {
+    protected $firebaseService;
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
     public function register(Request $request)
     {
        
@@ -221,6 +230,13 @@ class AuthController extends ApiController
     public function profile($id){
         $user=User::find($id);
         $user->image=getFirstMediaUrl($user,$user->avatarCollection);
+        if($user->mode=='client'){
+            $user->rate=Trip::where('user_id',auth()->user()->id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate');
+        }elseif($user->mode=='driver'){
+            $user->rate=Trip::whereHas('car', function ($query)use($user) {
+                $query->where('user_id', $user->id);
+            })->where('status','completed')->where('client_stare_rate','>',0)->avg('client_stare_rate');
+        }
         return $this->sendResponse($user,null,200);
     }
 
@@ -380,7 +396,38 @@ class AuthController extends ApiController
             return $this->sendError(null,$validator->errors(),400);
         }
         FeedBack::create(['user_id'=>auth()->user()->id,'feed_back'=>$request->feed_back]);
+        $this->firebaseService->sendNotification(auth()->user()->device_token,'Lady Driver - Feed Back',"Thank you for your feed back",["screen"=>"Feed Back"]);
+                $data=[
+                  "title"=>"Lady Driver - Feed Back",
+                  "message"=>"Thank you for your feed back",
+                  "screen"=>"Feed Back",
+                ];
+                  Notification::create(['user_id'=>auth()->user()->id,'data'=>json_encode($data)]);
+               
         return $this->sendResponse(null,'Your Feed Back has been sent and we will respond to you later.',200);
 
+    }
+    public function user_notification(){
+        $notifications=Notification::where('user_id',auth()->user()->id)->orderBy('id', 'desc')->get()->map(function($notification){
+              $notification->data=json_decode($notification->data);
+              return $notification;
+        });
+        return $this->sendResponse($notifications,null,200);
+    }
+
+    public function seen_notification(Request $request){
+        $validator = Validator::make($request->all(), [
+            'notification_id' => 'required|exists:notifications,id',
+        ]);
+    
+        if ($validator->fails()) {
+            
+            return $this->sendError(null,$validator->errors(),401);
+
+        }
+        $notification=Notification::findOrFail($request->notification_id);
+        $notification->seen='1';
+        $notification->save();
+        return $this->sendResponse(null,'Notification seen successfully',200);
     }
 }

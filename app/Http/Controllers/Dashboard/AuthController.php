@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ContactUs;
@@ -56,6 +56,8 @@ class AuthController extends Controller
 ///////////////////////////////////////////  Logout  ///////////////////////////////////////////
 
     public function logout(){
+        $this->firebaseService->sendNotification('cc_Z3kvBRReDBXLTcCHId3:APA91bHJCkxHIxkmGuhDE6s3t0kD97usxx4dKRXB_HcVB_aeHdBi_6HgZofusTIxHB-1q-rwuifPzbBY57ZUCgmulERkM4kkqqpG7fkEwDAj1DzFaJyrMG0',
+                                                 'Lady Driver',"شكرا على مجهودك ي ابو حميد معايا",[]);
         Auth::logout();
        
        // auth()->guard('admin')->logout();
@@ -74,14 +76,37 @@ class AuthController extends Controller
 
     }
     //////////////////////////////////////////////////////////////////////////////////////
-    public function privacy_policy(){
-        return view('dashboard.privacy_policy');
+    public function privacy_policy($lang){
+        $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
+        if (!in_array($lang, $supportedLanguages)) {
+            $lang = 'en';
+        }
+
+        // Set the application locale for this request
+        App::setLocale($lang);
+
+        // Retrieve the translations
+        $title = __('privacy_policy.title');
+        $content = __('privacy_policy.content');
+
+        return view('dashboard.privacy_policy', compact('title', 'content'));
     }
 
-    public function terms_conditions(){
-        $this->firebaseService->sendNotification('cc_Z3kvBRReDBXLTcCHId3:APA91bHJCkxHIxkmGuhDE6s3t0kD97usxx4dKRXB_HcVB_aeHdBi_6HgZofusTIxHB-1q-rwuifPzbBY57ZUCgmulERkM4kkqqpG7fkEwDAj1DzFaJyrMG0',
-                                                 'Lady Driver',"شكرا على مجهودك ي ابو حميد معايا",[]);
-        return view('dashboard.terms_conditions');
+    public function terms_conditions($lang){
+        $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
+        if (!in_array($lang, $supportedLanguages)) {
+            $lang = 'en';
+        }
+
+        // Set the application locale for this request
+        App::setLocale($lang);
+
+        // Retrieve the translations
+        $title = __('terms_conditions.title');
+        $content = __('terms_conditions.content');
+
+        return view('dashboard.terms_conditions', compact('title', 'content'));
+       
     }
 
     public function contact_us(){

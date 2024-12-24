@@ -149,7 +149,8 @@ class DriverController extends ApiController
              'license_back_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072',
              'lat' => 'nullable',
              'lng' => 'nullable',
-             'license_expire_date'=>'required|date'
+             'license_expire_date'=>'required|date',
+             'passenger_type'=>'required|in:female,male_female'
          ]);
          // dd($request->all());
          if ($validator->fails()) {
@@ -166,6 +167,7 @@ class DriverController extends ApiController
                           'lat'=>floatval($request->lat),
                           'lng'=>floatval($request->lng),
                           'status' => 'pending',
+                          'passenger_type'=>$request->passenger_type,
                           'license_expire_date'=>$request->license_expire_date
                         ]);
         $car=Car::find($request->car_id);
