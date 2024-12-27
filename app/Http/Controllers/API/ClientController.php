@@ -14,13 +14,21 @@ use App\Models\Suggestion;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
+use App\Models\Notification;
 use App\Models\Complaint;
 use App\Models\TripCancellingReason;
 use Illuminate\Validation\Rule;
+use App\Services\FirebaseService;
+
 use Illuminate\Support\Facades\Validator;
 
 class ClientController extends ApiController
 {
+    protected $firebaseService;
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
     public function create_trip(Request $request){
         $check_account=$this->check_banned();
         if($check_account!= true){
@@ -92,6 +100,49 @@ class ClientController extends ApiController
         $trip->save();
 
         $trip->duration=$duration;
+
+        $radius = 6371;
+        $decimalPlaces = 2;
+
+        $eligibleCars = Car::where('status', 'confirmed')
+                ->whereHas('owner', function ($query) {
+                    $query->where('is_online', '1');
+                })
+        ->where(function ($query) use ($trip) {
+            if ($trip->air_conditioned == '1') {
+                $query->where('air_conditioned', '1');
+            }
+            if ($trip->animals == '1') {
+                $query->where('animals', '1');
+            }
+            if($trip->user->gendor=='Male'){
+                $query->where('passenger_type','male_female');
+            }
+        })
+        ->select('*')
+        ->selectRaw("ROUND(( $radius * acos( cos( radians($trip->start_lat) ) * cos( radians(lat) ) * cos( radians(lng) - radians($trip->start_lng) ) + sin( radians($trip->start_lat) ) * sin( radians(lat) ) ) ), $decimalPlaces) AS distance")
+        ->having('distance', '<=', 3)
+        ->get()->map(function ($car) use ($trip) {
+            $response=calculate_distance($car->lat,$car->lng,$trip->start_lat,$trip->start_lng);
+            $distance=$response['distance_in_km'];
+            if($distance <= 3){
+                
+                return $car;
+            }
+        });
+
+        foreach ($eligibleCars as $car) {
+            if($car->owner->device_token){
+                $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
+                $data=[
+                    "title"=>"Lady Driver - New Trip",
+                    "message"=>"There is a new trip created in your current area",
+                    "screen"=>"New Trip",
+                    "ID"=>$trip->id
+                ];
+                Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
+            }
+        }
         return $this->sendResponse($trip,'Trip Created Successfuly.',200);
          //dd($distance);
 

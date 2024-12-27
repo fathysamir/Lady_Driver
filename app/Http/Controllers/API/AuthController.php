@@ -231,11 +231,11 @@ class AuthController extends ApiController
         $user=User::find($id);
         $user->image=getFirstMediaUrl($user,$user->avatarCollection);
         if($user->mode=='client'){
-            $user->rate=Trip::where('user_id',auth()->user()->id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate');
+            $user->rate=Trip::where('user_id',auth()->user()->id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate')?? 0.00;
         }elseif($user->mode=='driver'){
             $user->rate=Trip::whereHas('car', function ($query)use($user) {
                 $query->where('user_id', $user->id);
-            })->where('status','completed')->where('client_stare_rate','>',0)->avg('client_stare_rate');
+            })->where('status','completed')->where('client_stare_rate','>',0)->avg('client_stare_rate')?? 0.00;
         }
         return $this->sendResponse($user,null,200);
     }
@@ -396,14 +396,17 @@ class AuthController extends ApiController
             return $this->sendError(null,$validator->errors(),400);
         }
         FeedBack::create(['user_id'=>auth()->user()->id,'feed_back'=>$request->feed_back]);
-        $this->firebaseService->sendNotification(auth()->user()->device_token,'Lady Driver - Feed Back',"Thank you for your feed back",["screen"=>"Feed Back"]);
-                $data=[
-                  "title"=>"Lady Driver - Feed Back",
-                  "message"=>"Thank you for your feed back",
-                  "screen"=>"Feed Back",
-                ];
-                  Notification::create(['user_id'=>auth()->user()->id,'data'=>json_encode($data)]);
-               
+        if(auth()->user()->device_token){
+            $this->firebaseService->sendNotification(auth()->user()->device_token,'Lady Driver - Feed Back',"Thank you for your feed back",["screen"=>"Feed Back"]);
+            $data=[
+                "title"=>"Lady Driver - Feed Back",
+                "message"=>"Thank you for your feed back",
+                "screen"=>"Feed Back",
+            ];
+            Notification::create(['user_id'=>auth()->user()->id,'data'=>json_encode($data)]);
+              
+        }
+            
         return $this->sendResponse(null,'Your Feed Back has been sent and we will respond to you later.',200);
 
     }
