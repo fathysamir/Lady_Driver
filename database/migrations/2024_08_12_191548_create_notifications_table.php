@@ -18,7 +18,7 @@ return new class extends Migration
             $table->json('data')->nullable();
             $table->string('type')->nullable();
             
-            $table->enum('seen', ['0', '1'])->default('1');
+            $table->enum('seen', ['0', '1'])->default('0');
             $table->timestamps();
             $table->softDeletes();
         });

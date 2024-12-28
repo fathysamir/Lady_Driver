@@ -240,7 +240,16 @@ class ClientController extends ApiController
         $offer->status='accepted';
         $offer->save();
         Offer::where('id','!=',$request->offer_id)->where('trip_id',$trip->id)->update(['status'=>'expired']);
-        
+        if($offer->user->device_token){
+            $this->firebaseService->sendNotification($offer->user->device_token,'Lady Driver - Accept Offer',"Your offer for trip No. (" . $trip->code . ") has been approved.",["screen"=>"Current Trip","ID"=>$trip->id]);
+            $data=[
+                "title"=>"Lady Driver - Accept Offer",
+                "message"=>"Your offer for trip No. (" . $trip->code . ") has been approved.",
+                "screen"=>"Current Trip",
+                "ID"=>$trip->id
+            ];
+            Notification::create(['user_id'=>$offer->user_id,'data'=>json_encode($data)]);
+        }
         return $this->sendResponse(null,'offer accepted successfuly',200);
 
     }
@@ -253,6 +262,7 @@ class ClientController extends ApiController
             ],
             'status' => 'required'
         ]);
+
         // dd($request->all());
         if ($validator->fails()) {
 
@@ -261,6 +271,27 @@ class ClientController extends ApiController
         $trip=Trip::find($request->trip_id);
         $trip->payment_status=$request->status;
         $trip->save();
+        $trip=Trip::find($request->trip_id);
+        if($trip->user->device_token){
+            $this->firebaseService->sendNotification($trip->user->device_token,'Lady Driver - Trip Payment',"trip No. (" . $trip->code . ") has been paid.",["screen"=>"Current Trip","ID"=>$trip->id]);
+            $data=[
+                "title"=>"Lady Driver - Trip Payment",
+                "message"=>"trip No. (" . $trip->code . ") has been paid.",
+                "screen"=>"Current Trip",
+                "ID"=>$trip->id
+            ];
+            Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
+        }
+        if($trip->car->owner->device_token){
+            $this->firebaseService->sendNotification($trip->car->owner->device_token,'Lady Driver - Trip Payment',"trip No. (" . $trip->code . ") has been paid.",["screen"=>"Current Trip","ID"=>$trip->id]);
+            $data=[
+                "title"=>"Lady Driver - Trip Payment",
+                "message"=>"trip No. (" . $trip->code . ") has been paid.",
+                "screen"=>"Current Trip",
+                "ID"=>$trip->id
+            ];
+            Notification::create(['user_id'=>$trip->car->user_id,'data'=>json_encode($data)]);
+        }
         return $this->sendResponse(null,'trip is paid',200);
     }
 
