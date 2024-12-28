@@ -56,8 +56,6 @@ class AuthController extends Controller
 ///////////////////////////////////////////  Logout  ///////////////////////////////////////////
 
     public function logout(){
-        $this->firebaseService->sendNotification('cc_Z3kvBRReDBXLTcCHId3:APA91bHJCkxHIxkmGuhDE6s3t0kD97usxx4dKRXB_HcVB_aeHdBi_6HgZofusTIxHB-1q-rwuifPzbBY57ZUCgmulERkM4kkqqpG7fkEwDAj1DzFaJyrMG0',
-                                                 'Lady Driver',"شكرا على مجهودك ي ابو حميد معايا",[]);
         Auth::logout();
        
        // auth()->guard('admin')->logout();
