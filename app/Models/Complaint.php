@@ -28,10 +28,10 @@ class Complaint extends Model
 
    
     public function user(){
-        return $this->belongsTo(User::class,'user_id','id');
+        return $this->belongsTo(User::class,'user_id','id')->withTrashed();
     }
     public function trip(){
-        return $this->belongsTo(Car::class,'trip_id','id');
+        return $this->belongsTo(Car::class,'trip_id','id')->withTrashed();
     }
   
     

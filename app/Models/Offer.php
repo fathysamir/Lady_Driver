@@ -29,13 +29,13 @@ class Offer extends Model
     protected $hidden = ['deleted_at'];
 
     public function user(){
-        return $this->belongsTo(User::class,'user_id','id');
+        return $this->belongsTo(User::class,'user_id','id')->withTrashed();
     }
     public function car(){
-        return $this->belongsTo(Car::class,'car_id','id');
+        return $this->belongsTo(Car::class,'car_id','id')->withTrashed();
     }
     public function trip(){
-        return $this->belongsTo(Trip::class,'trip_id','id');
+        return $this->belongsTo(Trip::class,'trip_id','id')->withTrashed();
     }
    
     

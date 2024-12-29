@@ -54,16 +54,16 @@ class Trip extends Model
         return $this->hasMany(Offer::class,'trip_id');
     }
     public function user(){
-        return $this->belongsTo(User::class,'user_id','id');
+        return $this->belongsTo(User::class,'user_id','id')->withTrashed();
     }
     public function car(){
-        return $this->belongsTo(Car::class,'car_id','id');
+        return $this->belongsTo(Car::class,'car_id','id')->withTrashed();
     }
     public function cancelled_by(){
-        return $this->belongsTo(User::class,'cancelled_by_id','id');
+        return $this->belongsTo(User::class,'cancelled_by_id','id')->withTrashed();
     }
     public function cancelling_reason(){
-        return $this->belongsTo(TripCancellingReason::class,'trip_cancelling_reason_id','id');
+        return $this->belongsTo(TripCancellingReason::class,'trip_cancelling_reason_id','id')->withTrashed();
     }
    
     

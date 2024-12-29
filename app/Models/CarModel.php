@@ -37,7 +37,7 @@ class CarModel extends Model
         return $this->en_name;
     }
     public function mark(){
-        return $this->belongsTo(CarMark::class,'car_mark_id','id');
+        return $this->belongsTo(CarMark::class,'car_mark_id','id')->withTrashed();
     }
    
     

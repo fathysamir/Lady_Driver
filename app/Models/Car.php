@@ -46,13 +46,13 @@ class Car extends Model
         return $this->hasMany(Trip::class,'car_id');
     }
     public function owner(){
-        return $this->belongsTo(User::class,'user_id','id');
+        return $this->belongsTo(User::class,'user_id','id')->withTrashed();
     }
     public function mark(){
-        return $this->belongsTo(CarMark::class,'car_mark_id','id');
+        return $this->belongsTo(CarMark::class,'car_mark_id','id')->withTrashed();
     }
     public function model(){
-        return $this->belongsTo(CarModel::class,'car_model_id','id');
+        return $this->belongsTo(CarModel::class,'car_model_id','id')->withTrashed();
     }
    
     
