@@ -53,7 +53,7 @@
                             @if(!empty($all_marks) && $all_marks->count())
                             @foreach($all_marks as $mark)
                               <tr>
-                                <td>{!! highlight($mark->en_name, $search ?? '') !!} - {!! highlight($mark->en_name, $search ?? '') !!}</td>
+                                <td>{!! highlight($mark->en_name, $search ?? '') !!} - {!! highlight($mark->ar_name, $search ?? '') !!}</td>
 
                                 <td>
                                   
