@@ -141,6 +141,7 @@ class UserController extends Controller
 
      public function delete($id)
     {
+        Car::where('user_id',$id)->delete();
         User::where('id', $id)->delete();
         return redirect('/admin-dashboard/users');
     }

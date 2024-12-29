@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Setting;
 use App\Mail\SendOTP;
 use App\Models\FeedBack;
+use App\Models\Car;
 use App\Models\AboutUs;
 use App\Models\Notification;
 use App\Models\ContactUs;
@@ -379,6 +380,7 @@ class AuthController extends ApiController
             foreach ($tokens as $token) {
                 $token->delete();
             }
+            Car::where('user_id',$user->id)->delete();
             $user->delete();
             return $this->sendResponse(null,'Account Removed successfuly',200);
         } else {
