@@ -79,6 +79,10 @@ class AuthController extends ApiController
             'gendor'=>$request->gendor,
             'birth_date' => $request->birth_date
         ]);
+        if($request->mode=='client'){
+            $user->status='confirmed';
+            $user->save();
+        }
         $role = Role::where('name','Client')->first();
             
         $user->assignRole([$role->id]);
