@@ -11,14 +11,21 @@ use App\Models\Trip;
 use App\Models\Offer;
 use App\Models\CarMark;
 use App\Models\CarModel;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendOTP;
 use Illuminate\Validation\Rule;
+use App\Services\FirebaseService;
+
 use Illuminate\Support\Facades\Validator;
 
 class DriverController extends ApiController
-{   
+{   protected $firebaseService;
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
     public function marks(Request $request){
         
 
@@ -402,6 +409,17 @@ class DriverController extends ApiController
                                'car_id'=>$driver_car->id,
                                'trip_id'=>intval($request->trip_id),
                                'offer'=>floatval($request->offer)]);
+        $trip=Trip::findOrFail($request->trip_id);
+        if($trip->user->device_token){
+            $this->firebaseService->sendNotification($trip->user->device_token,'Lady Driver - New Offer',"Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name .").",["screen"=>"Current Trip","ID"=>$trip->id]);
+            $data=[
+                "title"=>"Lady Driver - New Offer",
+                "message"=>"Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name .").",
+                "screen"=>"Current Trip",
+                "ID"=>$trip->id
+            ];
+            Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
+        }
         return $this->sendResponse($offer,null,200);
 
     }
