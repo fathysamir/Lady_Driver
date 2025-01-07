@@ -81,6 +81,11 @@ class Chat implements MessageComponentInterface {
         $data = json_decode($msg, true);
         if(array_key_exists('pong', $data)){
             echo sprintf("sss");
+            foreach ($this->clients as $client) {
+                $client->send($msg);
+                $date_time=date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ],Message "%s" sent to user %d' . "\n",$date_time,$msg, $this->clients[$from]);
+            }
         }else{
             if (array_key_exists('to_user_id', $data)) {
            
