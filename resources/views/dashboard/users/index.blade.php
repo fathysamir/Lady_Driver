@@ -21,7 +21,43 @@
     .offline {
         background-color: gray;
     }
-</style>
+
+
+  /* Popup styles */
+  .popup {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically */
+      
+  }
+  
+  .popup-content {
+      margin: auto;
+      display: block;
+      width: 80%;
+      height: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .popup-close {
+      position: absolute;
+      top: 10px;
+      right: 25px;
+      color: #fff;
+      font-size: 35px;
+      font-weight: bold;
+      cursor: pointer;
+  }
+  </style>
     <div class="content-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -95,7 +131,7 @@
                             @foreach($all_users as $user)
                             <tr onclick="window.location='{{ url('/admin-dashboard/user/edit/'.$user->id) }}';" style="cursor: pointer;">
                                 <td>{!! highlight($user->id, $search ?? '') !!}</td>
-                                <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span>@if($user->mode == 'driver') <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> @endif {!! highlight($user->name, $search ?? '') !!}</td>
+                                <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle user-avatar" alt="user avatar"></span>@if($user->mode == 'driver') <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> @endif {!! highlight($user->name, $search ?? '') !!}</td>
                                 <td>{!! highlight($user->email, $search ?? '') !!}</td>
                                 
                                 <td>{!! highlight($user->phone, $search ?? '') !!}</td>
@@ -140,6 +176,10 @@
             <div class="overlay toggle-menu"></div>
         </div>
     </div>
+    <div id="imagePopup" class="popup">
+      <span class="popup-close" onclick="closePopup()">×</span>
+      <img class="popup-content" id="popupImage">
+  </div>
 @endsection
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -162,4 +202,24 @@
   
       
   </script>
+  <script>
+    function openPopup(imageSrc) {
+        const popup = document.getElementById("imagePopup");
+        const popupImage = document.getElementById("popupImage");
+        popupImage.src = imageSrc;
+        popup.style.display = "flex";
+    }
+    
+    function closePopup() {
+        document.getElementById("imagePopup").style.display = "none";
+    }
+    
+    // Attach event to images
+    document.querySelectorAll(".user-avatar").forEach(img => {
+        img.addEventListener("mouseover", function () {
+          console.log("kkk");
+            openPopup(this.src);
+        });
+    });
+    </script>
 @endpush
