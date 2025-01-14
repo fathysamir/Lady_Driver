@@ -74,7 +74,7 @@ class ClientController extends ApiController
             }
          $trip=Trip::create(['user_id'=>auth()->user()->id,
                              'code'=>$code,
-                             'car_id'=>$request->car_id,
+                             
                              'start_lat'=>floatval($request->start_lat),
                              'start_lng'=>floatval($request->start_lng),
                              'end_lat'=>floatval($request->end_lat),
@@ -108,7 +108,8 @@ class ClientController extends ApiController
 
         $eligibleCars = Car::where('status', 'confirmed')
                 ->whereHas('owner', function ($query) {
-                    $query->where('is_online', '1');
+                    $query->where('is_online', '1')
+                          ->where('status', 'confirmed');
                 })
         ->where(function ($query) use ($trip) {
             if ($trip->air_conditioned == '1') {
