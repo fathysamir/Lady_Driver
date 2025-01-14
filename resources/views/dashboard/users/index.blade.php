@@ -54,7 +54,7 @@
 .avatar-preview img {
    
     max-width: 100%;
-    max-height: 100%;
+    height: 100%;
     border-radius: 5px;
 }
 
