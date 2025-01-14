@@ -191,14 +191,14 @@ class Chat implements MessageComponentInterface {
         foreach ($eligibleCars as $car) {
             $eligibleDriverIds[] = $car->user_id;
             if($car->owner->device_token){
-                // $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
-                // $data=[
-                //     "title"=>"Lady Driver - New Trip",
-                //     "message"=>"There is a new trip created in your current area",
-                //     "screen"=>"New Trip",
-                //     "ID"=>$trip->id
-                // ];
-                // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
+                $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
+                $data=[
+                    "title"=>"Lady Driver - New Trip",
+                    "message"=>"There is a new trip created in your current area",
+                    "screen"=>"New Trip",
+                    "ID"=>$trip->id
+                ];
+                Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
             }
         }
         foreach ($this->clients as $client) {
