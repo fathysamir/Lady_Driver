@@ -93,7 +93,7 @@
                           <tbody>
                             @if(!empty($all_users) && $all_users->count())
                             @foreach($all_users as $user)
-                              <tr>
+                            <tr onclick="window.location='{{ url('/admin-dashboard/user/edit/'.$user->id) }}';" style="cursor: pointer;">
                                 <td>{!! highlight($user->id, $search ?? '') !!}</td>
                                 <td><span class="user-profile"><img @if(getFirstMediaUrl($user,$user->avatarCollection)!=null) src="{{getFirstMediaUrl($user,$user->avatarCollection)}}" @else src="{{asset('dashboard/user_avatar.png')}}" @endif class="img-circle" alt="user avatar"></span>@if($user->mode == 'driver') <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> @endif {!! highlight($user->name, $search ?? '') !!}</td>
                                 <td>{!! highlight($user->email, $search ?? '') !!}</td>

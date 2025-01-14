@@ -97,8 +97,8 @@
                           <tbody>
                             @if(!empty($all_cars) && $all_cars->count())
                             @foreach($all_cars as $car)
-                              <tr>
-                                <td>{!! highlight($car->code, $search ?? '') !!}</td>
+                            <tr onclick="window.location='{{url('/admin-dashboard/car/edit/'.$car->id)}}';" style="cursor: pointer;">
+                              <td>{!! highlight($car->code, $search ?? '') !!}</td>
                                 <td>{{$car->mark->en_name}} - {{$car->mark->ar_name}}</td>
                                 <td>{{$car->model->en_name}} - {{$car->model->ar_name}} ({{$car->year}})</td>
                                 

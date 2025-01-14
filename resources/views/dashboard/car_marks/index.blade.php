@@ -52,8 +52,8 @@
                           <tbody>
                             @if(!empty($all_marks) && $all_marks->count())
                             @foreach($all_marks as $mark)
-                              <tr>
-                                <td>{!! highlight($mark->en_name, $search ?? '') !!} - {!! highlight($mark->ar_name, $search ?? '') !!}</td>
+                            <tr onclick="window.location='{{url('/admin-dashboard/car-mark/edit/'.$mark->id)}}';" style="cursor: pointer;">
+                              <td>{!! highlight($mark->en_name, $search ?? '') !!} - {!! highlight($mark->ar_name, $search ?? '') !!}</td>
 
                                 <td>
                                   

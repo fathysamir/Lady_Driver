@@ -82,8 +82,8 @@
                           <tbody>
                             @if(!empty($all_reasons) && $all_reasons->count())
                             @foreach($all_reasons as $reason)
-                              <tr>
-                                <td>{!! highlight($reason->en_reason, $search ?? '') !!}<br> {!! highlight($reason->ar_reason, $search ?? '') !!}</td>
+                            <tr onclick="window.location='{{url('/admin-dashboard/reason-cancelling-trip/edit/'.$reason->id)}}';" style="cursor: pointer;">
+                              <td>{!! highlight($reason->en_reason, $search ?? '') !!}<br> {!! highlight($reason->ar_reason, $search ?? '') !!}</td>
                                 <td>{{ucwords($reason->type)}}</td>
                                 <td>{{ucwords($reason->value_type)}}</td>
                                 <td>{{$reason->value}}</td>

@@ -3,14 +3,15 @@ namespace App\WebSockets;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use App\Models\User;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Hash;
 
 class Chat implements MessageComponentInterface {
     protected $clients;
-    protected $loop; 
+    protected $loop;
     public function __construct($loop) {
         $this->clients = new \SplObjectStorage;
-        $this->loop = $loop; 
+        $this->loop = $loop;
     }
 
     public function onOpen(ConnectionInterface $conn) {
@@ -72,7 +73,16 @@ class Chat implements MessageComponentInterface {
             }
         });
     }
-
+    private function broadcastToUsers($userIds, $message) {
+        foreach ($this->clients as $client) {
+            $clientUserId = $this->clients[$client];
+            if (in_array($clientUserId, $userIds)) {
+                $client->send($message);
+                $date_time=date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ],Message "%s" sent to user %d' . "\n",$date_time,$message, $clientUserId);
+            }
+        }
+    }
     public function onMessage(ConnectionInterface $from, $msg) {
         $numRecv = count($this->clients) - 1;
         
@@ -81,44 +91,24 @@ class Chat implements MessageComponentInterface {
         $data = json_decode($msg, true);
         if(array_key_exists('pong', $data)){
             echo sprintf("sss");
-            foreach ($this->clients as $client) {
-                $client->send($msg);
-                $date_time=date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ],Message "%s" sent to user %d' . "\n",$date_time,$msg, $this->clients[$from]);
-            }
         }else{
             if (array_key_exists('to_user_id', $data)) {
            
                 $toUserId = $data['to_user_id'];
             }
-            if (array_key_exists('to_group_id', $data)) {
-               
-                $toGroupId = $data['to_group_id'];
-            }
-    
-    
             foreach ($this->clients as $client) {
                 if ($from !== $client) {
                     $clientUserId = $this->clients[$client];
-                
-                    $clientGroupId = User::where('id',intval($clientUserId))->first()->group_id;
-                
+                    
                     if (array_key_exists('to_user_id', $data)) {
                     
                         if ($clientUserId == $toUserId) {
                             $client->send($msg);
+                            $this->broadcastToUsers([6,7],$msg);
                             $date_time=date('Y-m-d h:i:s a');
                             echo sprintf('[ %s ],Message "%s" sent from user %d sent to user %d' . "\n",$date_time,$msg, $this->clients[$from], $toUserId);
                         }
                         
-                    }elseif (array_key_exists('to_group_id', $data)) {
-                    
-                        if ($clientGroupId == $toGroupId) {
-                            $client->send($msg);
-                            $date_time=date('Y-m-d h:i:s a');
-                            echo sprintf('[ %s ],Message "%s" sent from user %d sent to group %d' . "\n",$date_time,$msg, $this->clients[$from], $toGroupId);
-                        }
-                       
                     }
                 }
                 

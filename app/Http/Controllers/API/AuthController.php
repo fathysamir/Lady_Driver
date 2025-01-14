@@ -236,7 +236,7 @@ class AuthController extends ApiController
         $user=User::find($id);
         $user->image=getFirstMediaUrl($user,$user->avatarCollection);
         if($user->mode=='client'){
-            $user->rate=Trip::where('user_id',auth()->user()->id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate')?? 0.00;
+            $user->rate=Trip::where('user_id',$user->id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate')?? 0.00;
         }elseif($user->mode=='driver'){
             $user->rate=Trip::whereHas('car', function ($query)use($user) {
                 $query->where('user_id', $user->id);

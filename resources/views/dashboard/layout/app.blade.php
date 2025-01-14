@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
     <meta name="description" content=""/>
     <meta name="author" content=""/>
-    <link rel="icon" type="image/x-icon" href="{{asset('dashboard/lady_driver.jpeg')}}">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/x-icon" href="{{asset('dashboard/logo.png')}}">
     <title>@yield('title', 'Lady Driver - Admin Home')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- loader-->

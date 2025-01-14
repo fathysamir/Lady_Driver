@@ -59,38 +59,62 @@
                       </div>
                       <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
                       @if($user->mode == 'driver')
+                        <div class="form-group" style="display: flex; align-items: center;">
+                          <h4 style="margin-right: 10px;">Driving License</h4>
+                          <hr style="flex: 1; margin: 0;">
+                        </div>
+                        @if($user->driving_license)
+                          <div class="form-group">
+                            <label>License Number : {{$user->driving_license->license_num}}</label>
+                          </div>
+                          <div class="form-group">
+                            <label>Expire Date : {{$user->driving_license->expire_date}}</label> @if($user->driving_license->expire_date<date('Y-m-d'))<span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:10%; margin-left:1%;">Expired</span>@endif
+                          </div>
+                          <div class="form-group"style="display: flex;">
+                            <label>Front Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->front_image}}">
+                          </div>
+                          <div class="form-group"style="display: flex;">
+                            <label>Back Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->back_image}}">
+                          </div>
+                        @else
+                          <div class="form-group"style="display: flex;">
+                            <label>No data was entered for the driver's license</label>
+                          </div>
+                        @endif
+                        @if($user->car)
+                          <div class="form-group">
+                            <label>Car : you can show car from <a style="color: blue" href="{{url('/admin-dashboard/car/edit/'.$user->car->id)}}">hear</a></label>
+                          </div>
+                        @else
+                          <div class="form-group"style="display: flex;">
+                            <label>No vehicle data has been entered</label>
+                          </div>
+                        @endif
+                      @endif
                       <div class="form-group" style="display: flex; align-items: center;">
-                        <h4 style="margin-right: 10px;">Driving License</h4>
+                        <h4 style="margin-right: 10px;">Activities</h4>
                         <hr style="flex: 1; margin: 0;">
                       </div>
-                      @if($user->driving_license)
+                      <div class="form-group" style="display: flex;align-items: center;">
+                        <label>Rate : </label>
+                        <div class="star-rating" style="margin-bottom: 10px;">
+                            <?php
+                            $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
+                            
+                            // Loop to generate stars based on the client evaluation score
+                            for ($i = 1; $i <= 5; $i++) {
+                                $starClass2 = ($i <= $driverEvaluation) ? "filled" : "empty";
+                                echo '<span class="star ' . $starClass2 . '">&#9733;</span>'; // Unicode character for a star
+                            }
+                            ?>
+                        </div>
+                    </div>
                       <div class="form-group">
-                        <label>License Number : {{$user->driving_license->license_num}}</label>
+                        <label>Trips Count : {{$user->trips_count}}</label>
                       </div>
                       <div class="form-group">
-                        <label>Expire Date : {{$user->driving_license->expire_date}}</label> @if($user->driving_license->expire_date<date('Y-m-d'))<span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:10%; margin-left:1%;">Expired</span>@endif
+                        <label>Wallet : {{round($user->wallet,2)}}</label>
                       </div>
-                      <div class="form-group"style="display: flex;">
-                        <label>Front Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->front_image}}">
-                      </div>
-                      <div class="form-group"style="display: flex;">
-                        <label>Back Image : </label>  <img style="margin: 0px 10px 0px 10px; border-radius:10px;" src="{{$user->driving_license->back_image}}">
-                      </div>
-                      @else
-                      <div class="form-group"style="display: flex;">
-                        <label>No data was entered for the driver's license</label>
-                      </div>
-                      @endif
-                      @if($user->car)
-                      <div class="form-group">
-                        <label>Car : you can show car from <a style="color: blue" href="{{url('/admin-dashboard/car/edit/'.$user->car->id)}}">hear</a></label>
-                      </div>
-                      @else
-                      <div class="form-group"style="display: flex;">
-                        <label>No vehicle data has been entered</label>
-                      </div>
-                      @endif
-                      @endif
                       <div class="form-group">
                         <label>Status</label>
                          

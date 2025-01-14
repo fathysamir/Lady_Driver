@@ -50,8 +50,8 @@
                           <tbody>
                             @if(!empty($all_contact_us) && $all_contact_us->count())
                             @foreach($all_contact_us as $contact_us)
-                              <tr>
-                                <td>@if($contact_us->seen=='0') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">New</span> @endif</td>
+                            <tr onclick="window.location='{{url('/admin-dashboard/contact_us/view/'.$contact_us->id)}}';" style="cursor: pointer;">
+                              <td>@if($contact_us->seen=='0') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">New</span> @endif</td>
                                 <td>{!! highlight($contact_us->name, $search ?? '') !!}</td>
                                 <td>{!! highlight($contact_us->email, $search ?? '') !!}</td>
                                 <td>{!! highlight($contact_us->phone, $search ?? '') !!}</td>

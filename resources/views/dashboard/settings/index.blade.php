@@ -35,7 +35,7 @@
                                     <select class="form-control"style="width: 33%;display:inline" name="category">
                                         <option value="">Select Category</option>
                                         <option value="General">General</option>
-                                        <option value="Clients">Clients</option>
+                                        <option value="Users">Users</option>
                                         <option value="Trips">Trips</option>
                                     </select>
                                   </div>
@@ -74,7 +74,7 @@
                           <tbody>
                             @if(!empty($all_settings) && $all_settings->count())
                             @foreach($all_settings as $setting)
-                              <tr>
+                            <tr onclick="window.location='{{url('/admin-dashboard/setting/edit/'.$setting->id)}}';" style="cursor: pointer;">
                                 <td>{!! highlight($setting->label, $search ?? '') !!}</td>
                                 <td>{{$setting->category}}</td>
                                 <td>{{$setting->value}}</td>

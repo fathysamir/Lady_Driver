@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Trip;
 use App\Models\Car;
 use App\Models\DriverLicense;
 use Image;
@@ -118,6 +119,17 @@ class UserController extends Controller
         if($user->driving_license){
             $user->driving_license->front_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseFrontImageCollection);
             $user->driving_license->back_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseBackImageCollection);
+        }
+        if($user->mode=='client'){
+            $user->rate=round(Trip::where('user_id',$id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate'))?? 0.00;
+            $user->trips_count=Trip::where('user_id',$id)->whereIn('status',['pending', 'in_progress','completed'])->count();
+        }elseif($user->mode=='driver'){
+            $user->rate=round(Trip::whereHas('car', function ($query)use($user) {
+                $query->where('user_id', $user->id);
+            })->where('status','completed')->where('client_stare_rate','>',0)->avg('client_stare_rate'))?? 0.00;
+            $user->trips_count=Trip::whereHas('car', function ($query)use($user) {
+                $query->where('user_id', $user->id);
+            })->whereIn('status',['pending', 'in_progress','completed'])->count();
         }
         return view('dashboard.users.edit',compact('user'));
     }

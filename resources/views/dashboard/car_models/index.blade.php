@@ -80,8 +80,8 @@
                           <tbody>
                             @if(!empty($all_models) && $all_models->count())
                             @foreach($all_models as $model)
-                              <tr>
-                                <td>{!! highlight($model->en_name, $search ?? '') !!} - {!! highlight($model->ar_name, $search ?? '') !!}</td>
+                            <tr onclick="window.location='{{url('/admin-dashboard/car-model/edit/'.$model->id)}}';" style="cursor: pointer;">
+                              <td>{!! highlight($model->en_name, $search ?? '') !!} - {!! highlight($model->ar_name, $search ?? '') !!}</td>
                                 <td>{{$model->mark->en_name}} - {{$model->mark->ar_name}}</td>
                                 <td>
                                   

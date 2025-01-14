@@ -1,7 +1,7 @@
 <div id="sidebar-wrapper" data-simplebar="" data-simplebar-auto-hide="true">
     <div class="brand-logo">
       <a href="{{url('/admin-dashboard')}}">
-        <img src="{{asset('dashboard/lady_driver.jpeg')}}" class="logo-icon" alt="logo icon" style="width:60px; border-radius: 50%;">
+        <img src="{{asset('dashboard/logo.png')}}" class="logo-icon" alt="logo icon" style="width:60px; border-radius: 50%;">
         <h5 class="logo-text">Dashboard Admin</h5>
       </a>
     </div>

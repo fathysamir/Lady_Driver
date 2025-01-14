@@ -19,7 +19,9 @@ use App\Models\Complaint;
 use App\Models\TripCancellingReason;
 use Illuminate\Validation\Rule;
 use App\Services\FirebaseService;
-
+use App\WebSockets\Chat; 
+use React\EventLoop\Loop;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
 
 class ClientController extends ApiController
@@ -130,8 +132,9 @@ class ClientController extends ApiController
                 return $car;
             }
         });
-
+        $eligibleDriverIds = [];
         foreach ($eligibleCars as $car) {
+            $eligibleDriverIds[] = $car->user_id;
             if($car->owner->device_token){
                 $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
                 $data=[
@@ -143,6 +146,7 @@ class ClientController extends ApiController
                 Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
             }
         }
+        
         return $this->sendResponse($trip,'Trip Created Successfuly.',200);
          //dd($distance);
 

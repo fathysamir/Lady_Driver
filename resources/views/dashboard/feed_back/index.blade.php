@@ -35,8 +35,8 @@
                           <tbody>
                             @if(!empty($all_feed_back) && $all_feed_back->count())
                             @foreach($all_feed_back as $feed_back)
-                              <tr>
-                                <td>{{ $feed_back->user->name }}</td>
+                            <tr onclick="window.location='{{url('/admin-dashboard/feed_back/view/'.$feed_back->id)}}';" style="cursor: pointer;">
+                              <td>{{ $feed_back->user->name }}</td>
                                 <td>{{ $feed_back->user->email }}</td>
                                 <td>{{ $feed_back->user->phone }}</td>
                                 
