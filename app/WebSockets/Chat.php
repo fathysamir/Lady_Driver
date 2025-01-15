@@ -211,6 +211,7 @@ class Chat implements MessageComponentInterface {
                 $duration=$response['duration_in_M'];
                 $newTrip['client_location_distance']=$distance;
                 $newTrip['client_location_duration']=$duration;
+                $newTrip['created_at']=$trip->created_at;
                 $newTrip['user_id']=$AuthUserID;
                 $newTrip['user_name']=$u->name;
                 $newTrip['user_image']=$user_image;
