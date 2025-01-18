@@ -124,6 +124,12 @@ class Chat implements MessageComponentInterface {
         $user_image=getFirstMediaUrl($u,$u->avatarCollection);
         $newTrip['id']=$trip->id;
         $newTrip['code']=$code;
+        $newTrip['user_id']=$AuthUserID;
+        $newTrip["car_id"]= null;
+        $newTrip["start_date"]= null;
+        $newTrip["end_date"]= null;
+        $newTrip["start_time"]= null;
+        $newTrip["end_time"]= null;
         $newTrip['start_lat']=floatval($data['start_lat']);
         $newTrip['start_lng']=floatval($data['start_lng']);
         $newTrip['end_lat']=floatval($data['end_lat']);
@@ -152,6 +158,15 @@ class Chat implements MessageComponentInterface {
             $newTrip['animals']='0';
         }
         $trip->save();
+        $newTrip["client_stare_rate"]= 0;
+        $newTrip["client_comment"]= null;
+        $newTrip["status"]= "created";
+        $newTrip["cancelled_by_id"]= null;
+        $newTrip["trip_cancelling_reason_id"]= null;
+        $newTrip["driver_stare_rate"]= 0;
+        $newTrip["driver_comment"]= null;
+        $newTrip["payment_status"]= "unpaid";
+        $newTrip["current_offer"]= null;
         $newTrip['duration']=$duration;
         
        
@@ -162,30 +177,32 @@ class Chat implements MessageComponentInterface {
         $eligibleCars = Car::where('status', 'confirmed')
                 ->whereHas('owner', function ($query) {
                     $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
+                        ->where('status', 'confirmed');
                 })
-        ->where(function ($query) use ($trip) {
-            if ($trip->air_conditioned == '1') {
-                $query->where('air_conditioned', '1');
-            }
-            if ($trip->animals == '1') {
-                $query->where('animals', '1');
-            }
-            if($trip->user->gendor=='Male'){
-                $query->where('passenger_type','male_female');
-            }
-        })
-        ->select('*')
-        ->selectRaw("ROUND(( $radius * acos( cos( radians($trip->start_lat) ) * cos( radians(lat) ) * cos( radians(lng) - radians($trip->start_lng) ) + sin( radians($trip->start_lat) ) * sin( radians(lat) ) ) ), $decimalPlaces) AS distance")
-        ->having('distance', '<=', 3)
-        ->get()->map(function ($car) use ($trip) {
-            $response=calculate_distance($car->lat,$car->lng,$trip->start_lat,$trip->start_lng);
-            $distance=$response['distance_in_km'];
-            if($distance <= 3){
-                
-                return $car;
-            }
-        });
+                ->where(function ($query) use ($trip) {
+                    if ($trip->air_conditioned == '1') {
+                        $query->where('air_conditioned', '1');
+                    }
+                    if ($trip->animals == '1') {
+                        $query->where('animals', '1');
+                    }
+                    if ($trip->user->gendor == 'Male') {
+                        $query->where('passenger_type', 'male_female');
+                    }
+                })
+                ->select('*')
+                ->selectRaw("
+                    ROUND(
+                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
+                    ) AS distance", 
+                    [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                )
+                ->having('distance', '<=', 3)
+                ->get()
+                ->filter(function ($car) use ($trip) {
+                    $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                    return $response['distance_in_km'] <= 3;
+                });
        
         $eligibleDriverIds = [];
         
@@ -206,15 +223,16 @@ class Chat implements MessageComponentInterface {
             $clientUserId = $this->clients[$client];
             if (in_array($clientUserId, $eligibleDriverIds)) {
                 $car2=Car::where('user_id',$clientUserId)->first();
-                $response=calculate_distance($car2->lat,$car2->lng,$trip->start_lat,$trip->start_lng);
-                $distance=$response['distance_in_km'];
-                $duration=$response['duration_in_M'];
-                $newTrip['client_location_distance']=$distance;
-                $newTrip['client_location_duration']=$duration;
+                $response2=calculate_distance($car2->lat,$car2->lng,$trip->start_lat,$trip->start_lng);
+                $distance2=$response['distance_in_km'];
+                $duration2=$response['duration_in_M'];
+                $newTrip['client_location_distance']=$distance2;
+                $newTrip['client_location_duration']=$duration2;
                 $newTrip['created_at']=$trip->created_at;
-                $newTrip['user_id']=$AuthUserID;
-                $newTrip['user_name']=$u->name;
-                $newTrip['user_image']=$user_image;
+                $newTrip['updated_at']=$trip->updated_at;
+                $newTrip['user']['id']=$AuthUserID;
+                $newTrip['user']['name']=$u->name;
+                $newTrip['user']['image']=$user_image;
                 $data2['type']='new_trip';
                 $data2['data']=$newTrip;
                 $message=json_encode($data2, JSON_UNESCAPED_UNICODE);
