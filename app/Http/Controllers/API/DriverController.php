@@ -348,9 +348,11 @@ class DriverController extends ApiController
                                             $trip->client_location_duration=$duration;
                                             $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
                                             $trip->current_offer=Offer::where('user_id',auth()->user()->id)->where('trip_id',$trip->id)->where('status','pending')->first();
-                                            return $distance <= 3;
+                                            return $trip;
                                         }
-                                    });
+                                    })->filter() // Remove null values after mapping
+                                    ->sortByDesc('id') // Order by distance descending
+                                    ->values();
                 return $this->sendResponse($tripsWithin3Km,null,200);
             }else{
                 return $this->sendError(null,"your are offline",400);
