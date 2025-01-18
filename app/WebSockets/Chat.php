@@ -219,28 +219,31 @@ class Chat implements MessageComponentInterface {
                 // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
             }
         }
-        foreach ($this->clients as $client) {
-            $clientUserId = $this->clients[$client];
-            if (in_array($clientUserId, $eligibleDriverIds)) {
-                $car2=Car::where('user_id',$clientUserId)->first();
-                $response2=calculate_distance($car2->lat,$car2->lng,$trip->start_lat,$trip->start_lng);
-                $distance2=$response['distance_in_km'];
-                $duration2=$response['duration_in_M'];
-                $newTrip['client_location_distance']=$distance2;
-                $newTrip['client_location_duration']=$duration2;
-                $newTrip['created_at']=$trip->created_at;
-                $newTrip['updated_at']=$trip->updated_at;
-                $newTrip['user']['id']=$AuthUserID;
-                $newTrip['user']['name']=$u->name;
-                $newTrip['user']['image']=$user_image;
-                $data2['type']='new_trip';
-                $data2['data']=$newTrip;
-                $message=json_encode($data2, JSON_UNESCAPED_UNICODE);
-                $client->send($message);
-                $date_time=date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n",$date_time,$message, $clientUserId);
+        if(count($eligibleDriverIds)>0){
+            foreach ($this->clients as $client) {
+                $clientUserId = $this->clients[$client];
+                if (in_array($clientUserId, $eligibleDriverIds)) {
+                    $car2=Car::where('user_id',$clientUserId)->first();
+                    $response2=calculate_distance($car2->lat,$car2->lng,$trip->start_lat,$trip->start_lng);
+                    $distance2=$response['distance_in_km'];
+                    $duration2=$response['duration_in_M'];
+                    $newTrip['client_location_distance']=$distance2;
+                    $newTrip['client_location_duration']=$duration2;
+                    $newTrip['created_at']=$trip->created_at;
+                    $newTrip['updated_at']=$trip->updated_at;
+                    $newTrip['user']['id']=$AuthUserID;
+                    $newTrip['user']['name']=$u->name;
+                    $newTrip['user']['image']=$user_image;
+                    $data2['type']='new_trip';
+                    $data2['data']=$newTrip;
+                    $message=json_encode($data2, JSON_UNESCAPED_UNICODE);
+                    $client->send($message);
+                    $date_time=date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n",$date_time,$message, $clientUserId);
+                }
             }
         }
+        
     }
     public function onMessage(ConnectionInterface $from, $msg) {
         $numRecv = count($this->clients) - 1;
