@@ -170,7 +170,7 @@ class Chat implements MessageComponentInterface {
         $newTrip["current_offer"]= null;
         $newTrip['duration']=$duration;
        
-       
+        dd($trip);
 
         $radius = 6371;
         $decimalPlaces = 2;
@@ -206,8 +206,8 @@ class Chat implements MessageComponentInterface {
                 });
        
         $eligibleDriverIds = [];
-        dd($eligibleCars);
-        
+       
+
         foreach ($eligibleCars as $car) {
             $eligibleDriverIds[] = $car->user_id;
             if($car->owner->device_token){
