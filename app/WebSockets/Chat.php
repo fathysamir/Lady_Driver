@@ -84,7 +84,7 @@ class Chat implements MessageComponentInterface {
         });
     }
     private function create_trip($AuthUserID, $tripRequest) {
-        dd('gg');
+        
         $data = json_decode($tripRequest, true);
         $response=calculate_distance($data['start_lat'],$data['start_lng'],$data['end_lat'],$data['end_lng']);
          $distance=$response['distance_in_km'];
