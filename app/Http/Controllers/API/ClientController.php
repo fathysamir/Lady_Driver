@@ -189,16 +189,30 @@ class ClientController extends ApiController
             if($trip->status=='created'){
                 $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
                 $pendingOffers = $trip->offers()->where('status', 'pending')->get()->map(function ($offer) use ($trip,$app_ratio) {
-                        $offer->offer=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
-                        $offer->user->image=getFirstMediaUrl($offer->user,$offer->user->avatarCollection);
-                        $offer->car->mark;
-                        $offer->car->model;
                         $response=calculate_distance($offer->car->lat,$offer->car->lng,$trip->start_lat,$trip->start_lng);
                         $distance=$response['distance_in_km'];
                         $duration=$response['duration_in_M'];
-                        $offer->client_location_distance=$distance;
-                        $offer->client_location_duration=$duration;
-                        return $offer;
+                       
+                        $offer_result['id']=$offer->id;
+                        $offer_result['user_id']=$offer->user()->first()->id;
+                        $offer_result['car_id']=$offer->car()->first()->id;
+                        $offer_result['trip_id']=$trip->id;
+                        $offer_result['client_location_distance']=$distance;
+                        $offer_result['client_location_duration']=$duration;
+                        $offer_result['offer']=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
+                        $offer_result['user']['id']=$offer->user()->first()->id;
+                        $offer_result['user']['name']=$offer->user()->first()->name;
+                        $offer_result['user']['image']=getFirstMediaUrl($offer->user()->first(),$offer->user()->first()->avatarCollection);
+                        $offer_result['car']['id']=$offer->car()->first()->id;
+                        $offer_result['car']['image']=getFirstMediaUrl($offer->car()->first(),$offer->car()->first()->avatarCollection);
+                        $offer_result['car']['year']=$offer->car()->first()->year;
+                        $offer_result['car']['car_mark_id']=$offer->car()->first()->car_mark_id;
+                        $offer_result['car']['car_model_id']=$offer->car()->first()->car_model_id;
+                        $offer_result['car']['mark']['id']=$offer->car()->first()->mark()->first()->id;
+                        $offer_result['car']['mark']['name']=$offer->car()->first()->mark()->first()->name;
+                        $offer_result['car']['model']['id']=$offer->car()->first()->model()->first()->id;
+                        $offer_result['car']['model']['name']=$offer->car()->first()->model()->first()->name;
+                        return $offer_result;
                     
                 });
                 $trip->offers=$pendingOffers;

@@ -5,6 +5,7 @@ use Ratchet\ConnectionInterface;
 use App\Models\User;
 use App\Models\Setting;
 use App\Models\Trip;
+use App\Models\Offer;
 use App\Models\Car;
 use App\Models\Notification;
 use App\Services\FirebaseService;
@@ -96,17 +97,17 @@ class Chat implements MessageComponentInterface {
         }else{
             $driver_rate=round($distance*$kilometer_price ,2);
         }
-         $app_rate=round(($distance*$kilometer_price*$app_ratio)/100 ,2);
-         $total_price=$driver_rate+$app_rate;
-         $lastTrip = Trip::orderBy('id', 'desc')->first();
+        $app_rate=round(($distance*$kilometer_price*$app_ratio)/100 ,2);
+        $total_price=$driver_rate+$app_rate;
+        $lastTrip = Trip::orderBy('id', 'desc')->first();
 
-            if ($lastTrip) {
-                $lastCode = $lastTrip->code;
-                $code = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
-            } else {
-                $code = 'TRP-000001';
-            }
-         $trip=Trip::create(['user_id'=>$AuthUserID,
+        if ($lastTrip) {
+            $lastCode = $lastTrip->code;
+            $code = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+        } else {
+            $code = 'TRP-000001';
+        }
+        $trip=Trip::create(['user_id'=>$AuthUserID,
                              'code'=>$code,
                              'start_lat'=>floatval($data['start_lat']),
                              'start_lng'=>floatval($data['start_lng']),
@@ -245,6 +246,91 @@ class Chat implements MessageComponentInterface {
         }
         
     }
+    private function create_offer($AuthUserID, $offerRequest){
+        $data = json_decode($offerRequest, true);
+        $driver_car=Car::where('user_id',$AuthUserID)->first();
+        $lastOffer = Offer::orderBy('id', 'desc')->first();
+
+            if ($lastOffer) {
+                $lastCode = $lastOffer->code;
+                $code = 'OFR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+            } else {
+                $code = 'OFR-000001';
+            }
+        $offer=Offer::create(['user_id'=>$AuthUserID,
+                                'code'=>$code,
+                               'car_id'=>$driver_car->id,
+                               'trip_id'=>intval($data['trip_id']),
+                               'offer'=>floatval($data['offer'])]);
+        $trip=Trip::findOrFail($data['trip_id']);
+        if($trip->user->device_token){
+            // $this->firebaseService->sendNotification($trip->user->device_token,'Lady Driver - New Offer',"Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name .").",["screen"=>"Current Trip","ID"=>$trip->id]);
+            // $data=[
+            //     "title"=>"Lady Driver - New Offer",
+            //     "message"=>"Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name .").",
+            //     "screen"=>"Current Trip",
+            //     "ID"=>$trip->id
+            // ];
+            // Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
+        }
+        
+        $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
+        $response=calculate_distance($offer->car->lat,$offer->car->lng,$trip->start_lat,$trip->start_lng);
+        $distance=$response['distance_in_km'];
+        $duration=$response['duration_in_M'];
+
+        $offer_result['id']=$offer->id;
+        $offer_result['user_id']=$offer->user()->first()->id;
+        $offer_result['car_id']=$offer->car()->first()->id;
+        $offer_result['trip_id']=$trip->id;
+        $offer_result['client_location_distance']=$distance;
+        $offer_result['client_location_duration']=$duration;
+        $offer_result['offer']=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
+        $offer_result['user']['id']=$offer->user()->first()->id;
+        $offer_result['user']['name']=$offer->user()->first()->name;
+        $offer_result['user']['image']=getFirstMediaUrl($offer->user()->first(),$offer->user()->first()->avatarCollection);
+        $offer_result['car']['id']=$offer->car()->first()->id;
+        $offer_result['car']['image']=getFirstMediaUrl($offer->car()->first(),$offer->car()->first()->avatarCollection);
+        $offer_result['car']['year']=$offer->car()->first()->year;
+        $offer_result['car']['car_mark_id']=$offer->car()->first()->car_mark_id;
+        $offer_result['car']['car_model_id']=$offer->car()->first()->car_model_id;
+        $offer_result['car']['mark']['id']=$offer->car()->first()->mark()->first()->id;
+        $offer_result['car']['mark']['name']=$offer->car()->first()->mark()->first()->name;
+        $offer_result['car']['model']['id']=$offer->car()->first()->model()->first()->id;
+        $offer_result['car']['model']['name']=$offer->car()->first()->model()->first()->name;
+        // foreach ($this->clients as $client) {
+        //     $clientUserId = $this->clients[$client];
+        //     if ($clientUserId==$trip->user_id){
+        //         $data2['type']='new_offer';
+        //         $data2['data']=$offer_result;
+        //         $message=json_encode($data2, JSON_UNESCAPED_UNICODE);
+        //         $client->send($message);
+        //         $date_time=date('Y-m-d h:i:s a');
+        //         echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n",$date_time,$message, $clientUserId);
+        //     }
+        // }
+        $this->clients->rewind(); // Start at the first element of SplObjectStorage
+        while ($this->clients->valid()) {
+            $client = $this->clients->current(); // Get the current object
+            $clientUserId = $this->clients[$client]; // Retrieve the value associated with the object
+
+            if ($clientUserId == $trip->user_id) {
+                $data2 = [
+                    'type' => 'new_offer',
+                    'data' => $offer_result,
+                ];
+                $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+                $client->send($message);
+
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] New Trip "%s" sent to user %d' . "\n", $date_time, $message, $clientUserId);
+
+                break; // Stop iteration once the desired client is found
+            }
+
+            $this->clients->next(); // Move to the next element
+        }
+    }
     public function onMessage(ConnectionInterface $from, $msg) {
         $numRecv = count($this->clients) - 1;
         
@@ -261,6 +347,10 @@ class Chat implements MessageComponentInterface {
                 $tripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
 
                 $this->create_trip($AuthUserID,$tripRequest);
+            }if ($data['type']=='new_offer') {
+                $AuthUserID=$this->clients[$from];
+                $offerRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+                $this->create_offer($AuthUserID,$offerRequest);
             }
             // foreach ($this->clients as $client) {
             //     if ($from !== $client) {
