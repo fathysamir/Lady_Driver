@@ -61,6 +61,18 @@ function getFirstMediaUrl($model, $collection_name)
     }
     return url($attachment->path);
 }
+function getFirstMedia($model, $collection_name)
+{  
+    // $attachment = $model->attachment()
+    //     ->where('collection_name', $collection_name)
+    //     ->first();
+     $attachment=DB::table('media')->where('attachmentable_id',$model->id)->where('collection_name',$collection_name)->where('attachmentable_type',get_class($model))->first();
+    
+    if (!$attachment || $attachment->path==null) {
+        return null;
+    }
+    return $attachment->path;
+}
 
 function deleteMedia($model, $collection_name = null)
 {    

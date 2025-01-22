@@ -123,7 +123,7 @@ class Chat implements MessageComponentInterface {
                              'type'=>$data['type']
         ]);
         $u=User::findOrFail($AuthUserID);
-        $user_image=getFirstMediaUrl($u,$u->avatarCollection);
+        $user_image='https://api.lady-driver.com'.getFirstMedia($u,$u->avatarCollection);
         $newTrip['id']=$trip->id;
         $newTrip['code']=$code;
         $newTrip['user_id']=intval($AuthUserID);
@@ -290,9 +290,9 @@ class Chat implements MessageComponentInterface {
         $offer_result['offer']=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
         $offer_result['user']['id']=$offer->user()->first()->id;
         $offer_result['user']['name']=$offer->user()->first()->name;
-        $offer_result['user']['image']=getFirstMediaUrl($offer->user()->first(),$offer->user()->first()->avatarCollection);
+        $offer_result['user']['image']='https://api.lady-driver.com' . getFirstMedia($offer->user()->first(),$offer->user()->first()->avatarCollection);
         $offer_result['car']['id']=$offer->car()->first()->id;
-        $offer_result['car']['image']=getFirstMediaUrl($offer->car()->first(),$offer->car()->first()->avatarCollection);
+        $offer_result['car']['image']='https://api.lady-driver.com' . getFirstMedia($offer->car()->first(),$offer->car()->first()->avatarCollection);
         $offer_result['car']['year']=$offer->car()->first()->year;
         $offer_result['car']['car_mark_id']=$offer->car()->first()->car_mark_id;
         $offer_result['car']['car_model_id']=$offer->car()->first()->car_model_id;
@@ -371,17 +371,6 @@ class Chat implements MessageComponentInterface {
                 
             // }
         }
-        
-        
-        //$data = json_decode($msg, true);
-        // if ($data['type'] === 'candidate') {
-        //     // Broadcast the ICE candidate to all clients except the sender
-        //     foreach ($this->clients as $client) {
-        //         if ($from !== $client) {
-        //             $client->send(json_encode($data));
-        //         }
-        //     }
-        // }
     }
 
     public function onClose(ConnectionInterface $conn) {
