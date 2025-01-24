@@ -68,7 +68,7 @@ class Chat implements MessageComponentInterface {
     }
 
     private function periodicPing(ConnectionInterface $conn) {
-        $timer = 60; // Send a ping every 60 seconds
+        $timer = 30; // Send a ping every 60 seconds
     
         $this->loop->addPeriodicTimer($timer, function() use ($conn) {
             try {
