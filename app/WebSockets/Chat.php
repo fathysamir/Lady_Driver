@@ -392,11 +392,11 @@ class Chat implements MessageComponentInterface
                 $tripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
 
                 $this->create_trip($AuthUserID, $tripRequest);
-            }if ($data['type'] == 'new_offer') {
+            }elseif ($data['type'] == 'new_offer') {
                 $AuthUserID = $this->clients[$from];
                 $offerRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
                 $this->create_offer($AuthUserID, $offerRequest);
-            } else {
+            }else{
 
                 $from->send(json_encode(['type' => 'pong']));
                 $date_time = date('Y-m-d h:i:s a');
