@@ -81,7 +81,7 @@ class Chat implements MessageComponentInterface
         $this->loop->addPeriodicTimer($timer, function () use ($conn) {
             try {
                 // Try sending a ping message, if connection is closed, it'll throw an error
-                $conn->send(json_encode(['pong' => 'ping'])); // Send a ping
+                $conn->send(json_encode(['type' => 'ping'])); // Send a ping
                 $date_time = date('Y-m-d h:i:s a');
                 echo "[ {$date_time} ], Ping sent to Connection {$conn->resourceId}\n";
             } catch (\Exception $e) {
@@ -385,7 +385,7 @@ class Chat implements MessageComponentInterface
         $data = json_decode($msg, true);
 
         if (array_key_exists('pong', $data)) {
-            $from->send($msg);
+            echo sprintf("sss");
         } else {
             if ($data['type'] == 'new_trip') {
                 $AuthUserID = $this->clients[$from];
