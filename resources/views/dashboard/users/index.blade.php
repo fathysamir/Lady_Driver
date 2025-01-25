@@ -127,6 +127,8 @@
                               <th scope="col">Mode</th>
                               <th scope="col">Role</th>
                               <th scope="col">status</th>
+                              <th scope="col">Join Date</th>
+                              <th scope="col">Activation</th>
                               <th scope="col">Action</th>
                             </tr>
                           </thead>
@@ -171,6 +173,21 @@
                                 <td>@if($user->status=='pending') <span class="badge badge-secondary" style="background-color:rgb(143, 118, 9); width:100%;">Pending</span> @elseif($user->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>@elseif($user->status=='banned') <span class="badge badge-secondary" style="background-color:rgb(61, 27, 255);width:100%;">Banned</span> @else <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>
                                 @else
                                 <td>@if($user->status=='banned') <span class="badge badge-secondary" style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>@elseif($user->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span> @elseif($user->status=='blocked') <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>
+                                @endif
+                                <td>{{ $user->created_at->format('Y-m-d') }}</td>
+                                @if($user->mode=='driver')
+                                <td>
+                                  @php
+                                      // Check if the user has a car
+                                      $hasActiveTrip = $user->car && $user->car->trips()
+                                          ->where('status', 'completed') // Ensure the trip is completed
+                                          ->where('created_at', '>=', now()->subDays(7)) // Check if trip is within the last 7 days
+                                          ->exists();
+                                  @endphp
+                                  {{ $hasActiveTrip ? 'Active' : 'Unactive' }}
+                                </td>
+                                @else
+                                <td></td>
                                 @endif
                                 <td>
                                   
