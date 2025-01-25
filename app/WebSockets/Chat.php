@@ -395,7 +395,7 @@ class Chat implements MessageComponentInterface
                 $this->create_offer($AuthUserID, $offerRequest);
             } else {
 
-                $from->send($data);
+                $from->send($msg);
                 $date_time = date('Y-m-d h:i:s a');
                 echo sprintf('[ %s ],New pong has been sent' . "\n", $date_time);
 
