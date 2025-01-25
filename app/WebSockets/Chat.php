@@ -60,22 +60,10 @@ class Chat implements MessageComponentInterface
                 $this->clients->attach($conn, $userId);
                 $date_time = date('Y-m-d h:i:s a');
                 //$conn->send(json_encode(['type' => 'ping']));
-                //$this->periodicPing($conn);
+                $this->periodicPing($conn);
                 //echo "New connection! ({$conn->resourceId})\n";
                 echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
-                // Start a timer to send a message every 30 seconds
-                $loop = Factory::create();
-                $loop->addPeriodicTimer(30, function () use ($conn) {
-                    $conn->send(json_encode(['type' => 'open']));
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo "[ {$date_time} ], Message sent to Connection {$conn->resourceId}\n";
-                });
-
-                // Store the loop in the connection object so it can be accessed later
-                $conn->loop = $loop;
-
-                // Run the loop
-                $loop->run();
+                
             } else {
                 // Token does not match
                 echo "Token does not match.";
@@ -93,7 +81,7 @@ class Chat implements MessageComponentInterface
         $this->loop->addPeriodicTimer($timer, function () use ($conn) {
             try {
                 // Try sending a ping message, if connection is closed, it'll throw an error
-                $conn->send(json_encode(['type' => 'ping'])); // Send a ping
+                $conn->send(json_encode(['pong' => 'ping'])); // Send a ping
                 $date_time = date('Y-m-d h:i:s a');
                 echo "[ {$date_time} ], Ping sent to Connection {$conn->resourceId}\n";
             } catch (\Exception $e) {
@@ -397,7 +385,7 @@ class Chat implements MessageComponentInterface
         $data = json_decode($msg, true);
 
         if (array_key_exists('pong', $data)) {
-            echo sprintf("sss");
+            $from->send($msg);
         } else {
             if ($data['type'] == 'new_trip') {
                 $AuthUserID = $this->clients[$from];
