@@ -13,6 +13,8 @@ use App\Models\Notification;
 use App\Services\FirebaseService;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Hash;
+use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
 
 class Chat implements MessageComponentInterface
 {
@@ -58,9 +60,22 @@ class Chat implements MessageComponentInterface
                 $this->clients->attach($conn, $userId);
                 $date_time = date('Y-m-d h:i:s a');
                 //$conn->send(json_encode(['type' => 'ping']));
-                $this->periodicPing($conn);
+                //$this->periodicPing($conn);
                 //echo "New connection! ({$conn->resourceId})\n";
                 echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
+                // Start a timer to send a message every 30 seconds
+                $loop = Factory::create();
+                $loop->addPeriodicTimer(30, function () use ($conn) {
+                    $conn->send(json_encode(['type' => 'open']));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo "[ {$date_time} ], Message sent to Connection {$conn->resourceId}\n";
+                });
+
+                // Store the loop in the connection object so it can be accessed later
+                $conn->loop = $loop;
+
+                // Run the loop
+                $loop->run();
             } else {
                 // Token does not match
                 echo "Token does not match.";
