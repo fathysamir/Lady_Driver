@@ -169,7 +169,7 @@ class Chat implements MessageComponentInterface
             $newTrip['animals'] = '0';
         }
         $trip->save();
-        $from->send(json_encode(['type' => 'new_trip','message'=>'Trip Created Successfully']));
+        $from->send(json_encode(['type' => 'created_trip','message'=>'Trip Created Successfully']));
         $date_time = date('Y-m-d h:i:s a');
         echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time ,$AuthUserID);
 
@@ -395,7 +395,7 @@ class Chat implements MessageComponentInterface
                 $AuthUserID = $this->clients[$from];
                 $tripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
 
-                $this->create_trip($AuthUserID, $tripRequest);
+                $this->create_trip($from,$AuthUserID, $tripRequest);
             }elseif ($data['type'] == 'new_offer') {
                 $AuthUserID = $this->clients[$from];
                 $offerRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
