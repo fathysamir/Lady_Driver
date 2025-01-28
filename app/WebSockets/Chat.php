@@ -91,7 +91,7 @@ class Chat implements MessageComponentInterface
             }
         });
     }
-    private function create_trip($AuthUserID, $tripRequest)
+    private function create_trip(ConnectionInterface $from,$AuthUserID, $tripRequest)
     {
 
         $data = json_decode($tripRequest, true);
@@ -169,6 +169,10 @@ class Chat implements MessageComponentInterface
             $newTrip['animals'] = '0';
         }
         $trip->save();
+        $from->send(json_encode(['type' => 'new_trip','message'=>'Trip Created Successfully']));
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time ,$AuthUserID);
+
         $newTrip["client_stare_rate"] = 0;
         $newTrip["client_comment"] = null;
         $newTrip["status"] = "created";
