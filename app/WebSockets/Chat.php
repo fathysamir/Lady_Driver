@@ -21,12 +21,14 @@ class Chat implements MessageComponentInterface
     protected $clients;
     protected $loop;
     protected $firebaseService;
+    private $clientUserIdMap;
 
     public function __construct($loop)
     {
         $this->clients = new \SplObjectStorage();
         $this->loop = $loop;
         $this->firebaseService = new FirebaseService();
+        $this->clientUserIdMap = [];
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -58,6 +60,7 @@ class Chat implements MessageComponentInterface
             if ($token && hash('sha256', $tokenValue) ===  $token->token) {
                 // Token matches
                 $this->clients->attach($conn, $userId);
+                $this->clientUserIdMap[$userId] = $conn;
                 $date_time = date('Y-m-d h:i:s a');
                 //$conn->send(json_encode(['type' => 'ping']));
                 $this->periodicPing($conn);
@@ -237,35 +240,10 @@ class Chat implements MessageComponentInterface
             }
         }
         if (count($eligibleDriverIds) > 0) {
-            // foreach ($this->clients as $client) {
-            //     $clientUserId = $this->clients[$client];
-            //     if (in_array($clientUserId, $eligibleDriverIds)) {
-            //         $car2=Car::where('user_id',$clientUserId)->first();
-            //         $response2=calculate_distance($car2->lat,$car2->lng,$trip->start_lat,$trip->start_lng);
-            //         $distance2=$response2['distance_in_km'];
-            //         $duration2=$response2['duration_in_M'];
-            //         $newTrip['client_location_distance']=$distance2;
-            //         $newTrip['client_location_duration']=$duration2;
-            //         $newTrip['created_at']=$trip->created_at;
-            //         $newTrip['updated_at']=$trip->updated_at;
-            //         $newTrip['user']['id']=intval($AuthUserID);
-            //         $newTrip['user']['name']=$u->name;
-            //         $newTrip['user']['image']=$user_image;
-            //         $data2['type']='new_trip';
-            //         $data2['data']=$newTrip;
-            //         $message=json_encode($data2, JSON_UNESCAPED_UNICODE);
-            //         $client->send($message);
-            //         $date_time=date('Y-m-d h:i:s a');
-            //         echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n",$date_time,$message, $clientUserId);
-            //     }
-            // }
-            $this->clients->rewind(); // Start at the first element of SplObjectStorage
-            while ($this->clients->valid()) {
-                $client = $this->clients->current(); // Get the current object
-                $clientUserId = $this->clients[$client]; // Retrieve the value associated with the object
-
-                if (in_array($clientUserId, $eligibleDriverIds)) {
-                    $car2 = Car::where('user_id', $clientUserId)->first();
+            foreach($eligibleDriverIds as $eligibleDriverId){
+                $client = $this->getClientByUserId($eligibleDriverId);
+                if($client){
+                    $car2 = Car::where('user_id', $eligibleDriverId)->first();
                     $response2 = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                     $distance2 = $response2['distance_in_km'];
                     $duration2 = $response2['duration_in_M'];
@@ -281,18 +259,13 @@ class Chat implements MessageComponentInterface
                     $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
                     $client->send($message);
                     $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $clientUserId);
-
-
-                    break; // Stop iteration once the desired client is found
+                    echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
                 }
-
-                $this->clients->next(); // Move to the next element
             }
         }
 
     }
-    private function create_offer($AuthUserID, $offerRequest)
+    private function create_offer(ConnectionInterface $from,$AuthUserID, $offerRequest)
     {
         $data = json_decode($offerRequest, true);
         $driver_car = Car::where('user_id', $AuthUserID)->first();
@@ -320,6 +293,9 @@ class Chat implements MessageComponentInterface
             // ];
             // Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
         }
+        $from->send(json_encode(['type' => 'created_offer','message'=>'Offer Created Successfully']));
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ],created offer message has been sent to user %d' . "\n", $date_time ,$AuthUserID);
 
         $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
         $response = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
@@ -345,24 +321,10 @@ class Chat implements MessageComponentInterface
         $offer_result['car']['mark']['name'] = $offer->car()->first()->mark()->first()->name;
         $offer_result['car']['model']['id'] = $offer->car()->first()->model()->first()->id;
         $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
-        // foreach ($this->clients as $client) {
-        //     $clientUserId = $this->clients[$client];
-        //     if ($clientUserId==$trip->user_id){
-        //         $data2['type']='new_offer';
-        //         $data2['data']=$offer_result;
-        //         $message=json_encode($data2, JSON_UNESCAPED_UNICODE);
-        //         $client->send($message);
-        //         $date_time=date('Y-m-d h:i:s a');
-        //         echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n",$date_time,$message, $clientUserId);
-        //     }
-        // }
-        $this->clients->rewind(); // Start at the first element of SplObjectStorage
-        while ($this->clients->valid()) {
-            $client = $this->clients->current(); // Get the current object
-            $clientUserId = $this->clients[$client]; // Retrieve the value associated with the object
 
-            if ($clientUserId == $trip->user_id) {
-                $data2 = [
+        $client = $this->getClientByUserId($trip->user_id);
+        if($client){
+            $data2 = [
                     'type' => 'new_offer',
                     'data' => $offer_result,
                 ];
@@ -370,12 +332,7 @@ class Chat implements MessageComponentInterface
                 $client->send($message);
 
                 $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] New Offer "%s" sent to user %d' . "\n", $date_time, $message, $clientUserId);
-
-                break; // Stop iteration once the desired client is found
-            }
-
-            $this->clients->next(); // Move to the next element
+                echo sprintf('[ %s ] New Offer "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
         }
 
     }
@@ -399,7 +356,7 @@ class Chat implements MessageComponentInterface
             }elseif ($data['type'] == 'new_offer') {
                 $AuthUserID = $this->clients[$from];
                 $offerRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
-                $this->create_offer($AuthUserID, $offerRequest);
+                $this->create_offer($from,$AuthUserID, $offerRequest);
             }else{
 
                 $from->send(json_encode(['type' => 'pong']));
@@ -429,6 +386,9 @@ class Chat implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn)
     {
         // The connection is closed, remove it, as we can no longer send it messages
+        
+        $userId = $this->clients[$conn];
+        unset($this->clientUserIdMap[$userId]);
         $this->clients->detach($conn);
         $date_time = date('Y-m-d h:i:s a');
         echo "[ {$date_time} ],Connection {$conn->resourceId} has disconnected\n";
@@ -439,5 +399,9 @@ class Chat implements MessageComponentInterface
         echo "An error has occurred: {$e->getMessage()}\n";
 
         $conn->close();
+    }
+
+    public function getClientByUserId($userId) {
+        return $this->clientUserIdMap[$userId] ?? null; // Retrieve client in one step
     }
 }
