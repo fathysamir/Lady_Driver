@@ -394,6 +394,7 @@ class Chat implements MessageComponentInterface
             'message'=>'Trip expired successfully'
         ];
         $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+        $decimalPlaces = 2;
         $userIds = Car::where('status', 'confirmed')
                     ->whereHas('owner', function ($query) {
                         $query->where('is_online', '1')
@@ -444,50 +445,37 @@ class Chat implements MessageComponentInterface
         if (array_key_exists('pong', $data)) {
             echo sprintf("sss");
         } else {
-            if ($data['type'] == 'new_trip') {
-                $AuthUserID = $this->clients[$from];
-                $tripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+            $AuthUserID = $this->clients[$from];
+            $requestData = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
 
-                $this->create_trip($from,$AuthUserID, $tripRequest);
-            }elseif ($data['type'] == 'new_offer') {
-                $AuthUserID = $this->clients[$from];
-                $offerRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
-                $this->create_offer($from,$AuthUserID, $offerRequest);
-            }elseif ($data['type'] == 'cancel_trip') {
-                $AuthUserID = $this->clients[$from];
-                $cancelTripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
-                $this->cancel_trip($from,$AuthUserID, $cancelTripRequest);
-            }elseif ($data['type'] == 'cancel_offer') {
-                $AuthUserID = $this->clients[$from];
-                $expireOfferRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
-                $this->expire_offer($from,$AuthUserID, $expireOfferRequest);
-            }elseif ($data['type'] == 'expire_trip') {
-                $AuthUserID = $this->clients[$from];
-                $expireTripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
-                $this->expire_trip($from,$AuthUserID, $expireTripRequest);
-            }else{
+            switch ($data['type']) {
+                case 'new_trip':
+                    $this->create_trip($from, $AuthUserID, $requestData);
+                    break;
 
-                $from->send(json_encode(['type' => 'pong']));
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ],New pong has been sent' . "\n", $date_time);
+                case 'new_offer':
+                    $this->create_offer($from, $AuthUserID, $requestData);
+                    break;
 
+                case 'cancel_trip':
+                    $this->cancel_trip($from, $AuthUserID, $requestData);
+                    break;
+
+                case 'cancel_offer':
+                    $this->expire_offer($from, $AuthUserID, $requestData);
+                    break;
+
+                case 'expire_trip':
+                    $this->expire_trip($from, $AuthUserID, $requestData);
+                    break;
+
+                default:
+                    $from->send(json_encode(['type' => 'pong']));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
+                    break;
             }
-            // foreach ($this->clients as $client) {
-            //     if ($from !== $client) {
-            //         $clientUserId = $this->clients[$client];
-
-            //         if (array_key_exists('to_user_id', $data)) {
-
-            //             if ($clientUserId == $toUserId) {
-            //                 $client->send($msg);
-            //                 $date_time=date('Y-m-d h:i:s a');
-            //                 echo sprintf('[ %s ],Message "%s" sent from user %d sent to user %d' . "\n",$date_time,$msg, $this->clients[$from], $toUserId);
-            //             }
-
-            //         }
-            //     }
-
-            // }
+            
         }
     }
 
