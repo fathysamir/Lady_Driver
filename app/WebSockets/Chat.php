@@ -265,6 +265,33 @@ class Chat implements MessageComponentInterface
         }
 
     }
+    private function cancel_trip(ConnectionInterface $from,$AuthUserID, $cancelTripRequest){
+        $data = json_decode($cancelTripRequest, true);
+        $trip=Trip::findOrFail($data['trip_id']);
+        $trip->status='cancelled';
+        $trip->cancelled_by_id=$AuthUserID;
+        $trip->trip_cancelling_reason_id=$data['reason_id'];
+        $trip->save();
+        $canceled_trip['trip_id']= $trip->id;
+        $data2 = [
+            'type' => 'canceled_trip',
+            'data' =>$canceled_trip,
+            'message'=>'Trip canceled successfully'
+        ];
+        $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+        $client = $this->getClientByUserId($trip->user_id);
+        if($client){
+                $client->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
+        }
+        $driver = $this->getClientByUserId($trip->car->user_id);
+        if($driver){
+                $driver->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
+        }
+    }
     private function create_offer(ConnectionInterface $from,$AuthUserID, $offerRequest)
     {
         $data = json_decode($offerRequest, true);
@@ -336,6 +363,75 @@ class Chat implements MessageComponentInterface
         }
 
     }
+    private function expire_offer(ConnectionInterface $from,$AuthUserID, $expireOfferRequest){
+        $data = json_decode($expireOfferRequest, true);
+        $offer=Offer::findOrFail($data['offer_id']);
+        $offer->status='expired';
+        $offer->save();
+        $canceled_offer['offer_id']= $offer->id;
+        $data2 = [
+            'type' => 'canceled_offer',
+            'data' =>$canceled_offer,
+            'message'=>'Offer canceled successfully'
+        ];
+        $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+        $client = $this->getClientByUserId($offer->trip->user_id);
+        if($client){
+                $client->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->trip->user_id);
+        }
+    }
+    private function expire_trip(ConnectionInterface $from,$AuthUserID, $expireTripRequest){
+        $data = json_decode($expireTripRequest, true);
+        $trip=Trip::findOrFail($data['trip_id']);
+        $trip->status='expired';
+        $trip->save();
+        $expired_trip['trip_id']= $trip->id;
+        $data2 = [
+            'type' => 'expired_trip',
+            'data' =>$expired_trip,
+            'message'=>'Trip expired successfully'
+        ];
+        $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+        $userIds = Car::where('status', 'confirmed')
+                    ->whereHas('owner', function ($query) {
+                        $query->where('is_online', '1')
+                            ->where('status', 'confirmed');
+                    })
+                    ->where(function ($query) use ($trip) {
+                        if ($trip->air_conditioned == '1') {
+                            $query->where('air_conditioned', '1');
+                        }
+                        if ($trip->animals == '1') {
+                            $query->where('animals', '1');
+                        }
+                        if ($trip->user->gendor == 'Male') {
+                            $query->where('passenger_type', 'male_female');
+                        }
+                    })
+                    ->select('user_id') // Select only the user_id column
+                    ->selectRaw(
+                        "
+                        ROUND(
+                            ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
+                        ) AS distance",
+                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                    )
+                    ->having('distance', '<=', 4)
+                    ->get()
+                    ->pluck('user_id') // Extract user_ids as an array
+                    ->toArray();
+        foreach($userIds as $userID){
+            $client = $this->getClientByUserId($userID);
+            if($client){
+                    $client->send($message);
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
+            }
+        }
+
+    }
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $numRecv = count($this->clients) - 1;
@@ -357,6 +453,14 @@ class Chat implements MessageComponentInterface
                 $AuthUserID = $this->clients[$from];
                 $offerRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
                 $this->create_offer($from,$AuthUserID, $offerRequest);
+            }elseif ($data['type'] == 'cancel_trip') {
+                $AuthUserID = $this->clients[$from];
+                $cancelTripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+                $this->cancel_trip($from,$AuthUserID, $cancelTripRequest);
+            }elseif ($data['type'] == 'cancel_offer') {
+                $AuthUserID = $this->clients[$from];
+                $expireOfferRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+                $this->expire_offer($from,$AuthUserID, $expireOfferRequest);
             }else{
 
                 $from->send(json_encode(['type' => 'pong']));
