@@ -66,7 +66,7 @@ class Chat implements MessageComponentInterface
                 $this->periodicPing($conn);
                 //echo "New connection! ({$conn->resourceId})\n";
                 echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
-                
+
             } else {
                 // Token does not match
                 echo "Token does not match.";
@@ -94,7 +94,7 @@ class Chat implements MessageComponentInterface
             }
         });
     }
-    private function create_trip(ConnectionInterface $from,$AuthUserID, $tripRequest)
+    private function create_trip(ConnectionInterface $from, $AuthUserID, $tripRequest)
     {
 
         $data = json_decode($tripRequest, true);
@@ -172,9 +172,9 @@ class Chat implements MessageComponentInterface
             $newTrip['animals'] = '0';
         }
         $trip->save();
-        $from->send(json_encode(['type' => 'created_trip','message'=>'Trip Created Successfully']));
+        $from->send(json_encode(['type' => 'created_trip','message' => 'Trip Created Successfully']));
         $date_time = date('Y-m-d h:i:s a');
-        echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time ,$AuthUserID);
+        echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
 
         $newTrip["client_stare_rate"] = 0;
         $newTrip["client_comment"] = null;
@@ -240,9 +240,9 @@ class Chat implements MessageComponentInterface
             }
         }
         if (count($eligibleDriverIds) > 0) {
-            foreach($eligibleDriverIds as $eligibleDriverId){
+            foreach ($eligibleDriverIds as $eligibleDriverId) {
                 $client = $this->getClientByUserId($eligibleDriverId);
-                if($client){
+                if ($client) {
                     $car2 = Car::where('user_id', $eligibleDriverId)->first();
                     $response2 = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                     $distance2 = $response2['distance_in_km'];
@@ -265,34 +265,35 @@ class Chat implements MessageComponentInterface
         }
 
     }
-    private function cancel_trip(ConnectionInterface $from,$AuthUserID, $cancelTripRequest){
+    private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
+    {
         $data = json_decode($cancelTripRequest, true);
-        $trip=Trip::findOrFail($data['trip_id']);
-        $trip->status='cancelled';
-        $trip->cancelled_by_id=$AuthUserID;
-        $trip->trip_cancelling_reason_id=$data['reason_id'];
+        $trip = Trip::findOrFail($data['trip_id']);
+        $trip->status = 'cancelled';
+        $trip->cancelled_by_id = $AuthUserID;
+        $trip->trip_cancelling_reason_id = $data['reason_id'];
         $trip->save();
-        $canceled_trip['trip_id']= $trip->id;
+        $canceled_trip['trip_id'] = $trip->id;
         $data2 = [
             'type' => 'canceled_trip',
-            'data' =>$canceled_trip,
-            'message'=>'Trip canceled successfully'
+            'data' => $canceled_trip,
+            'message' => 'Trip canceled successfully'
         ];
         $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
         $client = $this->getClientByUserId($trip->user_id);
-        if($client){
-                $client->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
+        if ($client) {
+            $client->send($message);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
         }
         $driver = $this->getClientByUserId($trip->car->user_id);
-        if($driver){
-                $driver->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
+        if ($driver) {
+            $driver->send($message);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
         }
     }
-    private function create_offer(ConnectionInterface $from,$AuthUserID, $offerRequest)
+    private function create_offer(ConnectionInterface $from, $AuthUserID, $offerRequest)
     {
         $data = json_decode($offerRequest, true);
         $driver_car = Car::where('user_id', $AuthUserID)->first();
@@ -320,9 +321,9 @@ class Chat implements MessageComponentInterface
             // ];
             // Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
         }
-        $from->send(json_encode(['type' => 'created_offer','message'=>'Offer Created Successfully']));
+        $from->send(json_encode(['type' => 'created_offer','message' => 'Offer Created Successfully']));
         $date_time = date('Y-m-d h:i:s a');
-        echo sprintf('[ %s ],created offer message has been sent to user %d' . "\n", $date_time ,$AuthUserID);
+        echo sprintf('[ %s ],created offer message has been sent to user %d' . "\n", $date_time, $AuthUserID);
 
         $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
         $response = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
@@ -350,48 +351,50 @@ class Chat implements MessageComponentInterface
         $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
 
         $client = $this->getClientByUserId($trip->user_id);
-        if($client){
+        if ($client) {
             $data2 = [
                     'type' => 'new_offer',
                     'data' => $offer_result,
                 ];
-                $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
-                $client->send($message);
+            $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+            $client->send($message);
 
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] New Offer "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] New Offer "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
         }
 
     }
-    private function expire_offer(ConnectionInterface $from,$AuthUserID, $expireOfferRequest){
+    private function expire_offer(ConnectionInterface $from, $AuthUserID, $expireOfferRequest)
+    {
         $data = json_decode($expireOfferRequest, true);
-        $offer=Offer::findOrFail($data['offer_id']);
-        $offer->status='expired';
+        $offer = Offer::findOrFail($data['offer_id']);
+        $offer->status = 'expired';
         $offer->save();
-        $canceled_offer['offer_id']= $offer->id;
+        $canceled_offer['offer_id'] = $offer->id;
         $data2 = [
             'type' => 'canceled_offer',
-            'data' =>$canceled_offer,
-            'message'=>'Offer canceled successfully'
+            'data' => $canceled_offer,
+            'message' => 'Offer canceled successfully'
         ];
         $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
         $client = $this->getClientByUserId($offer->trip->user_id);
-        if($client){
-                $client->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->trip->user_id);
+        if ($client) {
+            $client->send($message);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->trip->user_id);
         }
     }
-    private function expire_trip(ConnectionInterface $from,$AuthUserID, $expireTripRequest){
+    private function expire_trip(ConnectionInterface $from, $AuthUserID, $expireTripRequest)
+    {
         $data = json_decode($expireTripRequest, true);
-        $trip=Trip::findOrFail($data['trip_id']);
-        $trip->status='expired';
+        $trip = Trip::findOrFail($data['trip_id']);
+        $trip->status = 'expired';
         $trip->save();
-        $expired_trip['trip_id']= $trip->id;
+        $expired_trip['trip_id'] = $trip->id;
         $data2 = [
             'type' => 'expired_trip',
-            'data' =>$expired_trip,
-            'message'=>'Trip expired successfully'
+            'data' => $expired_trip,
+            'message' => 'Trip expired successfully'
         ];
         $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
         $decimalPlaces = 2;
@@ -423,12 +426,12 @@ class Chat implements MessageComponentInterface
                     ->get()
                     ->pluck('user_id') // Extract user_ids as an array
                     ->toArray();
-        foreach($userIds as $userID){
+        foreach ($userIds as $userID) {
             $client = $this->getClientByUserId($userID);
-            if($client){
-                    $client->send($message);
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
+            if ($client) {
+                $client->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
             }
         }
 
@@ -475,14 +478,14 @@ class Chat implements MessageComponentInterface
                     echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
                     break;
             }
-            
+
         }
     }
 
     public function onClose(ConnectionInterface $conn)
     {
         // The connection is closed, remove it, as we can no longer send it messages
-        
+
         $userId = $this->clients[$conn];
         unset($this->clientUserIdMap[$userId]);
         $this->clients->detach($conn);
@@ -497,7 +500,8 @@ class Chat implements MessageComponentInterface
         $conn->close();
     }
 
-    public function getClientByUserId($userId) {
+    public function getClientByUserId($userId)
+    {
         return $this->clientUserIdMap[$userId] ?? null; // Retrieve client in one step
     }
 }
