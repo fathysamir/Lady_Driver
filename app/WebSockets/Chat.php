@@ -461,6 +461,10 @@ class Chat implements MessageComponentInterface
                 $AuthUserID = $this->clients[$from];
                 $expireOfferRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
                 $this->expire_offer($from,$AuthUserID, $expireOfferRequest);
+            }elseif ($data['type'] == 'expire_trip') {
+                $AuthUserID = $this->clients[$from];
+                $expireTripRequest = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+                $this->expire_trip($from,$AuthUserID, $expireTripRequest);
             }else{
 
                 $from->send(json_encode(['type' => 'pong']));
