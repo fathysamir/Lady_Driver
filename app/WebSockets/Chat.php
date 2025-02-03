@@ -321,7 +321,15 @@ class Chat implements MessageComponentInterface
             // ];
             // Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
         }
-        $from->send(json_encode(['type' => 'created_offer','message' => 'Offer Created Successfully']));
+        $x['offer_id']=$offer->id;
+        $x['trip_id'] = $trip->id;
+        $data1 = [
+            'type' => 'created_offer',
+            'data' => $x,
+            'message'=>'Offer Created Successfully'
+        ];
+        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $from->send($res);
         $date_time = date('Y-m-d h:i:s a');
         echo sprintf('[ %s ],created offer message has been sent to user %d' . "\n", $date_time, $AuthUserID);
 
