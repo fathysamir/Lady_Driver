@@ -457,7 +457,9 @@ class Chat implements MessageComponentInterface
             echo sprintf("sss");
         } else {
             $AuthUserID = $this->clients[$from];
-            $requestData = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+            if (array_key_exists('data', $data)) {
+                $requestData = json_encode($data['data'], JSON_UNESCAPED_UNICODE);
+            }
 
             switch ($data['type']) {
                 case 'new_trip':
