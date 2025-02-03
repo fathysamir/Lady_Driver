@@ -405,6 +405,11 @@ class Chat implements MessageComponentInterface
             'message' => 'Trip expired successfully'
         ];
         $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+        $from->send($message);
+        $date_time = date('Y-m-d h:i:s a');
+
+        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $AuthUserID);
+
         $decimalPlaces = 2;
         $userIds = Car::where('status', 'confirmed')
                     ->whereHas('owner', function ($query) {
