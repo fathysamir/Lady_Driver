@@ -62,6 +62,52 @@ class UserController extends Controller
 
     }
 
+    public function index_archives(Request $request){
+          // Start with all users, including soft deleted ones
+        $all_users = User::withTrashed()->orderBy('id', 'desc');
+
+        // Apply search filter if provided
+        if ($request->has('search') && $request->search != null) {
+            $all_users->where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        // Apply mode filter if provided
+        if ($request->has('mode') && $request->mode != null) {
+            $all_users->where('mode', $request->mode);
+        }
+        // Apply role filter if provided
+        if ($request->has('role') && $request->role != null) {
+            $role = Role::where('name', $request->role)->first();
+            
+            if ($role) {
+                $all_users->whereHas('roles', function ($query) use ($role) {
+                    $query->where('roles.id', $role->id);
+                });
+            }
+        }
+
+        // Only include soft deleted users
+        $all_users->whereNotNull('deleted_at');
+
+        // Paginate the results
+        $all_users = $all_users->paginate(12);
+
+        // Transform the user collection to add the 'image' key
+        $all_users->getCollection()->transform(function ($user) {
+            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+            return $user;
+        });
+
+        $search = $request->search;
+dd($all_users->first());
+        return view('dashboard.users.index_archives', compact('all_users', 'search'));
+    }
+
     // public function create(){
     //     return view('dashboard.users.create');
     // }
@@ -113,6 +159,8 @@ class UserController extends Controller
 
     public function edit($id){
         $user=User::where('id',$id)->first();
+        $user->seen='1';
+        $user->save();
         $user->image = getFirstMediaUrl($user,$user->avatarCollection);
         $user->driving_license=DriverLicense::where('user_id',$user->id)->first();
         $user->car=Car::where('user_id',$user->id)->first();

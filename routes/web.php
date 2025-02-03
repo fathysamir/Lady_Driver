@@ -50,6 +50,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
         Route::get('/user/edit/{id}', [UserController::class, 'edit'])->name('edit.user');
         Route::post('/user/update/{id}', [UserController::class, 'update'])->name('update.user');
         Route::get('/user/delete/{id}', [UserController::class, 'delete'])->name('delete.user');
+
+        Route::any('/archived-users', [UserController::class, 'index_archives'])->name('archived_users'); 
     /////////////////////////////////////////
         Route::any('/car-marks', [CarMarkController::class, 'index'])->name('car-marks'); 
         Route::get('/car-marks/create', [CarMarkController::class, 'create'])->name('add.car.mark');

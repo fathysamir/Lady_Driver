@@ -248,28 +248,36 @@ class ClientController extends ApiController
             return $this->sendError(null,$validator->errors(),400);
         }
         $offer=Offer::find($request->offer_id);
-        $trip=$offer->trip;
-        $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
-        $trip->status='pending';
-        $trip->total_price=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
-        $trip->driver_rate=$offer->offer;
-        $trip->app_rate=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2)-$offer->offer;
-        $trip->car_id=$offer->car_id;
-        $trip->save();
-        $offer->status='accepted';
-        $offer->save();
-        Offer::where('id','!=',$request->offer_id)->where('trip_id',$trip->id)->update(['status'=>'expired']);
-        if($offer->user->device_token){
-            $this->firebaseService->sendNotification($offer->user->device_token,'Lady Driver - Accept Offer',"Your offer for trip No. (" . $trip->code . ") has been approved.",["screen"=>"Current Trip","ID"=>$trip->id]);
-            $data=[
-                "title"=>"Lady Driver - Accept Offer",
-                "message"=>"Your offer for trip No. (" . $trip->code . ") has been approved.",
-                "screen"=>"Current Trip",
-                "ID"=>$trip->id
-            ];
-            Notification::create(['user_id'=>$offer->user_id,'data'=>json_encode($data)]);
+        if($request->status=='accepted'){
+            $trip=$offer->trip;
+            $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
+            $trip->status='pending';
+            $trip->total_price=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
+            $trip->driver_rate=$offer->offer;
+            $trip->app_rate=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2)-$offer->offer;
+            $trip->car_id=$offer->car_id;
+            $trip->save();
+            $offer->status='accepted';
+            $offer->save();
+            Offer::where('id','!=',$request->offer_id)->where('trip_id',$trip->id)->update(['status'=>'expired']);
+            if($offer->user->device_token){
+                $this->firebaseService->sendNotification($offer->user->device_token,'Lady Driver - Accept Offer',"Your offer for trip No. (" . $trip->code . ") has been approved.",["screen"=>"Current Trip","ID"=>$trip->id]);
+                $data=[
+                    "title"=>"Lady Driver - Accept Offer",
+                    "message"=>"Your offer for trip No. (" . $trip->code . ") has been approved.",
+                    "screen"=>"Current Trip",
+                    "ID"=>$trip->id
+                ];
+                Notification::create(['user_id'=>$offer->user_id,'data'=>json_encode($data)]);
+            }
+            return $this->sendResponse(null,'offer accepted successfuly',200);
+
+        }else{
+            $offer->status='expired';
+            $offer->save();
+            return $this->sendResponse(null,'offer expired successfuly',200);
         }
-        return $this->sendResponse(null,'offer accepted successfuly',200);
+       
 
     }
 

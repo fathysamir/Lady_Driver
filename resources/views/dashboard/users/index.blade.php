@@ -75,6 +75,7 @@
                                 <div style="display:flex;">
                                   <h5 class="card-title" style="width: 60%;">Users</h5>
                                   <div style="display:flex;margin-bottom:1%;margin-left:0px;">
+                                    <a class="btn btn-light px-5" type="button" href="{{route('archived_users')}}" style="margin:0% 0% 1% 1%; ">Archives</a>
                                     <button class="btn btn-light px-5" type="button" onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
                                     <input type="text" class="form-control" placeholder="Enter keywords" name="search">
                                     <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
@@ -125,7 +126,7 @@
                               <th scope="col">Email</th>
                               <th scope="col">Phone Number</th>
                               <th scope="col">Mode</th>
-                              <th scope="col">Role</th>
+                              
                               <th scope="col">status</th>
                               <th scope="col">Join Date</th>
                               <th scope="col">Activation</th>
@@ -159,16 +160,19 @@
                                           >
                                       </div>
                                   </span>
-                                  @if($user->mode == 'driver') 
+                                 
                                       <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span> 
-                                  @endif 
+                                  
                                   {!! highlight($user->name, $search ?? '') !!}
                               </td>
                                 <td>{!! highlight($user->email, $search ?? '') !!}</td>
                                 
                                 <td>{!! highlight($user->phone, $search ?? '') !!}</td>
-                                <td>{{ucwords($user->mode)}}</td>
-                                <td>{{$user->roles->first()->name == 'Client'? 'User' : $user->roles->first()->name}}</td>
+                                @if($user->roles->first()->name == 'Client')
+                                <td>User - {{ucwords($user->mode)}}</td>
+                                @elseif($user->roles->first()->name == 'Admin')
+                                <td>Admin</td>
+                                @endif
                                 @if($user->mode=='driver')
                                 <td>@if($user->status=='pending') <span class="badge badge-secondary" style="background-color:rgb(143, 118, 9); width:100%;">Pending</span> @elseif($user->status=='confirmed') <span class="badge badge-secondary" style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>@elseif($user->status=='banned') <span class="badge badge-secondary" style="background-color:rgb(61, 27, 255);width:100%;">Banned</span> @else <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span> @endif</td>
                                 @else
@@ -197,10 +201,12 @@
                                     <span  class="bi bi-pen" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                   </a>
                                  
-                                  <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
+                                  {{-- <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
+                                    <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                  </a> --}}
+                                  <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/user/delete/'.$user->id) }}","{{$user->name}}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
                                     <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                   </a>
-                                 
                                   
                                 </td>
                               </tr>
@@ -223,10 +229,60 @@
             <div class="overlay toggle-menu"></div>
         </div>
     </div>
-    
+    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to delete this user?</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" style="color:black;">
+            <div class="form-group">
+              <div style="width: 100%;  display: flex;justify-content: center;">
+                <img id="deletedUserAvatar" src="{{asset('dashboard/logo.png')}}" class="logo-icon" alt="logo icon" style="width:100px;height:100px; border-radius: 50%;">
+              </div>
+              <div style="width: 100%;  display: flex;justify-content: center;">
+                <h5 class="logo-text"style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
+
+              </div>
+            </div>
+            <button onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancele</button>
+            <button onclick="deleteUser()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>
+
+          </div>
+        </div>
+      </div>
+    </div>
 @endsection
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function showConfirmationPopup(deleteUrl,name,imgSrc) {
+   
+        document.getElementById('deletedNameInput').textContent = name;
+        document.getElementById('deletedUserAvatar').src = imgSrc;
+        const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
+              myModal.show();
+        // Set the delete URL in a data attribute to access it in the deleteUser function
+        document.getElementById('confirmationPopup').setAttribute('data-delete-url', deleteUrl);
+    }
+
+    function hideConfirmationPopup() {
+       
+        var modal = document.getElementById('confirmationPopup');
+                  modal.classList.remove('show');
+                  modal.style.display = 'none';
+                  document.body.classList.remove('modal-open');
+                  document.getElementsByClassName('modal-backdrop')[0].remove();
+    }
+
+    function deleteUser() {
+        const deleteUrl = document.getElementById('confirmationPopup').getAttribute('data-delete-url');
+        window.location.href = deleteUrl;
+    }
+</script>
 <script>
     $(document).ready(function() {
         $('#submitForm').on('click', function() {

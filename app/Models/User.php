@@ -39,7 +39,8 @@ class User extends Authenticatable
         'mode',
         'theme',
         'wallet',
-        'gendor'
+        'gendor',
+        'seen'
     ];
 
     /**
