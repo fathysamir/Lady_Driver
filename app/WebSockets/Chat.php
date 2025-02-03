@@ -479,7 +479,11 @@ class Chat implements MessageComponentInterface
                 case 'expire_trip':
                     $this->expire_trip($from, $AuthUserID, $requestData);
                     break;
-
+                case 'ping':
+                    $from->send(json_encode(['type' => 'pong']));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
+                    break;
                 default:
                     $from->send(json_encode(['type' => 'pong']));
                     $date_time = date('Y-m-d h:i:s a');
