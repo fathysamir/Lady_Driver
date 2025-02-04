@@ -183,7 +183,9 @@ class SettingController extends Controller
         $facebook=AboutUs::where('key','facebook')->first()->value;
         $instagram=AboutUs::where('key','instagram')->first()->value;
         $twitter=AboutUs::where('key','twitter')->first()->value;
-        return view('dashboard.about_us.view',compact('description','phone','email','facebook','twitter','instagram'));
+        $tiktok=AboutUs::where('key','tiktok')->first()->value;
+        $linked_in=AboutUs::where('key','linked-in')->first()->value;
+        return view('dashboard.about_us.view',compact('description','phone','email','facebook','twitter','instagram','tiktok','linked_in'));
     }
 
     public function update_about_us(Request $request){

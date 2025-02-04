@@ -372,6 +372,8 @@ class AuthController extends ApiController
         $response['facebook']=AboutUs::where('key','facebook')->first()->value;
         $response['instagram']=AboutUs::where('key','instagram')->first()->value;
         $response['twitter']=AboutUs::where('key','twitter')->first()->value;
+        $response['tiktok']=AboutUs::where('key','tiktok')->first()->value;
+        $response['linked-in']=AboutUs::where('key','linked-in')->first()->value;
         return $this->sendResponse($response,null,200);
 
     }
