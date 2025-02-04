@@ -196,7 +196,8 @@ class SettingController extends Controller
         $twitter = AboutUs::where('key', 'twitter')->first()->value;
         $tiktok = AboutUs::where('key', 'tiktok')->first()->value;
         $linked_in = AboutUs::where('key', 'linked-in')->first()->value;
-        return view('dashboard.about_us.view', compact('description', 'phone', 'email', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in'));
+        $app_link = AboutUs::where('key', 'app-link')->first()->value;
+        return view('dashboard.about_us.view', compact('description', 'phone', 'email', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in','app_link'));
     }
 
     public function update_about_us(Request $request)
@@ -207,6 +208,9 @@ class SettingController extends Controller
         AboutUs::where('key', 'facebook')->update(['value' => $request->facebook]);
         AboutUs::where('key', 'instagram')->update(['value' => $request->instagram]);
         AboutUs::where('key', 'twitter')->update(['value' => $request->twitter]);
+        AboutUs::where('key', 'linked-in')->update(['value' => $request->linked_in]);
+        AboutUs::where('key', 'tiktok')->update(['value' => $request->tiktok]);
+        AboutUs::where('key', 'app-link')->update(['value' => $request->app_link]);
         return redirect('/admin-dashboard/about_us/view')->with('success', 'About Us updated successfully.');
     }
 }

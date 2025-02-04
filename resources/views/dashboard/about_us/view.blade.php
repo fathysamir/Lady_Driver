@@ -55,11 +55,15 @@
                                 </div>
                                 <div class="form-group">
                                     <label>TikTok Link</label>
-                                    <input type="text" class="form-control" name="twitter" value="{{ $tiktok }}">
+                                    <input type="text" class="form-control" name="tiktok" value="{{ $tiktok }}">
                                 </div>
                                 <div class="form-group">
                                     <label>Linked-In Link</label>
-                                    <input type="text" class="form-control" name="twitter" value="{{ $linked_in }}">
+                                    <input type="text" class="form-control" name="linked_in" value="{{ $linked_in }}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Application Link</label>
+                                    <input type="text" class="form-control" name="app_link" value="{{ $app_link }}">
                                 </div>
 
 
