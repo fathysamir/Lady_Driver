@@ -359,7 +359,34 @@
   
     <!-- Index js -->
     <script src="{{asset('dashboard/assets/js/index.js')}}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <script>
+      $(document).ready(function () {
+          let isFormDirty = false; // Track if the form has been modified
     
+          // Detect changes in any input field inside a form
+          $('form :input').on('change', function () {
+              isFormDirty = true;
+          });
+    
+          // Warn user before leaving the page if form is changed
+          $(document).on('click', 'a', function (e) {
+              if (isFormDirty) {
+                  e.preventDefault(); // Prevent link navigation
+                  let url = $(this).attr('href'); // Get the link URL
+                  
+                  if (confirm("You have unsaved changes. Do you really want to leave?")) {
+                      window.location.href = url; // Navigate if confirmed
+                  }
+              }
+          });
+    
+          // Allow form submission without warning
+          $('form').on('submit', function () {
+              isFormDirty = false;
+          });
+      });
+    </script>
   </body>
 </html>

@@ -26,72 +26,73 @@ class TripController extends Controller
     public function index(Request $request)
     {
         //dd($request->all());
-        $all_trips = Trip::orderBy('id', 'desc')->whereIn('status',['pending','in_progress','completed','cancelled']);
+        $all_trips = Trip::orderBy('id', 'desc')->whereIn('status', ['pending','in_progress','completed','cancelled']);
 
-        if($request->has('search') && $request->search!=null ) {
+        if ($request->has('search') && $request->search != null) {
             $all_trips->where(function ($query) use ($request) {
                 $query->where('code', 'LIKE', '%' . $request->search . '%');
             });
         }
-        if($request->has('user')&& $request->user!=null) {
+        if ($request->has('user') && $request->user != null) {
             $all_trips->where('user_id', $request->user);
         }
         // if ($request->has('car')&& $request->car!=null) {
         //     $all_trips->where('car_id', $request->user);
         // }
-    
-        if($request->has('created_date')&& $request->created_date!=null) {
+
+        if ($request->has('created_date') && $request->created_date != null) {
             $all_trips->whereDate('created_at', $request->created_date);
         }
-        if($request->has('type')&& $request->type!=null) {
+        if ($request->has('type') && $request->type != null) {
             $all_trips->where('type', $request->type);
         }
-        if($request->has('payment_status')&& $request->payment_status!=null) {
+        if ($request->has('payment_status') && $request->payment_status != null) {
             $all_trips->where('payment_status', $request->payment_status);
         }
-        if ($request->has('status')&& $request->status!=null) {
+        if ($request->has('status') && $request->status != null) {
             $all_trips->where('status', $request->status);
         }
-        if($request->has('air_conditioned')&& $request->air_conditioned!=null) {
+        if ($request->has('air_conditioned') && $request->air_conditioned != null) {
             $all_trips->where('air_conditioned', '1');
         }
-        if($request->has('driver')&& $request->driver!=null) {
+        if ($request->has('driver') && $request->driver != null) {
             $all_trips->whereHas('car', function ($query) use ($request) {
                 $query->where('user_id', $request->driver);
             });
         }
-        if($request->has('mark')&& $request->mark!=null) {
+        if ($request->has('mark') && $request->mark != null) {
             $all_trips->whereHas('car', function ($query) use ($request) {
                 $query->where('car_mark_id', $request->mark);
             });
         }
-        if($request->has('model')&& $request->model!=null) {
+        if ($request->has('model') && $request->model != null) {
             $all_trips->whereHas('car', function ($query) use ($request) {
                 $query->where('car_model_id', $request->model);
             });
         }
         $all_trips = $all_trips->paginate(12);
-         $drivers=User::whereHas('roles', function ($query) {
+        $drivers = User::whereHas('roles', function ($query) {
             $query->where('roles.name', 'Client');
-        })->where('mode','driver')->get();
-        $users=User::whereHas('roles', function ($query) {
+        })->where('mode', 'driver')->get();
+        $users = User::whereHas('roles', function ($query) {
             $query->where('roles.name', 'Client');
         })->get();
-        $car_marks=CarMark::all();
-        $search=$request->search;
+        $car_marks = CarMark::all();
+        $search = $request->search;
         // $car_marks=CarMark::all();
-        return view('dashboard.trips.index',compact('all_trips','drivers','users','car_marks','search'));
+        return view('dashboard.trips.index', compact('all_trips', 'drivers', 'users', 'car_marks', 'search'));
 
     }
 
 
-    public function view($id){
-        $trip=Trip::where('id',$id)->first();
-        $trip->user->image=getFirstMediaUrl($trip->user,$trip->user->avatarCollection);
-        $trip->car->image=getFirstMediaUrl($trip->car,$trip->car->avatarCollection);
-        $trip->car->owner->image=getFirstMediaUrl($trip->car->owner,$trip->car->owner->avatarCollection);
-        return view('dashboard.trips.view',compact('trip'));
+    public function view($id)
+    {
+        $trip = Trip::where('id', $id)->first();
+        $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+        $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
+        $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+        return view('dashboard.trips.view', compact('trip'));
     }
 
-    
+
 }

@@ -26,7 +26,7 @@ class UserController extends Controller
     {
         $all_users = User::orderBy('id', 'desc');
 
-        if ($request->has('search') && $request->search!=null ) {
+        if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
@@ -34,16 +34,16 @@ class UserController extends Controller
                      ->orWhere('id', 'LIKE', '%' . $request->search . '%');
             });
         }
-        if ($request->has('mode')&& $request->mode!=null) {
+        if ($request->has('mode') && $request->mode != null) {
             $all_users->where('mode', $request->mode);
         }
-    
-        if ($request->has('status')&& $request->status!=null) {
+
+        if ($request->has('status') && $request->status != null) {
             $all_users->where('status', $request->status);
         }
         if ($request->has('role') && $request->role != null) {
             $role = Role::where('name', $request->role)->first();
-            
+
             if ($role) {
                 $all_users->whereHas('roles', function ($query) use ($role) {
                     $query->where('roles.id', $role->id);
@@ -54,16 +54,17 @@ class UserController extends Controller
 
         $all_users->getCollection()->transform(function ($user) {
             // Add the 'image' key based on some condition
-            $user->image = getFirstMediaUrl($user,$user->avatarCollection);
+            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             return $user;
         });
-         $search=$request->search;
-        return view('dashboard.users.index',compact('all_users','search'));
+        $search = $request->search;
+        return view('dashboard.users.index', compact('all_users', 'search'));
 
     }
 
-    public function index_archives(Request $request){
-          // Start with all users, including soft deleted ones
+    public function index_archives(Request $request)
+    {
+        // Start with all users, including soft deleted ones
         $all_users = User::withTrashed()->orderBy('id', 'desc');
 
         // Apply search filter if provided
@@ -83,7 +84,7 @@ class UserController extends Controller
         // Apply role filter if provided
         if ($request->has('role') && $request->role != null) {
             $role = Role::where('name', $request->role)->first();
-            
+
             if ($role) {
                 $all_users->whereHas('roles', function ($query) use ($role) {
                     $query->where('roles.id', $role->id);
@@ -104,7 +105,7 @@ class UserController extends Controller
         });
 
         $search = $request->search;
-dd($all_users->first());
+        dd($all_users->first());
         return view('dashboard.users.index_archives', compact('all_users', 'search'));
     }
 
@@ -125,15 +126,15 @@ dd($all_users->first());
     //             'image' => ['required'] ,
     //             'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
     //             'role'=>['required',Rule::in(Role::pluck('id'))]
-                
+
 
     //         ]);
 
-           
+
     //         if ($validator->fails()) {
     //             return Redirect::back()->withInput()->withErrors($validator);
     //         }
-            
+
     //         $user = User::create([
     //             'first_name' => $request->first_name,
     //             'last_name' => $request->last_name,
@@ -144,10 +145,10 @@ dd($all_users->first());
     //             'manager_id'=>$request->manager?$request->manager:null,
     //             'department_id'=>$request->department,
     //             'theme'=>'theme1'
-                
+
     //         ]);
     //         $role = Role::where('id',$request->role)->first();
-            
+
     //         $user->assignRole([$role->id]);
     //         if($request->file('image')){
     //             uploadMedia($request->file('image'),$user->avatarCollection,$user);
@@ -155,34 +156,36 @@ dd($all_users->first());
     //       return redirect('/users');
 
     // }
- 
 
-    public function edit($id){
-        $user=User::where('id',$id)->first();
-        $user->seen='1';
+
+    public function edit($id)
+    {
+        $user = User::where('id', $id)->first();
+        $user->seen = '1';
         $user->save();
-        $user->image = getFirstMediaUrl($user,$user->avatarCollection);
-        $user->driving_license=DriverLicense::where('user_id',$user->id)->first();
-        $user->car=Car::where('user_id',$user->id)->first();
-        if($user->driving_license){
-            $user->driving_license->front_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseFrontImageCollection);
-            $user->driving_license->back_image=getFirstMediaUrl($user->driving_license,$user->driving_license->LicenseBackImageCollection);
+        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->driving_license = DriverLicense::where('user_id', $user->id)->first();
+        $user->car = Car::where('user_id', $user->id)->first();
+        if ($user->driving_license) {
+            $user->driving_license->front_image = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseFrontImageCollection);
+            $user->driving_license->back_image = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseBackImageCollection);
         }
-        if($user->mode=='client'){
-            $user->rate=round(Trip::where('user_id',$id)->where('status','completed')->where('driver_stare_rate','>',0)->avg('driver_stare_rate'))?? 0.00;
-            $user->trips_count=Trip::where('user_id',$id)->whereIn('status',['pending', 'in_progress','completed'])->count();
-        }elseif($user->mode=='driver'){
-            $user->rate=round(Trip::whereHas('car', function ($query)use($user) {
+        if ($user->mode == 'client') {
+            $user->rate = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
+            $user->trips_count = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress','completed'])->count();
+        } elseif ($user->mode == 'driver') {
+            $user->rate = round(Trip::whereHas('car', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            })->where('status','completed')->where('client_stare_rate','>',0)->avg('client_stare_rate'))?? 0.00;
-            $user->trips_count=Trip::whereHas('car', function ($query)use($user) {
+            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate')) ?? 0.00;
+            $user->trips_count = Trip::whereHas('car', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            })->whereIn('status',['pending', 'in_progress','completed'])->count();
+            })->whereIn('status', ['pending', 'in_progress','completed'])->count();
         }
-        return view('dashboard.users.edit',compact('user'));
+        return view('dashboard.users.edit', compact('user'));
     }
 
-    public function update(Request $request,$id){
+    public function update(Request $request, $id)
+    {
         $validator = Validator::make($request->all(), [
             'status' => ['required'],
         ]);
@@ -190,18 +193,18 @@ dd($all_users->first());
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
-        
-        User::where('id',$id)->update([ 'status' => $request->status]);
+
+        User::where('id', $id)->update([ 'status' => $request->status]);
         return redirect('/admin-dashboard/users');
 
     }
 
 
-   
 
-     public function delete($id)
+
+    public function delete($id)
     {
-        Car::where('user_id',$id)->delete();
+        Car::where('user_id', $id)->delete();
         User::where('id', $id)->delete();
         return redirect('/admin-dashboard/users');
     }

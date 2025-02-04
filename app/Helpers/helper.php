@@ -1,7 +1,7 @@
 <?php
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-
 
 function uploadMedia($request_file, $collection_name, $model)
 {
@@ -29,87 +29,90 @@ function uploadMedia($request_file, $collection_name, $model)
 }
 
 function getMediaUrl($model, $collection_name)
-{  
+{
     // $attachment = $model->attachment()
     //     ->where('collection_name', $collection_name)
     //     ->first();
-     $attachments=DB::table('media')->where('attachmentable_id',$model->id)->where('collection_name',$collection_name)->where('attachmentable_type',get_class($model))->select('path')->get();
-    
-    if (count($attachments)==0) {
+    $attachments = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->select('path')->get();
+
+    if (count($attachments) == 0) {
         return null;
-    }else{
-       
-        foreach($attachments as $attachment){
-            $attachment->path=url($attachment->path);
+    } else {
+
+        foreach ($attachments as $attachment) {
+            $attachment->path = url($attachment->path);
         }
         return $attachments;
     }
 
-   
-    
+
+
 }
 
 function getFirstMediaUrl($model, $collection_name)
-{  
+{
     // $attachment = $model->attachment()
     //     ->where('collection_name', $collection_name)
     //     ->first();
-     $attachment=DB::table('media')->where('attachmentable_id',$model->id)->where('collection_name',$collection_name)->where('attachmentable_type',get_class($model))->first();
-    
-    if (!$attachment || $attachment->path==null) {
+    $attachment = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->first();
+
+    if (!$attachment || $attachment->path == null) {
         return null;
     }
     return url($attachment->path);
 }
 function getFirstMedia($model, $collection_name)
-{  
+{
     // $attachment = $model->attachment()
     //     ->where('collection_name', $collection_name)
     //     ->first();
-     $attachment=DB::table('media')->where('attachmentable_id',$model->id)->where('collection_name',$collection_name)->where('attachmentable_type',get_class($model))->first();
-    
-    if (!$attachment || $attachment->path==null) {
+    $attachment = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->first();
+
+    if (!$attachment || $attachment->path == null) {
         return null;
     }
     return $attachment->path;
 }
 
 function deleteMedia($model, $collection_name = null)
-{    
-               
-        return DB::table('media')->where('attachmentable_type',get_class($model))->where('attachmentable_id',$model->id)->where('collection_name',$collection_name)->delete();
-     
-            
+{
+
+    return DB::table('media')->where('attachmentable_type', get_class($model))->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->delete();
+
+
 }
 
-function generateOTP() {
+function generateOTP()
+{
     return rand(100000, 999999);
 }
 
-function calculate_distance($lat1,$lng1,$lat2,$lng2){
-   
+function calculate_distance($lat1, $lng1, $lat2, $lng2)
+{
+
     $api_key = 'AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0';
     //$base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
     $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&departure_time=now&traffic_model=best_guess&key=$api_key";
     //$request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
-    
+
     $response = file_get_contents($request_url);
     $data = json_decode($response, true);
-    
+
     if ($data['status'] == 'OK') {
-        
+
         $distance = $data['rows'][0]['elements'][0]['distance']['value']; // Distance in meters
         $duration = $data['rows'][0]['elements'][0]['duration_in_traffic']['value'];
         $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
         $response2['duration_in_M'] = ceil($duration / 60);
-       
+
         return  $response2 ;
     } else {
         return 'Error: Unable to calculate the distance.';
     }
 }
 
-function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key) {
+function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
+{
     // بناء رابط API الخاص بالـ Google Directions
     $url = "https://maps.googleapis.com/maps/api/directions/json?origin={$lat1},{$lng1}&destination={$lat2},{$lng2}&key={$api_key}";
 
@@ -124,7 +127,7 @@ function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key) {
 
     // التحقق من التحذيرات على الطريق لمعرفة وجود بوابات دفع
     $warnings = $data['routes'][0]['warnings'];
-    
+
     // عرض التحذيرات المتعلقة ببوابات الدفع
     if (!empty($warnings)) {
         foreach ($warnings as $warning) {
@@ -138,7 +141,7 @@ function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key) {
 
     // استعراض مسار الطريق (للمزيد من المعلومات حول النقاط المختلفة على الطريق)
     $steps = $data['routes'][0]['legs'][0]['steps'];
-    
+
     foreach ($steps as $step) {
         echo "Start: " . $step['start_location']['lat'] . "," . $step['start_location']['lng'] . "\n";
         echo "End: " . $step['end_location']['lat'] . "," . $step['end_location']['lng'] . "\n";
@@ -154,8 +157,3 @@ function highlight($text, $search)
     }
     return $text;
 }
-
-
-
-
-

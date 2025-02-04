@@ -22,25 +22,27 @@ use File;
 
 class FeedBackController extends ApiController
 {
-    public function index(Request $request){  
+    public function index(Request $request)
+    {
         $all_feed_back = FeedBack::orderBy('id', 'desc');
 
-        if($request->has('user')&& $request->user!=null) {
+        if ($request->has('user') && $request->user != null) {
             $all_feed_back->where('user_id', $request->user);
         }
-        
+
         $all_feed_back = $all_feed_back->paginate(12);
-        $search=$request->search;
-        return view('dashboard.feed_back.index',compact('all_feed_back','search'));
+        $search = $request->search;
+        return view('dashboard.feed_back.index', compact('all_feed_back', 'search'));
 
     }
 
-    public function view($id){
-        $feed_back=FeedBack::where('id',$id)->first();
-        return view('dashboard.feed_back.view',compact('feed_back'));
+    public function view($id)
+    {
+        $feed_back = FeedBack::where('id', $id)->first();
+        return view('dashboard.feed_back.view', compact('feed_back'));
     }
 
-    
 
-   
+
+
 }

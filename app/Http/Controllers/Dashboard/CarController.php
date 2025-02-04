@@ -26,48 +26,48 @@ class CarController extends Controller
     {
         $all_cars = Car::orderBy('id', 'desc');
 
-        if ($request->has('search') && $request->search!=null ) {
+        if ($request->has('search') && $request->search != null) {
             $all_cars->where(function ($query) use ($request) {
                 $query->where('car_plate', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('color', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('code', 'LIKE', '%' . $request->search . '%');
-                   
+
             });
         }
-        if ($request->has('user')&& $request->user!=null) {
+        if ($request->has('user') && $request->user != null) {
             $all_cars->where('user_id', $request->user);
         }
-    
-        if ($request->has('mark')&& $request->mark!=null) {
+
+        if ($request->has('mark') && $request->mark != null) {
             $all_cars->where('car_mark_id', $request->mark);
         }
-        if ($request->has('model')&& $request->model!=null) {
+        if ($request->has('model') && $request->model != null) {
             $all_cars->where('car_model_id', $request->model);
         }
-        if ($request->has('year')&& $request->year!=null) {
+        if ($request->has('year') && $request->year != null) {
             $all_cars->where('year', $request->year);
         }
-        if ($request->has('status')&& $request->status!=null) {
+        if ($request->has('status') && $request->status != null) {
             $all_cars->where('status', $request->status);
         }
-        if ($request->has('air_conditioned')&& $request->air_conditioned!=null) {
+        if ($request->has('air_conditioned') && $request->air_conditioned != null) {
             $all_cars->where('air_conditioned', '1');
         }
-        
+
         $all_cars = $all_cars->paginate(12);
-        $users=User::whereHas('roles', function ($query) {
+        $users = User::whereHas('roles', function ($query) {
             $query->where('roles.name', 'Client');
-        })->where('mode','driver')->get();
-        $car_marks=CarMark::all();
-        $search=$request->search;
-        return view('dashboard.cars.index',compact('all_cars','users','car_marks','search'));
+        })->where('mode', 'driver')->get();
+        $car_marks = CarMark::all();
+        $search = $request->search;
+        return view('dashboard.cars.index', compact('all_cars', 'users', 'car_marks', 'search'));
 
     }
     public function getModels(Request $request)
     {
         $markId = $request->input('markId');
         $models = CarModel::where('car_mark_id', $markId)->get();
-    
+
         return response()->json($models);
     }
     // public function create(){
@@ -87,15 +87,15 @@ class CarController extends Controller
     //             'image' => ['required'] ,
     //             'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
     //             'role'=>['required',Rule::in(Role::pluck('id'))]
-                
+
 
     //         ]);
 
-           
+
     //         if ($validator->fails()) {
     //             return Redirect::back()->withInput()->withErrors($validator);
     //         }
-            
+
     //         $user = User::create([
     //             'first_name' => $request->first_name,
     //             'last_name' => $request->last_name,
@@ -106,10 +106,10 @@ class CarController extends Controller
     //             'manager_id'=>$request->manager?$request->manager:null,
     //             'department_id'=>$request->department,
     //             'theme'=>'theme1'
-                
+
     //         ]);
     //         $role = Role::where('id',$request->role)->first();
-            
+
     //         $user->assignRole([$role->id]);
     //         if($request->file('image')){
     //             uploadMedia($request->file('image'),$user->avatarCollection,$user);
@@ -117,18 +117,20 @@ class CarController extends Controller
     //       return redirect('/users');
 
     // }
- 
 
-    public function edit($id){
-        $car=Car::where('id',$id)->first();
-        $car->image = getFirstMediaUrl($car,$car->avatarCollection);
-        $car->plate_image = getFirstMediaUrl($car,$car->PlateImageCollection);
-        $car->license_front_image = getFirstMediaUrl($car,$car->LicenseFrontImageCollection);
-        $car->license_back_image = getFirstMediaUrl($car,$car->LicenseBackImageCollection);
-        return view('dashboard.cars.edit',compact('car'));
+
+    public function edit($id)
+    {
+        $car = Car::where('id', $id)->first();
+        $car->image = getFirstMediaUrl($car, $car->avatarCollection);
+        $car->plate_image = getFirstMediaUrl($car, $car->PlateImageCollection);
+        $car->license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
+        $car->license_back_image = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
+        return view('dashboard.cars.edit', compact('car'));
     }
 
-    public function update(Request $request,$id){
+    public function update(Request $request, $id)
+    {
         $validator = Validator::make($request->all(), [
             'status' => ['required'],
         ]);
@@ -136,16 +138,16 @@ class CarController extends Controller
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
-        
-        Car::where('id',$id)->update([ 'status' => $request->status]);
+
+        Car::where('id', $id)->update([ 'status' => $request->status]);
         return redirect('/admin-dashboard/cars');
 
     }
 
 
-   
 
-     public function delete($id)
+
+    public function delete($id)
     {
         Car::where('id', $id)->delete();
         return redirect('/admin-dashboard/cars');

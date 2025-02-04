@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ContactUs;
-
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Spatie\Permission\Models\Role;
@@ -17,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Services\FirebaseService;
+
 class AuthController extends Controller
 {
     protected $firebaseService;
@@ -24,57 +24,62 @@ class AuthController extends Controller
     {
         $this->firebaseService = $firebaseService;
     }
-///////////////////////////////////////////  Login  ///////////////////////////////////////////
-    public function login_view(){
+    ///////////////////////////////////////////  Login  ///////////////////////////////////////////
+    public function login_view()
+    {
         return view('dashboard.login');
     }
 
     public function login(Request $request)
-    {   
+    {
         $validator  =   Validator::make($request->all(), [
-               
+
                 'email' => ['required', 'string', 'email'],
                 'password' => ['required', 'string', 'min:8'],
-               
+
         ]);
-            // dd($request->all());
+        // dd($request->all());
         if ($validator->fails()) {
-           
+
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
-        if (Auth::attempt(['email' => request('email'),'password' => request('password')])){
+        if (Auth::attempt(['email' => request('email'),'password' => request('password')])) {
 
             return redirect('/admin-dashboard/home');
-        }else{
+        } else {
 
             return back()->withErrors(['msg' => 'There is something wrong']);
         }
-       
+
     }
 
 
-///////////////////////////////////////////  Logout  ///////////////////////////////////////////
+    ///////////////////////////////////////////  Logout  ///////////////////////////////////////////
 
-    public function logout(){
+    public function logout()
+    {
         Auth::logout();
-       
-       // auth()->guard('admin')->logout();
+
+        // auth()->guard('admin')->logout();
         return redirect('/admin-dashboard/login');
     }
 
-    public function home(){
+    public function home()
+    {
         return view('dashboard.home');
     }
-    public function change_theme(Request $request){
-        $user=auth()->user();
-        $user->theme=$request->theme;
+    public function change_theme(Request $request)
+    {
+        $user = auth()->user();
+        $user->theme = $request->theme;
         $user->save();
-        return $this->sendResponse(null,'success');
+        return $this->sendResponse(null, 'success');
 
 
     }
     //////////////////////////////////////////////////////////////////////////////////////
-    public function privacy_policy($lang){
+    public function privacy_policy($lang)
+    {
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
         if (!in_array($lang, $supportedLanguages)) {
             $lang = 'en';
@@ -90,7 +95,8 @@ class AuthController extends Controller
         return view('dashboard.privacy_policy', compact('title', 'content'));
     }
 
-    public function terms_conditions($lang){
+    public function terms_conditions($lang)
+    {
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
         if (!in_array($lang, $supportedLanguages)) {
             $lang = 'en';
@@ -104,33 +110,36 @@ class AuthController extends Controller
         $content = __('terms_conditions.content');
 
         return view('dashboard.terms_conditions', compact('title', 'content'));
-       
+
     }
 
-    public function contact_us(){
+    public function contact_us()
+    {
         return view('dashboard.contact_us');
     }
 
-    public function save_contact_us(Request $request){
-       
+    public function save_contact_us(Request $request)
+    {
+
         $validator  =   Validator::make($request->all(), [
-               
+
             'subject' => ['required', 'string','max:191'],
             'name' => ['required', 'string', 'max:191'],
             'email' => ['required', 'string', 'max:191','email'],
             'phone' => ['required', 'numeric'],
             'message' => ['required','string']
         ]);
-            // dd($request->all());
+        // dd($request->all());
         if ($validator->fails()) {
-        
+
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
-        ContactUs::create(['subject'=>$request->subject,'name'=>$request->name,'email'=>$request->email,'message'=>$request->message,'phone'=>$request->country_code . $request->phone]);
+        ContactUs::create(['subject' => $request->subject,'name' => $request->name,'email' => $request->email,'message' => $request->message,'phone' => $request->country_code . $request->phone]);
         return redirect('/');
     }
 
-    public function remove_account(){
+    public function remove_account()
+    {
         return view('dashboard.remove_account');
     }
 }

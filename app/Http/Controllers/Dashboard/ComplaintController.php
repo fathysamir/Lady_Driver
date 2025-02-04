@@ -22,16 +22,18 @@ use File;
 
 class ComplaintController extends ApiController
 {
-    public function index(Request $request){  
-       
-        return view('dashboard.complaints.index',compact('all_complaints','search'));
+    public function index(Request $request)
+    {
+
+        return view('dashboard.complaints.index', compact('all_complaints', 'search'));
 
     }
 
-    public function view($id){
-        $complaint=Complaint::where('id',$id)->first();
-        $complaint->seen='1';
+    public function view($id)
+    {
+        $complaint = Complaint::where('id', $id)->first();
+        $complaint->seen = '1';
         $complaint->save();
-        return view('dashboard.complaints.view',compact('complaint'));
+        return view('dashboard.complaints.view', compact('complaint'));
     }
-}  
+}

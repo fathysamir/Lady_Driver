@@ -321,12 +321,12 @@ class Chat implements MessageComponentInterface
             // ];
             // Notification::create(['user_id'=>$trip->user_id,'data'=>json_encode($data)]);
         }
-        $x['offer_id']=$offer->id;
+        $x['offer_id'] = $offer->id;
         $x['trip_id'] = $trip->id;
         $data1 = [
             'type' => 'created_offer',
             'data' => $x,
-            'message'=>'Offer Created Successfully'
+            'message' => 'Offer Created Successfully'
         ];
         $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
         $from->send($res);
@@ -452,13 +452,14 @@ class Chat implements MessageComponentInterface
         }
 
     }
-    private function accept_offer(ConnectionInterface $from, $AuthUserID, $acceptOfferRequest){
+    private function accept_offer(ConnectionInterface $from, $AuthUserID, $acceptOfferRequest)
+    {
         $data = json_decode($acceptOfferRequest, true);
         $offer = Offer::where('id', $data['offer_id'])->where('status', 'pending')->first();
         if (!$offer) {
             $data1 = [
                 'type' => 'rejected_offer',
-                'message'=>'The selected offer is not pending.'
+                'message' => 'The selected offer is not pending.'
             ];
             $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
             $from->send($res);
@@ -466,20 +467,20 @@ class Chat implements MessageComponentInterface
 
             echo sprintf('[ %s ] Message of expired offer "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
 
-        }else{
-            $trip=$offer->trip;
-            if($data['status']=='accepted'){
-                $app_ratio=floatval(Setting::where('key','app_ratio')->where('category','Trips')->where('type','number')->first()->value);
-                $trip->status='pending';
-                $trip->total_price=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2);
-                $trip->driver_rate=$offer->offer;
-                $trip->app_rate=round(($offer->offer-$trip->driver_rate)+(($offer->offer-$trip->driver_rate)*$app_ratio/100)+$trip->total_price , 2)-$offer->offer;
-                $trip->car_id=$offer->car_id;
+        } else {
+            $trip = $offer->trip;
+            if ($data['status'] == 'accepted') {
+                $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
+                $trip->status = 'pending';
+                $trip->total_price = round(($offer->offer - $trip->driver_rate) + (($offer->offer - $trip->driver_rate) * $app_ratio / 100) + $trip->total_price, 2);
+                $trip->driver_rate = $offer->offer;
+                $trip->app_rate = round(($offer->offer - $trip->driver_rate) + (($offer->offer - $trip->driver_rate) * $app_ratio / 100) + $trip->total_price, 2) - $offer->offer;
+                $trip->car_id = $offer->car_id;
                 $trip->save();
-                $offer->status='accepted';
+                $offer->status = 'accepted';
                 $offer->save();
-                Offer::where('id','!=',$data['offer_id'])->where('trip_id',$trip->id)->update(['status'=>'expired']);
-                if($offer->user->device_token){
+                Offer::where('id', '!=', $data['offer_id'])->where('trip_id', $trip->id)->update(['status' => 'expired']);
+                if ($offer->user->device_token) {
                     // $this->firebaseService->sendNotification($offer->user->device_token,'Lady Driver - Accept Offer',"Your offer for trip No. (" . $trip->code . ") has been approved.",["screen"=>"Current Trip","ID"=>$trip->id]);
                     // $data=[
                     //     "title"=>"Lady Driver - Accept Offer",
@@ -489,33 +490,33 @@ class Chat implements MessageComponentInterface
                     // ];
                     // Notification::create(['user_id'=>$offer->user_id,'data'=>json_encode($data)]);
                 }
-                $x['offer_id']=$offer->id;
+                $x['offer_id'] = $offer->id;
                 $x['trip_id'] = $trip->id;
                 $data1 = [
                     'type' => 'accepted_offer',
                     'data' => $x,
-                    'message'=>'Offer accepted Successfully'
+                    'message' => 'Offer accepted Successfully'
                 ];
                 $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
                 $from->send($res);
                 $date_time = date('Y-m-d h:i:s a');
                 echo sprintf('[ %s ] Message of accept offer "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
-    
+
                 $client = $this->getClientByUserId($offer->user_id);
                 if ($client) {
                     $client->send($res);
                     $date_time = date('Y-m-d h:i:s a');
                     echo sprintf('[ %s ] Message of accept offer "%s" sent to user %d' . "\n", $date_time, $res, $offer->user_id);
                 }
-            }else{
-                $offer->status='expired';
+            } else {
+                $offer->status = 'expired';
                 $offer->save();
-                $x['offer_id']=$offer->id;
+                $x['offer_id'] = $offer->id;
                 $x['trip_id'] = $trip->id;
                 $data1 = [
                     'type' => 'accepted_offer',
                     'data' => $x,
-                    'message'=>'Offer accepted Successfully'
+                    'message' => 'Offer accepted Successfully'
                 ];
                 $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
                 $client = $this->getClientByUserId($offer->user_id);
@@ -526,7 +527,7 @@ class Chat implements MessageComponentInterface
                 }
             }
         }
-        
+
     }
     public function onMessage(ConnectionInterface $from, $msg)
     {
