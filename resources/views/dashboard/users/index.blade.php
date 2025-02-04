@@ -169,7 +169,7 @@
                                 
                                 <td>{!! highlight($user->phone, $search ?? '') !!}</td>
                                 @if($user->roles->first()->name == 'Client')
-                                <td>User - {{ucwords($user->mode)}}</td>
+                                <td>{{ucwords($user->mode)}}</td>
                                 @elseif($user->roles->first()->name == 'Admin')
                                 <td>Admin</td>
                                 @endif
