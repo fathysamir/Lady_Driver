@@ -197,7 +197,7 @@ class AuthController extends ApiController
         }
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-
+        $user->verification='1';
 
 
         // Here you can either log the user in or confirm their registration
