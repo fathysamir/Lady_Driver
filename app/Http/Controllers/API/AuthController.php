@@ -136,6 +136,7 @@ class AuthController extends ApiController
         // $user->OTP= $otpCode ;
         // $user->save();
         $user->device_token = $request->device_token;
+        $user->is_online='1';
         $user->save();
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
@@ -189,6 +190,7 @@ class AuthController extends ApiController
         }
         $user->device_token = $request->device_token;
         $user->is_verified='1';
+        $user->is_online='1';
         $user->save();
         if ($request->invitation_code) {
             $invitation_exchange = floatval(Setting::where('key', 'invitation_exchange')->where('category', 'Users')->where('type', 'number')->first()->value);

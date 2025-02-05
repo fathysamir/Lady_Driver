@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedInteger('age')->nullable();
             $table->enum('status', ['pending', 'confirmed','blocked','banned'])->default('pending');
             $table->string('OTP')->nullable();
-            $table->enum('is_online', ['0', '1'])->default('1');
+            $table->enum('is_online', ['0', '1'])->default('0');
             $table->enum('is_verified', ['0', '1'])->default('0');
             $table->enum('mode', ['client', 'driver'])->default('client');
             $table->enum('gendor', ['Male', 'Female'])->default('Female');
