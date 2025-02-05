@@ -104,7 +104,7 @@ class CarMarkController extends ApiController
                 CarModel::where('id', $key)->update([ 'en_name' => $old_model,'ar_name' => $old_model]);
                 $oldArrayIDs[]=$key;
             }
-            CarModel::whereNotIn('id', $oldArrayIDs)->delete();
+            CarModel::whereNotIn('id', $oldArrayIDs)->where('car_mark_id', $id)->delete();
         }else{
             CarModel::where('car_mark_id', $id)->delete();
         }
