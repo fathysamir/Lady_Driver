@@ -125,6 +125,11 @@ class AuthController extends ApiController
         if ($user->status == 'blocked') {
             return $this->sendError(null, 'this account is blocked', 401);
         }
+        if($user->is_verified == '0'){
+            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+            $user->verification='0';
+            return $this->sendError($user, 'this account not verified', 401);
+        }
         // Generate OTP
         // $otpCode = generateOTP();
         // $user->OTP= $otpCode ;
@@ -133,7 +138,7 @@ class AuthController extends ApiController
         $user->save();
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-
+        $user->verification='1';
         // Send OTP via Email (or SMS)
         //Mail::to($request->email)->send(new SendOTP($otpCode));
 
@@ -182,6 +187,7 @@ class AuthController extends ApiController
 
         }
         $user->device_token = $request->device_token;
+        $user->is_verified='1';
         $user->save();
         if ($request->invitation_code) {
             $invitation_exchange = floatval(Setting::where('key', 'invitation_exchange')->where('category', 'Users')->where('type', 'number')->first()->value);
