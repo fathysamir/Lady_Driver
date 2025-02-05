@@ -99,7 +99,7 @@ class CarMarkController extends ApiController
                 'ar_name' => $request->ar_name
             ]);
         $oldArrayIDs=[];
-        if(count($request->old_models)>0){
+        if($request->old_models&&count($request->old_models)>0){
             foreach($request->old_models as $key=> $old_model){
                 CarModel::where('id', $key)->update([ 'en_name' => $old_model,'ar_name' => $old_model]);
                 $oldArrayIDs[]=$key;
