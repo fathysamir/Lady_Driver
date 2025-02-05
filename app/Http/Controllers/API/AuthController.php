@@ -128,6 +128,7 @@ class AuthController extends ApiController
         if($user->is_verified == '0'){
             $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             $user->verification='0';
+            $user->token = null;
             return $this->sendError($user, 'this account not verified', 401);
         }
         // Generate OTP
