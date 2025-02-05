@@ -57,11 +57,19 @@ class CarMarkController extends ApiController
         }
 
 
-        CarMark::create([
+        $mark=CarMark::create([
             'en_name' => $request->en_name,
             'ar_name' => $request->ar_name
 
         ]);
+        if($request->new_models&&count($request->new_models)>0){
+            foreach($request->new_models as $model){
+                CarModel::create([
+                    'en_name' => $model,'ar_name' => $model,
+                    'car_mark_id' => $mark->id
+                ]);
+            }
+        }
 
         return redirect('/admin-dashboard/car-marks')->with('success', 'Car Mark created successfully.');
 
@@ -70,7 +78,8 @@ class CarMarkController extends ApiController
     public function edit($id)
     {
         $mark = CarMark::where('id', $id)->first();
-        return view('dashboard.car_marks.edit', compact('mark'));
+        $models=CarModel::where('car_mark_id',$id)->get();
+        return view('dashboard.car_marks.edit', compact('mark','models'));
     }
 
     public function update(Request $request, $id)
@@ -89,6 +98,25 @@ class CarMarkController extends ApiController
         CarMark::where('id', $id)->update([ 'en_name' => $request->en_name,
                 'ar_name' => $request->ar_name
             ]);
+        $oldArrayIDs=[];
+        if(count($request->old_models)>0){
+            foreach($request->old_models as $key=> $old_model){
+                CarModel::where('id', $key)->update([ 'en_name' => $old_model,'ar_name' => $old_model]);
+                $oldArrayIDs[]=$key;
+            }
+            CarModel::whereNotIn('id', $oldArrayIDs)->delete();
+        }else{
+            CarModel::where('car_mark_id', $id)->delete();
+        }
+
+        if($request->new_models&&count($request->new_models)>0){
+            foreach($request->new_models as $model){
+                CarModel::create([
+                    'en_name' => $model,'ar_name' => $model,
+                    'car_mark_id' => $id
+                ]);
+            }
+        }
         return redirect('/admin-dashboard/car-marks')->with('success', 'Car Mark updated successfully.');
 
     }

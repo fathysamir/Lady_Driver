@@ -29,7 +29,30 @@
                                             {{ $errors->first('ar_name') }}</p>
                                     @endif
                                 </div>
+                                <div class="form-group" style="display: flex; align-items: center;">
+                                    <h4 style="margin-right: 10px;">Models</h4>
+                                    <hr style="flex: 1; margin: 0;">
+                                </div>
+                                <div class="form-group text-center">
+                                    <button type="button" class="btn btn-light px-5" id="addModel">
+                                        Add Model
+                                    </button>
+                                </div>
 
+                                <div class="col-12 form-group">
+                                    <div class="row" id="modelsContainer"> <!-- Dynamic models will be added here -->
+                                        <!-- Existing fields -->
+                                        <div class="col-md-3 form-group position-relative">
+                                            <div class="input-group">
+                                                <input type="text" required name="new_models[]" class="form-control">
+                                                <div class="input-group-append">
+                                                    <button type="button"
+                                                        class="btn btn-outline-danger removeModel">✖</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
 
                                 <div class="form-group">
@@ -82,6 +105,24 @@
             // Allow form submission without warning
             $('form').on('submit', function() {
                 isFormDirty = false;
+            });
+            $("#addModel").click(function() {
+                let modelField = `
+                <div class="col-md-3 form-group position-relative">
+                    <div class="input-group">
+                        <input type="text"required name="new_models[]" class="form-control">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-danger removeModel">✖</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+                $("#modelsContainer").append(modelField);
+            });
+
+            // Remove a model input field
+            $(document).on("click", ".removeModel", function() {
+                $(this).closest(".form-group").remove();
             });
         });
     </script>
