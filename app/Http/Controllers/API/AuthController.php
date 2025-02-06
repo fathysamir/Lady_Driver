@@ -51,7 +51,7 @@ class AuthController extends ApiController
 
         // Add a conditional rule for 'image' based on the 'mode' field
         if ($request->input('mode') === 'driver') {
-            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:3072'; // Adjust as needed
+            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120'; // Adjust as needed
         }
         if ($request->input('mode') === 'client') {
             $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
@@ -129,7 +129,7 @@ class AuthController extends ApiController
             $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             $user->verification='0';
             $user->token = '';
-            return $this->sendError($user, 'this account not verified', 401);
+            return $this->sendResponse($user, 'this account not verified', 401);
         }
         // Generate OTP
         // $otpCode = generateOTP();
@@ -264,7 +264,11 @@ class AuthController extends ApiController
 
              'name' => 'required|string|max:255',
              'email' => 'required|string|email|max:255|unique:users,email,'.auth()->user()->id,
-             'phone' => 'required|unique:users,phone,'.auth()->user()->id,
+             //'phone' => 'required|unique:users,phone,'.auth()->user()->id,
+             'phone' => [
+                'required',
+                Rule::unique('users', 'phone')->where('id','!=',auth()->user()->id)->whereNull('deleted_at')
+             ],
              'birth_date' => 'nullable|date',
              'address' => 'nullable',
              'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072',
