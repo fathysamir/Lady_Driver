@@ -263,12 +263,17 @@ class AuthController extends ApiController
         $validator  =   Validator::make($request->all(), [
 
              'name' => 'required|string|max:255',
-             'email' => 'required|string|email|max:255|unique:users,email,'.auth()->user()->id,
-             //'phone' => 'required|unique:users,phone,'.auth()->user()->id,
-             'phone' => [
+             'email' => [
                 'required',
-                Rule::unique('users', 'phone')->where('id','!=',auth()->user()->id)->whereNull('deleted_at')
-             ],
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore(auth()->user()->id)->whereNull('deleted_at')
+            ],
+            'phone' => [
+                'required',
+                Rule::unique('users', 'phone')->ignore(auth()->user()->id)->whereNull('deleted_at')
+            ],
              'birth_date' => 'nullable|date',
              'address' => 'nullable',
              'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072',
