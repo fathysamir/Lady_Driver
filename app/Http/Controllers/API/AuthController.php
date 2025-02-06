@@ -276,7 +276,7 @@ class AuthController extends ApiController
             ],
              'birth_date' => 'nullable|date',
              'address' => 'nullable',
-             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3072',
+             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
              'lat' => 'nullable',
              'lng' => 'nullable',
 
