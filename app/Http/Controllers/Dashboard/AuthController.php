@@ -83,7 +83,7 @@ class AuthController extends Controller
 
 
         $curl = curl_init();
-        
+
         curl_setopt_array($curl, array(
           CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/9e2a8e4b-b2c8-4876-a454-0bdaaa8de0b5/send-text',
           CURLOPT_RETURNTRANSFER => true,
@@ -93,8 +93,8 @@ class AuthController extends Controller
           CURLOPT_FOLLOWLOCATION => true,
           CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
           CURLOPT_CUSTOMREQUEST => 'POST',
-          CURLOPT_POSTFIELDS =>'{
-          "recipient": "+201125769275",
+          CURLOPT_POSTFIELDS => '{
+          "recipient": "+201151783781",
           "textMessage": {
             "text": "Lady Driver OTP : 330263"
           }
@@ -105,11 +105,11 @@ class AuthController extends Controller
             'Authorization: Bearer 206|OpBkToIV1e6SmVj3e9RMT5WkAI2X03Tz8Y2AIK2vfb1f4d5c'
           ),
         ));
-        
+
         $response = curl_exec($curl);
-        
+
         curl_close($curl);
-dd($response);
+        dd($response);
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
         if (!in_array($lang, $supportedLanguages)) {
             $lang = 'en';
