@@ -81,8 +81,6 @@ class AuthController extends Controller
     public function privacy_policy($lang)
     {
 
-        206|OpBkToIV1e6SmVj3e9RMT5WkAI2X03Tz8Y2AIK2vfb1f4d5c
-        <?php
 
         $curl = curl_init();
         
