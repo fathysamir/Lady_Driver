@@ -47,7 +47,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
 
         $models = CarModel::where('car_mark_id', $request->car_mark_id)->get();
@@ -86,7 +88,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $lastCar = Car::orderBy('id', 'desc')->first();
 
@@ -167,7 +171,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
 
         Car::where('id', $request->car_id)->update([
@@ -272,7 +278,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $existed_driving_license = DriverLicense::where('user_id', auth()->user()->id)->first();
         if (!$existed_driving_license) {
@@ -405,7 +413,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $driver_car = Car::where('user_id', auth()->user()->id)->first();
         $lastOffer = Offer::orderBy('id', 'desc')->first();
@@ -487,7 +497,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $trip = Trip::find($request->trip_id);
         if ($trip->status == 'pending') {
@@ -516,7 +528,9 @@ class DriverController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $car = Car::where('user_id', auth()->user()->id)->first();
         if (!$car) {

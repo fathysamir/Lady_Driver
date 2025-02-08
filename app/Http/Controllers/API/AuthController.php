@@ -64,7 +64,9 @@ class AuthController extends ApiController
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
 
 
@@ -115,7 +117,9 @@ class AuthController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $login = $request->email;
         $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
@@ -129,9 +133,9 @@ class AuthController extends ApiController
         if ($user->status == 'blocked') {
             return $this->sendError(null, 'this account is blocked', 401);
         }
-        if($user->is_verified == '0'){
+        if ($user->is_verified == '0') {
             $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-            $user->verification='0';
+            $user->verification = '0';
             $user->token = '';
             return $this->sendResponse($user, 'this account not verified', 200);
         }
@@ -140,11 +144,11 @@ class AuthController extends ApiController
         // $user->OTP= $otpCode ;
         // $user->save();
         $user->device_token = $request->device_token;
-        $user->is_online='1';
+        $user->is_online = '1';
         $user->save();
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->verification='1';
+        $user->verification = '1';
         // Send OTP via Email (or SMS)
         //Mail::to($request->email)->send(new SendOTP($otpCode));
 
@@ -161,7 +165,9 @@ class AuthController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
 
         $user = auth()->user();
@@ -182,7 +188,9 @@ class AuthController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $user = User::where('email', $request->email)
                 ->where('otp', $request->otp)
@@ -193,8 +201,8 @@ class AuthController extends ApiController
 
         }
         $user->device_token = $request->device_token;
-        $user->is_verified='1';
-        $user->is_online='1';
+        $user->is_verified = '1';
+        $user->is_online = '1';
         $user->save();
         if ($request->invitation_code) {
             $invitation_exchange = floatval(Setting::where('key', 'invitation_exchange')->where('category', 'Users')->where('type', 'number')->first()->value);
@@ -204,7 +212,7 @@ class AuthController extends ApiController
         }
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->verification='1';
+        $user->verification = '1';
 
 
         // Here you can either log the user in or confirm their registration
@@ -221,7 +229,9 @@ class AuthController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $otpCode = generateOTP();
         $user = User::where('email', $request->email)->first();
@@ -290,7 +300,6 @@ class AuthController extends ApiController
             $errors = implode(" / ", $validator->errors()->all());
 
             return $this->sendError(null, $errors, 400);
-            //return $this->sendError(null, $validator->errors(), 400);
         }
 
         User::where('id', auth()->user()->id)->update([ 'name' => $request->name,
@@ -327,7 +336,9 @@ class AuthController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $user = User::where('email', $request->email)
                         ->where('otp', $request->otp)
@@ -358,8 +369,9 @@ class AuthController extends ApiController
 
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 401);
+            $errors = implode(" / ", $validator->errors()->all());
 
+            return $this->sendError(null, $errors, 400);
         }
 
         // Check if the old password matches the user's current password
@@ -391,7 +403,9 @@ class AuthController extends ApiController
         ]);
         // dd($request->all());
         if ($validator->fails()) {
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         ContactUs::create(['subject' => $request->subject,'name' => $request->name,'email' => $request->email,'message' => $request->message,'phone' => $request->country_code . $request->phone]);
         return $this->sendResponse(null, 'Your request has been sent and we will respond to you later.', 200);
@@ -437,7 +451,9 @@ class AuthController extends ApiController
         ]);
         // dd($request->all());
         if ($validator->fails()) {
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         FeedBack::create(['user_id' => auth()->user()->id,'feed_back' => $request->feed_back]);
         if (auth()->user()->device_token) {
@@ -471,8 +487,9 @@ class AuthController extends ApiController
 
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 401);
+            $errors = implode(" / ", $validator->errors()->all());
 
+            return $this->sendError(null, $errors, 400);
         }
         $notification = Notification::findOrFail($request->notification_id);
         $notification->seen = '1';

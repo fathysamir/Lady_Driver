@@ -49,7 +49,9 @@ class ClientController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat, $request->end_lng);
         $distance = $response['distance_in_km'];
@@ -250,7 +252,9 @@ class ClientController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $offer = Offer::find($request->offer_id);
         if ($request->status == 'accepted') {
@@ -299,7 +303,9 @@ class ClientController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $trip = Trip::find($request->trip_id);
         $trip->payment_status = $request->status;
@@ -369,7 +375,9 @@ class ClientController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $trip = Trip::find($request->trip_id);
         if (auth()->user()->mode == 'client') {
@@ -406,7 +414,9 @@ class ClientController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $trip = Trip::find($request->trip_id);
         $trip->status = 'cancelled';
@@ -427,7 +437,9 @@ class ClientController extends ApiController
         // dd($request->all());
         if ($validator->fails()) {
 
-            return $this->sendError(null, $validator->errors(), 400);
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
         }
         $reasons = TripCancellingReason::where('type', $request->category)->get();
         return $this->sendResponse($reasons, null, 200);
