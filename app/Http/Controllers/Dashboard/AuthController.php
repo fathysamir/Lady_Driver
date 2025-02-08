@@ -94,7 +94,7 @@ class AuthController extends Controller
           CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
           CURLOPT_CUSTOMREQUEST => 'POST',
           CURLOPT_POSTFIELDS =>'{
-          "recipient": "+201064585796",
+          "recipient": "+201125769275",
           "textMessage": {
             "text": "Lady Driver OTP : 330263"
           }
