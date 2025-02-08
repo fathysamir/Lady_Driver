@@ -85,7 +85,7 @@ class AuthController extends Controller
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://beta.hypersender.com/api/sms/v1/9e2a70c7-c4f3-4324-a7be-43059d8b7f1f/send-message',
+  CURLOPT_URL => 'https://beta.hypersender.com/api/sms/v1/9e2a85fe-4941-4ac5-91a4-d747728e3ced/send-message',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
@@ -97,14 +97,14 @@ curl_setopt_array($curl, array(
   "content": "Your OTP is: 245821",
   "request_id": "124",
   "to": "+201154857080",
-  "schedule_send_at": "2025-02-09 02:34:00",
+  "schedule_send_at": "' . date('Y-m-d H:i:s') . '",
   "max_send_attempts": 0,
   "message_expiration_seconds": 0
 }',
   CURLOPT_HTTPHEADER => array(
     'Content-Type: application/json',
     'Accept: application/json',
-    'Authorization: Bearer 203|clUg0XZ4YllgeIhnvMPGzOuy7tuC2UezRvyIO1UQ4cbb2b7b'
+    'Authorization: Bearer 204|z3Da4YPLopfXfxmAapafMkiDGQjkR0gZlCVZe0YA38cf763f'
   ),
 ));
 
