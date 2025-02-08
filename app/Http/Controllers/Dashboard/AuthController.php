@@ -80,6 +80,38 @@ class AuthController extends Controller
     //////////////////////////////////////////////////////////////////////////////////////
     public function privacy_policy($lang)
     {
+
+
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => 'https://beta.hypersender.com/:9e2a70c7-c4f3-4324-a7be-43059d8b7f1f/send-message',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_POSTFIELDS =>'{
+  "content": "Your OTP is: 245821",
+  "request_id": "124",
+  "to": "+201154857080",
+  "schedule_send_at": "09/02/2025 12:00 am",
+  "max_send_attempts": 0,
+  "message_expiration_seconds": 0
+}',
+  CURLOPT_HTTPHEADER => array(
+    'Content-Type: application/json',
+    'Accept: application/json',
+    'Authorization: Bearer 203|clUg0XZ4YllgeIhnvMPGzOuy7tuC2UezRvyIO1UQ4cbb2b7b'
+  ),
+));
+
+$response = curl_exec($curl);
+
+curl_close($curl);
+dd($response);
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
         if (!in_array($lang, $supportedLanguages)) {
             $lang = 'en';
