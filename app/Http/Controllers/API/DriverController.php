@@ -368,7 +368,7 @@ class DriverController extends ApiController
             }
 
         } else {
-            return $this->sendError(null, "Thank you for your request, We are reviewing your account information and it will take 24 hours", 400);
+            return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
         }
     }
 
