@@ -85,7 +85,7 @@ class AuthController extends Controller
         $curl = curl_init();
         
         curl_setopt_array($curl, array(
-          CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/:9e2a8e4b-b2c8-4876-a454-0bdaaa8de0b5/send-text',
+          CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/9e2a8e4b-b2c8-4876-a454-0bdaaa8de0b5/send-text',
           CURLOPT_RETURNTRANSFER => true,
           CURLOPT_ENCODING => '',
           CURLOPT_MAXREDIRS => 10,
@@ -94,7 +94,7 @@ class AuthController extends Controller
           CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
           CURLOPT_CUSTOMREQUEST => 'POST',
           CURLOPT_POSTFIELDS =>'{
-          "recipient": "201125769275",
+          "recipient": "+201125769275",
           "textMessage": {
             "text": "OTP : 124586"
           }
