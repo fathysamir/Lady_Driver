@@ -85,7 +85,7 @@ class AuthController extends Controller
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://beta.hypersender.com/:9e2a70c7-c4f3-4324-a7be-43059d8b7f1f/send-message',
+  CURLOPT_URL => 'https://beta.hypersender.com/api/sms/v1/9e2a70c7-c4f3-4324-a7be-43059d8b7f1f/send-message',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
