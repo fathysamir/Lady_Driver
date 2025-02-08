@@ -287,8 +287,10 @@ class AuthController extends ApiController
          ]);
         // dd($request->all());
         if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
 
-            return $this->sendError(null, $validator->errors(), 400);
+            return $this->sendError(null, $errors, 400);
+            //return $this->sendError(null, $validator->errors(), 400);
         }
 
         User::where('id', auth()->user()->id)->update([ 'name' => $request->name,
