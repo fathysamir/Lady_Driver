@@ -368,7 +368,7 @@ class DriverController extends ApiController
             }
 
         } else {
-            return $this->sendError(null, "Sorry your car isn't confirmed on application", 400);
+            return $this->sendError(null, "Thank you for your request, We review your account information and approve it", 400);
         }
     }
 

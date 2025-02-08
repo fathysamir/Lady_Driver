@@ -52,6 +52,10 @@ class AuthController extends ApiController
         // Add a conditional rule for 'image' based on the 'mode' field
         if ($request->input('mode') === 'driver') {
             $rules['image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120'; // Adjust as needed
+            $rules['city'] = [
+                'required',
+                Rule::exists('cities', 'id')
+            ];
         }
         if ($request->input('mode') === 'client') {
             $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
