@@ -97,7 +97,7 @@ curl_setopt_array($curl, array(
   "content": "Your OTP is: 245821",
   "request_id": "124",
   "to": "+201154857080",
-  "schedule_send_at": "09/02/2025 12:00 am",
+  "schedule_send_at": "2025-02-09 12:09:00",
   "max_send_attempts": 0,
   "message_expiration_seconds": 0
 }',
