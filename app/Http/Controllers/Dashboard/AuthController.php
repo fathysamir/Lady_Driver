@@ -81,36 +81,36 @@ class AuthController extends Controller
     public function privacy_policy($lang)
     {
 
+        206|OpBkToIV1e6SmVj3e9RMT5WkAI2X03Tz8Y2AIK2vfb1f4d5c
+        <?php
 
-$curl = curl_init();
-
-curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://beta.hypersender.com/api/sms/v1/9e2a85fe-4941-4ac5-91a4-d747728e3ced/send-message',
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_ENCODING => '',
-  CURLOPT_MAXREDIRS => 10,
-  CURLOPT_TIMEOUT => 0,
-  CURLOPT_FOLLOWLOCATION => true,
-  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-  CURLOPT_CUSTOMREQUEST => 'POST',
-  CURLOPT_POSTFIELDS =>'{
-  "content": "Your OTP is: 245821",
-  "request_id": "124",
-  "to": "201154857080",
-  "schedule_send_at": "' . date('Y-m-d H:i:s') . '",
-  "max_send_attempts": 0,
-  "message_expiration_seconds": 0
-}',
-  CURLOPT_HTTPHEADER => array(
-    'Content-Type: application/json',
-    'Accept: application/json',
-    'Authorization: Bearer 204|z3Da4YPLopfXfxmAapafMkiDGQjkR0gZlCVZe0YA38cf763f'
-  ),
-));
-
-$response = curl_exec($curl);
-
-curl_close($curl);
+        $curl = curl_init();
+        
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/9e2a8e4b-b2c8-4876-a454-0bdaaa8de0b5/send-text',
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'POST',
+          CURLOPT_POSTFIELDS =>'{
+          "recipient": "201125769275",
+          "textMessage": {
+            "text": "OTP : 124586"
+          }
+        }',
+          CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer 206|OpBkToIV1e6SmVj3e9RMT5WkAI2X03Tz8Y2AIK2vfb1f4d5c'
+          ),
+        ));
+        
+        $response = curl_exec($curl);
+        
+        curl_close($curl);
 dd($response);
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
         if (!in_array($lang, $supportedLanguages)) {
