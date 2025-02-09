@@ -102,7 +102,7 @@ class AuthController extends Controller
           CURLOPT_HTTPHEADER => array(
             'Content-Type: application/json',
             'Accept: application/json',
-            'Authorization: Bearer 206|OpBkToIV1e6SmVj3e9RMT5WkAI2X03Tz8Y2AIK2vfb1f4d5c'
+            'Authorization: Bearer 212|ufrxAq4CryVYd1volTes1XFZIhoKS798Cl6LiaI0739480ae'
           ),
         ));
 
