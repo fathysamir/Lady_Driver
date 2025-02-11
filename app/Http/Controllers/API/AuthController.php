@@ -132,7 +132,7 @@ class AuthController extends ApiController
                 return $this->sendError(null, 'Invalid credentials, password is incorrect', 401);
             }
         }else{
-            return $this->sendError(null, 'Invalid credentials, your ' . $fieldType . 'is incorrect', 401);
+            return $this->sendError(null, 'Invalid credentials, your ' . $fieldType . ' is incorrect', 401);
         }
         if ($user->status == 'blocked') {
             return $this->sendError(null, 'this account is blocked', 401);
