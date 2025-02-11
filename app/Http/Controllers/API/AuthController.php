@@ -127,8 +127,12 @@ class AuthController extends ApiController
         // Find the user based on email or phone
         $user = User::where($fieldType, $login)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return $this->sendError(null, 'Invalid credentials', 401);
+        if ($user) {
+            if(!Hash::check($request->password, $user->password)){
+                return $this->sendError(null, 'Invalid credentials, password is incorrect', 401);
+            }
+        }else{
+            return $this->sendError(null, 'Invalid credentials, your ' . $fieldType . 'is incorrect', 401);
         }
         if ($user->status == 'blocked') {
             return $this->sendError(null, 'this account is blocked', 401);

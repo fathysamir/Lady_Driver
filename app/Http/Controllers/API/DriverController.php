@@ -364,6 +364,7 @@ class DriverController extends ApiController
                                             $trip->client_location_distance = $distance;
                                             $trip->client_location_duration = $duration;
                                             $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                                            $trip->user->rate = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
                                             $trip->current_offer = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                                             return $trip;
                                         }

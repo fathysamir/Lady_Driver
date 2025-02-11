@@ -254,6 +254,8 @@ class Chat implements MessageComponentInterface
                     $newTrip['user']['id'] = intval($AuthUserID);
                     $newTrip['user']['name'] = $u->name;
                     $newTrip['user']['image'] = $user_image;
+                    $newTrip['user']['rate'] = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+
                     $data2['type'] = 'new_trip';
                     $data2['data'] = $newTrip;
                     $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
