@@ -183,6 +183,10 @@ class ClientController extends ApiController
             $trip->duration = $trip_duration;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+                $driver_ =$trip->car->owner;
+                $trip->car->owner->rate =Trip::whereHas('car', function ($query) use ($driver_) {
+                    $query->where('user_id', $driver_->id);
+                })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
                 $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
             }
             if ($trip->status == 'pending') {
@@ -209,6 +213,10 @@ class ClientController extends ApiController
                     $offer_result['user']['id'] = $offer->user()->first()->id;
                     $offer_result['user']['name'] = $offer->user()->first()->name;
                     $offer_result['user']['image'] = getFirstMediaUrl($offer->user()->first(), $offer->user()->first()->avatarCollection);
+                    $driver_ =$offer->user()->first();
+                    $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
                     $offer_result['car']['id'] = $offer->car()->first()->id;
                     $offer_result['car']['image'] = getFirstMediaUrl($offer->car()->first(), $offer->car()->first()->avatarCollection);
                     $offer_result['car']['year'] = $offer->car()->first()->year;

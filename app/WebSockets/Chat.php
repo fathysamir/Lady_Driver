@@ -339,7 +339,7 @@ class Chat implements MessageComponentInterface
         $response = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
         $distance = $response['distance_in_km'];
         $duration = $response['duration_in_M'];
-
+        $driver_=$offer->user()->first();
         $offer_result['id'] = $offer->id;
         $offer_result['user_id'] = $offer->user()->first()->id;
         $offer_result['car_id'] = $offer->car()->first()->id;
@@ -350,6 +350,9 @@ class Chat implements MessageComponentInterface
         $offer_result['user']['id'] = $offer->user()->first()->id;
         $offer_result['user']['name'] = $offer->user()->first()->name;
         $offer_result['user']['image'] = 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection);
+        $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                                            $query->where('user_id', $driver_->id);
+                                        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
         $offer_result['car']['id'] = $offer->car()->first()->id;
         $offer_result['car']['image'] = 'https://api.lady-driver.com' . getFirstMedia($offer->car()->first(), $offer->car()->first()->avatarCollection);
         $offer_result['car']['year'] = $offer->car()->first()->year;
