@@ -537,6 +537,43 @@ class Chat implements MessageComponentInterface
         }
 
     }
+    private function start_end_trip(ConnectionInterface $from, $AuthUserID, $startTripRequest)
+    {
+        $data = json_decode($startTripRequest, true);
+        $trip = Trip::find($data['trip_id']);
+        if ($trip->status == 'pending') {
+            $trip->status = 'in_progress';
+            $trip->start_date = date('Y-m-d');
+            $trip->start_time = date('H:i:s');
+            $trip->save();
+            $type='started_trip';
+            $message='trip started now';
+        } elseif ($trip->status == 'in_progress') {
+            $trip->status = 'completed';
+            $trip->end_date = date('Y-m-d');
+            $trip->end_time = date('H:i:s');
+            $trip->save();
+            $type='ended_trip';
+            $message='trip ended now';
+        }
+        $x['trip_id'] = $trip->id;
+        $data1 = [
+            'type' => $type,
+            'data' => $x,
+            'message' => $message
+        ];
+        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $from->send($res);
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ] Message of ' .  $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
+
+        $client = $this->getClientByUserId($trip->user_id);
+        if ($client) {
+            $client->send($res);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of ' .  $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
+        }
+    }
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $numRecv = count($this->clients) - 1;
@@ -576,6 +613,9 @@ class Chat implements MessageComponentInterface
                     break;
                 case 'accept_offer':
                     $this->accept_offer($from, $AuthUserID, $requestData);
+                    break;
+                case 'start_end_trip':
+                    $this->start_end_trip($from, $AuthUserID, $requestData);
                     break;
                 case 'ping':
                     $from->send(json_encode(['type' => 'pong']));
