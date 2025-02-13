@@ -463,8 +463,10 @@ class Chat implements MessageComponentInterface
         $data = json_decode($acceptOfferRequest, true);
         $offer = Offer::where('id', $data['offer_id'])->where('status', 'pending')->first();
         if (!$offer) {
+            $x['offer_id'] = $data['offer_id'];
             $data1 = [
                 'type' => 'rejected_offer',
+                'data' => $x,
                 'message' => 'The selected offer is not pending.'
             ];
             $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
