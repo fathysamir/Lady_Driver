@@ -226,7 +226,7 @@ class ClientController extends ApiController
                     $offer_result['car']['mark']['name'] = $offer->car()->first()->mark()->first()->name;
                     $offer_result['car']['model']['id'] = $offer->car()->first()->model()->first()->id;
                     $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
-                    $offer_result['created_at'] = date('Y-m-d h:i:s a');
+                    $offer_result['created_at'] = $offer->created_at;
                     return $offer_result;
 
                 });
