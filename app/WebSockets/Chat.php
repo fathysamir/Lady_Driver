@@ -556,7 +556,9 @@ class Chat implements MessageComponentInterface
             $type='ended_trip';
             $message='trip ended now';
         }
+        $trip = Trip::find($data['trip_id']);
         $x['trip_id'] = $trip->id;
+        $x['trip_status'] = $trip->status;
         $data1 = [
             'type' => $type,
             'data' => $x,
