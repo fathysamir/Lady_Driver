@@ -82,35 +82,35 @@ class AuthController extends Controller
     {
 
 
-        $curl = curl_init();
+        // $curl = curl_init();
 
-curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/9e2c5957-7063-4bff-840f-18e0b36473c8/send-text',
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_ENCODING => '',
-  CURLOPT_MAXREDIRS => 10,
-  CURLOPT_TIMEOUT => 0,
-  CURLOPT_FOLLOWLOCATION => true,
-  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-  CURLOPT_CUSTOMREQUEST => 'POST',
-  CURLOPT_POSTFIELDS =>'{
-  "recipient": "+201125289475",
-  "textMessage": {
-    "text": "lady driver otp : 125964"
-  }
-}',
-  CURLOPT_HTTPHEADER => array(
-    'Content-Type: application/json',
-    'Accept: application/json',
-    'Authorization: Bearer 218|7wDVG6OVhVRPDyGINE4IzWEqCbeL5pZfynDDu16l6d1f614c'
-  ),
-));
+        // curl_setopt_array($curl, array(
+        //   CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/9e2c5957-7063-4bff-840f-18e0b36473c8/send-text',
+        //   CURLOPT_RETURNTRANSFER => true,
+        //   CURLOPT_ENCODING => '',
+        //   CURLOPT_MAXREDIRS => 10,
+        //   CURLOPT_TIMEOUT => 0,
+        //   CURLOPT_FOLLOWLOCATION => true,
+        //   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        //   CURLOPT_CUSTOMREQUEST => 'POST',
+        //   CURLOPT_POSTFIELDS => '{
+        //                         "recipient": "+201125289475",
+        //                         "textMessage": {
+        //                             "text": "lady driver otp : 125964"
+        //                         }
+        //                         }',
+        //   CURLOPT_HTTPHEADER => array(
+        //     'Content-Type: application/json',
+        //     'Accept: application/json',
+        //     'Authorization: Bearer 218|7wDVG6OVhVRPDyGINE4IzWEqCbeL5pZfynDDu16l6d1f614c'
+        //   ),
+        // ));
 
-$response = curl_exec($curl);
+        // $response = curl_exec($curl);
 
-curl_close($curl);
+        // curl_close($curl);
 
-        dd($response);
+        // dd($response);
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
         if (!in_array($lang, $supportedLanguages)) {
             $lang = 'en';
