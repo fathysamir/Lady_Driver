@@ -11,7 +11,7 @@ use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\ContactUsController;
 use App\Http\Controllers\Dashboard\FeedBackController;
 use App\Http\Controllers\Dashboard\ComplaintController;
-
+use App\Http\Controllers\Dashboard\MotorcycleController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -60,6 +60,13 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/car-mark/edit/{id}', [CarMarkController::class, 'edit'])->name('edit.car.mark');
     Route::post('/car-mark/update/{id}', [CarMarkController::class, 'update'])->name('update.car.mark');
     Route::get('/car-mark/delete/{id}', [CarMarkController::class, 'delete'])->name('delete.car.mark');
+    /////////////////////////////////////////
+    Route::any('/motorcycles', [MotorcycleController::class, 'index'])->name('motorcycles');
+    Route::get('/motorcycles/create', [MotorcycleController::class, 'create'])->name('add.motorcycle');
+    Route::post('/motorcycles/create', [MotorcycleController::class, 'store'])->name('create.motorcycle');
+    Route::get('/motorcycle/edit/{id}', [MotorcycleController::class, 'edit'])->name('edit.motorcycle');
+    Route::post('/motorcycle/update/{id}', [MotorcycleController::class, 'update'])->name('update.motorcycle');
+    Route::get('/motorcycle/delete/{id}', [MotorcycleController::class, 'delete'])->name('delete.motorcycle');
 
     /////////////////////////////////////////
     Route::any('/car-models', [CarModelController::class, 'index'])->name('car-models');
