@@ -27,11 +27,11 @@
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Car Marks & Models</span>
             </a>
         </li>
-        {{-- <li>
+        <li>
             <a href="{{ url('/admin-dashboard/motorcycles') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Motorcycle Marks & Models</span>
             </a>
-        </li> --}}
+        </li>
         {{-- <li>
             <a href="{{ url('/admin-dashboard/car-models') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Car Models</span>
