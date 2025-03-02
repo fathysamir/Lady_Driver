@@ -20,6 +20,8 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     public $avatarCollection = 'avatar-image';
+    public $IDfrontImageCollection = 'id-front-image';
+    public $IDbackImageCollection = 'id-back-image';
     protected $fillable = [
         'name',
         'email',

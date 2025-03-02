@@ -15,6 +15,7 @@ class Car extends Model
     public $PlateImageCollection = 'plate_image';
     public $LicenseFrontImageCollection = 'license_front_image';
     public $LicenseBackImageCollection = 'license_back_image';
+    public $CarInspectionImageCollection = 'car-inspection_image';
 
     protected $fillable = [
         'code',
