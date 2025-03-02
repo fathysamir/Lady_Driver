@@ -273,7 +273,6 @@ class DriverController extends ApiController
              'license_number' => 'required',
              'license_expire_date' => 'required|date',
              'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-             'license_back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
              'ID_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
              'ID_back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120'
          ]);
@@ -292,7 +291,7 @@ class DriverController extends ApiController
                                                     'expire_date' => $request->license_expire_date]);
 
             uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
-            uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
+            //uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
             uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
             uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
         } else {
@@ -306,13 +305,13 @@ class DriverController extends ApiController
                 uploadMedia($request->license_front_image, $existed_driving_license->LicenseFrontImageCollection, $existed_driving_license);
             }
 
-            if ($request->file('license_back_image')) {
-                $license_back_image = getFirstMediaUrl($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
-                if ($license_back_image != null) {
-                    deleteMedia($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
-                }
-                uploadMedia($request->license_back_image, $existed_driving_license->LicenseBackImageCollection, $existed_driving_license);
-            }
+            // if ($request->file('license_back_image')) {
+            //     $license_back_image = getFirstMediaUrl($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
+            //     if ($license_back_image != null) {
+            //         deleteMedia($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
+            //     }
+            //     uploadMedia($request->license_back_image, $existed_driving_license->LicenseBackImageCollection, $existed_driving_license);
+            // }
 
             if ($request->file('ID_front_image')) {
                 $ID_front_image = getFirstMediaUrl($user, $user->IDfrontImageCollection);
