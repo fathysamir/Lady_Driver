@@ -64,7 +64,7 @@
                                     @endif
                                 </div>
                                 <div class="form-group">
-                                    <label>Value></label>
+                                    <label>Value</label>
                                     <input type="number" name="value" class="form-control" id="value_input"
                                         placeholder="Enter Value"value="{{ old('value') }}" step="0.01">
                                     @if ($errors->has('value'))

@@ -339,7 +339,7 @@ class Chat implements MessageComponentInterface
         $response = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
         $distance = $response['distance_in_km'];
         $duration = $response['duration_in_M'];
-        $driver_=$offer->user()->first();
+        $driver_ = $offer->user()->first();
         $offer_result['id'] = $offer->id;
         $offer_result['user_id'] = $offer->user()->first()->id;
         $offer_result['car_id'] = $offer->car()->first()->id;
@@ -351,8 +351,8 @@ class Chat implements MessageComponentInterface
         $offer_result['user']['name'] = $offer->user()->first()->name;
         $offer_result['user']['image'] = 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection);
         $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
-                                            $query->where('user_id', $driver_->id);
-                                        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
+            $query->where('user_id', $driver_->id);
+        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
         $offer_result['car']['id'] = $offer->car()->first()->id;
         $offer_result['car']['image'] = 'https://api.lady-driver.com' . getFirstMedia($offer->car()->first(), $offer->car()->first()->avatarCollection);
         $offer_result['car']['year'] = $offer->car()->first()->year;
@@ -546,15 +546,15 @@ class Chat implements MessageComponentInterface
             $trip->start_date = date('Y-m-d');
             $trip->start_time = date('H:i:s');
             $trip->save();
-            $type='started_trip';
-            $message='trip started now';
+            $type = 'started_trip';
+            $message = 'trip started now';
         } elseif ($trip->status == 'in_progress') {
             $trip->status = 'completed';
             $trip->end_date = date('Y-m-d');
             $trip->end_time = date('H:i:s');
             $trip->save();
-            $type='ended_trip';
-            $message='trip ended now';
+            $type = 'ended_trip';
+            $message = 'trip ended now';
         }
         $trip = Trip::find($data['trip_id']);
         $x['trip_id'] = $trip->id;
@@ -575,6 +575,24 @@ class Chat implements MessageComponentInterface
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of ' .  $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
         }
+    }
+    private function track_car(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
+    {
+        $data = json_decode($trackCarRequest, true);
+        $trip = Trip::find($data['trip_id']);
+
+        $data1 = [
+            'type' => 'track_car',
+            'data' => $trackCarRequest
+            
+        ];
+        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $from->send($res);
+        $client = $this->getClientByUserId($trip->user_id);
+        if ($client) {
+            $client->send($res);
+        }
+
     }
     public function onMessage(ConnectionInterface $from, $msg)
     {
@@ -618,6 +636,9 @@ class Chat implements MessageComponentInterface
                     break;
                 case 'start_end_trip':
                     $this->start_end_trip($from, $AuthUserID, $requestData);
+                    break;
+                case 'track_car':
+                    $this->track_car($from, $AuthUserID, $requestData);
                     break;
                 case 'ping':
                     $from->send(json_encode(['type' => 'pong']));
