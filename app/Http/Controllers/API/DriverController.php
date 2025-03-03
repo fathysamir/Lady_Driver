@@ -373,8 +373,12 @@ class DriverController extends ApiController
         if (!$driving_license) {
             return $this->sendError(null, "You don't add information of your driving license yet", 400);
         }
+        $user = auth()->user();
         $driving_license->license_front_image = getFirstMediaUrl($driving_license, $driving_license->LicenseFrontImageCollection);
         $driving_license->license_back_image = getFirstMediaUrl($driving_license, $driving_license->LicenseBackImageCollection);
+        $driving_license->ID_front_image = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+        $driving_license->ID_back_image = getFirstMediaUrl($user, $user->IDbackImageCollection);
+
         return $this->sendResponse($driving_license, null, 200);
     }
 
