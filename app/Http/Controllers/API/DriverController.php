@@ -262,6 +262,7 @@ class DriverController extends ApiController
         $car->plate_image = getFirstMediaUrl($car, $car->PlateImageCollection);
         $car->license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
         $car->license_back_image = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
+        $car->inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
 
         return $this->sendResponse($car, null, 200);
     }
