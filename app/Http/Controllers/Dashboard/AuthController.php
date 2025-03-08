@@ -44,7 +44,9 @@ class AuthController extends Controller
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
         if (Auth::attempt(['email' => request('email'),'password' => request('password')])) {
-
+            $user = auth()->user();
+            $user->is_online = '1';
+            $user->save();
             return redirect('/admin-dashboard/home');
         } else {
 
@@ -58,6 +60,9 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $user = auth()->user();
+        $user->is_online = '0';
+        $user->save();
         Auth::logout();
 
         // auth()->guard('admin')->logout();

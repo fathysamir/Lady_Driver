@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('OTP')->nullable();
             $table->enum('is_online', ['0', '1'])->default('0');
             $table->enum('is_verified', ['0', '1'])->default('0');
-            $table->enum('mode', ['client', 'driver'])->default('client');
-            $table->enum('gendor', ['Male', 'Female'])->default('Female');
+            $table->enum('mode', ['client', 'driver','admin'])->default('client');
+            $table->enum('gendor', ['Male', 'Female','other'])->default('Female');
             $table->string('national_id')->unique()->nullable();
             $table->double('lat', 10, 6)->nullable();
             $table->double('lng', 10, 6)->nullable();

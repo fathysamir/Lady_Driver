@@ -17,62 +17,72 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
-       //create role "Employee" for users
+        //create role "Employee" for users
         $roles = [
             'Client',
             'Admin',
-            
+
         // Add more roles as needed
         ];
 
         foreach ($roles as $role) {
-            $existed_role=Role::where('name' , $role)->first();
-            if(!$existed_role){
+            $existed_role = Role::where('name', $role)->first();
+            if (!$existed_role) {
                 Role::create(['name' => $role]);
             }
         }
-        $admin_role = Role::where('name','Admin')->first();
-        
+        $admin_role = Role::where('name', 'Admin')->first();
+
         $permissions = Permission::pluck('id', 'id')->all();
 
         $admin_role->syncPermissions($permissions);
         $user1 = User::create([
             'name' => 'Admin1',
             'email' => 'admin1@gmail.com',
-            'statue' => 'confirmed',
+            'status' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#1'),
-            'theme' => 'theme1'
+            'theme' => 'theme1',
+            'gendor' => 'other',
+            'mode' => 'admin'
         ]);
         $user2 = User::create([
             'name' => 'Admin2',
             'email' => 'admin2@gmail.com',
-            'statue' => 'confirmed',
+            'status' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#2'),
-            'theme' => 'theme1'
+            'theme' => 'theme1',
+             'gendor' => 'other',
+            'mode' => 'admin'
         ]);
         $user3 = User::create([
             'name' => 'Admin3',
             'email' => 'admin3@gmail.com',
-            'statue' => 'confirmed',
+            'status' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#3'),
-            'theme' => 'theme1'
+            'theme' => 'theme1',
+             'gendor' => 'other',
+            'mode' => 'admin'
         ]);
         $user4 = User::create([
             'name' => 'Admin4',
             'email' => 'admin4@gmail.com',
-            'statue' => 'confirmed',
+            'status' => 'confirmed',
             'password' => Hash::make('gmadmin159!48@26#4'),
-            'theme' => 'theme1'
+            'theme' => 'theme1',
+             'gendor' => 'other',
+            'mode' => 'admin'
         ]);
         $user5 = User::create([
             'name' => 'Admin5',
-            'statue' => 'confirmed',
+            'status' => 'confirmed',
             'email' => 'admin5@gmail.com',
             'password' => Hash::make('gmadmin159!48@26#5'),
-            'theme' => 'theme1'
+            'theme' => 'theme1',
+             'gendor' => 'other',
+            'mode' => 'admin'
         ]);
 
-        
+
 
         $user1->assignRole([$admin_role->id]);
         $user2->assignRole([$admin_role->id]);
@@ -80,6 +90,6 @@ class RolesSeeder extends Seeder
         $user4->assignRole([$admin_role->id]);
         $user5->assignRole([$admin_role->id]);
 
-        
+
     }
 }

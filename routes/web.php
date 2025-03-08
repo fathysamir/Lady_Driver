@@ -12,6 +12,7 @@ use App\Http\Controllers\Dashboard\ContactUsController;
 use App\Http\Controllers\Dashboard\FeedBackController;
 use App\Http\Controllers\Dashboard\ComplaintController;
 use App\Http\Controllers\Dashboard\MotorcycleController;
+use App\Http\Controllers\Dashboard\AdminController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -53,6 +54,13 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/user/delete/{id}', [UserController::class, 'delete'])->name('delete.user');
 
     Route::any('/archived-users', [UserController::class, 'index_archives'])->name('archived_users');
+    /////////////////////////////////////////
+    Route::any('/admins', [AdminController::class, 'index'])->name('admins');
+    Route::get('/admins/create', [AdminController::class, 'create'])->name('add.admin');
+    Route::post('/admins/store', [AdminController::class, 'store'])->name('store.admin');
+    Route::get('/admin/edit/{id}', [AdminController::class, 'edit'])->name('edit.admin');
+    Route::post('/admin/update/{id}', [AdminController::class, 'update'])->name('update.admin');
+    Route::get('/admin/delete/{id}', [AdminController::class, 'delete'])->name('delete.admin');
     /////////////////////////////////////////
     Route::any('/car-marks', [CarMarkController::class, 'index'])->name('car-marks');
     Route::get('/car-marks/create', [CarMarkController::class, 'create'])->name('add.car.mark');
