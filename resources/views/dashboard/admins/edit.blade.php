@@ -1,5 +1,5 @@
 @extends('dashboard.layout.app')
-@section('title', 'Dashboard - create admin')
+@section('title', 'Dashboard - edit admin')
 @section('content')
     <div class="content-wrapper">
         <div class="container-fluid">
@@ -8,15 +8,15 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Create Admin</div>
+                            <div class="card-title">Update Admin</div>
                             <hr>
-                            <form method="post" action="{{ route('store.admin') }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('update.admin',$admin->id) }}" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
                                     <label for="inputEmail3">Name</label>
 
                                     <input type="text" class="form-control" id="inputEmail3" name="name"
-                                        value="{{ old('name') }}">
+                                        value="{{ old('name', $admin->name) }}">
                                     @if ($errors->has('name'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('name') }}</p>
@@ -26,21 +26,28 @@
                                     <label for="inputEmail3">Email</label>
 
                                     <input type="email" class="form-control" id="inputEmail3" name="email"
-                                        value="{{ old('email') }}">
+                                        value="{{ old('email', $admin->email) }}">
                                     @if ($errors->has('email'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('email') }}</p>
                                     @endif
 
                                 </div>
+                                @php
+                                    // Extract country code and phone number
+                                    preg_match('/^(\+\d{1,3})(\d+)$/', $admin->phone, $matches);
+                                    $country_code = $matches[1] ?? '+20'; // Default to Egypt (+20) if not found
+                                    $phone = $matches[2] ?? '';
+                                    //dd($admin,$matches,$country_code,$phone);
+                                @endphp
                                 <div class="form-group">
                                     <label>Phone Number</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <select name="country_code" class="form-control">
-                                                <option value="+1">USA (+1)</option>
-                                                <option value="+44">UK (+44)</option>
-                                                <option value="+971">UAE (+971)</option>
+                                                <option value="+1" {{ $country_code == '+1' ? 'selected' : '' }}>USA (+1)</option>
+                                                <option value="+44" {{ $country_code == '+44' ? 'selected' : '' }}>UK (+44)</option>
+                                                <option value="+971" {{ $country_code == '+971' ? 'selected' : '' }}>UAE (+971)</option>
                                                 <option value="+91">India (+91)</option>
                                                 <option value="+61">Australia (+61)</option>
                                                 <option value="+93">Afghanistan (+93)</option>
@@ -88,7 +95,7 @@
                                                 <option value="+45">Denmark (+45)</option>
                                                 <option value="+253">Djibouti (+253)</option>
                                                 <option value="+593">Ecuador (+593)</option>
-                                                <option value="+20"selected>Egypt (+20)</option>
+                                                <option value="+20"{{ $country_code == '+20' ? 'selected' : '' }}>Egypt (+20)</option>
                                                 <option value="+503">El Salvador (+503)</option>
                                                 <option value="+240">Equatorial Guinea (+240)</option>
                                                 <option value="+291">Eritrea (+291)</option>
@@ -211,7 +218,7 @@
 
                                         </div>
                                         <input type="number" name="phone" class="form-control"
-                                            placeholder="Enter Phone Number" value="{{ old('phone') }}">
+                                            placeholder="Enter Phone Number" value="{{ old('phone',$phone) }}">
                                     </div>
                                     @if ($errors->has('phone'))
                                         <p class="text-error more-info-err" style="color: red;">

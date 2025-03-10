@@ -49,6 +49,9 @@ class AdminController extends Controller
     public function store(Request $request)
     {
 
+        $request->merge([
+            'phone' => $request->country_code . $request->phone
+        ]);
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:191'],
             'email' => [
@@ -59,7 +62,7 @@ class AdminController extends Controller
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
             'password' => ['required', 'string', 'min:8','confirmed'],
-            'phone_number' => ['nullable', Rule::unique('users', 'phone')->whereNull('deleted_at')]
+            'phone' => ['nullable', Rule::unique('users', 'phone')->whereNull('deleted_at')]
         ]);
 
 
@@ -70,7 +73,7 @@ class AdminController extends Controller
         $admin = User::create([
             'name' => $request->name,
             'email' => $request->email ,
-            'phone' => $request->phone_number,
+            'phone' => $request->phone,
             'password' =>  Hash::make($request->password),
             'status' => 'confirmed',
             'theme' => 'theme1',
@@ -86,5 +89,53 @@ class AdminController extends Controller
         return redirect('/admin-dashboard/admins');
 
     }
+
+    public function edit($id)
+    {
+        $admin=User::findOrFail($id);
+        return view('dashboard.admins.edit',compact('admin'));
+    }
+
+    public function update(Request $request,$id)
+    {
+
+        $request->merge([
+            'phone' => $request->country_code . $request->phone
+        ]);
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:191'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($id)->whereNull('deleted_at'),
+            ],
+            'password' => ['nullable', 'string', 'min:8','confirmed'],
+            'phone' => ['nullable', Rule::unique('users', 'phone')->ignore($id)->whereNull('deleted_at')]
+        ]);
+
+
+        if ($validator->fails()) {
+            return Redirect::back()->withInput()->withErrors($validator);
+        }
+
+        $admin = User::where('id',$id)->update([
+            'name' => $request->name,
+            'email' => $request->email ,
+            'phone' => $request->phone,
+        ]);
+        $admin=User::findOrFail($id);
+        if($request->password != null){
+            $admin->password=Hash::make($request->password);
+        }
+        
+        if ($request->file('image')) {
+            uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
+        }
+        return redirect('/admin-dashboard/admins');
+
+    }
+
 
 }

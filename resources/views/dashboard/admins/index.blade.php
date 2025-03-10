@@ -71,7 +71,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div style="display: flex;">
-                                <h5 class="card-title" style="width: 55%;">Admins</h5>
+                                <h5 class="card-title" style="width: 46%;">Admins</h5>
                                 <a class="btn btn-light px-5" style="margin-bottom:1%; "
                                     href="{{ route('add.admin') }}">create New Admin</a>
                                 <form id="searchForm" class="search-bar"
