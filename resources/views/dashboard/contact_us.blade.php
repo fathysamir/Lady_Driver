@@ -257,7 +257,7 @@
                                     <option value="+263">Zimbabwe (+263)</option>
                                 </select>
                                     <!-- Add more country codes as needed -->
-                                </select>
+                                
                             </div>
                             <input type="number" name="phone" class="form-control" placeholder="Enter Phone Number" value="{{ old('phone') }}">
                         </div>
