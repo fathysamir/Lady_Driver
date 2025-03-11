@@ -138,7 +138,7 @@
 
                                                         <a href="{{ url('/admin-dashboard/car/edit/' . $car->id) }}"
                                                             style="margin-right: 1rem;">
-                                                            <span class="bi bi-pen"
+                                                            <span class="bi bi-eye"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                         </a>
 

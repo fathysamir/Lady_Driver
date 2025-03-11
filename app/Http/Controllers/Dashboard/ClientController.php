@@ -139,4 +139,8 @@ class ClientController extends Controller
         User::where('id', $id)->delete();
         return redirect('/admin-dashboard/clients');
     }
+    public function restore($id){
+        User::withTrashed()->where('id',$id)->update(['deleted_at'=>null]);
+        return redirect('/admin-dashboard/archived-clients');
+    }
 }
