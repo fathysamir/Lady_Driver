@@ -21,9 +21,22 @@
         <li>
             <a href="{{ url('/admin-dashboard/clients') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Clients</span>
+                @if (app('new_clients_count') > 0)
+                <span
+                    style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_clients_count') }}</span>
+            @endif
             </a>
         </li>
         <li>
+            <a href="{{ url('/admin-dashboard/drivers') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Drivers</span>
+                @if (app('new_drivers_count') > 0)
+                <span
+                    style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_drivers_count') }}</span>
+            @endif
+            </a>
+        </li>
+        {{-- <li>
             <a href="{{ url('/admin-dashboard/users') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>
                 @if (app('new_clients_count') > 0)
@@ -31,7 +44,7 @@
                         style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_clients_count') }}</span>
                 @endif
             </a>
-        </li>
+        </li> --}}
         <li>
             <a href="{{ url('/admin-dashboard/car-marks') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Car Marks & Models</span>

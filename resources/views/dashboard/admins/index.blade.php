@@ -7,12 +7,13 @@
         }
 
         .user-status {
+            position: absolute;
             display: inline-block;
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            margin-left: -4%;
-            margin-bottom: 4.65%;
+            margin-left: -1%;
+            margin-bottom: 8%;
         }
 
         .online {
@@ -33,6 +34,8 @@
             width: 40px;
             height: 40px;
             cursor: pointer;
+            position: relative;
+
         }
 
         .avatar-preview {

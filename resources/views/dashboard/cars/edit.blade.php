@@ -8,11 +8,9 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Edit Client Car</div>
+                            <div class="card-title">Client Car</div>
                             <hr>
-                            <form method="post" action="{{ route('update.car', ['id' => $car->id]) }}"
-                                enctype="multipart/form-data">
-                                @csrf
+                           
                                 <div class="form-group"style="text-align: center;">
                                     <div>
                                         <img style="border-radius: 2%;width:60%;"
@@ -26,7 +24,7 @@
 
                                 <div class="form-group">
                                     <label>Driver : <a
-                                            href="{{ url('/admin-dashboard/user/edit/' . $car->owner->id) }}">{{ ucwords($car->owner->name) }}</a></label>
+                                            href="{{ url('/admin-dashboard/driver/edit/' . $car->owner->id) }}">{{ ucwords($car->owner->name) }}</a></label>
                                 </div>
                                 <div class="form-group">
                                     <label>Car Plate : {{ $car->car_plate }}</label>
@@ -70,7 +68,7 @@
                                 <div class="form-group">
                                     <label>Status</label>
 
-                                    <select class="form-control" name="status">
+                                    <select disabled class="form-control" name="status">
                                         <option value="pending" @if ($car->status == 'pending') selected @endif>Pending
                                         </option>
                                         <option value="confirmed" @if ($car->status == 'confirmed') selected @endif>
@@ -80,10 +78,7 @@
                                     </select>
                                 </div>
 
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-light px-5"><i class="icon-lock"></i>Save</button>
-                                </div>
-                            </form>
+                               
                         </div>
                     </div>
                 </div>

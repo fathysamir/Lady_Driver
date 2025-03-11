@@ -1,5 +1,5 @@
 @extends('dashboard.layout.app')
-@section('title', 'Dashboard - clients')
+@section('title', 'Dashboard - drivers')
 @section('content')
     <style>
         .pagination {
@@ -35,7 +35,6 @@
             height: 40px;
             cursor: pointer;
             position: relative;
-
         }
 
         .avatar-preview {
@@ -77,13 +76,13 @@
 
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-right:20px;margin-left:0px;"method="post"
-                                    action="{{ route('clients') }}" enctype="multipart/form-data">
+                                    action="{{ route('drivers') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Clients</h5>
+                                        <h5 class="card-title" style="width: 60%;">Drivers</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-5" type="button"
-                                                href="{{ route('archived_clients') }}"
+                                                href="{{ route('archived_drivers') }}"
                                                 style="margin:0% 0% 1% 1%; ">Archives</a>
                                             <button class="btn btn-light px-5" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
@@ -100,10 +99,16 @@
                                             <select class="form-control"style="width: 33%;margin: 0% 0% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed"{{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned"{{ request('status') == 'banned' ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked"{{ request('status') == 'blocked' ? 'selected' : '' }}>Blocked</option>
+                                                <option value="pending"
+                                                    {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                <option
+                                                    value="confirmed"{{ request('status') == 'confirmed' ? 'selected' : '' }}>
+                                                    Confirmed</option>
+                                                <option value="banned"{{ request('status') == 'banned' ? 'selected' : '' }}>
+                                                    Banned</option>
+                                                <option
+                                                    value="blocked"{{ request('status') == 'blocked' ? 'selected' : '' }}>
+                                                    Blocked</option>
                                                 <!-- Add more options as needed -->
                                             </select>
                                         </div>
@@ -125,18 +130,18 @@
                                             <th scope="col">Email</th>
                                             <th scope="col">Phone Number</th>
                                             <th scope="col">status</th>
+                                            <th scope="col">Activation</th>
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if (!empty($all_users) && $all_users->count())
-                                        @php
-                                        $counter =
-                                            ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
-                                    @endphp
+                                            @php
+                                                $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
+                                            @endphp
                                             @foreach ($all_users as $user)
-                                                <tr onclick="window.location='{{ url('/admin-dashboard/client/edit/' . $user->id) }}';"
+                                                <tr onclick="window.location='{{ url('/admin-dashboard/driver/edit/' . $user->id) }}';"
                                                     style="cursor: pointer;">
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
@@ -161,37 +166,50 @@
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
 
                                                     <td>{!! highlight($user->phone, $search ?? '') !!}</td>
-                                                   
-                                                   
-                                                        <td>
-                                                            @if ($user->status == 'banned')
-                                                                <span class="badge badge-secondary"
-                                                                    style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>
-                                                            @elseif($user->status == 'confirmed')
-                                                                <span class="badge badge-secondary"
-                                                                    style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>
-                                                            @elseif($user->status == 'blocked')
-                                                                <span class="badge badge-secondary"
-                                                                    style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
-                                                            @endif
-                                                        </td>
-                                                  
-                                                    <td>{{ $user->created_at->format('d.M.Y')  }}</td>
+
+
+                                                    <td>
+                                                        @if ($user->status == 'pending')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(143, 118, 9); width:100%;">Pending</span>
+                                                        @elseif($user->status == 'confirmed')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>
+                                                        @elseif($user->status == 'banned')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>
+                                                        @else
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @php
+                                                            // Check if the user has a car
+                                                            $hasActiveTrip =
+                                                                $user->car &&
+                                                                $user->car
+                                                                    ->trips()
+                                                                    ->where('status', 'completed') // Ensure the trip is completed
+                                                                    ->where('created_at', '>=', now()->subDays(7)) // Check if trip is within the last 7 days
+                                                                    ->exists();
+                                                        @endphp
+                                                        {{ $hasActiveTrip ? 'Active' : 'Unactive' }}
+                                                    </td>
+                                                    <td>{{ $user->created_at->format('d.M.Y') }}</td>
                                                     <td>
 
 
 
-                                                        <a href="{{ url('/admin-dashboard/client/edit/' . $user->id) }}"
+                                                        <a href="{{ url('/admin-dashboard/driver/edit/' . $user->id) }}"
                                                             style="margin-right: 1rem;">
                                                             <span class="bi bi-pen"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                         </a>
 
-                                                        {{-- <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
-                                    <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                  </a> --}}
+
                                                         <a
-                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/client/delete/' . $user->id) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/delete/' . $user->id) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
                                                             <span class="bi bi-trash"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                         </a>
@@ -201,7 +219,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td>There are no Clients.</td>
+                                                <td>There are no Drivers.</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -226,7 +244,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
-                        delete this client?</h5>
+                        delete this driver?</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

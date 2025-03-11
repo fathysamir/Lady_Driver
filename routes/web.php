@@ -14,6 +14,7 @@ use App\Http\Controllers\Dashboard\ComplaintController;
 use App\Http\Controllers\Dashboard\MotorcycleController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\ClientController;
+use App\Http\Controllers\Dashboard\DriverController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -61,6 +62,12 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::post('/client/update/{id}', [ClientController::class, 'update'])->name('update.client');
     Route::get('/client/delete/{id}', [ClientController::class, 'delete'])->name('delete.client');
     Route::any('/archived-clients', [ClientController::class, 'index_archives'])->name('archived_clients');
+    /////////////////////////////////////////
+    Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');
+    Route::get('/driver/edit/{id}', [DriverController::class, 'edit'])->name('edit.driver');
+    Route::post('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
+    Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
+    Route::any('/archived-drivers', [DriverController::class, 'index_archives'])->name('archived_drivers');
     /////////////////////////////////////////
     Route::any('/admins', [AdminController::class, 'index'])->name('admins');
     Route::get('/admins/create', [AdminController::class, 'create'])->name('add.admin');
