@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class AdminController extends Controller
-{//done
+{
     public function index(Request $request)
     {
         $all_admins = User::whereHas('roles', function ($query) {

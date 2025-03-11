@@ -42,7 +42,8 @@ class User extends Authenticatable
         'theme',
         'wallet',
         'gendor',
-        'seen'
+        'seen',
+        'country_code'
     ];
 
     /**

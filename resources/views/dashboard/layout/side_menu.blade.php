@@ -19,6 +19,11 @@
             </a>
         </li>
         <li>
+            <a href="{{ url('/admin-dashboard/clients') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Clients</span>
+            </a>
+        </li>
+        <li>
             <a href="{{ url('/admin-dashboard/users') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>
                 @if (app('new_clients_count') > 0)

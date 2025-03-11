@@ -13,6 +13,7 @@ use App\Http\Controllers\Dashboard\FeedBackController;
 use App\Http\Controllers\Dashboard\ComplaintController;
 use App\Http\Controllers\Dashboard\MotorcycleController;
 use App\Http\Controllers\Dashboard\AdminController;
+use App\Http\Controllers\Dashboard\ClientController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -54,6 +55,12 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/user/delete/{id}', [UserController::class, 'delete'])->name('delete.user');
 
     Route::any('/archived-users', [UserController::class, 'index_archives'])->name('archived_users');
+    /////////////////////////////////////////
+    Route::any('/clients', [ClientController::class, 'index'])->name('clients');
+    Route::get('/client/edit/{id}', [ClientController::class, 'edit'])->name('edit.client');
+    Route::post('/client/update/{id}', [ClientController::class, 'update'])->name('update.client');
+    Route::get('/client/delete/{id}', [ClientController::class, 'delete'])->name('delete.client');
+    Route::any('/archived-clients', [ClientController::class, 'index_archives'])->name('archived_clients');
     /////////////////////////////////////////
     Route::any('/admins', [AdminController::class, 'index'])->name('admins');
     Route::get('/admins/create', [AdminController::class, 'create'])->name('add.admin');

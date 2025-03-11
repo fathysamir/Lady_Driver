@@ -35,6 +35,9 @@ return new class extends Migration
             $table->enum('seen', ['0', '1'])->default('1');
             $table->decimal('wallet',15, 2)->default(0);
             $table->string('theme')->nullable();
+            $table->string('country_code')->nullable();
+
+            
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
