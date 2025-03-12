@@ -148,16 +148,6 @@ class DriverController extends Controller
             $car->save();
         }
 
-        $users=User::whereNotIn('id',[53,93])->where('phone','!=',null)->get();
-        foreach($users as $user){
-           if($user->phone[0] === '0'){
-               $user->phone='+2' . $user->phone;
-           }else{
-                $user->phone='+20' . $user->phone;
-           }
-           $user->country_code='+20';
-           $user->save();
-        }
         return redirect('/admin-dashboard/drivers');
 
     }
