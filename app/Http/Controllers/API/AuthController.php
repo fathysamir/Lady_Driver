@@ -80,6 +80,7 @@ class AuthController extends ApiController
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
+            'country_code'=>$request->country_code,
             'mode' => $request->mode,
             'OTP' => $otpCode,
             'invitation_code' => $invitation_code,
