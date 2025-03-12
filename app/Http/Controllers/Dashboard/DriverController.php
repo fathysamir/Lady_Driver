@@ -143,8 +143,11 @@ class DriverController extends Controller
                                          'national_id'=>$request->national_id                             
                                         ]);
         $car=Car::where('user_id',$id)->first();
-        $car->status= $request->status=='banned'? 'blocked': $request->status;
-        $car->save();
+        if($car){
+            $car->status= $request->status=='banned'? 'blocked': $request->status;
+            $car->save();
+        }
+       
         return redirect('/admin-dashboard/drivers');
 
     }
