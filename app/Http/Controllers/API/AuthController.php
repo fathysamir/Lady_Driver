@@ -75,7 +75,7 @@ class AuthController extends ApiController
             $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
         } while (User::where('invitation_code', $invitation_code)->exists());
         $user = User::create([
-            'country_code'=>$request->country_code,
+            
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
