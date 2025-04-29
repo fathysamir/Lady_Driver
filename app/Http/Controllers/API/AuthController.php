@@ -101,7 +101,7 @@ class AuthController extends ApiController
         }
 
         // Send OTP via Email (or SMS)
-        Mail::to($request->email)->send(new SendOTP($otpCode));
+        Mail::to($request->email)->send(new SendOTP($otpCode,$request->name));
 
 
         return $this->sendResponse(null, 'OTP sent to your email address.', 200);

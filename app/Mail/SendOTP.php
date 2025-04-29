@@ -14,16 +14,17 @@ class SendOTP extends Mailable
     use Queueable, SerializesModels;
 
     public $otp;
-   
+    public $name;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($otp)
+    public function __construct($otp, $name)
     {
         $this->otp = $otp;
+        $this->name = $name;
       
     }
 
@@ -39,7 +40,7 @@ class SendOTP extends Mailable
                     ->subject('Lady Driver')
                     ->with([
                         'otp' => $this->otp,
-                       
+                        'name' => $this->name
                     ]);
     }
 }
