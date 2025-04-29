@@ -14,13 +14,13 @@
             background-color: white;
             max-width: 500px;
             margin: 80px auto;
-            padding: 40px 30px;
+            padding: 10px 30px 30px 30px;
             border-radius: 16px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
         .kk{
-            height: 698px;
+            height: 604;
            
         }
         .kk_container{
@@ -45,7 +45,7 @@
         }
         .otp-title {
             font-size: 20px;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
         .otp-body {
             font-size: 14px;
@@ -70,10 +70,10 @@
    
 
     <div class="email-container">
-        <div class="otp-title"><img src="https://api.lady-driver.com/dashboard/logo2.jpeg" style="width:200px;height:200px"></div>
-        <div class="otp-title">Your OTP is Arrived ، use it before it gets bored 😉</div>
+        <div><img src="https://api.lady-driver.com/dashboard/logo2.jpeg" style="width:200px;height:200px"></div>
+        <div class="otp-title">Hello {{ $name }},<br>Your OTP is Arrived ، use it before it gets bored 😉</div>
         <div class="otp-body">
-            Hey {{ $name }},<br><br>
+            
             Thank you for choosing LADY DRIVER. Use the following OTP to complete your registration. OTP is valid for 5 minutes. Do not share this code with others, including LADY DRIVER team.
         </div>
         <div class="otp-code">{{ $otp }}</div>
