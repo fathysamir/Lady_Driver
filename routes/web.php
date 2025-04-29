@@ -27,7 +27,8 @@ use App\Http\Controllers\Dashboard\DriverController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+   // return view('welcome');
+    return view ('emails.otp');
 });
 Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
