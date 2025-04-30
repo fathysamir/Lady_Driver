@@ -98,6 +98,14 @@
                 font-size: 16px;
                 margin-bottom: 10px;
             }
+            .logo {
+                font-size: 16px;
+                padding-left: 15px;
+            }
+            .date {
+                font-size: 10px;
+                padding-right: 15px;
+            }
         }
     </style>
 </head>
