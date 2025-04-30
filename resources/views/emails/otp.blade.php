@@ -1,119 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Your OTP</title>
+   
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
-
-        .background {
-            background-image: url('https://api.lady-driver.com/dashboard/pngtree.png');
-            background-repeat: no-repeat;
-            background-size: cover;
-            padding: 20px;
+            /* background: url('https://api.lady-driver.com/dashboard/pngtree.png') no-repeat top center;
+            background-size: cover; */
         }
 
         .email-container {
+            background-color: white;
             max-width: 500px;
-            margin: auto;
-            background-color: #ffffff;
-            padding: 30px 20px;
+            margin: 80px auto;
+            padding: 10px 30px 30px 30px;
             border-radius: 16px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 10px;
-            color: white;
-            font-weight: bold;
+        .kk {
+            height: 604;
+
         }
 
-        .logo-text {
-            font-size: 20px;
+        .kk_container {
+            display: flex;
+            padding-top: 20px;
+        }
+
+        .logo {
+            width: 50%;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-align: left;
+            padding-left: 30px;
         }
 
         .date {
+            width: 50%;
+            color: white;
+            text-align: right;
+            padding-right: 30px;
+            font-weight: bold;
             font-size: 14px;
         }
 
-        .logo-img {
-            width: 160px;
-            height: 160px;
-            border-radius: 12px;
-            margin: 20px auto;
-        }
-
         .otp-title {
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 20px;
+            margin-bottom: 20px;
         }
 
         .otp-body {
             font-size: 14px;
             color: #555;
+            margin-bottom: 30px;
             line-height: 1.6;
-            margin-bottom: 20px;
         }
 
         .otp-code {
             font-size: 28px;
-            letter-spacing: 10px;
+            letter-spacing: 15px;
             color: #c62828;
             font-weight: bold;
         }
 
-        /* Responsive */
+        .img_ {
+            width: 200px;
+            height: 200px;
+            border-radius: 14px;
+        }
+
         @media only screen and (max-width: 600px) {
             .email-container {
-                padding: 20px 10px;
+                padding: 5px 15px 15px 5px;
             }
 
-            .logo-img {
+            .img_ {
                 width: 120px;
-                height: 120px;
+                height: 1200px;
+                border-radius: 10px;
             }
 
             .otp-code {
                 letter-spacing: 5px;
                 font-size: 24px;
+                color: #c62828;
             }
 
             .otp-title {
                 font-size: 16px;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
+                margin-bottom: 10px;
             }
         }
     </style>
 </head>
+
 <body>
-    <div class="background">
-        <div class="header">
-            <div class="logo-text">LADY DRIVER</div>
+    <div class="kk"
+        style="background-image: url('https://api.lady-driver.com/dashboard/pngtree.png'); background-repeat: no-repeat;  background-size: cover;">
+        <div class="kk_container">
+            <div class="logo">LADY DRIVER</div>
             <div class="date">{{ date('d M, Y') }}</div>
         </div>
 
+
         <div class="email-container">
-            <img src="https://api.lady-driver.com/dashboard/logo2.jpeg" alt="Logo" class="logo-img">
-            <div class="otp-title">Hello {{ $name }},<br>Your OTP is here, use it before it gets bored 😉</div>
+            <div><img class="img_" src="https://api.lady-driver.com/dashboard/logo2.jpeg"></div>
+            <div class="otp-title">Hello {{ $name }},<br>Your OTP is Arrived ، use it before it gets bored 😉
+            </div>
             <div class="otp-body">
-                Thank you for choosing LADY DRIVER. Use the following OTP to complete your registration. The OTP is valid for 5 minutes. Do not share this code with anyone, including LADY DRIVER team.
+
+                Thank you for choosing LADY DRIVER. Use the following OTP to complete your registration. OTP is valid
+                for 5 minutes. Do not share this code with others, including LADY DRIVER team.
             </div>
             <div class="otp-code">{{ $otp }}</div>
         </div>
     </div>
+
+
 </body>
+
 </html>
