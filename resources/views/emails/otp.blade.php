@@ -84,7 +84,7 @@
 
             .img_ {
                 width: 120px;
-                height: 1200px;
+                height: 120px;
                 border-radius: 10px;
             }
 
@@ -113,14 +113,14 @@
 
         <div class="email-container">
             <div><img class="img_" src="https://api.lady-driver.com/dashboard/logo2.jpeg"></div>
-            <div class="otp-title">Hello {{ $name }},<br>Your OTP is Arrived ، use it before it gets bored 😉
+            <div class="otp-title">Hello fdsc,<br>Your OTP is Arrived ، use it before it gets bored 😉
             </div>
             <div class="otp-body">
 
                 Thank you for choosing LADY DRIVER. Use the following OTP to complete your registration. OTP is valid
                 for 5 minutes. Do not share this code with others, including LADY DRIVER team.
             </div>
-            <div class="otp-code">{{ $otp }}</div>
+            <div class="otp-code">86542</div>
         </div>
     </div>
 
