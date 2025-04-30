@@ -80,7 +80,7 @@
         @media only screen and (max-width: 600px) {
             .email-container {
                 padding: 5px 15px 15px 5px;
-                max-width: 386px;
+                max-width: 350;
             }
 
             .img_ {
