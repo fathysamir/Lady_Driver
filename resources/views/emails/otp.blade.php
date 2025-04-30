@@ -70,7 +70,7 @@
    
 
     <div class="email-container">
-        <div><img src="https://api.lady-driver.com/dashboard/logo2.jpeg" style="width:200px;height:200px"></div>
+        <div><img src="https://api.lady-driver.com/dashboard/logo2.jpeg" style="width:200px;height:200px; border-radius: 14px;"></div>
         <div class="otp-title">Hello {{ $name }},<br>Your OTP is Arrived ، use it before it gets bored 😉</div>
         <div class="otp-body">
             
