@@ -45,6 +45,7 @@ class AuthController extends ApiController
             'phone' => [
                 'required',
                 Rule::unique('users', 'phone')->whereNull('deleted_at'),
+            'country_code' => 'required'
             ]
 
         ];

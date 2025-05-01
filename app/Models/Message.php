@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
-class Message extends Model
+class TripMessage extends Model
 {
     use HasFactory;
-    protected $table = 'messages';
+    protected $table = 'trip_messages';
     protected $fillable = [
         'sender_id',
-        'receiver_id',
+        'trip_id',
         'message',
        
     ];
