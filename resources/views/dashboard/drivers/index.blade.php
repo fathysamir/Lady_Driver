@@ -141,7 +141,7 @@
                                                 $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
                                             @endphp
                                             @foreach ($all_users as $user)
-                                                <tr onclick="window.location='{{ url('/admin-dashboard/driver/edit/' . $user->id) }}';"
+                                                <tr onclick="window.location='{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
@@ -201,7 +201,7 @@
 
 
 
-                                                        <a href="{{ url('/admin-dashboard/driver/edit/' . $user->id) }}"
+                                                        <a href="{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}"
                                                             style="margin-right: 1rem;">
                                                             <span class="bi bi-pen"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"></span>

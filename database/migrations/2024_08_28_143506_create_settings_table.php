@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('key')->unique();
             $table->string('type')->default('string');
             $table->longtext('value')->nullable();
+            $table->string('unit')->nullable();
             $table->string('category')->default('Default');
             $table->timestamps();
         });

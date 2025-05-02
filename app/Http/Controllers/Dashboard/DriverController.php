@@ -84,7 +84,7 @@ class DriverController extends Controller
 
 
 
-    public function edit($id)
+    public function edit($id,Request $request)
     {
         $user = User::where('id', $id)->first();
         $user->seen = '1';
@@ -106,7 +106,9 @@ class DriverController extends Controller
         $user->trips_count = Trip::whereHas('car', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->whereIn('status', ['pending', 'in_progress','completed'])->count();
-        return view('dashboard.drivers.edit', compact('user'));
+
+        $queryString = $request->query();
+        return view('dashboard.drivers.edit', compact('user','queryString'));
     }
 
     public function update(Request $request, $id)
@@ -147,8 +149,10 @@ class DriverController extends Controller
             $car->status= $request->status=='banned'? 'blocked': $request->status;
             $car->save();
         }
+        $queryParams = $request->except(['_token', '_method','status','email','phone','country_code','birth_date','national_id']);
+        return redirect()->route('drivers', $queryParams)->with('success', 'Driver updated successfully!');
 
-        return redirect('/admin-dashboard/drivers');
+        //return redirect('/admin-dashboard/drivers');
 
     }
 

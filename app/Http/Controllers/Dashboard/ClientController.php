@@ -39,7 +39,7 @@ class ClientController extends Controller
             $all_users->where('status', $request->status);
         }
         
-        $all_users = $all_users->paginate(12);
+        $all_users = $all_users->paginate(2);
 
         $all_users->getCollection()->transform(function ($user) {
             // Add the 'image' key based on some condition
@@ -84,7 +84,7 @@ class ClientController extends Controller
 
 
 
-    public function edit($id)
+    public function edit($id,Request $request)
     {
         $user = User::where('id', $id)->first();
         $user->seen = '1';
@@ -92,8 +92,9 @@ class ClientController extends Controller
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
         $user->rate = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
         $user->trips_count = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress','completed'])->count();
-        
-        return view('dashboard.clients.edit', compact('user'));
+        $queryString = $request->query();
+       
+        return view('dashboard.clients.edit', compact('user','queryString'));
     }
 
     public function update(Request $request, $id)
@@ -127,7 +128,14 @@ class ClientController extends Controller
                                          'country_code'=>$request->country_code,
                                          'birth_date'=>$request->birth_date                              
                                         ]);
-        return redirect('/admin-dashboard/clients');
+        $queryParams = $request->except(['_token', '_method','status','email','phone','country_code','birth_date']);
+        
+        return redirect()->route('clients', $queryParams)->with('success', 'User updated successfully!');
+
+        // return redirect($request->fullUrlWithQuery([
+        //                                     'page' => $request->input('page', 1)
+        //                                 ]));
+        // return redirect('/admin-dashboard/clients');
 
     }
 

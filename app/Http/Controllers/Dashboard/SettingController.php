@@ -47,17 +47,28 @@ class SettingController extends Controller
 
     public function update(Request $request, $id)
     {
+        //dd($request->all());
         $validator = Validator::make($request->all(), [
             'label' => ['required','string','max:255'],
-            'value' => ['required']
+            
         ]);
 
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
-
-        Setting::where('id', $id)->update([ 'label' => $request->label,
-                                            'value' => floatval($request->value)]);
+        $set=Setting::where('id', $id)->first();
+        if($set->type=='options'){
+            if($request->value){
+                $value=json_encode($request->value);
+            }else{
+                $value=null;
+            }
+           
+        }else{
+            $value=floatval($request->value);
+        }
+        $set->update([ 'label' => $request->label,
+                                            'value' =>$value ]);
         return redirect('/admin-dashboard/settings');
 
     }

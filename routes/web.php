@@ -60,14 +60,14 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     /////////////////////////////////////////
     Route::any('/clients', [ClientController::class, 'index'])->name('clients');
     Route::get('/client/edit/{id}', [ClientController::class, 'edit'])->name('edit.client');
-    Route::post('/client/update/{id}', [ClientController::class, 'update'])->name('update.client');
+    Route::put('/client/update/{id}', [ClientController::class, 'update'])->name('update.client');
     Route::get('/client/delete/{id}', [ClientController::class, 'delete'])->name('delete.client');
     Route::any('/archived-clients', [ClientController::class, 'index_archives'])->name('archived_clients');
     Route::get('/client/restore/{id}', [ClientController::class, 'restore'])->name('restore.client');
     /////////////////////////////////////////
     Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');
     Route::get('/driver/edit/{id}', [DriverController::class, 'edit'])->name('edit.driver');
-    Route::post('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
+    Route::put('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
     Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
     Route::any('/archived-drivers', [DriverController::class, 'index_archives'])->name('archived_drivers');
     Route::get('/driver/restore/{id}', [DriverController::class, 'restore'])->name('restore.driver');

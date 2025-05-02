@@ -41,6 +41,11 @@
                                                 <option value="General">General</option>
                                                 <option value="Users">Users</option>
                                                 <option value="Trips">Trips</option>
+                                                <option value="Car Trips">Car Trips</option>
+
+                                                <option value="Motorcycle Trips">Motorcycle Trips</option>
+
+
                                             </select>
                                         </div>
 
@@ -75,6 +80,7 @@
 
                                             <th scope="col">Category</th>
                                             <th scope="col">Value</th>
+                                            <th scope="col">Unit</th>
                                             <th scope="col">Action</th>
                                         </tr>
                                     </thead>
@@ -85,7 +91,14 @@
                                                     style="cursor: pointer;">
                                                     <td>{!! highlight($setting->label, $search ?? '') !!}</td>
                                                     <td>{{ $setting->category }}</td>
-                                                    <td>{{ $setting->value }}</td>
+                                                    @php
+                                                        $decoded = json_decode($setting->value, true);
+                                                    @endphp
+
+                                                    <td>
+                                                        {{ is_array($decoded) || is_object($decoded) ? '_' : $setting->value }}
+                                                    </td>
+                                                    <td>{{ $setting->unit }}</td>
                                                     <td>
 
 

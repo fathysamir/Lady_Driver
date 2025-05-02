@@ -21,6 +21,7 @@ class Setting extends Model
         'key',
         'type',
         'value',
+        'unit',
         'category'
     ];
 
