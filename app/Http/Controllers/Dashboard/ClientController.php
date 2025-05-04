@@ -39,7 +39,7 @@ class ClientController extends Controller
             $all_users->where('status', $request->status);
         }
         
-        $all_users = $all_users->paginate(2);
+        $all_users = $all_users->paginate(10);
 
         $all_users->getCollection()->transform(function ($user) {
             // Add the 'image' key based on some condition
