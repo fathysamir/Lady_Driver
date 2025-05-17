@@ -200,22 +200,34 @@ class SettingController extends Controller
     {
 
         $description = AboutUs::where('key', 'description')->first()->value;
-        $phone = AboutUs::where('key', 'phone')->first()->value;
-        $email = AboutUs::where('key', 'email')->first()->value;
+        $phone1 = AboutUs::where('key', 'phone1')->first()->value;
+        $email1 = AboutUs::where('key', 'email1')->first()->value;
+        $phone2 = AboutUs::where('key', 'phone2')->first()->value;
+        $email2 = AboutUs::where('key', 'email2')->first()->value;
+        $phone3 = AboutUs::where('key', 'phone3')->first()->value;
+        $email3 = AboutUs::where('key', 'email3')->first()->value;
+        $phone4 = AboutUs::where('key', 'phone4')->first()->value;
+        $email4 = AboutUs::where('key', 'email4')->first()->value;
         $facebook = AboutUs::where('key', 'facebook')->first()->value;
         $instagram = AboutUs::where('key', 'instagram')->first()->value;
         $twitter = AboutUs::where('key', 'twitter')->first()->value;
         $tiktok = AboutUs::where('key', 'tiktok')->first()->value;
         $linked_in = AboutUs::where('key', 'linked-in')->first()->value;
         $app_link = AboutUs::where('key', 'app-link')->first()->value;
-        return view('dashboard.about_us.view', compact('description', 'phone', 'email', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in','app_link'));
+        return view('dashboard.about_us.view', compact('description', 'phone1', 'email1','phone2', 'email2','phone3', 'email3','phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in','app_link'));
     }
 
     public function update_about_us(Request $request)
     {
         AboutUs::where('key', 'description')->update(['value' => $request->description]);
-        AboutUs::where('key', 'email')->update(['value' => $request->email]);
-        AboutUs::where('key', 'phone')->update(['value' => $request->phone]);
+        AboutUs::where('key', 'email1')->update(['value' => $request->email1]);
+        AboutUs::where('key', 'phone1')->update(['value' => $request->phone1]);
+         AboutUs::where('key', 'email2')->update(['value' => $request->email2]);
+        AboutUs::where('key', 'phone2')->update(['value' => $request->phone2]);
+         AboutUs::where('key', 'email3')->update(['value' => $request->email3]);
+        AboutUs::where('key', 'phone3')->update(['value' => $request->phone3]);
+         AboutUs::where('key', 'email4')->update(['value' => $request->email4]);
+        AboutUs::where('key', 'phone4')->update(['value' => $request->phone4]);
         AboutUs::where('key', 'facebook')->update(['value' => $request->facebook]);
         AboutUs::where('key', 'instagram')->update(['value' => $request->instagram]);
         AboutUs::where('key', 'twitter')->update(['value' => $request->twitter]);

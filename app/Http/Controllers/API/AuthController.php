@@ -423,8 +423,14 @@ class AuthController extends ApiController
     {
 
         $response['description'] = AboutUs::where('key', 'description')->first()->value;
-        $response['phone'] = AboutUs::where('key', 'phone')->first()->value;
-        $response['email'] = AboutUs::where('key', 'email')->first()->value;
+        $response['phone1'] = AboutUs::where('key', 'phone1')->first()->value;
+        $response['email1'] = AboutUs::where('key', 'email1')->first()->value;
+        $response['phone2'] = AboutUs::where('key', 'phone2')->first()->value;
+        $response['email2'] = AboutUs::where('key', 'email2')->first()->value;
+        $response['phone3'] = AboutUs::where('key', 'phone3')->first()->value;
+        $response['email3'] = AboutUs::where('key', 'email3')->first()->value;
+        $response['phone4'] = AboutUs::where('key', 'phone4')->first()->value;
+        $response['email4'] = AboutUs::where('key', 'email4')->first()->value;
         $response['facebook'] = AboutUs::where('key', 'facebook')->first()->value;
         $response['instagram'] = AboutUs::where('key', 'instagram')->first()->value;
         $response['twitter'] = AboutUs::where('key', 'twitter')->first()->value;

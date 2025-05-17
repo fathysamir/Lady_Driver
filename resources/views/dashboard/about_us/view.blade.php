@@ -31,13 +31,43 @@
 
                                 </div>
                                 <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="text" class="form-control" name="email" value="{{ $email }}">
+                                    <label>Email No.1</label>
+                                    <input type="text" class="form-control" name="email1" value="{{ $email1 }}">
+
+                                </div>
+                                 <div class="form-group">
+                                    <label>Email No.2</label>
+                                    <input type="text" class="form-control" name="email2" value="{{ $email2 }}">
+
+                                </div>
+                                 <div class="form-group">
+                                    <label>Email No.3</label>
+                                    <input type="text" class="form-control" name="email3" value="{{ $email3 }}">
+
+                                </div>
+                                 <div class="form-group">
+                                    <label>Email No.4</label>
+                                    <input type="text" class="form-control" name="email4" value="{{ $email4 }}">
 
                                 </div>
                                 <div class="form-group">
-                                    <label>Phone Number</label>
-                                    <input type="text" class="form-control" name="phone" value="{{ $phone }}">
+                                    <label>Phone Number No.1</label>
+                                    <input type="text" class="form-control" name="phone1" value="{{ $phone1 }}">
+
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number No.2</label>
+                                    <input type="text" class="form-control" name="phone2" value="{{ $phone2 }}">
+
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number No.3</label>
+                                    <input type="text" class="form-control" name="phone3" value="{{ $phone3 }}">
+
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number No.4</label>
+                                    <input type="text" class="form-control" name="phone4" value="{{ $phone4 }}">
 
                                 </div>
                                 <div class="form-group">
