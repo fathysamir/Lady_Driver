@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Setting;
+use Illuminate\Support\Facades\App;
 use App\Mail\SendOTP;
 use App\Models\FeedBack;
 use App\Models\Car;
@@ -211,12 +212,18 @@ class AuthController extends ApiController
         $user->is_verified = '1';
         $user->is_online = '1';
         $user->save();
+        $acceptLang = request()->header('Accept-Language');
+        //$locale = substr($acceptLang, 0, 2);
+        App::setLocale($acceptLang);
+        $message = __('general.client_welcome_message');
+        dd($message);
         if ($request->invitation_code) {
             $invitation_exchange = floatval(Setting::where('key', 'invitation_exchange')->where('category', 'Users')->where('type', 'number')->first()->value);
             $invitation_code_owner = User::where('invitation_code', $request->invitation_code)->first();
             $invitation_code_owner->wallet = $invitation_code_owner->wallet + floatval($invitation_exchange);
             $invitation_code_owner->save();
         }
+
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
         $user->verification = '1';
