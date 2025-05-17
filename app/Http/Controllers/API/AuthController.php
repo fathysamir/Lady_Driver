@@ -248,7 +248,7 @@ class AuthController extends ApiController
         }
         $user->OTP = $otpCode ;
         $user->save();
-        Mail::to($request->email)->send(new SendOTP($otpCode));
+        Mail::to($request->email)->send(new SendOTP($otpCode,$user->name));
         return $this->sendResponse(null, 'OTP sent to your email address.', 200);
     }
 
