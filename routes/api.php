@@ -20,6 +20,8 @@ use App\Http\Controllers\API\ClientController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/app_version',[AuthController::class,'app_version'])->name('app_version');
+Route::post('/update_app_version',[AuthController::class,'update_app_version'])->name('update_app_version');
 Route::post('/register', [AuthController::class,'register'])->name('register');
 Route::post('/login', [AuthController::class,'login'])->name('login');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
@@ -27,6 +29,7 @@ Route::get('/about_us', [AuthController::class,'about_us'])->name('about_us');
 Route::post('/verifyOTP', [AuthController::class,'verifyOTP'])->name('verifyOTP');
 Route::post('/resend_otp', [AuthController::class,'resend_otp'])->name('resend_otp');
 Route::post('/reset_password', [AuthController::class,'reset_password'])->name('reset_password');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class,'logout'])->name('logout');
     Route::post('/device_tocken', [AuthController::class,'device_tocken'])->name('device_tocken');

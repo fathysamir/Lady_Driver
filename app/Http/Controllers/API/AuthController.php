@@ -504,4 +504,11 @@ class AuthController extends ApiController
         $notification->save();
         return $this->sendResponse(null, 'Notification seen successfully', 200);
     }
+
+    public function app_version(){
+        $version=Setting::where('key', 'app_version')->where('category', 'General')->where('type', 'string')->first()->value;
+    }
+    public function update_app_version(Request $request){
+        Setting::where('key', 'app_version')->where('category', 'General')->where('type', 'string')->update(['value'=>$request->version]);
+    }
 }
