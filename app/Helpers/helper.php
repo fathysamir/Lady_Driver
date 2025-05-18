@@ -33,10 +33,10 @@ function getMediaUrl($model, $collection_name)
     // $attachment = $model->attachment()
     //     ->where('collection_name', $collection_name)
     //     ->first();
-    $attachments = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->select('path')->get();
+    $attachments = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->pluck('path')->toArray();
 
     if (count($attachments) == 0) {
-        return null;
+        return $attachments;
     } else {
 
         foreach ($attachments as $attachment) {
