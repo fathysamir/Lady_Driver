@@ -215,8 +215,14 @@ class AuthController extends ApiController
         $acceptLang = request()->header('Accept-Language');
         //$locale = substr($acceptLang, 0, 2);
         App::setLocale($acceptLang);
-        $message = __('general.driver_welcome_message');
-        dd($message);
+        if($user->mode=='client'){
+            $message = __('general.client_welcome_message');
+            
+        }else{
+            $message = __('general.driver_welcome_message');
+
+        }
+        
         if ($request->invitation_code) {
             $invitation_exchange = floatval(Setting::where('key', 'invitation_exchange')->where('category', 'Users')->where('type', 'number')->first()->value);
             $invitation_code_owner = User::where('invitation_code', $request->invitation_code)->first();
