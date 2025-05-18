@@ -37,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/seen_notification', [AuthController::class,'seen_notification'])->name('seen_notification');
     Route::post('/update_password', [AuthController::class,'update_password'])->name('update_password');
     Route::get('/FAQs', [AuthController::class,'FAQs'])->name('FAQs');
+    Route::get('/get_dashboard_messages', [AuthController::class,'get_dashboard_messages'])->name('get_dashboard_messages');
+
+
     Route::post('/activation', [DriverController::class,'activation'])->name('activation');
     Route::post('/create_Car', [DriverController::class,'create_car'])->name('create_car');
     Route::post('/edit_car', [DriverController::class,'edit_car'])->name('edit_car');

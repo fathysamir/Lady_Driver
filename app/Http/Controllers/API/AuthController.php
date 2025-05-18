@@ -15,6 +15,7 @@ use App\Models\Setting;
 use Illuminate\Support\Facades\App;
 use App\Mail\SendOTP;
 use App\Models\FeedBack;
+use App\Models\DashboardMessage;
 use App\Models\Car;
 use App\Models\AboutUs;
 use App\Models\Notification;
@@ -217,9 +218,10 @@ class AuthController extends ApiController
         App::setLocale($acceptLang);
         if($user->mode=='client'){
             $message = __('general.client_welcome_message');
-            
+            DashboardMessage::create(['receiver_id'=>$user->id,'message'=>$message]);
         }else{
             $message = __('general.driver_welcome_message');
+            DashboardMessage::create(['receiver_id'=>$user->id,'message'=>$message]);
 
         }
         
@@ -533,5 +535,15 @@ class AuthController extends ApiController
         Setting::where('key', 'app_version')->where('category', 'General')->where('type', 'string')->update(['value'=>$request->version]);
         return $this->sendResponse(null, 'Version Updated Successfully', 200);
  
+    }
+
+    public function get_dashboard_messages(){
+        $messages=DashboardMessage::where('receiver_id',auth()->user()->id)->get()->map(function ($message) {
+            $message->images=getMediaUrl($message,$message->imageCollection);
+            $message->videos=getMediaUrl($message,$message->videoCollection);
+            $message->records=getMediaUrl($message,$message->recordCollection);
+            return $message;
+        });
+        return $this->sendResponse($messages,null, 200);
     }
 }

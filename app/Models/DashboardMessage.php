@@ -9,6 +9,9 @@ class DashboardMessage extends Model
 {
     use HasFactory;
     protected $table = 'dashboard_messages';
+    public $imageCollection = 'image';
+    public $videoCollection = 'video';
+    public $recordCollection = 'record';
     protected $fillable = [
         'receiver_id',
         'seen',
