@@ -546,4 +546,21 @@ class AuthController extends ApiController
         });
         return $this->sendResponse($messages,null, 200);
     }
+
+    public function change_lang(Request $request){
+        $acceptLang = request()->header('Accept-Language');
+        //$locale = substr($acceptLang, 0, 2);
+        App::setLocale($acceptLang);
+        $user=auth()->user();
+        if($user->mode=='client'){
+            $message = __('general.client_welcome_message'); 
+        }else{
+            $message = __('general.driver_welcome_message');
+        }
+        $mes=DashboardMessage::where('receiver_id',$user->id)->first();
+            if($mes)
+                $mes->update(['message'=>$message]);
+        return $this->sendResponse(null,'success', 200);
+
+    }
 }
