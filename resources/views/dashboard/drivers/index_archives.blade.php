@@ -64,11 +64,11 @@
                                     action="{{ route('archived_drivers') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Deleted Drivers - {{ $count }}</h5>
+                                        <h5 class="card-title" style="width: 80%;">Deleted Drivers - {{ $count }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             
                                             <input type="text" class="form-control" placeholder="Enter keywords"
-                                                name="search" value="{{ request('search') }}">
+                                                name="search"style="width: 300px;" value="{{ request('search') }}">
                                             <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                         </div>
 

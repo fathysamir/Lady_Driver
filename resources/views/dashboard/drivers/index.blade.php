@@ -79,15 +79,15 @@
                                     action="{{ route('drivers') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Drivers - {{ $count }}</h5>
+                                        <h5 class="card-title" style="width: 55%;">Drivers - {{ $count }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-                                            <a class="btn btn-light px-5" type="button"
+                                            <a class="btn btn-light px-3" type="button"
                                                 href="{{ route('archived_drivers') }}"
-                                                style="margin:0% 0% 1% 1%; ">Deleted Accounts</a>
-                                            <button class="btn btn-light px-5" type="button"
+                                                style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
+                                            <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
                                             <input type="text" class="form-control" placeholder="Enter keywords"
-                                                name="search" value="{{ request('search') }}">
+                                                name="search"style="width: 300px;" value="{{ request('search') }}">
                                             <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                         </div>
 
