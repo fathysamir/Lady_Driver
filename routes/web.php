@@ -15,6 +15,7 @@ use App\Http\Controllers\Dashboard\MotorcycleController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\ClientController;
 use App\Http\Controllers\Dashboard\DriverController;
+use App\Http\Controllers\Dashboard\ChatController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -137,4 +138,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     ///////////////////////////////////////////////
     Route::any('/complaints', [ComplaintController::class, 'index'])->name('complaints');
     Route::get('/complaint/view/{id}', [ComplaintController::class, 'view'])->name('view.complaint');
+
+
+    Route::get('/chats/send-message', [ChatController::class, 'send_message_view'])->name('send_message_view');
+
 });

@@ -34,10 +34,21 @@
 </head>
 
 <body class="bg-theme bg-{{ app('theme') }}">
+    <style>
+        .sidebar-submenu {
+            display: none;
+            padding-left: 40px;
+            /* Add transitions if desired */
+            transition: all 0.3s ease;
+        }
 
+        /* If using the class toggle method */
+        .sidebar-submenu.show {
+            display: block;
+        }
+    </style>
     <!-- Start wrapper-->
     <div id="wrapper">
-
         <!--Start sidebar-wrapper-->
         @include('dashboard.layout.side_menu')
         <!--End sidebar-wrapper-->
@@ -97,7 +108,13 @@
         <!--end color switcher-->
 
     </div><!--End wrapper-->
-
+    <script>
+        function toggleSubmenu(event, element) {
+            event.preventDefault();
+            const submenu = element.nextElementSibling;
+            submenu.classList.toggle('show');
+        }
+    </script>
     <!-- Bootstrap core JavaScript-->
     <script src="{{ asset('dashboard/assets/js/jquery.min.js') }}"></script>
     <script src="{{ asset('dashboard/assets/js/popper.min.js') }}"></script>
