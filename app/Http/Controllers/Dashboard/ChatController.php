@@ -9,4 +9,8 @@ class ChatController extends ApiController
     public function send_message_view(){
         return view('dashboard.chats.send_message');
     }
+
+    public function send_message(Request $request){
+        dd($request->all());
+    }
 }
