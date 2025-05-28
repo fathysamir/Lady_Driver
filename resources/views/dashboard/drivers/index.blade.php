@@ -79,7 +79,7 @@
                                     action="{{ route('drivers') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Drivers - {{ count($all_users) }}</h5>
+                                        <h5 class="card-title" style="width: 60%;">Drivers - {{ $count }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-5" type="button"
                                                 href="{{ route('archived_drivers') }}"

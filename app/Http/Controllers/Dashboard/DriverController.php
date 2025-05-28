@@ -38,7 +38,7 @@ class DriverController extends Controller
         if ($request->has('status') && $request->status != null) {
             $all_users->where('status', $request->status);
         }
-        
+        $count = $all_users->count();
         $all_users = $all_users->paginate(12);
 
         $all_users->getCollection()->transform(function ($user) {
@@ -47,7 +47,7 @@ class DriverController extends Controller
             return $user;
         });
         $search = $request->search;
-        return view('dashboard.drivers.index', compact('all_users', 'search'));
+        return view('dashboard.drivers.index', compact('all_users','count', 'search'));
 
     }
 
@@ -67,7 +67,7 @@ class DriverController extends Controller
         }
         // Only include soft deleted users
         $all_users->whereNotNull('deleted_at');
-
+        $count = $all_users->count();
         // Paginate the results
         $all_users = $all_users->paginate(12);
 
@@ -79,7 +79,7 @@ class DriverController extends Controller
 
         $search = $request->search;
        
-        return view('dashboard.drivers.index_archives', compact('all_users', 'search'));
+        return view('dashboard.drivers.index_archives', compact('all_users','count', 'search'));
     }
 
 

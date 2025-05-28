@@ -64,7 +64,7 @@
                                     action="{{ route('archived_clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Deleted Clients - {{ count($all_users) }}</h5>
+                                        <h5 class="card-title" style="width: 60%;">Deleted Clients - {{ $count }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             
                                             <input type="text" class="form-control" placeholder="Enter keywords"
