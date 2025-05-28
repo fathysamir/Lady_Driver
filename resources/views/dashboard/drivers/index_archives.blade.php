@@ -64,7 +64,7 @@
                                     action="{{ route('archived_drivers') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Archived Drivers</h5>
+                                        <h5 class="card-title" style="width: 60%;">Deleted Drivers - {{ count($all_users) }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             
                                             <input type="text" class="form-control" placeholder="Enter keywords"

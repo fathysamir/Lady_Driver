@@ -80,11 +80,11 @@
                                     action="{{ route('clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 60%;">Clients</h5>
+                                        <h5 class="card-title" style="width: 60%;">Clients - {{ count($all_users) }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-5" type="button"
                                                 href="{{ route('archived_clients') }}"
-                                                style="margin:0% 0% 1% 1%; ">Archives</a>
+                                                style="margin:0% 0% 1% 1%; ">Deleted Accounts</a>
                                             <button class="btn btn-light px-5" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
                                             <input type="text" class="form-control" placeholder="Enter keywords"

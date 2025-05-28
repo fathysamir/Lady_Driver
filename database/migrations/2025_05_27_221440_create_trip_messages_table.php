@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dashboard_messages', function (Blueprint $table) {
+        Schema::create('trip_messages', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('receiver_id'); 
-            $table->foreign('receiver_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedBigInteger('sender_id'); 
+            $table->unsignedBigInteger('trip_id'); 
             $table->longText('message')->nullable();
+            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
+            $table->longText('location')->nullable();
             $table->enum('seen', ['0','1'])->default('0');
 
             $table->timestamps();
@@ -27,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dashboard_messages');
+        Schema::dropIfExists('trip_messages');
     }
 };
