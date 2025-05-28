@@ -57,10 +57,18 @@
                                     <div id="videoPreview" style="margin-top: 10px;"></div>
                                 </div>
                                 <div class="form-group">
-
-
+                                    <label>Sending Date <span style="font-size:.5rem">(optional)</span></label>
+                                    <input type="date" class="form-control" name="date">
                                 </div>
-
+                                <div class="form-group">
+                                    <label>receivers</label>
+                                    <select class="form-control" name="receivers_type" required>
+                                        <option value="">Select Receivers</option>
+                                        <option value="clients">Clients</option>
+                                        <option value="drivers">Drivers</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
 
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-light px-5"><i class="icon-lock"></i>
