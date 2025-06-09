@@ -32,10 +32,10 @@ class SettingController extends Controller
                 $query->where('label', 'LIKE', '%' . $request->search . '%');
             });
         }
-        if ($request->has('category') && $request->category != null) {
-            $all_settings->where('category', $request->category);
-        }
-        $all_settings = $all_settings->paginate(12);
+        // if ($request->has('category') && $request->category != null) {
+        //     $all_settings->where('category', $request->category);
+        // }
+        $all_settings = $all_settings->get();
         $search = $request->search;
         return view('dashboard.settings.index', compact('all_settings', 'search'));
     }

@@ -1,6 +1,7 @@
 @extends('dashboard.layout.app')
 @section('title', 'Dashboard - Send Message')
 @section('content')
+
     <style>
         .image-preview {
             max-width: 200px;
@@ -36,6 +37,20 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title">Send Message To Client Or Drivers</div>
+                             @if (session('error'))
+                                <div id="errorAlert" class="alert alert-danger"
+                                    style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:brown;border-radius: 20px; color:beige;">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+
+                            @if (session('success'))
+                                <div id="successAlert"
+                                    class="alert alert-success"style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:green;border-radius: 20px; color:beige;">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+
                             <hr>
                             <form method="post" action="{{ route('send.messages') }}" enctype="multipart/form-data">
                                 @csrf
@@ -62,14 +77,21 @@
                                 </div>
                                 <div class="form-group">
                                     <label>receivers</label>
-                                    <select class="form-control" name="receivers_type" required>
+                                    <select class="form-control" name="receivers_type" id="receivers_type" required>
                                         <option value="">Select Receivers</option>
                                         <option value="clients">Clients</option>
                                         <option value="drivers">Drivers</option>
-                                        <option value="all">All</option>
+                                        <option value="all_users">All Users</option>
                                     </select>
                                 </div>
+                                <div class="form-group d-none">
+                                    <label id="label"></label>
+                                   
+                                    <select class="form-control" name="users[]" id="users" multiple>
 
+                                    </select>
+
+                                </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-light px-5"><i class="icon-lock"></i>
                                         Send</button>
@@ -85,6 +107,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.getElementById('imageUpload').addEventListener('change', function(event) {
             const preview = document.getElementById('imagePreview');
@@ -138,6 +161,80 @@
                 alert('Please select a video file (MP4, WebM, etc.)');
                 event.target.value = ''; // Clear the input
             }
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#users').select2({
+                placeholder: "Select users",
+
+                allowClear: true
+            });
+            // When receivers_type selection changes
+            $('#receivers_type').change(function() {
+                const selectedOption = $(this).val();
+                const usersSelect = $('#users');
+                const label = $('#label');
+                const formGroup = usersSelect.closest('.form-group');
+
+                // Hide and reset users select initially
+                usersSelect.empty();
+                formGroup.addClass('d-none');
+
+                if (!selectedOption) return;
+
+                // Update label based on selection
+                switch (selectedOption) {
+                    case 'clients':
+                        label.text('Select Clients');
+                        fetchUsers('client');
+                        break;
+                    case 'drivers':
+                        label.text('Select Drivers');
+                        fetchUsers('driver');
+                        break;
+                    case 'all_users':
+                        label.text('Select Users');
+                        fetchUsers('users');
+                        break;
+                }
+
+                // Show the users select
+                formGroup.removeClass('d-none');
+            });
+
+            // Function to fetch users via AJAX
+            function fetchUsers(mode = null) {
+                $.ajax({
+                    url: '/admin-dashboard/chats/get-users', // Update with your actual endpoint
+                    method: 'GET',
+                    data: {
+
+                        mode: mode
+                    },
+                    success: function(response) {
+                        const usersSelect = $('#users');
+                        usersSelect.empty();
+
+                        // Add default option
+                       
+
+                        // Add user options
+                        response.data.forEach(function(user) {
+                            usersSelect.append($('<option>', {
+                                value: user.id,
+                                text: user.name
+                            }));
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error('Error fetching users:', xhr.responseText);
+                        alert('Failed to load users. Please try again.');
+                    }
+                });
+            }
+
+
         });
     </script>
     <script>

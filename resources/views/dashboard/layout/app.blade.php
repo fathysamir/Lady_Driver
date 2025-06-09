@@ -30,7 +30,63 @@
     <link href="{{ asset('dashboard/assets/css/sidebar-menu.css') }}" rel="stylesheet" />
     <!-- Custom Style-->
     <link href="{{ asset('dashboard/assets/css/app-style.css') }}" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container{
+          display: block;
+          width: 100% !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            /* background-color: black; */
+            color: #6C7293;
+        }
+    
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            /* background-color: black; */
+            color: #6C7293;
+        }
+    
+        .select2-container--default .select2-selection--single {
+            /* background-color: black;
+            border: 1px solid black; */
+            
+        }
+    
+        .select2-container--default .select2-selection--multiple {
+            /* background-color: black;
+            border: 1px solid black; */
+            border: 0px solid #e5eaef;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff !important;
+            height: 2%;
+            
+        }
+    
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            /* background-color: red; */
+            /* color: #6C7293; */
+        }
+    
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+                color: #6C7293;
+            }
+    
+        .select2-container--default .select2-selection--multiple .select2-selection__placeholder {
+            color: #6C7293;
+        }
+        .select2-results__options{
+            background-color: black;
+        }
+        .textarea{
+            height: 200px !important;
+        }
+        .select2-hidden-accessible:focus{
 
+            border-color: #f58b8b !important;
+            outline: 0 !important;
+            box-shadow: 0 0 0 .25rem rgba(235, 22, 22, 0.25) !important;
+        }
+    </style>
 </head>
 
 <body class="bg-theme bg-{{ app('theme') }}">

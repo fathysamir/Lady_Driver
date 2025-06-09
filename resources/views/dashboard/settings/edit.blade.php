@@ -79,6 +79,29 @@
                                             </div>
                                         </div>
                                     </div>
+                                @elseif ($setting->type == 'string')
+                                    <div class="form-row">
+                                        <div class="form-group col-md-10">
+                                            <div class="form-group">
+                                                <label>Value</label>
+                                                <input type="text" name="value" class="form-control"
+                                                    placeholder="Enter Value"value="{{ old('value', $setting->value) }}"
+                                                    step="0.01">
+                                                @if ($errors->has('value'))
+                                                    <p class="text-error more-info-err" style="color: red;">
+                                                        {{ $errors->first('value') }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-md-2">
+                                            <div class="form-group">
+                                                <label>Unit</label>
+                                                <input type="text" disabled class="form-control"
+                                                    value="{{ $setting->unit }}">
+
+                                            </div>
+                                        </div>
+                                    </div>
                                 @elseif($setting->type == 'options')
                                     @php
                                         if ($setting->value) {
@@ -103,7 +126,8 @@
                                                             <input type="time"
                                                                 name="value[Saturday][{{ $key }}][from]"
                                                                 class="form-control mr-1" placeholder="From"
-                                                                style="width: 48.2%;" required value="{{ $value['from'] }}">
+                                                                style="width: 48.2%;" required
+                                                                value="{{ $value['from'] }}">
                                                             <input type="time"
                                                                 name="value[Saturday][{{ $key }}][to]"
                                                                 class="form-control mr-1" placeholder="To"
@@ -137,7 +161,8 @@
                                                             <input type="time"
                                                                 name="value[Sunday][{{ $key }}][to]"
                                                                 class="form-control mr-1" placeholder="To"
-                                                                style="width: 48.2%;" required value="{{ $value['to'] }}">
+                                                                style="width: 48.2%;" required
+                                                                value="{{ $value['to'] }}">
                                                             <i class="fa fa-times remove-row"
                                                                 style="font-size: 35px; color: indianred; cursor: pointer;"></i>
                                                         </div>

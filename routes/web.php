@@ -142,4 +142,5 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
 
     Route::get('/chats/send-message', [ChatController::class, 'send_message_view'])->name('send_message_view');
     Route::post('/chats/send-message/to', [ChatController::class, 'send_message'])->name('send.messages');
+    Route::get('/chats/get-users', [ChatController::class, 'get_users'])->name('chats.get_users');
 });

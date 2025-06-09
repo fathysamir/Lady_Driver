@@ -7,7 +7,7 @@ function uploadMedia($request_file, $collection_name, $model)
 {
     ini_set('post_max_size', '500M');
     ini_set('upload_max_filesize', '500M');
-    ini_set('memory_limit', '1000M');
+    ini_set('memory_limit', '500M');
     set_time_limit(10000000);
     $directory = public_path('images');
 
@@ -25,6 +25,16 @@ function uploadMedia($request_file, $collection_name, $model)
         'collection_name' => $collection_name,
         'Path' => $path
     ]);
+    return $path;
+}
+
+function uploadMediaByURL($path,$collection_name, $model){
+    DB::table('media')->insert([
+            'attachmentable_type' => get_class($model),
+            'attachmentable_id' => $model->id,
+            'collection_name' => $collection_name,
+            'Path' => $path
+        ]);
     return $path;
 }
 
