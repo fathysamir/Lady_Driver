@@ -128,9 +128,7 @@ class AuthController extends ApiController
         ]);
         // dd($request->all());
         if ($validator->fails()) {
-
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
         $login     = $request->email;
