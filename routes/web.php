@@ -30,14 +30,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    $users = User::role('Client')->get();
-    foreach ($users as $user) {
-        $country_code = $user->country_code; // Default to Egypt (+20) if not found
-        $phone_number = $user->phone;
-        $phone        = substr($phone_number, strlen($country_code));
-        $user->phone=$phone;
-        $user->save();
-    }
 
     return view('welcome');
     // return view ('emails.otp');
