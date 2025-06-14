@@ -1,21 +1,23 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
-use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Controllers\Dashboard\CarController;
 use App\Http\Controllers\Dashboard\CarMarkController;
 use App\Http\Controllers\Dashboard\CarModelController;
-use App\Http\Controllers\Dashboard\CarController;
-use App\Http\Controllers\Dashboard\TripController;
-use App\Http\Controllers\Dashboard\SettingController;
-use App\Http\Controllers\Dashboard\ContactUsController;
-use App\Http\Controllers\Dashboard\FeedBackController;
-use App\Http\Controllers\Dashboard\ComplaintController;
-use App\Http\Controllers\Dashboard\MotorcycleController;
-use App\Http\Controllers\Dashboard\AdminController;
-use App\Http\Controllers\Dashboard\ClientController;
-use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\ChatController;
+use App\Http\Controllers\Dashboard\ClientController;
+use App\Http\Controllers\Dashboard\ComplaintController;
+use App\Http\Controllers\Dashboard\ContactUsController;
+use App\Http\Controllers\Dashboard\DriverController;
+use App\Http\Controllers\Dashboard\FeedBackController;
+use App\Http\Controllers\Dashboard\MotorcycleController;
+use App\Http\Controllers\Dashboard\SettingController;
+use App\Http\Controllers\Dashboard\TripController;
+use App\Http\Controllers\Dashboard\UserController;
+use App\Models\User;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -28,8 +30,17 @@ use App\Http\Controllers\Dashboard\ChatController;
 */
 
 Route::get('/', function () {
+    $users = User::role('Client')->get();
+    foreach ($users as $user) {
+        $country_code = $user->country_code; // Default to Egypt (+20) if not found
+        $phone_number = $user->phone;
+        $phone        = substr($phone_number, strlen($country_code));
+        $user->phone=$phone;
+        $user->save();
+    }
+
     return view('welcome');
-   // return view ('emails.otp');
+    // return view ('emails.otp');
 });
 Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
@@ -40,7 +51,7 @@ Route::get('/admin-dashboard/login', [AuthController::class, 'login_view'])->nam
 Route::post('/admin-dashboard/login', [AuthController::class, 'login'])->name('login');
 Route::get('/admin-dashboard', function () {
 
-    if (!auth()->user()) {
+    if (! auth()->user()) {
         return redirect('/admin-dashboard/login');
     } else {
         return redirect('/admin-dashboard/home');
@@ -49,7 +60,7 @@ Route::get('/admin-dashboard', function () {
 Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], function () {
     Route::get('/home', [AuthController::class, 'home'])->name('home');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::post('/change_theme', [AuthController::class,'change_theme'])->name('change_theme');
+    Route::post('/change_theme', [AuthController::class, 'change_theme'])->name('change_theme');
     Route::any('/users', [UserController::class, 'index'])->name('users');
     // Route::get('/users/create', [UserController::class, 'create'])->name('add.user');
     // Route::post('/users/create', [UserController::class, 'store'])->name('create.user');
@@ -138,7 +149,6 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     ///////////////////////////////////////////////
     Route::any('/complaints', [ComplaintController::class, 'index'])->name('complaints');
     Route::get('/complaint/view/{id}', [ComplaintController::class, 'view'])->name('view.complaint');
-
 
     Route::get('/chats/send-message', [ChatController::class, 'send_message_view'])->name('send_message_view');
     Route::post('/chats/send-message/to', [ChatController::class, 'send_message'])->name('send.messages');
