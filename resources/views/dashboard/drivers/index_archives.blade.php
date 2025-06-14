@@ -123,7 +123,7 @@
                                                     </td>
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
 
-                                                    <td>{!! highlight($user->phone, $search ?? '') !!}</td>
+                                                    <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
                                                    
                                                    
                                                     <td>
