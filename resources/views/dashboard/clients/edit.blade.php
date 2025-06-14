@@ -54,7 +54,13 @@
                                             {{ $errors->first('email') }}</p>
                                     @endif
                                 </div>
-                              
+                                @php
+                                    // Extract country code and phone number
+                                   
+                                    $country_code = $user->country_code; // Default to Egypt (+20) if not found
+                                   
+                                    //dd($user,$matches,$country_code,$phone);
+                                @endphp
                                 <div class="form-group">
                                     <label>Phone Number</label>
                                     <div class="input-group">
