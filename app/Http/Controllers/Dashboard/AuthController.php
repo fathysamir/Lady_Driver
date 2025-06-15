@@ -45,6 +45,7 @@ class AuthController extends Controller
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
         if (Auth::attempt(['email' => request('email'),'password' => request('password'),'password2' => request('second_password')])) {
+            dd('rdfvcx');
             $user = auth()->user();
             $user->is_online = '1';
             $user->save();
