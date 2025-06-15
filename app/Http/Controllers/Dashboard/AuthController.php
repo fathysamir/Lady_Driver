@@ -1,21 +1,15 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContactUs;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use App\Models\ContactUs;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
-use Spatie\Permission\Models\Role;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use App\Services\FirebaseService;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -32,11 +26,11 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validator  =   Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
 
-                'email' => ['required', 'string', 'email'],
-                'password' => ['required', 'string', 'min:8'],
-                'second_password' => ['required', 'string', 'min:8'],
+            'email'           => ['required', 'string', 'email'],
+            'password'        => ['required', 'string', 'min:8'],
+            'second_password' => ['required', 'string', 'min:8'],
 
         ]);
         // dd($request->all());
@@ -44,9 +38,13 @@ class AuthController extends Controller
 
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
-        if (Auth::attempt(['email' => request('email'),'password' => request('password'),'password2' => request('second_password')])) {
-            dd('rdfvcx');
-            $user = auth()->user();
+        if (Auth::attempt(['email' => request('email'), 'password' => request('password')])) {
+            $user = Auth::user();
+            if (! Hash::check(request('second_password'), $user->password2)) {
+                Auth::logout();
+                return back()->withErrors(['second_password' => 'Second password is incorrect.']);
+            }
+            $user            = auth()->user();
             $user->is_online = '1';
             $user->save();
             return redirect('/admin-dashboard/home');
@@ -57,12 +55,11 @@ class AuthController extends Controller
 
     }
 
-
     ///////////////////////////////////////////  Logout  ///////////////////////////////////////////
 
     public function logout()
     {
-        $user = auth()->user();
+        $user            = auth()->user();
         $user->is_online = '0';
         $user->save();
         Auth::logout();
@@ -77,17 +74,15 @@ class AuthController extends Controller
     }
     public function change_theme(Request $request)
     {
-        $user = auth()->user();
+        $user        = auth()->user();
         $user->theme = $request->theme;
         $user->save();
         return $this->sendResponse(null, 'success');
-
 
     }
     //////////////////////////////////////////////////////////////////////////////////////
     public function privacy_policy($lang)
     {
-
 
         // $curl = curl_init();
 
@@ -119,7 +114,7 @@ class AuthController extends Controller
 
         // dd($response);
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
-        if (!in_array($lang, $supportedLanguages)) {
+        if (! in_array($lang, $supportedLanguages)) {
             $lang = 'en';
         }
 
@@ -127,7 +122,7 @@ class AuthController extends Controller
         App::setLocale($lang);
 
         // Retrieve the translations
-        $title = __('privacy_policy.title');
+        $title   = __('privacy_policy.title');
         $content = __('privacy_policy.content');
 
         return view('dashboard.privacy_policy', compact('title', 'content'));
@@ -136,7 +131,7 @@ class AuthController extends Controller
     public function terms_conditions($lang)
     {
         $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
-        if (!in_array($lang, $supportedLanguages)) {
+        if (! in_array($lang, $supportedLanguages)) {
             $lang = 'en';
         }
 
@@ -144,7 +139,7 @@ class AuthController extends Controller
         App::setLocale($lang);
 
         // Retrieve the translations
-        $title = __('terms_conditions.title');
+        $title   = __('terms_conditions.title');
         $content = __('terms_conditions.content');
 
         return view('dashboard.terms_conditions', compact('title', 'content'));
@@ -159,20 +154,20 @@ class AuthController extends Controller
     public function save_contact_us(Request $request)
     {
 
-        $validator  =   Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
 
-            'subject' => ['required', 'string','max:191'],
-            'name' => ['required', 'string', 'max:191'],
-            'email' => ['required', 'string', 'max:191','email'],
-            'phone' => ['required', 'numeric'],
-            'message' => ['required','string']
+            'subject' => ['required', 'string', 'max:191'],
+            'name'    => ['required', 'string', 'max:191'],
+            'email'   => ['required', 'string', 'max:191', 'email'],
+            'phone'   => ['required', 'numeric'],
+            'message' => ['required', 'string'],
         ]);
         // dd($request->all());
         if ($validator->fails()) {
 
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
-        ContactUs::create(['subject' => $request->subject,'name' => $request->name,'email' => $request->email,'message' => $request->message,'phone' => $request->country_code . $request->phone]);
+        ContactUs::create(['subject' => $request->subject, 'name' => $request->name, 'email' => $request->email, 'message' => $request->message, 'phone' => $request->country_code . $request->phone]);
         return redirect('/');
     }
 
