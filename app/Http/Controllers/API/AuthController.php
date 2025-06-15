@@ -370,6 +370,23 @@ class AuthController extends ApiController
                 uploadMedia($request->image, $user->avatarCollection, $user);
             }
         }
+        if ($request->file('ID_front_image')) {
+            $image2 = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+            if ($image2 != null) {
+                deleteMedia($user, $user->IDfrontImageCollection);
+                uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+            } else {
+                uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+            }
+        }if ($request->file('ID_back_image')) {
+            $image3 = getFirstMediaUrl($user, $user->IDbackImageCollection);
+            if ($image3 != null) {
+                deleteMedia($user, $user->IDbackImageCollection);
+                uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+            } else {
+                uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+            }
+        }
         $user        = User::find(auth()->user()->id);
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
         return $this->sendResponse($user, 'Account Updated Successfuly', 200);
