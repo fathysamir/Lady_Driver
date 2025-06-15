@@ -387,7 +387,7 @@
 
                                         </div>
                                         <input type="number" name="phone" class="form-control"
-                                            placeholder="Enter Phone Number" value="{{ $user->phone }}">
+                                            placeholder="Enter Phone Number" value="{{ $admin->phone }}">
                                     </div>
                                     @if ($errors->has('phone'))
                                         <p class="text-error more-info-err" style="color: red;">
