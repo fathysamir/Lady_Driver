@@ -239,6 +239,27 @@
                                     @endif
 
                                 </div>
+                                <div class="form-group">
+                                    <label for="inputPassword3">Second Password</label>
+
+                                    <input type="password" class="form-control" name="second_password">
+                                    @if ($errors->has('second_password'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('second_password') }}</p>
+                                    @endif
+
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPassword3">Confirm Second Password</label>
+
+                                    <input type="password" class="form-control"
+                                        name="second_password_confirmation">
+                                    @if ($errors->has('second_password_confirmation'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('second_password_confirmation') }}</p>
+                                    @endif
+
+                                </div>
 
 
 

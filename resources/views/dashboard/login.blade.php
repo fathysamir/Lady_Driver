@@ -94,6 +94,20 @@
                                 @endif
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword" class="sr-only">Second Password</label>
+                            <div class="position-relative has-icon-right">
+                                <input type="password" class="form-control input-shadow"
+                                    name="second_password" placeholder="Enter Password">
+                                <div class="form-control-position">
+                                    <i class="icon-lock"></i>
+                                </div>
+                                @if ($errors->has('second_password'))
+                                    <p class="text-error more-info-err" style="color: red;">
+                                        {{ $errors->first('second_password') }}</p>
+                                @endif
+                            </div>
+                        </div>
 
                         <button type="submit" class="btn btn-light btn-block">Sign In</button>
 

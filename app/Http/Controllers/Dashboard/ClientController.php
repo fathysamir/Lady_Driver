@@ -100,9 +100,7 @@ class ClientController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->merge([
-            'phone' => $request->country_code . $request->phone
-        ]);
+       
         $validator = Validator::make($request->all(), [
             'status' => ['required'],
             'email' => [
@@ -112,9 +110,13 @@ class ClientController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($id)->whereNull('deleted_at')
             ],
-            'phone' => [
+            'country_code' => 'required',
+            'phone'           => [
                 'required',
-                Rule::unique('users', 'phone')->ignore($id)->whereNull('deleted_at')
+                Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
+                    return $query->where('country_code', $request->country_code)
+                        ->whereNull('deleted_at');
+                }),
             ],
              'birth_date' => 'nullable|date',
         ]);

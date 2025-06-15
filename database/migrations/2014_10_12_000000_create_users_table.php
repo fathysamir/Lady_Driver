@@ -32,6 +32,7 @@ return new class extends Migration
             $table->longText('device_token')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('password2')->nullable();
             $table->enum('seen', ['0', '1'])->default('0');
             $table->decimal('wallet',15, 2)->default(0);
             $table->string('theme')->nullable();

@@ -45,10 +45,12 @@ class AuthController extends ApiController
             'password'     => 'required|string|min:8|confirmed',
             'mode'         => 'required',
             'country_code' => 'required',
-            'phone'        => [
+            'phone'           => [
                 'required',
-                Rule::unique('users', 'phone')->whereNull('deleted_at'),
-
+                Rule::unique('users')->where(function ($query) use ($request) {
+                    return $query->where('country_code', $request->country_code)
+                        ->whereNull('deleted_at');
+                }),
             ],
 
         ];
@@ -311,11 +313,14 @@ class AuthController extends ApiController
                 Rule::unique('users', 'email')->ignore(auth()->user()->id)->whereNull('deleted_at'),
             ],
             'country_code' => 'required',
-            'phone'        => [
-                'required',
-                Rule::unique('users', 'phone')->ignore(auth()->user()->id)->whereNull('deleted_at'),
-            ],
             
+            'phone'           => [
+                'required',
+                Rule::unique('users')->ignore(auth()->user()->id)->where(function ($query) use ($request) {
+                    return $query->where('country_code', $request->country_code)
+                        ->whereNull('deleted_at');
+                }),
+            ],
             'address'      => 'nullable',
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'lat'          => 'nullable',
