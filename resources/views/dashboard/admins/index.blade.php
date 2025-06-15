@@ -88,7 +88,19 @@
 
 
                             </div>
+                            @if (session('error'))
+                                <div id="errorAlert" class="alert alert-danger"
+                                    style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:brown;border-radius: 20px; color:beige;">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
 
+                            @if (session('success'))
+                                <div id="successAlert"
+                                    class="alert alert-success"style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:green;border-radius: 20px; color:beige;">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>

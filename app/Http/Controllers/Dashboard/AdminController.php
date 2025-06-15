@@ -1,18 +1,15 @@
 <?php
-
 namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
@@ -50,35 +47,34 @@ class AdminController extends Controller
     {
 
         $request->merge([
-            'phone' => $request->country_code . $request->phone
+            'phone' => $request->country_code . $request->phone,
         ]);
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:191'],
-            'email' => [
+            'name'     => ['required', 'string', 'max:191'],
+            'email'    => [
                 'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
-            'password' => ['required', 'string', 'min:8','confirmed'],
-            'phone' => ['nullable', Rule::unique('users', 'phone')->whereNull('deleted_at')]
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'phone'    => ['nullable', Rule::unique('users', 'phone')->whereNull('deleted_at')],
         ]);
-
 
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
         $admin = User::create([
-            'name' => $request->name,
-            'email' => $request->email ,
-            'phone' => $request->phone,
-            'password' =>  Hash::make($request->password),
-            'status' => 'confirmed',
-            'theme' => 'theme1',
-            'gendor' => 'other',
-            'mode' => 'admin'
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
+            'password' => Hash::make($request->password),
+            'status'   => 'confirmed',
+            'theme'    => 'theme1',
+            'gendor'   => 'other',
+            'mode'     => 'admin',
         ]);
         $role = Role::where('Name', 'Admin')->first();
 
@@ -92,44 +88,43 @@ class AdminController extends Controller
 
     public function edit($id)
     {
-        $admin=User::findOrFail($id);
-        return view('dashboard.admins.edit',compact('admin'));
+        $admin = User::findOrFail($id);
+        return view('dashboard.admins.edit', compact('admin'));
     }
 
-    public function update(Request $request,$id)
+    public function update(Request $request, $id)
     {
 
         $request->merge([
-            'phone' => $request->country_code . $request->phone
+            'phone' => $request->country_code . $request->phone,
         ]);
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:191'],
-            'email' => [
+            'name'     => ['required', 'string', 'max:191'],
+            'email'    => [
                 'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($id)->whereNull('deleted_at'),
             ],
-            'password' => ['nullable', 'string', 'min:8','confirmed'],
-            'phone' => ['nullable', Rule::unique('users', 'phone')->ignore($id)->whereNull('deleted_at')]
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'phone'    => ['nullable', Rule::unique('users', 'phone')->ignore($id)->whereNull('deleted_at')],
         ]);
-
 
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
-        $admin = User::where('id',$id)->update([
-            'name' => $request->name,
-            'email' => $request->email ,
+        $admin = User::where('id', $id)->update([
+            'name'  => $request->name,
+            'email' => $request->email,
             'phone' => $request->phone,
         ]);
-        $admin=User::findOrFail($id);
-        if($request->password != null){
-            $admin->password=Hash::make($request->password);
+        $admin = User::findOrFail($id);
+        if ($request->password != null) {
+            $admin->password = Hash::make($request->password);
         }
-        
+
         if ($request->file('image')) {
             uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
         }
@@ -137,5 +132,30 @@ class AdminController extends Controller
 
     }
 
+    public function delete(User $admin)
+    {
+        
+        // Prevent deletion of super admin
+        if ($admin->hasRole('Admin')) {
+            return redirect()->back()
+                ->with('error', 'Admin cannot be deleted.');
+        }
 
+        // Prevent self-deletion
+        if (auth()->id() === $admin->id) {
+            return redirect()->back()
+                ->with('error', 'You cannot delete yourself.');
+        }
+
+        try {
+            $admin->delete();
+
+           return redirect('/admin-dashboard/admins')
+                ->with('success', 'Admin deleted successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error deleting admin: ' . $e->getMessage());
+        }
+    }
 }

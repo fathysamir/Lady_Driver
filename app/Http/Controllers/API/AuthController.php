@@ -56,7 +56,7 @@ class AuthController extends ApiController
         // Add a conditional rule for 'image' based on the 'mode' field
         if ($request->input('mode') === 'driver') {
             $rules['image']     = 'required|image|mimes:jpeg,png,jpg,gif|max:5120'; // Adjust as needed
-            $rules['birthdate'] = [
+            $rules['birth_date'] = [
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
@@ -300,27 +300,37 @@ class AuthController extends ApiController
 
     public function edit_personal_info(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
 
-            'name'       => 'required|string|max:255',
-            'email'      => [
+            'name'         => 'required|string|max:255',
+            'email'        => [
                 'required',
                 'string',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore(auth()->user()->id)->whereNull('deleted_at'),
             ],
-            'phone'      => [
+            'country_code' => 'required',
+            'phone'        => [
                 'required',
                 Rule::unique('users', 'phone')->ignore(auth()->user()->id)->whereNull('deleted_at'),
             ],
-            'birth_date' => 'nullable|date',
-            'address'    => 'nullable',
-            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'lat'        => 'nullable',
-            'lng'        => 'nullable',
+            
+            'address'      => 'nullable',
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'lat'          => 'nullable',
+            'lng'          => 'nullable',
 
-        ]);
+        ];
+         if (auth()->user()->mode === 'driver') {
+            $rules['birth_date'] = [
+                'required',
+                'date',
+                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+            ];
+        }
+        $validator = Validator::make($request->all(),$rules );
+       
         // dd($request->all());
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
