@@ -60,7 +60,7 @@
                         @if ($errors->has('msg'))
                             <p class="alert alert-danger"id="alert" role="alert"
                                 style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:brown;border-radius: 20px; color:beige;">
-                                {{ $errors->first('msg') }}rsgfe</p>
+                                {{ $errors->first('msg') }}</p>
                         @endif
                     @endif
                     <form action="{{ route('login') }}" method="POST">
