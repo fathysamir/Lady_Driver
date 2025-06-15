@@ -146,7 +146,7 @@
                                                     </td>
                                                     <td>{!! highlight($admin->email, $search ?? '') !!}</td>
 
-                                                    <td>{!! highlight($admin->phone, $search ?? '') !!}</td>
+                                                    <td>{!! highlight($admin->country_code . $admin->phone, $search ?? '') !!}</td>
 
 
                                                     <td>{{ $admin->created_at->format('d.M.Y') }}</td>
