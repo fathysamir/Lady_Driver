@@ -134,13 +134,6 @@ class AdminController extends Controller
 
     public function delete(User $admin)
     {
-        
-        // Prevent deletion of super admin
-        if ($admin->hasRole('Admin')) {
-            return redirect()->back()
-                ->with('error', 'Admin cannot be deleted.');
-        }
-
         // Prevent self-deletion
         if (auth()->id() === $admin->id) {
             return redirect()->back()
