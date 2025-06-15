@@ -42,7 +42,7 @@ class AuthController extends Controller
             $user = Auth::user();
             if (! Hash::check(request('second_password'), $user->password2)) {
                 Auth::logout();
-                return back()->withErrors(['second_password' => 'Second password is incorrect.']);
+                return back()->withErrors(['msg' => 'Second password is incorrect.']);
             }
             $user            = auth()->user();
             $user->is_online = '1';
