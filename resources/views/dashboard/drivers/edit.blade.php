@@ -66,7 +66,7 @@
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <select name="country_code" class="form-control">
-                                                <option value="+1" {{ $country_code == '+1' ? 'selected' : '' }}>USA
+                                                <option value="+1" {{ $country_code == '+1'  ? 'selected' : '' }}>USA
                                                     (+1)</option>
                                                 <option value="+44" {{ $country_code == '+44' ? 'selected' : '' }}>UK
                                                     (+44)</option>
@@ -166,7 +166,7 @@
                                                     Djibouti (+253)</option>
                                                 <option value="+593" {{ $country_code == '+593' ? 'selected' : '' }}>
                                                     Ecuador (+593)</option>
-                                                <option value="+20"{{ $country_code == '+20' ? 'selected' : '' }}>Egypt
+                                                <option value="+20"{{ $country_code == '+20' || $country_code == null ? 'selected' : '' }}>Egypt
                                                     (+20)</option>
                                                 <option value="+503" {{ $country_code == '+503' ? 'selected' : '' }}>El
                                                     Salvador (+503)</option>
