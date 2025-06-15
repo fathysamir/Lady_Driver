@@ -98,7 +98,7 @@
                             <label for="exampleInputPassword" class="sr-only">Second Password</label>
                             <div class="position-relative has-icon-right">
                                 <input type="password" class="form-control input-shadow"
-                                    name="second_password" placeholder="Enter Password">
+                                    name="second_password" placeholder="Enter Second Password">
                                 <div class="form-control-position">
                                     <i class="icon-lock"></i>
                                 </div>
