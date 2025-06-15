@@ -44,7 +44,8 @@ class User extends Authenticatable
         'wallet',
         'gendor',
         'seen',
-        'country_code'
+        'country_code',
+        'student_code'
     ];
 
     /**

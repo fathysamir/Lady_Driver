@@ -63,6 +63,8 @@ class AuthController extends ApiController
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
             ];
+            $rules['ID_front_image']     = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['ID_back_image']     = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
         }
         if ($request->input('mode') === 'client') {
             $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
@@ -111,6 +113,12 @@ class AuthController extends ApiController
 
         if ($request->file('image')) {
             uploadMedia($request->image, $user->avatarCollection, $user);
+        }
+        if ($request->file('ID_front_image')) {
+            uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+        }
+        if ($request->file('ID_back_image')) {
+            uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
         }
 
         // Send OTP via Email (or SMS)

@@ -30,6 +30,8 @@ return new class extends Migration
             $table->enum('animals', ['0','1'])->default('0');
             $table->enum('status', ['pending', 'confirmed','blocked'])->default('pending');
             $table->date('license_expire_date');
+            $table->enum('is_comfort', ['0','1'])->default('0');
+            $table->date('car_inspection_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

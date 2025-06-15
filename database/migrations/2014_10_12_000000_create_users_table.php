@@ -37,6 +37,8 @@ return new class extends Migration
             $table->decimal('wallet',15, 2)->default(0);
             $table->string('theme')->nullable();
             $table->string('country_code')->nullable();
+           
+            $table->string('student_code')->nullable();
 
             
             $table->rememberToken();

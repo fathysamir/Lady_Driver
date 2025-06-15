@@ -31,7 +31,9 @@ class Car extends Model
         'status',
         'passenger_type',
         'license_expire_date',
-        'animals'
+        'animals',
+        'is_comfort',
+        'car_inspection_date'
     ];
 
     protected $allowedSorts = [
