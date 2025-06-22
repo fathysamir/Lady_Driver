@@ -274,8 +274,7 @@ class DriverController extends ApiController
              'license_number' => 'required',
              'license_expire_date' => 'required|date',
              'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-             'ID_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-             'ID_back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120'
+           
          ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -314,21 +313,7 @@ class DriverController extends ApiController
             //     uploadMedia($request->license_back_image, $existed_driving_license->LicenseBackImageCollection, $existed_driving_license);
             // }
 
-            if ($request->file('ID_front_image')) {
-                $ID_front_image = getFirstMediaUrl($user, $user->IDfrontImageCollection);
-                if ($ID_front_image != null) {
-                    deleteMedia($user, $user->IDfrontImageCollection);
-                }
-                uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
-            }
-
-            if ($request->file('ID_back_image')) {
-                $ID_back_image = getFirstMediaUrl($user, $user->IDbackImageCollection);
-                if ($ID_back_image != null) {
-                    deleteMedia($user, $user->IDbackImageCollection);
-                }
-                uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
-            }
+           
         }
         $driving_license = DriverLicense::where('user_id', auth()->user()->id)->first();
         $driving_license->license_front_image = getFirstMediaUrl($driving_license, $driving_license->LicenseFrontImageCollection);
