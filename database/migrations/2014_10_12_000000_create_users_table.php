@@ -37,7 +37,7 @@ return new class extends Migration
             $table->decimal('wallet',15, 2)->default(0);
             $table->string('theme')->nullable();
             $table->string('country_code')->nullable();
-           
+            $table->enum('seen', ['0', '1','2','3','4','5'])->default('0');
             $table->string('student_code')->nullable();
 
             

@@ -238,4 +238,11 @@
             });
         });
     </script>
+    <script>
+        // Set a timeout to hide the error or success message after 5 seconds
+        setTimeout(function() {
+            $('#errorAlert').fadeOut();
+            $('#successAlert').fadeOut();
+        }, 4000); // 5000 milliseconds = 5 seconds
+    </script>
 @endpush
