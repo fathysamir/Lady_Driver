@@ -80,7 +80,7 @@
                                     action="{{ route('clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 55%;">Clients - {{ $count }}</h5>
+                                        <h5 class="card-title" style="width: 55%;">Clients - {{ $all_users->count() }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-3" type="button"
                                                 href="{{ route('archived_clients') }}"

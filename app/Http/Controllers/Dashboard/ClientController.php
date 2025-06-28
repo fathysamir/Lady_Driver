@@ -14,8 +14,7 @@ class ClientController extends Controller
 { //done
     public function index(Request $request)
     {
-        $all_users = User::where('mode', 'client')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci")
-            ;
+        $all_users = User::where('mode', 'client')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
@@ -29,7 +28,7 @@ class ClientController extends Controller
         if ($request->has('status') && $request->status != null) {
             $all_users->where('status', $request->status);
         }
-        $count     = $all_users->count();
+        
         $all_users = $all_users->with('city:id,name')->get()->map(function ($user) {
             $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             return $user;
@@ -38,7 +37,7 @@ class ClientController extends Controller
         $search = $request->search;
         $status = $request->status;
 
-        return view('dashboard.clients.index', compact('all_users', 'count', 'search','status'));
+        return view('dashboard.clients.index', compact('all_users', 'search', 'status'));
 
     }
 
