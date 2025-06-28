@@ -20,6 +20,7 @@ use App\Http\Controllers\API\ClientController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/cities',[AuthController::class,'cities'])->name('cities');
 Route::get('/app_version',[AuthController::class,'app_version'])->name('app_version');
 Route::post('/update_app_version',[AuthController::class,'update_app_version'])->name('update_app_version');
 Route::post('/register', [AuthController::class,'register'])->name('register');

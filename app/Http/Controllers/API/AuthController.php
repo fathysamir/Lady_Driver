@@ -12,6 +12,7 @@ use App\Models\FeedBack;
 use App\Models\Notification;
 use App\Models\Setting;
 use App\Models\Trip;
+use App\Models\City;
 use App\Models\User;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
@@ -622,5 +623,10 @@ class AuthController extends ApiController
 
         return $this->sendResponse(null, 'success', 200);
 
+    }
+
+    public function cities(){
+        $cities=City::all();
+        return $this->sendResponse($cities, null, 200);
     }
 }
