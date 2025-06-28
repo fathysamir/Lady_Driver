@@ -36,8 +36,9 @@ class ClientController extends Controller
         });
 
         $search = $request->search;
+        $status = $request->status;
 
-        return view('dashboard.clients.index', compact('all_users', 'count', 'search'));
+        return view('dashboard.clients.index', compact('all_users', 'count', 'search','status'));
 
     }
 

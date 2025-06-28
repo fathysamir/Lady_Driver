@@ -132,8 +132,7 @@
                                     <tbody>
                                         @if (!empty($all_users) && $all_users->count())
                                         @php
-                                        $counter =
-                                            ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
+                                        $counter = 1;
                                     @endphp
                                             @foreach ($all_users as $user)
                                                 <tr onclick="window.location='{{ route('edit.client', ['id' => $user->id] + request()->query()) }}';"
@@ -206,12 +205,12 @@
                                         @endif
                                     </tbody>
                                 </table>
-                                <div style="text-align: center;">
+                                {{-- <div style="text-align: center;">
                                     {!! $all_users->appends([
                                             'search' => request('search'),
                                             'status' => request('status'),
                                         ])->links('pagination::bootstrap-4') !!}
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                     </div>
