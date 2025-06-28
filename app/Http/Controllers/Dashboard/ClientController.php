@@ -14,8 +14,8 @@ class ClientController extends Controller
 { //done
     public function index(Request $request)
     {
-        $all_users = User::where('mode', 'client')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci")
-            ->orderBy('created_at', 'desc');
+        $all_users = User::where('mode', 'client')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci")
+            ;
 
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
