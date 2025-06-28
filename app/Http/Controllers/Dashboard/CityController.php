@@ -13,7 +13,7 @@ class CityController extends Controller
         if ($request->has('search') && $request->search != null) {
             $cities->where('name', 'LIKE', '%' . $request->search . '%');
         }
-        $cities = $cities->paginate(1);
+        $cities = $cities->paginate(10);
         $search = $request->search;
 
         return view('dashboard.cities.index', compact('cities', 'search'));
