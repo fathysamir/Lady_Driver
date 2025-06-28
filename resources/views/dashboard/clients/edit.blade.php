@@ -31,8 +31,6 @@
                             <form method="post" action="{{ route('update.client', ['id' => $user->id] + $queryString) }}"
                                 enctype="multipart/form-data">
                                 @csrf
-                                @method('PUT')
-                                <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
                                 <div class="form-group"style="text-align: center;">
                                     <div>
                                         <img style="border-radius: 50%;width:200px;height:200px;"

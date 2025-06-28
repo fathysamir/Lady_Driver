@@ -4,6 +4,7 @@ namespace App\Http\Controllers\dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\User;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
@@ -33,11 +34,11 @@ class ClientController extends Controller
             $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             return $user;
         });
-
+        $cities=City::all();
         $search = $request->search;
         $status = $request->status;
 
-        return view('dashboard.clients.index', compact('all_users', 'search', 'status'));
+        return view('dashboard.clients.index', compact('all_users', 'search', 'status','cities'));
 
     }
 

@@ -100,10 +100,10 @@
                                             <select class="form-control"style="width: 33%;margin: 0% 0% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed"{{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned"{{ request('status') == 'banned' ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked"{{ request('status') == 'blocked' ? 'selected' : '' }}>Blocked</option>
+                                                <option value="pending">Pending</option>
+                                                <option value="confirmed">Confirmed</option>
+                                                <option value="banned">Banned</option>
+                                                <option value="blocked">Blocked</option>
                                                 <!-- Add more options as needed -->
                                             </select>
                                         </div>
@@ -111,6 +111,16 @@
 
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply
                                             Filters</button>
+                                    </div>
+
+                                     <div class="btn-group mb-3" role="group" style="width: 80%;">
+                                        <button type="button" class="btn btn-light " onclick="showTab('General')"
+                                            style="width: 16.55%">General</button>
+                                        @foreach($cities as $city)
+                                        <button type="button" class="btn btn-light "
+                                            onclick="showTab('{{ $city->name }}')">{{ $city->name }}</button>
+                                        @endforeach
+                                        
                                     </div>
                                 </form>
                                 {{-- <a  class="btn btn-light px-5" style="margin-bottom:1%; " href="{{route('add.user')}}">create</a> --}}
