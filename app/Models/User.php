@@ -45,7 +45,8 @@ class User extends Authenticatable
         'gendor',
         'seen',
         'country_code',
-        'student_code'
+        'student_code',
+        'city_id'
     ];
 
     /**
@@ -67,4 +68,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+     public function city(){
+        return $this->belongsTo(City::class,'city_id','id')->withTrashed();
+    }
 }

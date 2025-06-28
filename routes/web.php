@@ -15,6 +15,7 @@ use App\Http\Controllers\Dashboard\MotorcycleController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Controllers\Dashboard\CityController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -74,7 +75,13 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
     Route::any('/archived-drivers', [DriverController::class, 'index_archives'])->name('archived_drivers');
     Route::get('/driver/restore/{id}', [DriverController::class, 'restore'])->name('restore.driver');
-
+    //////////////////////////////////////////////////
+    Route::any('/cities', [CityController::class, 'index'])->name('cities');
+    Route::get('/cities/create', [CityController::class, 'create'])->name('add.city');
+    Route::post('/cities/store', [CityController::class, 'store'])->name('create.city');
+    Route::get('/cities/edit/{id}', [CityController::class, 'edit'])->name('edit.city');
+    Route::post('/cities/update/{id}', [CityController::class, 'update'])->name('update.city');
+    Route::get('/cities/delete/{id}', [CityController::class, 'delete'])->name('delete.city');
     /////////////////////////////////////////
     Route::any('/admins', [AdminController::class, 'index'])->name('admins');
     Route::get('/admins/create', [AdminController::class, 'create'])->name('add.admin');

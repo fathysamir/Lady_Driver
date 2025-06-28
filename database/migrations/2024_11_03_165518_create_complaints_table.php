@@ -20,6 +20,7 @@ return new class extends Migration
             $table->longText('complaint');
             $table->enum('seen', ['0','1'])->default('0');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -36,6 +36,11 @@
                 @endif
             </a>
         </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/cities') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Cities</span> 
+            </a>
+        </li>
         {{-- <li>
             <a href="{{ url('/admin-dashboard/users') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>
