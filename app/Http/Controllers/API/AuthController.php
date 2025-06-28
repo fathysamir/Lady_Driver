@@ -45,26 +45,30 @@ class AuthController extends ApiController
             'password'     => 'required|string|min:8|confirmed',
             'mode'         => 'required',
             'country_code' => 'required',
-            'phone'           => [
+            'phone'        => [
                 'required',
                 Rule::unique('users')->where(function ($query) use ($request) {
                     return $query->where('country_code', $request->country_code)
                         ->whereNull('deleted_at');
                 }),
             ],
+            'city_id'      => [
+                'required',
+                'exists:cities,id',
+            ],
 
         ];
 
         // Add a conditional rule for 'image' based on the 'mode' field
         if ($request->input('mode') === 'driver') {
-            $rules['image']     = 'required|image|mimes:jpeg,png,jpg,gif|max:5120'; // Adjust as needed
+            $rules['image']      = 'required|image|mimes:jpeg,png,jpg,gif|max:5120'; // Adjust as needed
             $rules['birth_date'] = [
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
             ];
-            $rules['ID_front_image']     = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
-            $rules['ID_back_image']     = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['ID_front_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['ID_back_image']  = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
         }
         if ($request->input('mode') === 'client') {
             $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
@@ -101,6 +105,7 @@ class AuthController extends ApiController
             'gendor'          => $request->gendor,
             'birth_date'      => $request->birth_date,
             'age'             => $age,
+            'city_id'         => $request->city_id,
         ]);
         if ($request->mode == 'client') {
             $user->status = 'confirmed';
@@ -296,7 +301,7 @@ class AuthController extends ApiController
 
     public function profile($id)
     {
-        $user        = User::find($id);
+        $user        = User::where('id', $id)->with('city:id,name')->first();
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
         if ($user->mode == 'client') {
             $user->rate = Trip::where('user_id', $user->id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
@@ -321,8 +326,8 @@ class AuthController extends ApiController
                 Rule::unique('users', 'email')->ignore(auth()->user()->id)->whereNull('deleted_at'),
             ],
             'country_code' => 'required',
-            
-            'phone'           => [
+
+            'phone'        => [
                 'required',
                 Rule::unique('users')->ignore(auth()->user()->id)->where(function ($query) use ($request) {
                     return $query->where('country_code', $request->country_code)
@@ -333,17 +338,21 @@ class AuthController extends ApiController
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'lat'          => 'nullable',
             'lng'          => 'nullable',
+            'city_id'      => [
+                'required',
+                'exists:cities,id',
+            ],
 
         ];
-         if (auth()->user()->mode === 'driver') {
+        if (auth()->user()->mode === 'driver') {
             $rules['birth_date'] = [
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
             ];
         }
-        $validator = Validator::make($request->all(),$rules );
-       
+        $validator = Validator::make($request->all(), $rules);
+
         // dd($request->all());
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
@@ -359,6 +368,7 @@ class AuthController extends ApiController
             'address'                                             => $request->address,
             'lat'                                                 => floatval($request->lat),
             'lng'                                                 => floatval($request->lng),
+            'city_id'                                             =>$request->city_id
         ]);
         $user = auth()->user();
         if ($request->file('image')) {
