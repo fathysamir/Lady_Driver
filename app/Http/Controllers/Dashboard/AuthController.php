@@ -38,7 +38,7 @@ class AuthController extends Controller
 
             return Redirect::back()->withErrors($validator)->withInput($request->all());
         }
-        if (Auth::attempt(['email' => request('email'), 'password' => request('password')])) {
+        if (Auth::attempt(['email' => request('email'), 'password' => request('password')], $request->has('remember'))) {
             $user = Auth::user();
             if (! Hash::check(request('second_password'), $user->password2)) {
                 Auth::logout();

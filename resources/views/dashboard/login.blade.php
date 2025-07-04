@@ -97,8 +97,8 @@
                         <div class="form-group">
                             <label for="exampleInputPassword" class="sr-only">Second Password</label>
                             <div class="position-relative has-icon-right">
-                                <input type="password" class="form-control input-shadow"
-                                    name="second_password" placeholder="Enter Second Password">
+                                <input type="password" class="form-control input-shadow" name="second_password"
+                                    placeholder="Enter Second Password">
                                 <div class="form-control-position">
                                     <i class="icon-lock"></i>
                                 </div>
@@ -108,7 +108,10 @@
                                 @endif
                             </div>
                         </div>
-
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="remember" id="remember">
+                            <label class="form-check-label" for="remember">Remember Me</label>
+                        </div>
                         <button type="submit" class="btn btn-light btn-block">Sign In</button>
 
 
