@@ -23,7 +23,9 @@
         .offline {
             background-color: gray;
         }
-
+        .filled{
+            color:gold;
+        }
 
         /* Popup styles */
         .user-profile {
@@ -96,11 +98,12 @@
 
                                     <div id="filterOptions" style="display: none; text-align:center;">
                                         <div style="display: flex;">
-                                            <select class="form-control"style="width: 33%;margin: 0% 0% 0% 0%;"
+                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending"
-                                                    {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                <option
+                                                    value="pending"{{ request('status') == 'pending' ? 'selected' : '' }}>
+                                                    Pending</option>
                                                 <option
                                                     value="confirmed"{{ request('status') == 'confirmed' ? 'selected' : '' }}>
                                                     Confirmed</option>
@@ -109,6 +112,31 @@
                                                 <option
                                                     value="blocked"{{ request('status') == 'blocked' ? 'selected' : '' }}>
                                                     Blocked</option>
+                                                <!-- Add more options as needed -->
+                                            </select>
+                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
+                                                name="city">
+                                                <option value="">Select City</option>
+                                                @foreach ($cities as $city)
+                                                    <option value="{{ $city->id }}"
+                                                        {{ request('city') == $city->id ? 'selected' : '' }}>
+                                                        {{ $city->name }}</option>
+                                                @endforeach
+                                                <!-- Add more options as needed -->
+                                            </select>
+                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
+                                                name="level">
+                                                <option value="">Select Level</option>
+                                                <option value="1" {{ request('level') == '1' ? 'selected' : '' }}>
+                                                    Level 1</option>
+                                                <option value="2" {{ request('level') == '2' ? 'selected' : '' }}>
+                                                    Level 2</option>
+                                                <option value="3" {{ request('level') == '3' ? 'selected' : '' }}>
+                                                    Level 3</option>
+                                                <option value="4" {{ request('level') == '4' ? 'selected' : '' }}>
+                                                    Level 4</option>
+                                                <option value="5" {{ request('level') == '5' ? 'selected' : '' }}>
+                                                    Level 5</option>
                                                 <!-- Add more options as needed -->
                                             </select>
                                         </div>
@@ -131,6 +159,7 @@
                                             <th scope="col">Phone Number</th>
                                             <th scope="col">status</th>
                                             <th scope="col">Activation</th>
+                                            <th scope="col">Level</th>
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
                                         </tr>
@@ -196,6 +225,15 @@
                                                         @endphp
                                                         {{ $hasActiveTrip ? 'Active' : 'Unactive' }}
                                                     </td>
+                                                    <td><?php
+                                                    $driverEvaluation = $user->level; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
+                                                    
+                                                    // Loop to generate stars based on the client evaluation score
+                                                    for ($i = 1; $i <= 5; $i++) {
+                                                        $starClass2 = $i <= intval($driverEvaluation) ? 'filled' : 'empty';
+                                                        echo '<span class="star ' . $starClass2 . '">&#9733;</span>'; // Unicode character for a star
+                                                    }
+                                                    ?></td>
                                                     <td>{{ $user->created_at->format('d.M.Y') }}</td>
                                                     <td>
 
@@ -228,6 +266,8 @@
                                     {!! $all_users->appends([
                                             'search' => request('search'),
                                             'status' => request('status'),
+                                            'city' => request('city'),
+                                            'level' => request('level'),
                                         ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>

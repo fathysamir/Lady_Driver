@@ -46,7 +46,8 @@ class User extends Authenticatable
         'seen',
         'country_code',
         'student_code',
-        'city_id'
+        'city_id',
+        'level'
     ];
 
     /**

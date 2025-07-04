@@ -80,7 +80,7 @@
                                     action="{{ route('clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 55%;">Clients - {{ $all_users->count() }}</h5>
+                                        <h5 class="card-title" style="width: 55%;">Clients - {{ $count }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-3" type="button"
                                                 href="{{ route('archived_clients') }}"
@@ -97,13 +97,28 @@
 
                                     <div id="filterOptions" style="display: none; text-align:center;">
                                         <div style="display: flex;">
-                                            <select class="form-control"style="width: 33%;margin: 0% 0% 0% 0%;"
+                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="confirmed">Confirmed</option>
-                                                <option value="banned">Banned</option>
-                                                <option value="blocked">Blocked</option>
+                                                <option
+                                                    value="pending"{{ request('status') == 'pending' ? 'selected' : '' }}>
+                                                    Pending</option>
+                                                <option
+                                                    value="confirmed"{{ request('status') == 'confirmed' ? 'selected' : '' }}>
+                                                    Confirmed</option>
+                                                <option value="banned"{{ request('status') == 'banned' ? 'selected' : '' }}>
+                                                    Banned</option>
+                                                <option
+                                                    value="blocked"{{ request('status') == 'blocked' ? 'selected' : '' }}>
+                                                    Blocked</option>
+                                                <!-- Add more options as needed -->
+                                            </select>
+                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
+                                                name="city">
+                                                <option value="">Select City</option>
+                                                @foreach ($cities as $city)
+                                                    <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                                                @endforeach
                                                 <!-- Add more options as needed -->
                                             </select>
                                         </div>
@@ -113,15 +128,15 @@
                                             Filters</button>
                                     </div>
 
-                                     <div class="btn-group mb-3" role="group" style="width: 80%;">
+                                    {{-- <div class="btn-group mb-3" role="group" style="width: 80%;">
                                         <button type="button" class="btn btn-light " onclick="showTab('General')"
                                             style="width: 16.55%">General</button>
-                                        @foreach($cities as $city)
+                                        @foreach ($cities as $city)
                                         <button type="button" class="btn btn-light "
                                             onclick="showTab('{{ $city->name }}')">{{ $city->name }}</button>
                                         @endforeach
                                         
-                                    </div>
+                                    </div> --}}
                                 </form>
                                 {{-- <a  class="btn btn-light px-5" style="margin-bottom:1%; " href="{{route('add.user')}}">create</a> --}}
                             </div>
@@ -141,9 +156,9 @@
                                     </thead>
                                     <tbody>
                                         @if (!empty($all_users) && $all_users->count())
-                                        @php
-                                        $counter = 1;
-                                    @endphp
+                                            @php
+                                                $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
+                                            @endphp
                                             @foreach ($all_users as $user)
                                                 <tr onclick="window.location='{{ route('edit.client', ['id' => $user->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
@@ -170,22 +185,22 @@
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
 
                                                     <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
-                                                   
-                                                   
-                                                        <td>
-                                                            @if ($user->status == 'banned')
-                                                                <span class="badge badge-secondary"
-                                                                    style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>
-                                                            @elseif($user->status == 'confirmed')
-                                                                <span class="badge badge-secondary"
-                                                                    style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>
-                                                            @elseif($user->status == 'blocked')
-                                                                <span class="badge badge-secondary"
-                                                                    style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
-                                                            @endif
-                                                        </td>
-                                                  
-                                                    <td>{{ $user->created_at->format('d.M.Y')  }}</td>
+
+
+                                                    <td>
+                                                        @if ($user->status == 'banned')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>
+                                                        @elseif($user->status == 'confirmed')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>
+                                                        @elseif($user->status == 'blocked')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
+                                                        @endif
+                                                    </td>
+
+                                                    <td>{{ $user->created_at->format('d.M.Y') }}</td>
                                                     <td>
 
 
@@ -215,12 +230,13 @@
                                         @endif
                                     </tbody>
                                 </table>
-                                {{-- <div style="text-align: center;">
+                                <div style="text-align: center;">
                                     {!! $all_users->appends([
                                             'search' => request('search'),
                                             'status' => request('status'),
+                                            'city' => request('city'),
                                         ])->links('pagination::bootstrap-4') !!}
-                                </div> --}}
+                                </div>
                             </div>
                         </div>
                     </div>

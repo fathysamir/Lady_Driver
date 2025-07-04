@@ -11,6 +11,10 @@
             margin-bottom: 4.65%;
         }
 
+        .filled {
+            color: gold;
+        }
+
         .online {
             background-color: green;
         }
@@ -32,6 +36,7 @@
                                 enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
+                                <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
                                 <div class="form-group"style="text-align: center;">
                                     <div>
                                         <img style="border-radius: 50%;width:200px;height:200px;"
@@ -47,7 +52,7 @@
                                 <div class="form-group">
                                     <label>Email</label>
                                     <input type="email" class="form-control" name="email"
-                                        placeholder="Enter Email"value="{{ old('email',$user->email) }}">
+                                        placeholder="Enter Email"value="{{ old('email', $user->email) }}">
                                     @if ($errors->has('email'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('email') }}</p>
@@ -55,10 +60,11 @@
                                 </div>
                                 @php
                                     // Extract country code and phone number
-                                   
+
                                     $country_code = $user->country_code; // Default to Egypt (+20) if not found
-                                   
+
                                     //dd($user,$matches,$country_code,$phone);
+
                                 @endphp
                                 <div class="form-group">
                                     <label>Phone Number</label>
@@ -165,7 +171,9 @@
                                                     Djibouti (+253)</option>
                                                 <option value="+593" {{ $country_code == '+593' ? 'selected' : '' }}>
                                                     Ecuador (+593)</option>
-                                                <option value="+20"{{ $country_code == '+20' || $country_code == null ? 'selected' : '' }}>Egypt
+                                                <option
+                                                    value="+20"{{ $country_code == '+20' || $country_code == null ? 'selected' : '' }}>
+                                                    Egypt
                                                     (+20)</option>
                                                 <option value="+503" {{ $country_code == '+503' ? 'selected' : '' }}>El
                                                     Salvador (+503)</option>
@@ -414,11 +422,12 @@
                                     @endif
                                 </div>
 
-                               
+
                                 <div class="form-group">
                                     <label>Birth Date</label>
-                                    <input type="date" class="form-control date" name="birth_date" style="background-color: rgba(255, 255, 255, 0.2);"
-                                        placeholder="Enter Birth Date"value="{{ old('birth_date',$user->birth_date) }}">
+                                    <input type="date" class="form-control date" name="birth_date"
+                                        style="background-color: rgba(255, 255, 255, 0.2);"
+                                        placeholder="Enter Birth Date"value="{{ old('birth_date', $user->birth_date) }}">
                                 </div>
 
                                 <div class="form-group" style="display: flex; align-items: center;">

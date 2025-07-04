@@ -15,6 +15,10 @@
             background-color: green;
         }
 
+        .filled {
+            color: gold;
+        }
+
         .offline {
             background-color: gray;
         }
@@ -28,7 +32,7 @@
                         <div class="card-body">
                             <div class="card-title">Update Driver</div>
                             <hr>
-                            <form method="post" action="{{ route('update.driver', ['id' => $user->id]+ $queryString) }}"
+                            <form method="post" action="{{ route('update.driver', ['id' => $user->id] + $queryString) }}"
                                 enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
@@ -58,15 +62,16 @@
                                     // Extract country code and phone number
 
                                     $country_code = $user->country_code; // Default to Egypt (+20) if not found
-                                   
+
                                     //dd($user,$matches,$country_code,$phone);
+
                                 @endphp
                                 <div class="form-group">
                                     <label>Phone Number</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <select name="country_code" class="form-control">
-                                                <option value="+1" {{ $country_code == '+1'  ? 'selected' : '' }}>USA
+                                                <option value="+1" {{ $country_code == '+1' ? 'selected' : '' }}>USA
                                                     (+1)</option>
                                                 <option value="+44" {{ $country_code == '+44' ? 'selected' : '' }}>UK
                                                     (+44)</option>
@@ -166,7 +171,9 @@
                                                     Djibouti (+253)</option>
                                                 <option value="+593" {{ $country_code == '+593' ? 'selected' : '' }}>
                                                     Ecuador (+593)</option>
-                                                <option value="+20"{{ $country_code == '+20' || $country_code == null ? 'selected' : '' }}>Egypt
+                                                <option
+                                                    value="+20"{{ $country_code == '+20' || $country_code == null ? 'selected' : '' }}>
+                                                    Egypt
                                                     (+20)</option>
                                                 <option value="+503" {{ $country_code == '+503' ? 'selected' : '' }}>El
                                                     Salvador (+503)</option>

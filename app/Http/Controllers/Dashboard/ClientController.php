@@ -2,9 +2,9 @@
 namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\City;
 use App\Models\Trip;
 use App\Models\User;
-use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +15,7 @@ class ClientController extends Controller
 { //done
     public function index(Request $request)
     {
-        $all_users = User::where('mode', 'client')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+        $all_users = User::where('mode', 'client')->with('city:id,name')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
@@ -29,23 +29,31 @@ class ClientController extends Controller
         if ($request->has('status') && $request->status != null) {
             $all_users->where('status', $request->status);
         }
-        
-        $all_users = $all_users->with('city:id,name')->get()->map(function ($user) {
+        if ($request->has('city') && $request->city != null) {
+            $all_users->where('city_id', $request->city);
+        }
+
+        $count     = $all_users->count();
+        $all_users = $all_users->paginate(12);
+
+        $all_users->getCollection()->transform(function ($user) {
+            // Add the 'image' key based on some condition
             $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             return $user;
         });
-        $cities=City::all();
+        $cities = City::all();
         $search = $request->search;
         $status = $request->status;
+        $city   = $request->city;
 
-        return view('dashboard.clients.index', compact('all_users', 'search', 'status','cities'));
+        return view('dashboard.clients.index', compact('all_users', 'count', 'cities', 'search', 'status','city'));
 
     }
 
     public function index_archives(Request $request)
     {
         // Start with all users, including soft deleted ones
-        $all_users = User::withTrashed()->where('mode', 'client')->orderBy('id', 'desc');
+        $all_users = User::withTrashed()->where('mode', 'client')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
         // Apply search filter if provided
         if ($request->has('search') && $request->search != null) {

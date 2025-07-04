@@ -5,6 +5,7 @@ use App\Http\Controllers\ApiController;
 use App\Mail\SendOTP;
 use App\Models\AboutUs;
 use App\Models\Car;
+use App\Models\City;
 use App\Models\ContactUs;
 use App\Models\DashboardMessage;
 use App\Models\FAQ;
@@ -12,7 +13,6 @@ use App\Models\FeedBack;
 use App\Models\Notification;
 use App\Models\Setting;
 use App\Models\Trip;
-use App\Models\City;
 use App\Models\User;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
@@ -70,6 +70,7 @@ class AuthController extends ApiController
             ];
             $rules['ID_front_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['ID_back_image']  = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['national_ID']    = 'required|digits:14';
         }
         if ($request->input('mode') === 'client') {
             $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
@@ -107,11 +108,15 @@ class AuthController extends ApiController
             'birth_date'      => $request->birth_date,
             'age'             => $age,
             'city_id'         => $request->city_id,
+            'national_id'     => $request->national_id,
         ]);
         if ($request->mode == 'client') {
             $user->status = 'confirmed';
-            $user->save();
+
+        } else {
+            $user->level = '1';
         }
+        $user->save();
         $role = Role::where('name', 'Client')->first();
 
         $user->assignRole([$role->id]);
@@ -304,6 +309,8 @@ class AuthController extends ApiController
     {
         $user        = User::where('id', $id)->with('city:id,name')->first();
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+        $user->ID_backImage = getFirstMediaUrl($user, $user->IDbackImageCollection);
         if ($user->mode == 'client') {
             $user->rate = Trip::where('user_id', $user->id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
         } elseif ($user->mode == 'driver') {
@@ -337,6 +344,8 @@ class AuthController extends ApiController
             ],
             'address'      => 'nullable',
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_front_image'=>'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_back_image'=>'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'lat'          => 'nullable',
             'lng'          => 'nullable',
             'city_id'      => [
@@ -351,6 +360,7 @@ class AuthController extends ApiController
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
             ];
+            
         }
         $validator = Validator::make($request->all(), $rules);
 
@@ -369,7 +379,7 @@ class AuthController extends ApiController
             'address'                                             => $request->address,
             'lat'                                                 => floatval($request->lat),
             'lng'                                                 => floatval($request->lng),
-            'city_id'                                             =>$request->city_id
+            'city_id'                                             => $request->city_id,
         ]);
         $user = auth()->user();
         if ($request->file('image')) {
@@ -400,6 +410,8 @@ class AuthController extends ApiController
         }
         $user        = User::find(auth()->user()->id);
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+        $user->ID_backImage = getFirstMediaUrl($user, $user->IDbackImageCollection);
         return $this->sendResponse($user, 'Account Updated Successfuly', 200);
 
     }
@@ -488,7 +500,8 @@ class AuthController extends ApiController
         ContactUs::create(['subject' => $request->subject, 'name' => $request->name, 'email' => $request->email, 'message' => $request->message, 'phone' => $request->country_code . $request->phone]);
         return $this->sendResponse(null, 'Your request has been sent and we will respond to you later.', 200);
     }
-
+    /////////////////////////////// محتاجة نزود الحاجات الناقصة ///////////////////////////
+    
     public function about_us()
     {
 
@@ -625,8 +638,9 @@ class AuthController extends ApiController
 
     }
 
-    public function cities(){
-        $cities=City::all();
+    public function cities()
+    {
+        $cities = City::all();
         return $this->sendResponse($cities, null, 200);
     }
 }
