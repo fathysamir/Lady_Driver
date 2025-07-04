@@ -225,15 +225,7 @@
                                                         @endphp
                                                         {{ $hasActiveTrip ? 'Active' : 'Unactive' }}
                                                     </td>
-                                                    <td><?php
-                                                    $driverEvaluation = $user->level; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-                                                    
-                                                    // Loop to generate stars based on the client evaluation score
-                                                    for ($i = 1; $i <= 5; $i++) {
-                                                        $starClass2 = $i <= intval($driverEvaluation) ? 'filled' : 'empty';
-                                                        echo '<span class="star ' . $starClass2 . '">&#9733;</span>'; // Unicode character for a star
-                                                    }
-                                                    ?></td>
+                                                    <td>LV {{ $user->level }}</td>
                                                     <td>{{ $user->created_at->format('d.M.Y') }}</td>
                                                     <td>
 
