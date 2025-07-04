@@ -23,8 +23,9 @@
         .offline {
             background-color: gray;
         }
-        .filled{
-            color:gold;
+
+        .filled {
+            color: gold;
         }
 
         /* Popup styles */
