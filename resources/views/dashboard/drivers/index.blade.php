@@ -247,7 +247,7 @@
 
 
                                                         <a
-                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/delete/' . $user->id) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
                                                             <span class="bi bi-trash"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                         </a>

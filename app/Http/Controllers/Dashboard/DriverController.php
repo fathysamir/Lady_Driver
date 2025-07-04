@@ -159,10 +159,11 @@ class DriverController extends Controller
 
     }
 
-    public function delete($id)
+    public function delete($id,Request $request)
     {
         User::where('id', $id)->delete();
-        return redirect('/admin-dashboard/drivers');
+           return redirect()->route('drivers', $request->query())
+        ->with('success', 'Driver deleted successfully.'); 
     }
     public function restore($id)
     {
