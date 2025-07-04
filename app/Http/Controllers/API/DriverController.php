@@ -6,10 +6,12 @@ use App\Models\Car;
 use App\Models\CarMark;
 use App\Models\CarModel;
 use App\Models\DriverLicense;
+use App\Models\MotorcycleMark;
+use App\Models\MotorcycleModel;
 use App\Models\Notification;
 use App\Models\Offer;
-use App\Models\Setting;
 use App\Models\Scooter;
+use App\Models\Setting;
 use App\Models\Trip;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
@@ -48,6 +50,30 @@ class DriverController extends ApiController
         }
 
         $models = CarModel::where('car_mark_id', $request->car_mark_id)->get();
+        return $this->sendResponse($models, null, 200);
+
+    }
+
+    public function scooter_marks(Request $request)
+    {
+        $scooterMarks = MotorcycleMark::all();
+        return $this->sendResponse($scooterMarks, null, 200);
+    }
+
+    public function scooter_models(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'scooter_mark_id' => [
+                'required',
+                Rule::exists('motorcycle_marks', 'id'),
+            ],
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+        $models = MotorcycleModel::where('motorcycle_mark_id', $request->scooter_mark_id)->get();
         return $this->sendResponse($models, null, 200);
 
     }
@@ -301,25 +327,25 @@ class DriverController extends ApiController
         return $this->sendResponse($car, null, 200);
     }
 
-     public function create_scooter(Request $request)
+    public function create_scooter(Request $request)
     {
         // $check_account = $this->check_banned();
         // if ($check_account != true) {
         //     return $this->sendError(null, $check_account, 400);
         // }
         $validator = Validator::make($request->all(), [
-            'scooter_mark_id'         => [
+            'scooter_mark_id'     => [
                 'required',
                 Rule::exists('motorcycle_marks', 'id'),
             ],
-            'scooter_model_id'        => [
+            'scooter_model_id'    => [
                 'required',
                 Rule::exists('motorcycle_models', 'id'),
             ],
             'color'               => 'required|string|max:255',
             'year'                => 'required|integer|min:1900|max:' . date('Y'),
-            'scooter_plate'           => 'required|string|max:255',
-          
+            'scooter_plate'       => 'required|string|max:255',
+
             'image'               => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'plate_image'         => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -344,23 +370,23 @@ class DriverController extends ApiController
             $code = 'CAR-000000001';
         }
         $scooter = Scooter::create(['user_id' => auth()->user()->id,
-            'motorcycle_mark_id'                 => $request->scooter_mark_id,
-            'code'                        => $code,
-            'motorcycle_model_id'                => $request->scooter_model_id,
-            'color'                       => $request->color,
-            'year'                        => $request->year,
-            'scooter_plate'                   => $request->scooter_plate,
-            'lat'                         => floatval($request->lat),
-            'lng'                         => floatval($request->lng),
-            'license_expire_date'         => $request->license_expire_date,
+            'motorcycle_mark_id'                  => $request->scooter_mark_id,
+            'code'                                => $code,
+            'motorcycle_model_id'                 => $request->scooter_model_id,
+            'color'                               => $request->color,
+            'year'                                => $request->year,
+            'scooter_plate'                       => $request->scooter_plate,
+            'lat'                                 => floatval($request->lat),
+            'lng'                                 => floatval($request->lng),
+            'license_expire_date'                 => $request->license_expire_date,
         ]);
-      
+
         $scooter->save();
         uploadMedia($request->image, $scooter->avatarCollection, $scooter);
         uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
         uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
         uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
-       
+
         $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
         $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
         $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
@@ -376,21 +402,21 @@ class DriverController extends ApiController
         //     return $this->sendError(null, $check_account, 400);
         // }
         $validator = Validator::make($request->all(), [
-            'scooter_id'              => [
+            'scooter_id'          => [
                 'required',
                 Rule::exists('cars', 'id'),
             ],
-            'scooter_mark_id'         => [
+            'scooter_mark_id'     => [
                 'required',
                 Rule::exists('motorcycle_marks', 'id'),
             ],
-            'scooter_model_id'        => [
+            'scooter_model_id'    => [
                 'required',
                 Rule::exists('motorcycle_models', 'id'),
             ],
             'color'               => 'required|string|max:255',
             'year'                => 'required|integer|min:1900|max:' . date('Y'),
-            'scooter_plate'           => 'required|string|max:255',
+            'scooter_plate'       => 'required|string|max:255',
             'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -398,7 +424,6 @@ class DriverController extends ApiController
             'lat'                 => 'nullable',
             'lng'                 => 'nullable',
             'license_expire_date' => 'required|date',
-            
 
         ]);
         // dd($request->all());
@@ -410,11 +435,11 @@ class DriverController extends ApiController
         }
 
         Car::where('id', $request->scooter_id)->update([
-            'motorcycle_mark_id'         => $request->scooter_mark_id,
-            'motorcycle_model_id'        => $request->scooter_model_id,
+            'motorcycle_mark_id'  => $request->scooter_mark_id,
+            'motorcycle_model_id' => $request->scooter_model_id,
             'color'               => $request->color,
             'year'                => $request->year,
-            'scooter_plate'           => $request->scooter_plate,
+            'scooter_plate'       => $request->scooter_plate,
             'lat'                 => floatval($request->lat),
             'lng'                 => floatval($request->lng),
             'status'              => 'pending',
@@ -461,14 +486,11 @@ class DriverController extends ApiController
             }
         }
 
-    
-
         $scooter                      = Scooter::find($request->scooter_id);
         $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
         $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
         $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
         $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
-      
 
         return $this->sendResponse($scooter, 'Scooter Updated Successfully.', 200);
     }
@@ -476,7 +498,7 @@ class DriverController extends ApiController
     public function scooter(Request $request)
     {
         $acceptedLanguage = $request->header('Accept-Language');
-        $scooter              = Scooter::where('user_id', auth()->user()->id)->with(['owner:id,name', 'mark', 'model'])->first();
+        $scooter          = Scooter::where('user_id', auth()->user()->id)->with(['owner:id,name', 'mark', 'model'])->first();
         if (! $scooter) {
             return $this->sendError(null, "You don't create your scooter yet", 400);
         }
@@ -514,10 +536,10 @@ class DriverController extends ApiController
 
             uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
             //uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
-           
+
         } else {
             $existed_driving_license->update(['license_num' => $request->license_number,
-                'expire_date' => $request->license_expire_date]);
+                'expire_date'                                   => $request->license_expire_date]);
             if ($request->file('license_front_image')) {
                 $license_front_image = getFirstMediaUrl($existed_driving_license, $existed_driving_license->LicenseFrontImageCollection);
                 if ($license_front_image != null) {
@@ -538,7 +560,6 @@ class DriverController extends ApiController
         $driving_license                      = DriverLicense::where('user_id', auth()->user()->id)->first();
         $driving_license->license_front_image = getFirstMediaUrl($driving_license, $driving_license->LicenseFrontImageCollection);
         $driving_license->license_back_image  = getFirstMediaUrl($driving_license, $driving_license->LicenseBackImageCollection);
-      
 
         return $this->sendResponse($driving_license, 'License Driving is Created Successfuly', 200);
 

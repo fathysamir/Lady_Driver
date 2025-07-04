@@ -64,6 +64,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/create_offer', [DriverController::class,'create_offer'])->name('create_offer');
     Route::get('/marks', [DriverController::class,'marks'])->name('marks');
     Route::get('/models', [DriverController::class,'models'])->name('models');
+    Route::get('/scooter_marks', [DriverController::class,'scooter_marks'])->name('scooter_marks');
+    Route::get('/scooter_models', [DriverController::class,'scooter_models'])->name('scooter_models');
 
     Route::get('/current_trip', [ClientController::class,'current_trip'])->name('current_trip');
     Route::post('/accept_offer', [ClientController::class,'accept_offer'])->name('accept_offer');
