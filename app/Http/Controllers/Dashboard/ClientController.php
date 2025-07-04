@@ -138,10 +138,11 @@ class ClientController extends Controller
 
     }
 
-    public function delete($id)
+    public function delete($id,Request $request)
     {
         User::where('id', $id)->delete();
-        return redirect('/admin-dashboard/clients');
+        return redirect()->route('clients', $request->query())
+        ->with('success', 'Client deleted successfully.');   
     }
     public function restore($id)
     {
