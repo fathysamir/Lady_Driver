@@ -9,6 +9,7 @@ use App\Models\DriverLicense;
 use App\Models\Notification;
 use App\Models\Offer;
 use App\Models\Setting;
+use App\Models\Scooter;
 use App\Models\Trip;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
@@ -147,10 +148,10 @@ class DriverController extends ApiController
 
     public function edit_car(Request $request)
     {
-        $check_account = $this->check_banned();
-        if ($check_account != true) {
-            return $this->sendError(null, $check_account, 400);
-        }
+        // $check_account = $this->check_banned();
+        // if ($check_account != true) {
+        //     return $this->sendError(null, $check_account, 400);
+        // }
         $validator = Validator::make($request->all(), [
             'car_id'              => [
                 'required',
@@ -288,7 +289,7 @@ class DriverController extends ApiController
         $acceptedLanguage = $request->header('Accept-Language');
         $car              = Car::where('user_id', auth()->user()->id)->with(['owner:id,name', 'mark', 'model'])->first();
         if (! $car) {
-            return $this->sendError(null, "You don't create your cat yet", 400);
+            return $this->sendError(null, "You don't create your car yet", 400);
         }
 
         $car->image               = getFirstMediaUrl($car, $car->avatarCollection);
@@ -298,6 +299,194 @@ class DriverController extends ApiController
         $car->inspection_image    = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
 
         return $this->sendResponse($car, null, 200);
+    }
+
+     public function create_scooter(Request $request)
+    {
+        // $check_account = $this->check_banned();
+        // if ($check_account != true) {
+        //     return $this->sendError(null, $check_account, 400);
+        // }
+        $validator = Validator::make($request->all(), [
+            'scooter_mark_id'         => [
+                'required',
+                Rule::exists('motorcycle_marks', 'id'),
+            ],
+            'scooter_model_id'        => [
+                'required',
+                Rule::exists('motorcycle_models', 'id'),
+            ],
+            'color'               => 'required|string|max:255',
+            'year'                => 'required|integer|min:1900|max:' . date('Y'),
+            'scooter_plate'           => 'required|string|max:255',
+          
+            'image'               => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'plate_image'         => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_back_image'  => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'lat'                 => 'nullable',
+            'lng'                 => 'nullable',
+            'license_expire_date' => 'required|date',
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+        $lastScooter = Scooter::orderBy('id', 'desc')->first();
+
+        if ($lastScooter) {
+            $lastCode = $lastScooter->code;
+            $code     = 'SCO-' . str_pad((int) substr($lastCode, 4) + 1, 9, '0', STR_PAD_LEFT);
+        } else {
+            $code = 'CAR-000000001';
+        }
+        $scooter = Scooter::create(['user_id' => auth()->user()->id,
+            'motorcycle_mark_id'                 => $request->scooter_mark_id,
+            'code'                        => $code,
+            'motorcycle_model_id'                => $request->scooter_model_id,
+            'color'                       => $request->color,
+            'year'                        => $request->year,
+            'scooter_plate'                   => $request->scooter_plate,
+            'lat'                         => floatval($request->lat),
+            'lng'                         => floatval($request->lng),
+            'license_expire_date'         => $request->license_expire_date,
+        ]);
+      
+        $scooter->save();
+        uploadMedia($request->image, $scooter->avatarCollection, $scooter);
+        uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
+        uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
+        uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
+       
+        $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
+        $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
+        $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+        $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+        $scooter->inspection_image    = getFirstMediaUrl($scooter, $scooter->CarInspectionImageCollection);
+        return $this->sendResponse($scooter, 'Scooter Created Successfully.', 200);
+    }
+
+    public function edit_scooter(Request $request)
+    {
+        // $check_account = $this->check_banned();
+        // if ($check_account != true) {
+        //     return $this->sendError(null, $check_account, 400);
+        // }
+        $validator = Validator::make($request->all(), [
+            'scooter_id'              => [
+                'required',
+                Rule::exists('cars', 'id'),
+            ],
+            'scooter_mark_id'         => [
+                'required',
+                Rule::exists('motorcycle_marks', 'id'),
+            ],
+            'scooter_model_id'        => [
+                'required',
+                Rule::exists('motorcycle_models', 'id'),
+            ],
+            'color'               => 'required|string|max:255',
+            'year'                => 'required|integer|min:1900|max:' . date('Y'),
+            'scooter_plate'           => 'required|string|max:255',
+            'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'lat'                 => 'nullable',
+            'lng'                 => 'nullable',
+            'license_expire_date' => 'required|date',
+            
+
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+
+        Car::where('id', $request->scooter_id)->update([
+            'motorcycle_mark_id'         => $request->scooter_mark_id,
+            'motorcycle_model_id'        => $request->scooter_model_id,
+            'color'               => $request->color,
+            'year'                => $request->year,
+            'scooter_plate'           => $request->scooter_plate,
+            'lat'                 => floatval($request->lat),
+            'lng'                 => floatval($request->lng),
+            'status'              => 'pending',
+            'license_expire_date' => $request->license_expire_date,
+        ]);
+        $scooter = Car::find($request->scooter_id);
+        if ($request->file('image')) {
+            $image = getFirstMediaUrl($scooter, $scooter->avatarCollection);
+            if ($image != null) {
+                deleteMedia($scooter, $scooter->avatarCollection);
+                uploadMedia($request->image, $scooter->avatarCollection, $scooter);
+            } else {
+                uploadMedia($request->image, $scooter->avatarCollection, $scooter);
+            }
+        }
+
+        if ($request->file('plate_image')) {
+            $plate_image = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
+            if ($plate_image != null) {
+                deleteMedia($scooter, $scooter->PlateImageCollection);
+                uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
+            } else {
+                uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
+            }
+        }
+
+        if ($request->file('license_front_image')) {
+            $license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+            if ($license_front_image != null) {
+                deleteMedia($scooter, $scooter->LicenseFrontImageCollection);
+                uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
+            } else {
+                uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
+            }
+        }
+
+        if ($request->file('license_back_image')) {
+            $license_back_image = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+            if ($license_back_image != null) {
+                deleteMedia($scooter, $scooter->LicenseBackImageCollection);
+                uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
+            } else {
+                uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
+            }
+        }
+
+    
+
+        $scooter                      = Scooter::find($request->scooter_id);
+        $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
+        $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
+        $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+        $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+      
+
+        return $this->sendResponse($scooter, 'Scooter Updated Successfully.', 200);
+    }
+
+    public function scooter(Request $request)
+    {
+        $acceptedLanguage = $request->header('Accept-Language');
+        $scooter              = Scooter::where('user_id', auth()->user()->id)->with(['owner:id,name', 'mark', 'model'])->first();
+        if (! $scooter) {
+            return $this->sendError(null, "You don't create your scooter yet", 400);
+        }
+
+        $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
+        $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
+        $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+        $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+
+        return $this->sendResponse($scooter, null, 200);
     }
 
     public function add_driving_license(Request $request)
@@ -325,11 +514,10 @@ class DriverController extends ApiController
 
             uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
             //uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
-            uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
-            uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+           
         } else {
             $existed_driving_license->update(['license_num' => $request->license_number,
-                'expire_date'                                   => $request->license_expire_date]);
+                'expire_date' => $request->license_expire_date]);
             if ($request->file('license_front_image')) {
                 $license_front_image = getFirstMediaUrl($existed_driving_license, $existed_driving_license->LicenseFrontImageCollection);
                 if ($license_front_image != null) {
@@ -350,8 +538,7 @@ class DriverController extends ApiController
         $driving_license                      = DriverLicense::where('user_id', auth()->user()->id)->first();
         $driving_license->license_front_image = getFirstMediaUrl($driving_license, $driving_license->LicenseFrontImageCollection);
         $driving_license->license_back_image  = getFirstMediaUrl($driving_license, $driving_license->LicenseBackImageCollection);
-        $driving_license->ID_front_image      = getFirstMediaUrl($user, $user->IDfrontImageCollection);
-        $driving_license->ID_back_image       = getFirstMediaUrl($user, $user->IDbackImageCollection);
+      
 
         return $this->sendResponse($driving_license, 'License Driving is Created Successfuly', 200);
 
@@ -378,10 +565,10 @@ class DriverController extends ApiController
             }
             uploadMedia($request->Car_inspection_image, $car->CarInspectionImageCollection, $car);
         } else {
-            return $this->sendError(null, 'Make sure the car is registered and the inspection is uploadedز', 400);
+            return $this->sendError(null, 'Make sure the car is registered and the inspection is uploaded', 400);
 
         }
-        return $this->sendResponse(null, 'Car Inspection saved Successfuly', 200);
+        return $this->sendResponse(null, 'Car Inspection saved Successfully', 200);
 
     }
 

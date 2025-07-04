@@ -45,6 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/create_Car', [DriverController::class,'create_car'])->name('create_car');
     Route::post('/edit_car', [DriverController::class,'edit_car'])->name('edit_car');
     Route::get('/car', [DriverController::class,'car'])->name('car');
+     Route::post('/create_scooter', [DriverController::class,'create_scooter'])->name('create_scooter');
+    Route::post('/edit_scooter', [DriverController::class,'edit_scooter'])->name('edit_scooter');
+    Route::get('/scooter', [DriverController::class,'scooter'])->name('scooter');
     Route::post('/add_driving_license', [DriverController::class,'add_driving_license'])->name('add_driving_license');
     Route::post('/add_car_inspection', [DriverController::class,'add_car_inspection'])->name('add_car_inspection');
 
