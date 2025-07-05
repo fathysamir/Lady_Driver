@@ -77,33 +77,108 @@ class ClientController extends ApiController
 
             case 'scooter':
                 $Air_conditioning_service_price = 0;
-                $kilometer_price_short_trip   = floatval(Setting::where('key', 'kilometer_price_scooter_short_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $kilometer_price_long_trip    = floatval(Setting::where('key', 'kilometer_price_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $kilometer_price_medium_trip  = floatval(Setting::where('key', 'kilometer_price_scooter_medium_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $maximum_distance_long_trip   = floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $maximum_distance_medium_trip = floatval(Setting::where('key', 'maximum_distance_scooter_medium_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $maximum_distance_short_trip  = floatval(Setting::where('key', 'maximum_distance_scooter_short_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $increase_rate_peak_time_trip = floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $less_cost_for_trip           = floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $kilometer_price_short_trip     = floatval(Setting::where('key', 'kilometer_price_scooter_short_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $kilometer_price_long_trip      = floatval(Setting::where('key', 'kilometer_price_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $kilometer_price_medium_trip    = floatval(Setting::where('key', 'kilometer_price_scooter_medium_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $maximum_distance_long_trip     = floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $maximum_distance_medium_trip   = floatval(Setting::where('key', 'maximum_distance_scooter_medium_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $maximum_distance_short_trip    = floatval(Setting::where('key', 'maximum_distance_scooter_short_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
                 break;
 
             default:
                 $Air_conditioning_service_price = 0;
-                $kilometer_price_short_trip   = 0;
-                $kilometer_price_long_trip    = 0;
-                $kilometer_price_medium_trip  = 0;
-                $maximum_distance_long_trip   = 0;
-                $maximum_distance_medium_trip = 0;
-                $maximum_distance_short_trip  = 0;
-                $increase_rate_peak_time_trip = 0;
-                $less_cost_for_trip           = 0;
+                $kilometer_price_short_trip     = 0;
+                $kilometer_price_long_trip      = 0;
+                $kilometer_price_medium_trip    = 0;
+                $maximum_distance_long_trip     = 0;
+                $maximum_distance_medium_trip   = 0;
+                $maximum_distance_short_trip    = 0;
+                $increase_rate_peak_time_trip   = 0;
+                $less_cost_for_trip             = 0;
                 break;
         }
+
+        $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
+        $peakTimes = json_decode($peakJson, true);
 
         $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat, $request->end_lng);
         $distance = $response['distance_in_km'];
         $duration = $response['duration_in_M'];
-        dd($response);
+
+        if ($distance > $maximum_distance_long_trip) {
+            return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
+        }
+        $total_cost1 = 0;
+
+        if ($distance >= $maximum_distance_short_trip) {
+            $total_cost1 += $kilometer_price_short_trip * $maximum_distance_short_trip;
+        } else {
+            $total_cost1 += $kilometer_price_short_trip * $distance;
+        }
+
+        if ($distance >= $maximum_distance_medium_trip) {
+            $total_cost1 += $kilometer_price_medium_trip * ($maximum_distance_medium_trip - $maximum_distance_short_trip);
+        } elseif ($distance < $maximum_distance_medium_trip && $distance > $maximum_distance_short_trip) {
+            $total_cost1 += $kilometer_price_medium_trip * ($distance - $maximum_distance_short_trip);
+        }
+
+        if ($distance = $maximum_distance_long_trip) {
+            $total_cost1 += $kilometer_price_long_trip * ($maximum_distance_long_trip - $maximum_distance_medium_trip);
+        } elseif ($distance < $maximum_distance_long_trip && $distance > $maximum_distance_medium_trip) {
+            $total_cost1 += $kilometer_price_long_trip * ($distance - $maximum_distance_medium_trip);
+        }
+
+        if ($Air_conditioning_service_price > 0 && $request->air_conditioned == '1') {
+            $air_conditioning_cost = round($total_cost1 * $Air_conditioning_service_price, 4);
+        } else {
+            $air_conditioning_cost = 0;
+        }
+
+        if ($request->start_date == null || $request->start_time == null) {
+            $start_date = now()->toDateString(); // e.g., '2025-07-05'
+            $start_time = now()->format('H:i');
+        } elseif ($request->start_date != null && $request->start_time != null) {
+            $start_date = date('Y-m-d', strtotime($request->start_date));
+            $start_time = date('H:i', strtotime($request->start_time));
+        }
+        $day = date('l', strtotime($start_date));
+
+        $isPeak = false;
+
+        if (isset($peakTimes[$day])) {
+            foreach ($peakTimes[$day] as $period) {
+                if ($start_time >= $period['from'] && $start_time <= $period['to']) {
+                    $isPeak = true;
+                    break;
+                }
+            }
+        }
+        if ($isPeak) {
+            $peakTimeCost = round($total_cost1 * $increase_rate_peak_time_trip, 4);
+        } else {
+            $peakTimeCost = 0;
+        }
+        $total_cost = $total_cost1 + $peakTimeCost + $air_conditioning_cost;
+
+        if($total_cost<$less_cost_for_trip){
+            $total_cost=$less_cost_for_trip;
+        }
+        $response['start_date']=$start_date;
+        $response['start_time']=$start_time;
+        $response['start_lat']=$request->start_lat;
+        $response['start_lng']=$request->start_lng;
+        $response['end_lat']=$request->end_lat;
+        $response['end_lng']=$request->end_lng;
+        $response['air_conditioned']=$request->air_conditioned;
+        $response['type']=$request->type;
+        $response['distance'] = $distance;
+        $response['duration'] = $duration;
+        $response['total_cost'] = $total_cost;
+        
+        return $this->sendResponse($response, null, 200);
+
     }
     public function create_trip(Request $request)
     {

@@ -54,6 +54,8 @@ return new class extends Migration
             $table->float('driver_stare_rate', 3, 2)->default(0);
             $table->longText('driver_comment')->nullable();
             $table->timestamp('driver_arrived')->nullable();
+            $table->enum('scheduled', ['0', '1'])->default('0');
+            
             $table->timestamps();
             $table->softDeletes();
         });
