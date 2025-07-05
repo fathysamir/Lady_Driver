@@ -106,7 +106,7 @@ class ClientController extends ApiController
         $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat, $request->end_lng);
         $distance = $response['distance_in_km'];
         $duration = $response['duration_in_M'];
-dd($distance);
+
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
         }
@@ -124,7 +124,7 @@ dd($distance);
             $total_cost1 += $kilometer_price_medium_trip * ($distance - $maximum_distance_short_trip);
         }
 
-        if ($distance = $maximum_distance_long_trip) {
+        if ($distance == $maximum_distance_long_trip) {
             $total_cost1 += $kilometer_price_long_trip * ($maximum_distance_long_trip - $maximum_distance_medium_trip);
         } elseif ($distance < $maximum_distance_long_trip && $distance > $maximum_distance_medium_trip) {
             $total_cost1 += $kilometer_price_long_trip * ($distance - $maximum_distance_medium_trip);
