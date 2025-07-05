@@ -160,7 +160,7 @@ class ClientController extends ApiController
         } else {
             $peakTimeCost = 0;
         }
-        $total_cost = $total_cost1 + $peakTimeCost + $air_conditioning_cost;
+        $total_cost = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
 
         if($total_cost<$less_cost_for_trip){
             $total_cost=$less_cost_for_trip;
