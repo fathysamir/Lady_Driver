@@ -106,7 +106,7 @@ class ClientController extends ApiController
         $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat, $request->end_lng);
         $distance = $response['distance_in_km'];
         $duration = $response['duration_in_M'];
-
+dd($distance);
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
         }
