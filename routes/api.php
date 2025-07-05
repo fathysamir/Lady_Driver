@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/change_lang', [AuthController::class,'change_lang'])->name('change_lang');
 
     Route::post('/activation', [DriverController::class,'activation'])->name('activation');
+    Route::post('/Create_temporary_trip', [DriverController::class,'Create_temporary_trip'])->name('Create_temporary_trip');
     Route::post('/create_Car', [DriverController::class,'create_car'])->name('create_car');
     Route::post('/edit_car', [DriverController::class,'edit_car'])->name('edit_car');
     Route::get('/car', [DriverController::class,'car'])->name('car');

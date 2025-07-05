@@ -94,6 +94,8 @@ class Chat implements MessageComponentInterface
             }
         });
     }
+
+    
     private function create_trip(ConnectionInterface $from, $AuthUserID, $tripRequest)
     {
 
