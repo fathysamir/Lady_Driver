@@ -24,7 +24,7 @@ class ClientController extends ApiController
         $this->firebaseService = $firebaseService;
     }
 
-    public function Create_temporary_trip(Request $request)
+    public function create_temporary_trip(Request $request)
     {
         $check_account = $this->check_banned();
         if ($check_account != true) {
