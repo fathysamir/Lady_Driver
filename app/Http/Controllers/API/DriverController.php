@@ -607,6 +607,9 @@ class DriverController extends ApiController
         return $this->sendResponse($driving_license, null, 200);
     }
 
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////
     public function created_trips()
     {
         $check_account = $this->check_banned();
