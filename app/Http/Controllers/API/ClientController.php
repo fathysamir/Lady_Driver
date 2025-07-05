@@ -131,7 +131,7 @@ class ClientController extends ApiController
         }
 
         if ($Air_conditioning_service_price > 0 && $request->air_conditioned == '1') {
-            $air_conditioning_cost = round($total_cost1 * $Air_conditioning_service_price, 4);
+            $air_conditioning_cost = round($total_cost1 * ($Air_conditioning_service_price/100), 4);
         } else {
             $air_conditioning_cost = 0;
         }
@@ -156,7 +156,7 @@ class ClientController extends ApiController
             }
         }
         if ($isPeak) {
-            $peakTimeCost = round($total_cost1 * $increase_rate_peak_time_trip, 4);
+            $peakTimeCost = round($total_cost1 * ($increase_rate_peak_time_trip/100), 4);
         } else {
             $peakTimeCost = 0;
         }
