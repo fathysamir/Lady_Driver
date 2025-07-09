@@ -45,6 +45,7 @@
                 @endif
             </a>
             <ul class="sidebar-submenu" style="display: none; padding-left: 40px;">
+                <li><a href="{{ url('/admin-dashboard/drivers') }}">All Drivers</a></li>
                 <li><a href="{{ url('/admin-dashboard/drivers?type=cars') }}">Original Cars</a></li>
                 <li><a href="{{ url('/admin-dashboard/drivers?type=comfort_cars') }}">Comfort Cars</a></li>
                 <li><a href="{{ url('/admin-dashboard/drivers?type=scooters') }}">Scooters</a></li>
