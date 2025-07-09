@@ -17,7 +17,19 @@ class DriverController extends Controller
 { //done
     public function index(Request $request)
     {
-        $all_users = User::where('mode', 'driver')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+        $all_users = User::where('mode', 'driver');
+        if ($request->type == 'cars') {
+            $all_users->whereHas('car', function ($q) {
+                $q->where('is_comfort', '0');
+            });
+        } elseif ($request->type == 'comfort_cars') {
+            $all_users->whereHas('car', function ($q) {
+                $q->where('is_comfort', '1');
+            });
+        } elseif ($request->type == 'scooters') {
+            $all_users->whereHas('scooter');
+        }
+        $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
@@ -50,15 +62,27 @@ class DriverController extends Controller
         $status = $request->status;
         $city   = $request->city;
         $level  = $request->level;
-        return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'level'));
+        $type   = $request->type;
+        return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'level', 'type'));
 
     }
 
     public function index_archives(Request $request)
     {
         // Start with all users, including soft deleted ones
-        $all_users = User::withTrashed()->where('mode', 'driver')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
-
+        $all_users = User::withTrashed()->where('mode', 'driver');
+        if ($request->type == 'cars') {
+            $all_users->whereHas('car', function ($q) {
+                $q->where('is_comfort', '0');
+            });
+        } elseif ($request->type == 'comfort_cars') {
+            $all_users->whereHas('car', function ($q) {
+                $q->where('is_comfort', '1');
+            });
+        } elseif ($request->type == 'scooters') {
+            $all_users->whereHas('scooter');
+        }
+        $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
         // Apply search filter if provided
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
@@ -81,8 +105,8 @@ class DriverController extends Controller
         });
 
         $search = $request->search;
-
-        return view('dashboard.drivers.index_archives', compact('all_users', 'count', 'search'));
+        $type   = $request->type;
+        return view('dashboard.drivers.index_archives', compact('all_users', 'count', 'search', 'type'));
     }
 
     public function edit($id, Request $request)
@@ -107,9 +131,9 @@ class DriverController extends Controller
         $user->trips_count = Trip::whereHas('car', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
-
+        $cities      = City::all();
         $queryString = $request->query();
-        return view('dashboard.drivers.edit', compact('user', 'queryString'));
+        return view('dashboard.drivers.edit', compact('user', 'queryString', 'cities'));
     }
 
     public function update(Request $request, $id)
@@ -134,6 +158,10 @@ class DriverController extends Controller
             ],
             'birth_date'   => 'nullable|date',
             'address'      => 'nullable',
+            'city'         => [
+                'required',
+                'exists:cities,id',
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -146,10 +174,11 @@ class DriverController extends Controller
             'country_code'                           => $request->country_code,
             'birth_date'                             => $request->birth_date,
             'national_id'                            => $request->national_id,
+            'city_id'                                => $request->city,
         ]);
         $car = Car::where('user_id', $id)->first();
         if ($car) {
-            $car->status = $request->status == 'banned' ? 'blocked' : $request->status;
+            $car->status = $request->status;
             $car->save();
         }
         $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date', 'national_id']);
@@ -159,15 +188,15 @@ class DriverController extends Controller
 
     }
 
-    public function delete($id,Request $request)
+    public function delete($id, Request $request)
     {
         User::where('id', $id)->delete();
-           return redirect()->route('drivers', $request->query())
-        ->with('success', 'Driver deleted successfully.'); 
+        return redirect()->route('drivers', $request->query())
+            ->with('success', 'Driver deleted successfully.');
     }
-    public function restore($id)
+    public function restore($id, Request $request)
     {
         User::withTrashed()->where('id', $id)->update(['deleted_at' => null]);
-        return redirect('/admin-dashboard/archived-drivers');
+        return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
     }
 }

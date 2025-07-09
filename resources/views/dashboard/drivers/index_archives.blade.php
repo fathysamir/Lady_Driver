@@ -158,7 +158,7 @@
                                                     <td>
 
                                                         <a
-                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/restore/' . $user->id) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/restore/' . $user->id .'?type=' .$type) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
                                                             <span class="bi bi-eye"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                         </a>

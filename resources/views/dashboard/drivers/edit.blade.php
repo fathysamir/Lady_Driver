@@ -11,6 +11,27 @@
             margin-bottom: 4.65%;
         }
 
+        .circle-wrapper {
+            display: flex;
+            justify-content: center;
+            /* horizontal center */
+            align-items: center;
+
+        }
+
+        .circle-label {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgb(255, 230, 0);
+            border-radius: 50%;
+            color: rgb(255, 255, 255);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
         .online {
             background-color: green;
         }
@@ -46,7 +67,21 @@
                                         <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
 
                                     </div>
+                                    <div class="star-rating" style="margin-bottom: -5px;">
+                                        <?php
+                                        $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
+                                        
+                                        // Loop to generate stars based on the client evaluation score
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
+                                            echo '<span style="font-size:30px;" class="star ' . $starClass2 . '">&#9733;</span>'; // Unicode character for a star
+                                        }
+                                        ?>
+                                    </div>
                                     <h3>{{ $user->name }}</h3>
+                                    <div class="circle-wrapper">
+                                        <div class="circle-label">{{ $user->level }}</div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group">
@@ -209,7 +244,8 @@
                                                     Guinea (+224)</option>
                                                 <option value="+592" {{ $country_code == '+592' ? 'selected' : '' }}>
                                                     Guyana (+592)</option>
-                                                <option value="+509"{{ $country_code == '+509' ? 'selected' : '' }}>Haiti
+                                                <option value="+509"{{ $country_code == '+509' ? 'selected' : '' }}>
+                                                    Haiti
                                                     (+509)</option>
                                                 <option value="+504"{{ $country_code == '+504' ? 'selected' : '' }}>
                                                     Honduras (+504)</option>
@@ -422,7 +458,19 @@
                                     @endif
                                 </div>
 
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <select class="form-control" required name="city">
+                                        <option value="">Select City</option>
+                                        @foreach ($cities as $city)
+                                            <option value="{{ $city->id }}"
+                                                {{ $user->city_id == $city->id ? 'selected' : '' }}>
+                                                {{ $city->name }}</option>
+                                        @endforeach
+                                        <!-- Add more options as needed -->
+                                    </select>
 
+                                </div>
                                 <div class="form-group">
                                     <label>Birth Date</label>
                                     <input type="date" class="form-control date" name="birth_date"

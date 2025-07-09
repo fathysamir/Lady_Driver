@@ -1,28 +1,27 @@
 <?php
-
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable,SoftDeletes,HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
-    public $avatarCollection = 'avatar-image';
+    public $avatarCollection       = 'avatar-image';
     public $IDfrontImageCollection = 'id-front-image';
-    public $IDbackImageCollection = 'id-back-image';
-    protected $fillable = [
+    public $IDbackImageCollection  = 'id-back-image';
+    protected $fillable            = [
         'name',
         'email',
         'phone',
@@ -47,7 +46,7 @@ class User extends Authenticatable
         'country_code',
         'student_code',
         'city_id',
-        'level'
+        'level',
     ];
 
     /**
@@ -67,10 +66,19 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password'          => 'hashed',
     ];
 
-     public function city(){
-        return $this->belongsTo(City::class,'city_id','id')->withTrashed();
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id', 'id')->withTrashed();
+    }
+    public function car()
+    {
+        return $this->hasOne(Car::class);
+    }
+    public function scooter()
+    {
+        return $this->hasOne(Scooter::class);
     }
 }

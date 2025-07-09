@@ -90,8 +90,8 @@ class ClientController extends Controller
         $user->rate        = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
         $user->trips_count = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
         $queryString       = $request->query();
-
-        return view('dashboard.clients.edit', compact('user', 'queryString'));
+ $cities      = City::all();
+        return view('dashboard.clients.edit', compact('user', 'queryString','cities'));
     }
 
     public function update(Request $request, $id)
@@ -115,6 +115,10 @@ class ClientController extends Controller
                 }),
             ],
             'birth_date'   => 'nullable|date',
+             'city'         => [
+                'nullable',
+                'exists:cities,id',
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -126,6 +130,7 @@ class ClientController extends Controller
             'phone'                                  => $request->phone,
             'country_code'                           => $request->country_code,
             'birth_date'                             => $request->birth_date,
+            'city_id'                                => $request->city,
         ]);
         $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date']);
 

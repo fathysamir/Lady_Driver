@@ -85,7 +85,7 @@
                                         <h5 class="card-title" style="width: 55%;">Drivers - {{ $count }}</h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-3" type="button"
-                                                href="{{ route('archived_drivers') }}"
+                                                href="{{ url('/admin-dashboard/archived-drivers?type='.$type) }}"
                                                 style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>

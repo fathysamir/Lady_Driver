@@ -74,7 +74,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::put('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
     Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
     Route::any('/archived-drivers', [DriverController::class, 'index_archives'])->name('archived_drivers');
-    Route::get('/driver/restore/{id}', [DriverController::class, 'restore'])->name('restore.driver');
+    Route::any('/driver/restore/{id}', [DriverController::class, 'restore'])->name('restore.driver');
     //////////////////////////////////////////////////
     Route::any('/cities', [CityController::class, 'index'])->name('cities');
     Route::get('/cities/create', [CityController::class, 'create'])->name('add.city');
