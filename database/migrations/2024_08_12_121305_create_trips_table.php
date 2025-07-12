@@ -35,9 +35,6 @@ return new class extends Migration
             $table->double('start_lat', 10, 6)->nullable();
             $table->double('start_lng', 10, 6)->nullable();
             $table->string('address1', 255)->nullable();
-            $table->double('end_lat', 10, 6)->nullable();
-            $table->double('end_lng', 10, 6)->nullable();
-            $table->string('address2', 255)->nullable();
             $table->enum('air_conditioned', ['0', '1'])->default('0');
             $table->enum('animals', ['0', '1'])->default('0');
             $table->enum('bags', ['0', '1'])->default('0');

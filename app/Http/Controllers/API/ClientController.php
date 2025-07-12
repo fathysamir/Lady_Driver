@@ -36,8 +36,12 @@ class ClientController extends ApiController
             'start_time'      => 'nullable|date_format:H:i', // Optional time format validation (24-hour)
             'start_lat'       => 'required|numeric|between:-90,90',
             'start_lng'       => 'required|numeric|between:-180,180',
-            'end_lat'         => 'required|numeric|between:-90,90',
-            'end_lng'         => 'required|numeric|between:-180,180',
+            'end_lat_1'       => 'required|numeric|between:-90,90',
+            'end_lng_1'       => 'required|numeric|between:-180,180',
+            'end_lat_2'       => 'nullable|numeric|between:-90,90',
+            'end_lng_2'       => 'nullable|numeric|between:-180,180',
+            'end_lat_3'       => 'nullable|numeric|between:-90,90',
+            'end_lng_3'       => 'nullable|numeric|between:-180,180',
             'type'            => 'required|in:car,comfort_car,scooter',
             'air_conditioned' => 'nullable|boolean',
         ]);
@@ -103,9 +107,19 @@ class ClientController extends ApiController
         $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
         $peakTimes = json_decode($peakJson, true);
 
-        $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat, $request->end_lng);
-        $distance = $response['distance_in_km'];
-        $duration = $response['duration_in_M'];
+        $response_x = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
+        $distance = $response_x['distance_in_km'];
+        $duration = $response_x['duration_in_M'];
+        if ($request->end_lat_2 != null && $request->end_lng_2 != null) {
+            $response_x = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2);
+            $distance = $distance + $response_x['distance_in_km'];
+            $duration = $duration + $response_x['duration_in_M'];
+        }
+         if ($request->end_lat_3 != null && $request->end_lng_3 != null) {
+            $response_x = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3);
+            $distance = $distance + $response_x['distance_in_km'];
+            $duration = $duration + $response_x['duration_in_M'];
+        }
 
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
@@ -131,7 +145,7 @@ class ClientController extends ApiController
         }
 
         if ($Air_conditioning_service_price > 0 && $request->air_conditioned == '1') {
-            $air_conditioning_cost = round($total_cost1 * ($Air_conditioning_service_price/100), 4);
+            $air_conditioning_cost = round($total_cost1 * ($Air_conditioning_service_price / 100), 4);
         } else {
             $air_conditioning_cost = 0;
         }
@@ -156,27 +170,27 @@ class ClientController extends ApiController
             }
         }
         if ($isPeak) {
-            $peakTimeCost = round($total_cost1 * ($increase_rate_peak_time_trip/100), 4);
+            $peakTimeCost = round($total_cost1 * ($increase_rate_peak_time_trip / 100), 4);
         } else {
             $peakTimeCost = 0;
         }
         $total_cost = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
 
-        if($total_cost<$less_cost_for_trip){
-            $total_cost=$less_cost_for_trip;
+        if ($total_cost < $less_cost_for_trip) {
+            $total_cost = $less_cost_for_trip;
         }
-        $response['start_date']=$start_date;
-        $response['start_time']=$start_time;
-        $response['start_lat']=$request->start_lat;
-        $response['start_lng']=$request->start_lng;
-        $response['end_lat']=$request->end_lat;
-        $response['end_lng']=$request->end_lng;
-        $response['air_conditioned']=$request->air_conditioned;
-        $response['type']=$request->type;
-        $response['distance'] = $distance;
-        $response['duration'] = $duration;
-        $response['total_cost'] = $total_cost;
-        
+        $response['start_date']      = $start_date;
+        $response['start_time']      = $start_time;
+        $response['start_lat']       = $request->start_lat;
+        $response['start_lng']       = $request->start_lng;
+        $response['end_lat']         = $request->end_lat;
+        $response['end_lng']         = $request->end_lng;
+        $response['air_conditioned'] = $request->air_conditioned;
+        $response['type']            = $request->type;
+        $response['distance']        = $distance;
+        $response['duration']        = $duration;
+        $response['total_cost']      = $total_cost;
+
         return $this->sendResponse($response, null, 200);
 
     }
