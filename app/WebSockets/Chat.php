@@ -406,7 +406,7 @@ class Chat implements MessageComponentInterface
             }
             do {
                 $barcode = Str::uuid();
-            } while (User::where('barcode', $barcode)->exists());
+            } while (Trip::where('barcode', $barcode)->exists());
             $trip = Trip::create(['user_id' => $AuthUserID,
                 'code'                          => $code,
                 'barcode'                       => $barcode,
