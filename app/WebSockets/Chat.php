@@ -269,6 +269,11 @@ class Chat implements MessageComponentInterface
         }
 
     }
+
+    private function create_trip_and_find_drivers(ConnectionInterface $from, $AuthUserID, $tripRequest){
+         $data = json_decode($tripRequest, true);
+         dd($data);
+    }
     private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
     {
         $data = json_decode($cancelTripRequest, true);
@@ -615,7 +620,7 @@ class Chat implements MessageComponentInterface
 
             switch ($data['type']) {
                 case 'new_trip':
-                    $this->create_trip($from, $AuthUserID, $requestData);
+                    $this->create_trip_and_find_drivers($from, $AuthUserID, $requestData);
                     break;
 
                 case 'new_offer':
