@@ -40,7 +40,7 @@ class Scooter extends Model
 
     public function trips()
     {
-        return $this->hasMany(ScooterTrip::class,'scooter_id');
+        return $this->hasMany(Trip::class,'scooter_id');
     }
     public function owner(){
         return $this->belongsTo(User::class,'user_id','id')->withTrashed();

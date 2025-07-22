@@ -13,33 +13,33 @@ return new class extends Migration
     {
         Schema::create('trips', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 191);
-            $table->string('barcode');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unsignedBigInteger('car_id')->nullable();
+            $table->string('code', 191); //***************************************** */ */
+            $table->string('barcode'); //******************************************** */
+            $table->unsignedBigInteger('user_id'); /*************************************** */
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); /************* */
+            $table->unsignedBigInteger('car_id')->nullable(); //******** */
             $table->foreign('car_id')->references('id')->on('cars')->onDelete('cascade');
-            $table->unsignedBigInteger('scooter_id')->nullable();
-            $table->foreign('scooter_id')->references('id')->on('scooters')->onDelete('cascade');
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->time('start_time')->nullable();
-            $table->time('end_time')->nullable();
-            $table->double('total_price', 8, 2)->default(0);
-            $table->double('discount', 8, 2)->default(0);
-            $table->double('app_rate', 8, 2)->default(0);
-            $table->double('driver_rate', 8, 2)->default(0);
-            $table->decimal('paid_amount', 8, 2)->nullable(); // amount paid
-            $table->decimal('remaining_amount', 8, 2)->nullable();
-            $table->double('distance', 8, 2)->nullable();
-            $table->double('start_lat', 10, 6)->nullable();
-            $table->double('start_lng', 10, 6)->nullable();
-            $table->string('address1', 255)->nullable();
-            $table->enum('air_conditioned', ['0', '1'])->default('0');
-            $table->enum('animals', ['0', '1'])->default('0');
-            $table->enum('bags', ['0', '1'])->default('0');
-            $table->float('client_stare_rate', 3, 2)->default(0);
-            $table->longText('client_comment')->nullable();
+            $table->unsignedBigInteger('scooter_id')->nullable(); //********* */
+            $table->foreign('scooter_id')->references('id')->on('scooters')->onDelete('cascade'); //********* */
+            $table->date('start_date')->nullable(); /******* */
+            $table->date('end_date')->nullable(); /**************** */
+            $table->time('start_time')->nullable(); ///***********///////
+            $table->time('end_time')->nullable(); /************** */
+            $table->double('total_price', 8, 2)->default(0); /************* */
+            $table->double('discount', 8, 2)->default(0); ////////////
+            $table->double('app_rate', 8, 2)->default(0); /************** */
+            $table->double('driver_rate', 8, 2)->default(0); /************ */
+            $table->decimal('paid_amount', 8, 2)->nullable(); // amount paid //////////
+            $table->decimal('remaining_amount', 8, 2)->nullable(); /////////////////
+            $table->double('distance', 8, 2)->nullable(); ////////////
+            $table->double('start_lat', 10, 6)->nullable(); /********** */
+            $table->double('start_lng', 10, 6)->nullable();/************** */
+            $table->string('address1', 255)->nullable();/***************** */
+            $table->enum('air_conditioned', ['0', '1'])->default('0'); /********************* */
+            $table->enum('animals', ['0', '1'])->default('0'); /***************** */
+            $table->enum('bags', ['0', '1'])->default('0'); /********************** */
+            $table->float('client_stare_rate', 3, 2)->default(0); /**************** */
+            $table->longText('client_comment')->nullable(); /************ */
             $table->enum('status', ['created', 'pending', 'in_progress', 'completed', 'cancelled', 'expired'])->default('created');
             $table->unsignedBigInteger('cancelled_by_id')->nullable();
             $table->foreign('cancelled_by_id')->references('id')->on('users')->onDelete('cascade');

@@ -89,4 +89,10 @@ class Trip extends Model
         return $this->payments()->where('status', 'completed')->sum('amount');
     }
 
+     public function finalDestination()
+    {
+        return $this->hasMany(TripDestination::class, 'trip_id');
+    }
+
+
 }

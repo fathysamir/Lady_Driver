@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use App\Models\Trip;
+use Milon\Barcode\Facades\DNS1DFacade as DNS1D;
 
 function uploadMedia($request_file, $collection_name, $model)
 {
@@ -11,30 +13,31 @@ function uploadMedia($request_file, $collection_name, $model)
     set_time_limit(10000000);
     $directory = public_path('images');
 
-    if (!File::exists($directory)) {
+    if (! File::exists($directory)) {
         File::makeDirectory($directory, 0755, true);
     }
     $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
-    $image = $model->id.''.$invitation_code.''.time() . '.' . $request_file->extension();
+    $image           = $model->id . '' . $invitation_code . '' . time() . '.' . $request_file->extension();
 
     $request_file->move(public_path('images/'), $image);
     $path = ('/images/') . $image;
     DB::table('media')->insert([
         'attachmentable_type' => get_class($model),
-        'attachmentable_id' => $model->id,
-        'collection_name' => $collection_name,
-        'Path' => $path
+        'attachmentable_id'   => $model->id,
+        'collection_name'     => $collection_name,
+        'Path'                => $path,
     ]);
     return $path;
 }
 
-function uploadMediaByURL($path,$collection_name, $model){
+function uploadMediaByURL($path, $collection_name, $model)
+{
     DB::table('media')->insert([
-            'attachmentable_type' => get_class($model),
-            'attachmentable_id' => $model->id,
-            'collection_name' => $collection_name,
-            'Path' => $path
-        ]);
+        'attachmentable_type' => get_class($model),
+        'attachmentable_id'   => $model->id,
+        'collection_name'     => $collection_name,
+        'Path'                => $path,
+    ]);
     return $path;
 }
 
@@ -55,8 +58,6 @@ function getMediaUrl($model, $collection_name)
         return $attachments;
     }
 
-
-
 }
 
 function getFirstMediaUrl($model, $collection_name)
@@ -66,7 +67,7 @@ function getFirstMediaUrl($model, $collection_name)
     //     ->first();
     $attachment = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->first();
 
-    if (!$attachment || $attachment->path == null) {
+    if (! $attachment || $attachment->path == null) {
         return null;
     }
     return url($attachment->path);
@@ -78,7 +79,7 @@ function getFirstMedia($model, $collection_name)
     //     ->first();
     $attachment = DB::table('media')->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->where('attachmentable_type', get_class($model))->first();
 
-    if (!$attachment || $attachment->path == null) {
+    if (! $attachment || $attachment->path == null) {
         return null;
     }
     return $attachment->path;
@@ -88,7 +89,6 @@ function deleteMedia($model, $collection_name = null)
 {
 
     return DB::table('media')->where('attachmentable_type', get_class($model))->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->delete();
-
 
 }
 
@@ -106,21 +106,29 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2)
     //$request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
 
     $response = file_get_contents($request_url);
-    $data = json_decode($response, true);
+    $data     = json_decode($response, true);
 
     if ($data['status'] == 'OK') {
 
-        $distance = $data['rows'][0]['elements'][0]['distance']['value']; // Distance in meters
-        $duration = $data['rows'][0]['elements'][0]['duration_in_traffic']['value'];
+        $distance                    = $data['rows'][0]['elements'][0]['distance']['value']; // Distance in meters
+        $duration                    = $data['rows'][0]['elements'][0]['duration_in_traffic']['value'];
         $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
-        $response2['duration_in_M'] = ceil($duration / 60);
+        $response2['duration_in_M']  = ceil($duration / 60);
 
-        return  $response2 ;
+        return $response2;
     } else {
         return 'Error: Unable to calculate the distance.';
     }
 }
 
+function barcodeImage($id)
+{
+    $trip = Trip::findOrFail($id);
+
+    $barcodePng = DNS1D::getBarcodePNG($trip->barcode, 'C128');
+
+    return response($barcodePng)->header('Content-Type', 'image/png');
+}
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {
     // بناء رابط API الخاص بالـ Google Directions
@@ -128,7 +136,7 @@ function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 
     // إجراء الطلب إلى Google Directions API
     $response = file_get_contents($url);
-    $data = json_decode($response, true);
+    $data     = json_decode($response, true);
 
     // التحقق من حالة الطلب
     if ($data['status'] != 'OK') {
@@ -139,7 +147,7 @@ function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
     $warnings = $data['routes'][0]['warnings'];
 
     // عرض التحذيرات المتعلقة ببوابات الدفع
-    if (!empty($warnings)) {
+    if (! empty($warnings)) {
         foreach ($warnings as $warning) {
             if (strpos(strtolower($warning), 'toll') !== false) {
                 echo "Warning: " . $warning . "\n";
