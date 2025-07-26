@@ -485,7 +485,7 @@ class Chat implements MessageComponentInterface
                 $newTrip['address4']  = $data['address4'];
             }
 
-            $from->send(json_encode(['type' => 'created_trip', 'message' => 'Trip Created Successfully']));
+            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully']));
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
             $newTrip["client_stare_rate"]         = 0;
@@ -694,7 +694,7 @@ class Chat implements MessageComponentInterface
                             // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
                         }
                     }
-                     if (count($eligibleDriverIds) > 0) {
+                    if (count($eligibleDriverIds) > 0) {
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
                             if ($client) {
@@ -878,43 +878,124 @@ class Chat implements MessageComponentInterface
         $date_time = date('Y-m-d h:i:s a');
 
         echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $AuthUserID);
+        switch ($trip->type) {
+            case 'car':
+                $decimalPlaces = 2;
+                $userIds       = Car::where('status', 'confirmed')->where('is_comfort', '0')
 
-        $decimalPlaces = 2;
-        $userIds       = Car::where('status', 'confirmed')
-            ->whereHas('owner', function ($query) {
-                $query->where('is_online', '1')
-                    ->where('status', 'confirmed');
-            })
-            ->where(function ($query) use ($trip) {
-                if ($trip->air_conditioned == '1') {
-                    $query->where('air_conditioned', '1');
+                    ->whereHas('owner', function ($query) {
+                        $query->where('is_online', '1')
+                            ->where('status', 'confirmed');
+                    })
+                    ->where(function ($query) use ($trip) {
+                        if ($trip->air_conditioned == '1') {
+                            $query->where('air_conditioned', '1');
+                        }
+                        if ($trip->animals == '1') {
+                            $query->where('animals', '1');
+                        }
+                        if ($trip->user->gendor == 'Male') {
+                            $query->where('passenger_type', 'male_female');
+                        }
+                    })
+                    ->select('*')
+                    ->selectRaw(
+                        "
+                    ROUND(
+                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
+                    ) AS distance",
+                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                    )
+                    ->having('distance', '<=', 4)
+                    ->get()
+                    ->pluck('user_id') // Extract user_ids as an array
+                    ->toArray();
+                foreach ($userIds as $userID) {
+                    $client = $this->getClientByUserId($userID);
+                    if ($client) {
+                        $client->send($message);
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
+                    }
                 }
-                if ($trip->animals == '1') {
-                    $query->where('animals', '1');
+
+                break;
+
+            case 'comfort_car':
+                $decimalPlaces = 2;
+                $userIds       = Car::where('status', 'confirmed')->where('is_comfort', '1')
+
+                    ->whereHas('owner', function ($query) {
+                        $query->where('is_online', '1')
+                            ->where('status', 'confirmed');
+                    })
+                    ->where(function ($query) use ($trip) {
+
+                        if ($trip->animals == '1') {
+                            $query->where('animals', '1');
+                        }
+                        if ($trip->user->gendor == 'Male') {
+                            $query->where('passenger_type', 'male_female');
+                        }
+                    })
+                    ->select('*')
+                    ->selectRaw(
+                        "
+                    ROUND(
+                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
+                    ) AS distance",
+                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                    )
+                    ->having('distance', '<=', 4)
+                    ->get()
+                    ->pluck('user_id') // Extract user_ids as an array
+                    ->toArray();
+                foreach ($userIds as $userID) {
+                    $client = $this->getClientByUserId($userID);
+                    if ($client) {
+                        $client->send($message);
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
+                    }
                 }
-                if ($trip->user->gendor == 'Male') {
-                    $query->where('passenger_type', 'male_female');
+
+                break;
+
+            case 'scooter':
+                $decimalPlaces = 2;
+                $userIds       = Scooter::where('status', 'confirmed')
+
+                    ->whereHas('owner', function ($query) {
+                        $query->where('is_online', '1')
+                            ->where('status', 'confirmed');
+                    })
+
+                    ->select('*')
+                    ->selectRaw(
+                        "
+                    ROUND(
+                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
+                    ) AS distance",
+                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                    )
+                    ->having('distance', '<=', 4)
+                    ->get()
+                    ->pluck('user_id') // Extract user_ids as an array
+                    ->toArray();
+                foreach ($userIds as $userID) {
+                    $client = $this->getClientByUserId($userID);
+                    if ($client) {
+                        $client->send($message);
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
+                    }
                 }
-            })
-            ->select('user_id') // Select only the user_id column
-            ->selectRaw(
-                "
-                        ROUND(
-                            ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                        ) AS distance",
-                [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-            )
-            ->having('distance', '<=', 4)
-            ->get()
-            ->pluck('user_id') // Extract user_ids as an array
-            ->toArray();
-        foreach ($userIds as $userID) {
-            $client = $this->getClientByUserId($userID);
-            if ($client) {
-                $client->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-            }
+
+                break;
+
+            default:
+
+                break;
         }
 
     }
