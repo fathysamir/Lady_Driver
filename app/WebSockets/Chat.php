@@ -570,6 +570,7 @@ class Chat implements MessageComponentInterface
                                 $duration2                           = $response2['duration_in_M'];
                                 $newTrip['client_location_distance'] = $distance2;
                                 $newTrip['client_location_duration'] = $duration2;
+                                $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
@@ -643,6 +644,7 @@ class Chat implements MessageComponentInterface
                                 $duration2                           = $response2['duration_in_M'];
                                 $newTrip['client_location_distance'] = $distance2;
                                 $newTrip['client_location_duration'] = $duration2;
+                                $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
@@ -698,16 +700,17 @@ class Chat implements MessageComponentInterface
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
                             if ($client) {
-                                $driver                              = User::findOrFail($eligibleDriverId);
-                                $app_ratio                           = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                 = round(($total_cost * $app_ratio) / 100, 2);
-                                $newTrip['driver_rate']              = $total_cost - $newTrip['app_rate'];
-                                $car2                                = Car::where('user_id', $eligibleDriverId)->first();
-                                $response2                           = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
-                                $distance2                           = $response2['distance_in_km'];
-                                $duration2                           = $response2['duration_in_M'];
-                                $newTrip['client_location_distance'] = $distance2;
-                                $newTrip['client_location_duration'] = $duration2;
+                                $driver                               = User::findOrFail($eligibleDriverId);
+                                $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                                $newTrip['app_rate']                  = round(($total_cost * $app_ratio) / 100, 2);
+                                $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
+                                $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
+                                $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                                $distance2                            = $response2['distance_in_km'];
+                                $duration2                            = $response2['duration_in_M'];
+                                $newTrip['client_location_distance']  = $distance2;
+                                $newTrip['client_location_duration']  = $duration2;
+                                $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
@@ -757,9 +760,9 @@ class Chat implements MessageComponentInterface
     }
     private function create_offer(ConnectionInterface $from, $AuthUserID, $offerRequest)
     {
-        $data       = json_decode($offerRequest, true);
-        $driver_car = Car::where('user_id', $AuthUserID)->first();
-        $lastOffer  = Offer::orderBy('id', 'desc')->first();
+        $data      = json_decode($offerRequest, true);
+        $driver    = User::findOrFail($AuthUserID);
+        $lastOffer = Offer::orderBy('id', 'desc')->first();
 
         if ($lastOffer) {
             $lastCode = $lastOffer->code;
@@ -767,12 +770,52 @@ class Chat implements MessageComponentInterface
         } else {
             $code = 'OFR-000001';
         }
-        $offer = Offer::create(['user_id' => $AuthUserID,
-            'code'                            => $code,
-            'car_id'                          => $driver_car->id,
-            'trip_id'                         => intval($data['trip_id']),
-            'offer'                           => floatval($data['offer'])]);
         $trip = Trip::findOrFail($data['trip_id']);
+        switch ($trip->type) {
+            case 'car':
+                $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+
+                $driver_car = Car::where('user_id', $AuthUserID)->first();
+                $offer      = Offer::create(['user_id' => $AuthUserID,
+                    'code'                                 => $code,
+                    'car_id'                               => $driver_car->id,
+                    'trip_id'                              => intval($data['trip_id']),
+                    'offer'                                => floatval($data['offer'])]);
+                $offer_result['car_id'] = $offer->car()->first()->id;
+                $response               = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+
+                break;
+            case 'comfort_car':
+                $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+
+                $driver_car = Car::where('user_id', $AuthUserID)->first();
+                $offer      = Offer::create(['user_id' => $AuthUserID,
+                    'code'                                 => $code,
+                    'car_id'                               => $driver_car->id,
+                    'trip_id'                              => intval($data['trip_id']),
+                    'offer'                                => floatval($data['offer'])]);
+                $offer_result['car_id'] = $offer->car()->first()->id;
+                $response               = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+
+                break;
+            case 'scooter':
+                $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+
+                $driver_scooter = Scooter::where('user_id', $AuthUserID)->first();
+                $offer          = Offer::create(['user_id' => $AuthUserID,
+                    'code'                                     => $code,
+                    'scooter_id'                               => $driver_scooter->id,
+                    'trip_id'                                  => intval($data['trip_id']),
+                    'offer'                                    => floatval($data['offer'])]);
+                $offer_result['scooter_id'] = $offer->scooter()->first()->id;
+                $response                   = calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
+
+                break;
+            default:
+
+                break;
+        }
+
         if ($trip->user->device_token) {
             // $this->firebaseService->sendNotification($trip->user->device_token,'Lady Driver - New Offer',"Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name .").",["screen"=>"Current Trip","ID"=>$trip->id]);
             // $data=[
@@ -795,34 +838,47 @@ class Chat implements MessageComponentInterface
         $date_time = date('Y-m-d h:i:s a');
         echo sprintf('[ %s ],created offer message has been sent to user %d' . "\n", $date_time, $AuthUserID);
 
-        $app_ratio                                = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
-        $response                                 = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
         $distance                                 = $response['distance_in_km'];
         $duration                                 = $response['duration_in_M'];
         $driver_                                  = $offer->user()->first();
         $offer_result['id']                       = $offer->id;
         $offer_result['user_id']                  = $offer->user()->first()->id;
-        $offer_result['car_id']                   = $offer->car()->first()->id;
         $offer_result['trip_id']                  = $trip->id;
         $offer_result['client_location_distance'] = $distance;
         $offer_result['client_location_duration'] = $duration;
-        $offer_result['offer']                    = round(($offer->offer - $trip->driver_rate) + (($offer->offer - $trip->driver_rate) * $app_ratio / 100) + $trip->total_price, 2);
+        $offer_result['offer']                    = floatval($data['offer']);
         $offer_result['user']['id']               = $offer->user()->first()->id;
         $offer_result['user']['name']             = $offer->user()->first()->name;
         $offer_result['user']['image']            = 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection);
-        $offer_result['user']['rate']             = Trip::whereHas('car', function ($query) use ($driver_) {
-            $query->where('user_id', $driver_->id);
-        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
-        $offer_result['car']['id']            = $offer->car()->first()->id;
-        $offer_result['car']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->car()->first(), $offer->car()->first()->avatarCollection);
-        $offer_result['car']['year']          = $offer->car()->first()->year;
-        $offer_result['car']['car_mark_id']   = $offer->car()->first()->car_mark_id;
-        $offer_result['car']['car_model_id']  = $offer->car()->first()->car_model_id;
-        $offer_result['car']['mark']['id']    = $offer->car()->first()->mark()->first()->id;
-        $offer_result['car']['mark']['name']  = $offer->car()->first()->mark()->first()->name;
-        $offer_result['car']['model']['id']   = $offer->car()->first()->model()->first()->id;
-        $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
-        $offer_result['created_at']           = $offer->created_at;
+        if ($trip->type == 'comfort_car' || $trip->type == 'car') {
+            $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                $query->where('user_id', $driver_->id);
+            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
+
+            $offer_result['car']['id']            = $offer->car()->first()->id;
+            $offer_result['car']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->car()->first(), $offer->car()->first()->avatarCollection);
+            $offer_result['car']['year']          = $offer->car()->first()->year;
+            $offer_result['car']['car_mark_id']   = $offer->car()->first()->car_mark_id;
+            $offer_result['car']['car_model_id']  = $offer->car()->first()->car_model_id;
+            $offer_result['car']['mark']['id']    = $offer->car()->first()->mark()->first()->id;
+            $offer_result['car']['mark']['name']  = $offer->car()->first()->mark()->first()->name;
+            $offer_result['car']['model']['id']   = $offer->car()->first()->model()->first()->id;
+            $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
+        } elseif ($trip->type == 'scooter') {
+            $offer_result['user']['rate'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                $query->where('user_id', $driver_->id);
+            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
+            $offer_result['scooter']['id']            = $offer->scooter()->first()->id;
+            $offer_result['scooter']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
+            $offer_result['scooter']['year']          = $offer->scooter()->first()->year;
+            $offer_result['scooter']['car_mark_id']   = $offer->scooter()->first()->car_mark_id;
+            $offer_result['scooter']['car_model_id']  = $offer->scooter()->first()->car_model_id;
+            $offer_result['scooter']['mark']['id']    = $offer->scooter()->first()->mark()->first()->id;
+            $offer_result['scooter']['mark']['name']  = $offer->scooter()->first()->mark()->first()->name;
+            $offer_result['scooter']['model']['id']   = $offer->scooter()->first()->model()->first()->id;
+            $offer_result['scooter']['model']['name'] = $offer->scooter()->first()->model()->first()->name;
+        }
+        $offer_result['created_at'] = $offer->created_at;
 
         $client = $this->getClientByUserId($trip->user_id);
         if ($client) {
