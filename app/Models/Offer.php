@@ -14,6 +14,7 @@ class Offer extends Model
         'user_id',
         'code',
         'car_id',
+        'scooter_id',
         'trip_id',
         'status',
         'offer',
@@ -33,6 +34,9 @@ class Offer extends Model
     }
     public function car(){
         return $this->belongsTo(Car::class,'car_id','id')->withTrashed();
+    }
+    public function scooter(){
+        return $this->belongsTo(Car::class,'scooter_id','id')->withTrashed();
     }
     public function trip(){
         return $this->belongsTo(Trip::class,'trip_id','id')->withTrashed();

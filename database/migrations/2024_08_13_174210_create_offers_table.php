@@ -13,14 +13,16 @@ return new class extends Migration
     {
         Schema::create('offers', function (Blueprint $table) {
             $table->id();
-            $table->string('code',191);
+            $table->string('code', 191);
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unsignedBigInteger('car_id');
+            $table->unsignedBigInteger('car_id')->nullable();
             $table->foreign('car_id')->references('id')->on('cars')->onDelete('cascade');
+            $table->unsignedBigInteger('scooter_id')->nullable();                                
+            $table->foreign('scooter_id')->references('id')->on('scooters')->onDelete('cascade');
             $table->unsignedBigInteger('trip_id');
             $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-            $table->enum('status', ['pending','accepted','expired'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'expired'])->default('pending');
             $table->double('offer', 8, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
