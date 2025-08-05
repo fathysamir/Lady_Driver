@@ -367,7 +367,7 @@ class DriverController extends ApiController
             $lastCode = $lastScooter->code;
             $code     = 'SCO-' . str_pad((int) substr($lastCode, 4) + 1, 9, '0', STR_PAD_LEFT);
         } else {
-            $code = 'CAR-000000001';
+            $code = 'SCT-000000001';
         }
         $scooter = Scooter::create(['user_id' => auth()->user()->id,
             'motorcycle_mark_id'                  => $request->scooter_mark_id,

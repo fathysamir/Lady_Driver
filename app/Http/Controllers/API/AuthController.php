@@ -344,8 +344,8 @@ class AuthController extends ApiController
             ],
             'address'      => 'nullable',
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_front_image'=>'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_back_image'=>'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_front_image'=>'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_back_image'=>'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'lat'          => 'nullable',
             'lng'          => 'nullable',
             'city_id'      => [
