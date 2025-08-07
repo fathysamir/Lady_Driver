@@ -879,7 +879,7 @@ class Chat implements MessageComponentInterface
             $offer_result['scooter']['model']['name'] = $offer->scooter()->first()->model()->first()->name;
         }
         $offer_result['created_at'] = $offer->created_at;
-
+dd($offer_result);
         $client = $this->getClientByUserId($trip->user_id);
         if ($client) {
             $data2 = [

@@ -190,7 +190,9 @@ class DriverController extends Controller
 
     public function delete($id, Request $request)
     {
-        User::where('id', $id)->delete();
+        $user = User::where('id', $id)->first();
+        $user->tokens()->delete();
+        $user->delete();
         return redirect()->route('drivers', $request->query())
             ->with('success', 'Driver deleted successfully.');
     }

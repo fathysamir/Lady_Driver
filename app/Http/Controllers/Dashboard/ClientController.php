@@ -132,6 +132,10 @@ class ClientController extends Controller
             'birth_date'                             => $request->birth_date,
             'city_id'                                => $request->city,
         ]);
+        $user=User::where('id',$id)->first();
+        if( $request->status == 'blocked'){
+             $user->tokens()->delete();
+        }
         $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date']);
 
         return redirect()->route('clients', $queryParams)->with('success', 'User updated successfully!');
@@ -145,7 +149,9 @@ class ClientController extends Controller
 
     public function delete($id,Request $request)
     {
-        User::where('id', $id)->delete();
+        $user=User::where('id', $id)->first();
+        $user->tokens()->delete();
+        $user->delete();
         return redirect()->route('clients', $request->query())
         ->with('success', 'Client deleted successfully.');   
     }
