@@ -66,7 +66,7 @@
                                         <button type="button" class="btn btn-light "
                                             onclick="showTab('Comfort Trips')"style="width: 16.55%">Comfort Trips</button>
                                     </div>
-                                    @foreach (['Car Trips', 'Scooter Trips', 'Comfort Trips'] as $category)
+                                    @foreach (['General','Car Trips', 'Scooter Trips', 'Comfort Trips'] as $category)
                                         <div class="btn-group mb-3 settings-bar" role="group"
                                             style="width: 60%;display:none;" id="bar-{{ Str::slug($category) }}">
                                             <button type="button" class="btn btn-light "
@@ -112,6 +112,7 @@
                                             ->whereNotNull('level')
                                             ->pluck('level')
                                             ->unique();
+                                            
                                     @endphp
                                     <div class="settings-tab" id="tab-{{ Str::slug($category) }}" style="display: none;">
                                         <h5>{{ $category }} Settings</h5>
