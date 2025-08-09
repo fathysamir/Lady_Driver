@@ -34,45 +34,47 @@ class AuthController extends ApiController
     public function register(Request $request)
     {
         $rules = [
-            'name'         => 'required|string|max:255',
-            'email'        => [
+            'name'           => 'required|string|max:255',
+            'email'          => [
                 'required',
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users')->whereNull('deleted_at'),
+                Rule::unique('users')
+                    ->whereNull('deleted_at'),
             ],
-            'password'     => 'required|string|min:8|confirmed',
-            'mode'         => 'required',
-            'country_code' => 'required',
-            'phone'        => [
+            'password'       => 'required|string|min:8|confirmed',
+            'mode'           => 'required|in:driver,client',
+            'country_code'   => 'required|string|max:10',
+            'phone'          => [
                 'required',
-                Rule::unique('users')->where(function ($query) use ($request) {
-                    return $query->where('country_code', $request->country_code)
-                        ->whereNull('deleted_at');
-                }),
+                Rule::unique('users')
+                    ->where(function ($query) use ($request) {
+                        return $query->where('country_code', $request->country_code)
+                            ->whereNull('deleted_at');
+                    }),
             ],
-            'city_id'      => [
-                'required',
-                'exists:cities,id',
-            ],
-
+            'city_id'        => 'required|exists:cities,id',
+            'ID_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_back_image'  => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'national_ID'    => 'required|digits:14',
         ];
 
-        // Add a conditional rule for 'image' based on the 'mode' field
+// Conditional rules for driver
         if ($request->input('mode') === 'driver') {
-            $rules['image']      = 'required|image|mimes:jpeg,png,jpg,gif|max:5120'; // Adjust as needed
+            $rules['image']      = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['birth_date'] = [
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
             ];
-            $rules['ID_front_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
-            $rules['ID_back_image']  = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
-            $rules['national_ID']    = 'required|digits:14';
+            $rules['driver_type'] = 'required|in:scooter,car';
+            $rules['year']        = 'required|integer|min:2000|max:' . date('Y');
         }
+
+// Conditional rules for client
         if ($request->input('mode') === 'client') {
-            $rules['gendor'] = 'required|in:Male,Female'; // Adjust as needed
+            $rules['gendor'] = 'required|in:Male,Female';
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -92,6 +94,21 @@ class AuthController extends ApiController
         } else {
             $age = null;
         }
+        if ($request->input('mode') === 'driver') {
+            if ($request->driver_type == 'car') {
+                $comfort_year = Setting::where('key', 'comfort_car_start_from_year')->where('category', 'General')->where('type', 'number')->first()->value;
+                if (intval($request->year) >= intval($comfort_year)) {
+                    $driver_type = 'comfort_car';
+                } else {
+                    $driver_type = 'car';
+                }
+            } else {
+                $driver_type = 'scooter';
+            }
+
+        } else {
+            $driver_type = null;
+        }
 
         $user = User::create([
 
@@ -108,12 +125,11 @@ class AuthController extends ApiController
             'age'             => $age,
             'city_id'         => $request->city_id,
             'national_id'     => $request->national_id,
+            'driver_type'     => $driver_type,
         ]);
-        if ($request->mode == 'client') {
-            $user->status = 'confirmed';
-
-        } else {
+        if ($request->mode == 'driver') {
             $user->level = '1';
+
         }
         $user->save();
         $role = Role::where('name', 'Client')->first();
@@ -646,5 +662,4 @@ class AuthController extends ApiController
         return $this->sendResponse($cities, null, 200);
     }
 
-    
 }

@@ -43,7 +43,8 @@ class Trip extends Model
         'bags',
         'driver_arrived',
         'type',
-        'scheduled'
+        'scheduled',
+        'payment_method'
     ];
 
     protected $allowedSorts = [

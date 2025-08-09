@@ -47,6 +47,7 @@ class User extends Authenticatable
         'student_code',
         'city_id',
         'level',
+        'driver_type'
     ];
 
     /**
