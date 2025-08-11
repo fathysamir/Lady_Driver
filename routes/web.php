@@ -34,6 +34,7 @@ Route::get('/', function () {
     return view('welcome');
     // return view ('emails.otp');
 });
+Route::get('/restart-websocket', [SettingController::class, 'restartWebsocket']);
 Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
 Route::get('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');

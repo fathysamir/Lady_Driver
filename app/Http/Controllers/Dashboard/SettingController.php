@@ -1,26 +1,15 @@
 <?php
-
 namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Car;
-use App\Models\CarMark;
-use App\Models\TripCancellingReason;
-use App\Models\Setting;
-use Image;
-use Str;
-use File;
 use App\Models\AboutUs;
+use App\Models\Setting;
+use App\Models\TripCancellingReason;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\Process\Process;
 
 class SettingController extends Controller
 {
@@ -36,7 +25,7 @@ class SettingController extends Controller
         //     $all_settings->where('category', $request->category);
         // }
         $all_settings = $all_settings->get();
-        $search = $request->search;
+        $search       = $request->search;
         return view('dashboard.settings.index', compact('all_settings', 'search'));
     }
     public function edit($id)
@@ -49,26 +38,26 @@ class SettingController extends Controller
     {
         //dd($request->all());
         $validator = Validator::make($request->all(), [
-            'label' => ['required','string','max:255'],
-            
+            'label' => ['required', 'string', 'max:255'],
+
         ]);
 
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
-        $set=Setting::where('id', $id)->first();
-        if($set->type=='options'){
-            if($request->value){
-                $value=json_encode($request->value);
-            }else{
-                $value=null;
+        $set = Setting::where('id', $id)->first();
+        if ($set->type == 'options') {
+            if ($request->value) {
+                $value = json_encode($request->value);
+            } else {
+                $value = null;
             }
-           
-        }else{
-            $value=floatval($request->value);
+
+        } else {
+            $value = floatval($request->value);
         }
-        $set->update([ 'label' => $request->label,
-                                            'value' =>$value ]);
+        $set->update(['label' => $request->label,
+            'value'               => $value]);
         return redirect('/admin-dashboard/settings');
 
     }
@@ -91,7 +80,7 @@ class SettingController extends Controller
             $all_reasons->where('value_type', $request->value_type);
         }
         $all_reasons = $all_reasons->paginate(12);
-        $search = $request->search;
+        $search      = $request->search;
         return view('dashboard.cancelling_reasons.index', compact('all_reasons', 'search'));
     }
     public function create_reason()
@@ -102,11 +91,11 @@ class SettingController extends Controller
     {
 
         $rules = [
-            'en_reason' => ['required', 'string', 'max:191'],
-            'ar_reason' => ['required', 'string', 'max:191'],
-            'category' => ['required'],
+            'en_reason'  => ['required', 'string', 'max:191'],
+            'ar_reason'  => ['required', 'string', 'max:191'],
+            'category'   => ['required'],
             'value_type' => ['nullable'],
-            'value' => ['nullable'],
+            'value'      => ['nullable'],
         ];
 
         // Check if 'value_type' is present in the request and not null
@@ -118,23 +107,21 @@ class SettingController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
-
         $reason = TripCancellingReason::create([
             'en_reason' => $request->en_reason,
             'ar_reason' => $request->ar_reason,
-            'type' => $request->category
+            'type'      => $request->category,
         ]);
         if ($request->value_type != null) {
             $reason->value_type = $request->value_type;
-            $reason->value = $request->value;
+            $reason->value      = $request->value;
         } else {
             $reason->value_type = 'fixed';
-            $reason->value = 0;
+            $reason->value      = 0;
         }
         $reason->save();
         return redirect('/admin-dashboard/reasons-cancelling-trips')->with('success', 'Reason created successfully.');
@@ -148,39 +135,38 @@ class SettingController extends Controller
     public function update_reason(Request $request, $id)
     {
         $rules = [
-            'en_reason' => ['required', 'string', 'max:191'],
-            'ar_reason' => ['required', 'string', 'max:191'],
-            'category' => ['required'],
+            'en_reason'  => ['required', 'string', 'max:191'],
+            'ar_reason'  => ['required', 'string', 'max:191'],
+            'category'   => ['required'],
             'value_type' => ['nullable'],
-            'value' => ['nullable'],
+            'value'      => ['nullable'],
         ];
 
         // Check if 'value_type' is present in the request and not null
         if ($request->has('value_type') && $request->input('value_type') !== null) {
-            $rules['value'] = ['required','numeric', 'max:99']; // Set 'value' field as required
+            $rules['value'] = ['required', 'numeric', 'max:99']; // Set 'value' field as required
         } else {
             $rules['value'] = ['nullable']; // Set 'value' field as nullable
         }
 
         $validator = Validator::make($request->all(), $rules);
 
-
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
-        TripCancellingReason::where('id', $id)->update([  'en_reason' => $request->en_reason,
-                                                        'ar_reason' => $request->ar_reason,
-                                                        'type' => $request->category,
+        TripCancellingReason::where('id', $id)->update(['en_reason' => $request->en_reason,
+            'ar_reason'                                                 => $request->ar_reason,
+            'type'                                                      => $request->category,
 
-            ]);
+        ]);
         $reason = TripCancellingReason::find($id);
         if ($request->value_type != null) {
             $reason->value_type = $request->value_type;
-            $reason->value = $request->value;
+            $reason->value      = $request->value;
         } else {
             $reason->value_type = 'fixed';
-            $reason->value = 0;
+            $reason->value      = 0;
         }
         $reason->save();
         return redirect('/admin-dashboard/reasons-cancelling-trips')->with('success', 'Reason updated successfully.');
@@ -200,21 +186,21 @@ class SettingController extends Controller
     {
 
         $description = AboutUs::where('key', 'description')->first()->value;
-        $phone1 = AboutUs::where('key', 'phone1')->first()->value;
-        $email1 = AboutUs::where('key', 'email1')->first()->value;
-        $phone2 = AboutUs::where('key', 'phone2')->first()->value;
-        $email2 = AboutUs::where('key', 'email2')->first()->value;
-        $phone3 = AboutUs::where('key', 'phone3')->first()->value;
-        $email3 = AboutUs::where('key', 'email3')->first()->value;
-        $phone4 = AboutUs::where('key', 'phone4')->first()->value;
-        $email4 = AboutUs::where('key', 'email4')->first()->value;
-        $facebook = AboutUs::where('key', 'facebook')->first()->value;
-        $instagram = AboutUs::where('key', 'instagram')->first()->value;
-        $twitter = AboutUs::where('key', 'twitter')->first()->value;
-        $tiktok = AboutUs::where('key', 'tiktok')->first()->value;
-        $linked_in = AboutUs::where('key', 'linked-in')->first()->value;
-        $app_link = AboutUs::where('key', 'app-link')->first()->value;
-        return view('dashboard.about_us.view', compact('description', 'phone1', 'email1','phone2', 'email2','phone3', 'email3','phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in','app_link'));
+        $phone1      = AboutUs::where('key', 'phone1')->first()->value;
+        $email1      = AboutUs::where('key', 'email1')->first()->value;
+        $phone2      = AboutUs::where('key', 'phone2')->first()->value;
+        $email2      = AboutUs::where('key', 'email2')->first()->value;
+        $phone3      = AboutUs::where('key', 'phone3')->first()->value;
+        $email3      = AboutUs::where('key', 'email3')->first()->value;
+        $phone4      = AboutUs::where('key', 'phone4')->first()->value;
+        $email4      = AboutUs::where('key', 'email4')->first()->value;
+        $facebook    = AboutUs::where('key', 'facebook')->first()->value;
+        $instagram   = AboutUs::where('key', 'instagram')->first()->value;
+        $twitter     = AboutUs::where('key', 'twitter')->first()->value;
+        $tiktok      = AboutUs::where('key', 'tiktok')->first()->value;
+        $linked_in   = AboutUs::where('key', 'linked-in')->first()->value;
+        $app_link    = AboutUs::where('key', 'app-link')->first()->value;
+        return view('dashboard.about_us.view', compact('description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link'));
     }
 
     public function update_about_us(Request $request)
@@ -222,11 +208,11 @@ class SettingController extends Controller
         AboutUs::where('key', 'description')->update(['value' => $request->description]);
         AboutUs::where('key', 'email1')->update(['value' => $request->email1]);
         AboutUs::where('key', 'phone1')->update(['value' => $request->phone1]);
-         AboutUs::where('key', 'email2')->update(['value' => $request->email2]);
+        AboutUs::where('key', 'email2')->update(['value' => $request->email2]);
         AboutUs::where('key', 'phone2')->update(['value' => $request->phone2]);
-         AboutUs::where('key', 'email3')->update(['value' => $request->email3]);
+        AboutUs::where('key', 'email3')->update(['value' => $request->email3]);
         AboutUs::where('key', 'phone3')->update(['value' => $request->phone3]);
-         AboutUs::where('key', 'email4')->update(['value' => $request->email4]);
+        AboutUs::where('key', 'email4')->update(['value' => $request->email4]);
         AboutUs::where('key', 'phone4')->update(['value' => $request->phone4]);
         AboutUs::where('key', 'facebook')->update(['value' => $request->facebook]);
         AboutUs::where('key', 'instagram')->update(['value' => $request->instagram]);
@@ -235,5 +221,30 @@ class SettingController extends Controller
         AboutUs::where('key', 'tiktok')->update(['value' => $request->tiktok]);
         AboutUs::where('key', 'app-link')->update(['value' => $request->app_link]);
         return redirect('/admin-dashboard/about_us/view')->with('success', 'About Us updated successfully.');
+    }
+
+    public function restartWebsocket()
+    {
+        try {
+            $process = new Process(['sudo', 'supervisorctl', 'restart', 'ladydriver-websockets']);
+            $process->run();
+
+            if (! $process->isSuccessful()) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $process->getErrorOutput(),
+                ], 500);
+            }
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => $process->getOutput(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
