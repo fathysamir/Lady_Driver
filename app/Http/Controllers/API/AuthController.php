@@ -652,7 +652,7 @@ class AuthController extends ApiController
             $mes->update(['message' => $message]);
         }
 
-        return $this->sendResponse(null, 'success', 200);
+        return $this->sendResponse($acceptLang, 'success', 200);
 
     }
 
