@@ -602,12 +602,9 @@ class DriverController extends ApiController
         $user                                 = auth()->user();
         $driving_license->license_front_image = getFirstMediaUrl($driving_license, $driving_license->LicenseFrontImageCollection);
         $driving_license->license_back_image  = getFirstMediaUrl($driving_license, $driving_license->LicenseBackImageCollection);
-      
 
         return $this->sendResponse($driving_license, null, 200);
     }
-
-
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     public function created_trips()
@@ -743,6 +740,9 @@ class DriverController extends ApiController
         }
         $lastAcceptedOffer = Offer::where('user_id', auth()->user()->id)
             ->where('status', 'accepted')
+            ->whereHas('trip', function ($t) {
+                $t->whereIn('status', ['pending', 'in_progress']);
+            })
             ->orderBy('id', 'desc') // Or 'id' if you prefer
             ->first();
         if (! $lastAcceptedOffer) {
@@ -750,8 +750,14 @@ class DriverController extends ApiController
         }
         $trip = Trip::where('id', $lastAcceptedOffer->trip_id)->with(['car' => function ($query) {
             $query->with(['mark', 'model']);
+        }, 'scooter' => function ($query) {
+            $query->with(['mark', 'model']);
         }, 'user'])->first();
-        $response                       = calculate_distance($lastAcceptedOffer->car->lat, $lastAcceptedOffer->car->lng, $trip->start_lat, $trip->start_lng);
+        if (in_array($trip->type, ['car', 'comfort_car'])) {
+            $response = calculate_distance($lastAcceptedOffer->car->lat, $lastAcceptedOffer->car->lng, $trip->start_lat, $trip->start_lng);
+        } elseif ($trip->type == 'scooter') {
+            $response = calculate_distance($lastAcceptedOffer->scooter->lat, $lastAcceptedOffer->scooter->lng, $trip->start_lat, $trip->start_lng);
+        }
         $distance                       = $response['distance_in_km'];
         $duration                       = $response['duration_in_M'];
         $trip->client_location_distance = $distance;
@@ -814,7 +820,7 @@ class DriverController extends ApiController
             return $this->sendError(null, $errors, 400);
         }
         $car = Car::where('user_id', auth()->user()->id)->first();
-        if (! $car ) {
+        if (! $car) {
             return $this->sendError(null, "You don't create your car yet", 400);
         }
         if (auth()->user()->is_online == '0') {
