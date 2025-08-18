@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreign('scooter_id')->references('id')->on('scooters')->onDelete('cascade');
             $table->unsignedBigInteger('trip_id');
             $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-            $table->enum('status', ['pending', 'accepted', 'expired'])->default('pending');
+            $table->enum('status', ['pending', 'scheduled','accepted', 'expired'])->default('pending');
             $table->double('offer', 8, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();

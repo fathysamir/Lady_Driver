@@ -343,6 +343,8 @@ class ClientController extends ApiController
             $trip_distance  = $response['distance_in_km'];
             $trip_duration  = $response['duration_in_M'];
             $trip->duration = $trip_duration;
+            $barcode_image=barcodeImage($trip->id);
+            $trip->barcode=$barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {
                     $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);

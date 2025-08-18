@@ -439,10 +439,12 @@ class Chat implements MessageComponentInterface
                 $start_date = now()->toDateString(); // e.g., '2025-07-05'
                 $start_time = now()->format('H:i');
                 $scheduled  = '0';
+                $TripStatus = 'created';
             } elseif ($data['start_date'] != null && $data['start_time'] != null) {
                 $start_date = date('Y-m-d', strtotime($data['start_date']));
                 $start_time = date('H:i', strtotime($data['start_time']));
                 $scheduled  = '1';
+                $TripStatus = 'scheduled';
             }
             $day = date('l', strtotime($start_date));
 
@@ -489,6 +491,7 @@ class Chat implements MessageComponentInterface
                 'start_date'                    => $start_date,
                 'start_time'                    => $start_time,
                 'scheduled'                     => $scheduled,
+                'status'                        => $TripStatus,
             ]);
 
             $u                           = User::findOrFail($AuthUserID);
@@ -514,6 +517,8 @@ class Chat implements MessageComponentInterface
             $newTrip['duration']         = $duration;
             $newTrip['scheduled']        = $scheduled;
             $newTrip['type']             = $data['type'];
+            $newTrip["status"]           = $TripStatus;
+
             if ($data['air_conditioned'] == '1') {
                 $trip->air_conditioned      = '1';
                 $newTrip['air_conditioned'] = '1';
@@ -560,7 +565,6 @@ class Chat implements MessageComponentInterface
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
             $newTrip["client_stare_rate"]         = 0;
             $newTrip["client_comment"]            = null;
-            $newTrip["status"]                    = "created";
             $newTrip["cancelled_by_id"]           = null;
             $newTrip["trip_cancelling_reason_id"] = null;
             $newTrip["driver_stare_rate"]         = 0;
@@ -1102,7 +1106,8 @@ class Chat implements MessageComponentInterface
 
     private function accept_offer(ConnectionInterface $from, $AuthUserID, $acceptOfferRequest)
     {
-        $data  = json_decode($acceptOfferRequest, true);
+        $data = json_decode($acceptOfferRequest, true);
+
         $offer = Offer::where('id', $data['offer_id'])->where('status', 'pending')->first();
         if (! $offer) {
             $x['offer_id'] = $data['offer_id'];
@@ -1121,17 +1126,17 @@ class Chat implements MessageComponentInterface
             $trip = $offer->trip;
             switch ($trip->type) {
                 case 'car':
-                    $app_ratio    = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $$offer->user->level)->first()->value);
+                    $app_ratio    = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
                     $trip->car_id = $offer->car_id;
                     break;
 
                 case 'comfort_car':
-                    $app_ratio    = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $$offer->user->level)->first()->value);
+                    $app_ratio    = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
                     $trip->car_id = $offer->car_id;
                     break;
 
                 case 'scooter':
-                    $app_ratio        = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $$offer->user->level)->first()->value);
+                    $app_ratio        = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
                     $trip->scooter_id = $offer->scooter_id;
                     break;
 
@@ -1139,12 +1144,19 @@ class Chat implements MessageComponentInterface
 
                     break;
             }
-            $trip->status      = 'pending';
+            if ($trip->status == 'created') {
+                $trip->status = 'pending';
+            }
             $trip->total_price = $offer->offer;
             $trip->app_rate    = round(($offer->offer * $app_ratio) / 100, 2);
             $trip->driver_rate = $offer->offer - round(($offer->offer * $app_ratio) / 100, 2);
             $trip->save();
-            $offer->status = 'accepted';
+            if ($trip->status == 'created') {
+                $offer->status = 'accepted';
+            } elseif ($trip->status == 'scheduled') {
+                $offer->status = 'scheduled';
+            }
+
             $offer->save();
             Offer::where('id', '!=', $data['offer_id'])->where('trip_id', $trip->id)->update(['status' => 'expired']);
             if ($offer->user->device_token) {

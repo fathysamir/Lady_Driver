@@ -40,7 +40,7 @@ return new class extends Migration
             $table->enum('bags', ['0', '1'])->default('0'); /********************** */
             $table->float('client_stare_rate', 3, 2)->default(0); /**************** */
             $table->longText('client_comment')->nullable(); /************ */
-            $table->enum('status', ['created', 'pending', 'in_progress', 'completed', 'cancelled', 'expired'])->default('created');
+            $table->enum('status', ['created', 'scheduled','pending', 'in_progress', 'completed', 'cancelled', 'expired'])->default('created');
             $table->unsignedBigInteger('cancelled_by_id')->nullable();
             $table->foreign('cancelled_by_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('trip_cancelling_reason_id')->nullable();
