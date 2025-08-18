@@ -8,7 +8,6 @@ use App\Models\CarModel;
 use App\Models\DriverLicense;
 use App\Models\MotorcycleMark;
 use App\Models\MotorcycleModel;
-use App\Models\Notification;
 use App\Models\Offer;
 use App\Models\Scooter;
 use App\Models\Setting;
@@ -613,49 +612,130 @@ class DriverController extends ApiController
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
         }
-        $driver_car = Car::where('user_id', auth()->user()->id)->first();
-        if ($driver_car->status == 'confirmed') {
-            if (auth()->user()->is_online == '1') {
-                $radius         = 6371;
-                $decimalPlaces  = 2;
-                $tripsWithin3Km = Trip::select('*')
-                    ->where('status', 'created')->with('user:id,name');
-                if ($driver_car->air_conditioned == '0') {
-                    $tripsWithin3Km->where('air_conditioned', '0');
+        if (auth()->user()->driver_type == 'car') {
+            $driver_car = Car::where('user_id', auth()->user()->id)->first();
+            if ($driver_car->status == 'confirmed') {
+                if (auth()->user()->is_online == '1') {
+                    $radius         = 6371;
+                    $decimalPlaces  = 2;
+                    $tripsWithin3Km = Trip::select('*')
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'car')->with('user:id,name');
+                    if ($driver_car->air_conditioned == '0') {
+                        $tripsWithin3Km->where('air_conditioned', '0');
+                    }
+                    if ($driver_car->animals == '0') {
+                        $tripsWithin3Km->where('animals', '0');
+                    }
+                    if ($driver_car->passenger_type == 'female') {
+                        $tripsWithin3Km->whereHas('user', function ($query) {
+                            $query->where('gendor', 'Female');
+                        });
+                    }
+                    $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
+                        ->having('client_location_away', '<=', 3) // Filter cars within 3 km
+                        ->get()->map(function ($trip) use ($driver_car) {
+                        $response = calculate_distance($driver_car->lat, $driver_car->lng, $trip->start_lat, $trip->start_lng);
+                        $distance = $response['distance_in_km'];
+                        $duration = $response['duration_in_M'];
+                        if ($distance <= 3) {
+                            $trip->client_location_distance = $distance;
+                            $trip->client_location_duration = $duration;
+                            $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+                            $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
+                            return $trip;
+                        }
+                    })->filter()       // Remove null values after mapping
+                        ->sortByDesc('id') // Order by distance descending
+                        ->values();
+                    return $this->sendResponse($tripsWithin3Km, null, 200);
+                } else {
+                    return $this->sendError(null, "your are offline", 400);
                 }
-                if ($driver_car->animals == '0') {
-                    $tripsWithin3Km->where('animals', '0');
+
+            } else {
+                return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
+            }
+        } elseif (auth()->user()->driver_type == 'comfort_car') {
+            $driver_car = Car::where('user_id', auth()->user()->id)->first();
+            if ($driver_car->status == 'confirmed') {
+                if (auth()->user()->is_online == '1') {
+                    $radius         = 6371;
+                    $decimalPlaces  = 2;
+                    $tripsWithin3Km = Trip::select('*')
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'comfort_car')->with('user:id,name');
+
+                    if ($driver_car->animals == '0') {
+                        $tripsWithin3Km->where('animals', '0');
+                    }
+                    if ($driver_car->passenger_type == 'female') {
+                        $tripsWithin3Km->whereHas('user', function ($query) {
+                            $query->where('gendor', 'Female');
+                        });
+                    }
+                    $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
+                        ->having('client_location_away', '<=', 3) // Filter cars within 3 km
+                        ->get()->map(function ($trip) use ($driver_car) {
+                        $response = calculate_distance($driver_car->lat, $driver_car->lng, $trip->start_lat, $trip->start_lng);
+                        $distance = $response['distance_in_km'];
+                        $duration = $response['duration_in_M'];
+                        if ($distance <= 3) {
+                            $trip->client_location_distance = $distance;
+                            $trip->client_location_duration = $duration;
+                            $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+                            $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
+                            return $trip;
+                        }
+                    })->filter()       // Remove null values after mapping
+                        ->sortByDesc('id') // Order by distance descending
+                        ->values();
+                    return $this->sendResponse($tripsWithin3Km, null, 200);
+                } else {
+                    return $this->sendError(null, "your are offline", 400);
                 }
-                if ($driver_car->passenger_type == 'female') {
-                    $tripsWithin3Km->whereHas('user', function ($query) {
+
+            } else {
+                return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
+            }
+        } elseif (auth()->user()->driver_type == 'scooter') {
+            $driver_scooter = Scooter::where('user_id', auth()->user()->id)->first();
+            if ($driver_scooter->status == 'confirmed') {
+                if (auth()->user()->is_online == '1') {
+                    $radius         = 6371;
+                    $decimalPlaces  = 2;
+                    $tripsWithin3Km = Trip::select('*')
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'scooter')->with('user:id,name')->whereHas('user', function ($query) {
                         $query->where('gendor', 'Female');
                     });
-                }
-                $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
-                    ->having('client_location_away', '<=', 3) // Filter cars within 3 km
-                    ->get()->map(function ($trip) use ($driver_car) {
-                    $response = calculate_distance($driver_car->lat, $driver_car->lng, $trip->start_lat, $trip->start_lng);
-                    $distance = $response['distance_in_km'];
-                    $duration = $response['duration_in_M'];
-                    if ($distance <= 3) {
-                        $trip->client_location_distance = $distance;
-                        $trip->client_location_duration = $duration;
-                        $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                        $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
-                        $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
-                        return $trip;
-                    }
-                })->filter()       // Remove null values after mapping
-                    ->sortByDesc('id') // Order by distance descending
-                    ->values();
-                return $this->sendResponse($tripsWithin3Km, null, 200);
-            } else {
-                return $this->sendError(null, "your are offline", 400);
-            }
 
-        } else {
-            return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
+                    $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_scooter->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_scooter->lng) ) + sin( radians($driver_scooter->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
+                        ->having('client_location_away', '<=', 3) // Filter cars within 3 km
+                        ->get()->map(function ($trip) use ($driver_scooter) {
+                        $response = calculate_distance($driver_scooter->lat, $driver_scooter->lng, $trip->start_lat, $trip->start_lng);
+                        $distance = $response['distance_in_km'];
+                        $duration = $response['duration_in_M'];
+                        if ($distance <= 3) {
+                            $trip->client_location_distance = $distance;
+                            $trip->client_location_duration = $duration;
+                            $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+                            $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
+                            return $trip;
+                        }
+                    })->filter()       // Remove null values after mapping
+                        ->sortByDesc('id') // Order by distance descending
+                        ->values();
+                    return $this->sendResponse($tripsWithin3Km, null, 200);
+                } else {
+                    return $this->sendError(null, "your are offline", 400);
+                }
+
+            } else {
+                return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
+            }
         }
+
     }
 
     public function activation()
@@ -674,63 +754,63 @@ class DriverController extends ApiController
 
     }
 
-    public function create_offer(Request $request)
-    {
-        $check_account = $this->check_banned();
-        if ($check_account != true) {
-            return $this->sendError(null, $check_account, 400);
-        }
-        $validator = Validator::make($request->all(), [
-            'trip_id' => [
-                'required',
-                Rule::exists('trips', 'id'),
-            ],
-            'offer'   => 'required',
+    // public function create_offer(Request $request)
+    // {
+    //     $check_account = $this->check_banned();
+    //     if ($check_account != true) {
+    //         return $this->sendError(null, $check_account, 400);
+    //     }
+    //     $validator = Validator::make($request->all(), [
+    //         'trip_id' => [
+    //             'required',
+    //             Rule::exists('trips', 'id'),
+    //         ],
+    //         'offer'   => 'required',
 
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
+    //     ]);
+    //     // dd($request->all());
+    //     if ($validator->fails()) {
 
-            $errors = implode(" / ", $validator->errors()->all());
+    //         $errors = implode(" / ", $validator->errors()->all());
 
-            return $this->sendError(null, $errors, 400);
-        }
-        $driver_car = Car::where('user_id', auth()->user()->id)->first();
-        $lastOffer  = Offer::orderBy('id', 'desc')->first();
+    //         return $this->sendError(null, $errors, 400);
+    //     }
+    //     $driver_car = Car::where('user_id', auth()->user()->id)->first();
+    //     $lastOffer  = Offer::orderBy('id', 'desc')->first();
 
-        if ($lastOffer) {
-            $lastCode = $lastOffer->code;
-            $code     = 'OFR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
-        } else {
-            $code = 'OFR-000001';
-        }
-        $offer = Offer::create(['user_id' => auth()->user()->id,
-            'code'                            => $code,
-            'car_id'                          => $driver_car->id,
-            'trip_id'                         => intval($request->trip_id),
-            'offer'                           => floatval($request->offer)]);
-        $trip = Trip::findOrFail($request->trip_id);
-        if ($trip->user->device_token) {
-            $this->firebaseService->sendNotification($trip->user->device_token, 'Lady Driver - New Offer', "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").", ["screen" => "Current Trip", "ID" => $trip->id]);
-            $data = [
-                "title"   => "Lady Driver - New Offer",
-                "message" => "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").",
-                "screen"  => "Current Trip",
-                "ID"      => $trip->id,
-            ];
-            Notification::create(['user_id' => $trip->user_id, 'data' => json_encode($data)]);
-        }
-        return $this->sendResponse($offer, null, 200);
+    //     if ($lastOffer) {
+    //         $lastCode = $lastOffer->code;
+    //         $code     = 'OFR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+    //     } else {
+    //         $code = 'OFR-000001';
+    //     }
+    //     $offer = Offer::create(['user_id' => auth()->user()->id,
+    //         'code'                            => $code,
+    //         'car_id'                          => $driver_car->id,
+    //         'trip_id'                         => intval($request->trip_id),
+    //         'offer'                           => floatval($request->offer)]);
+    //     $trip = Trip::findOrFail($request->trip_id);
+    //     if ($trip->user->device_token) {
+    //         $this->firebaseService->sendNotification($trip->user->device_token, 'Lady Driver - New Offer', "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").", ["screen" => "Current Trip", "ID" => $trip->id]);
+    //         $data = [
+    //             "title"   => "Lady Driver - New Offer",
+    //             "message" => "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").",
+    //             "screen"  => "Current Trip",
+    //             "ID"      => $trip->id,
+    //         ];
+    //         Notification::create(['user_id' => $trip->user_id, 'data' => json_encode($data)]);
+    //     }
+    //     return $this->sendResponse($offer, null, 200);
 
-    }
+    // }
 
-    public function expire_offer($id)
-    {
-        $offer         = Offer::find($id);
-        $offer->status = 'expired';
-        $offer->save();
-        return $this->sendResponse(null, 'Offer is expired', 200);
-    }
+    // public function expire_offer($id)
+    // {
+    //     $offer         = Offer::find($id);
+    //     $offer->status = 'expired';
+    //     $offer->save();
+    //     return $this->sendResponse(null, 'Offer is expired', 200);
+    // }
 
     public function driver_current_trip()
     {
@@ -762,6 +842,9 @@ class DriverController extends ApiController
         $duration                       = $response['duration_in_M'];
         $trip->client_location_distance = $distance;
         $trip->client_location_duration = $duration;
+
+        $barcode_image = barcodeImage($trip->id);
+        $trip->barcode = $barcode_image;
         if ($trip->status == 'completed' || $trip->status == 'cancelled') {
             return $this->sendError(null, 'no current trip existed', 400);
         }
