@@ -607,7 +607,7 @@ class ClientController extends ApiController
         return $this->sendResponse(null, 'trip rating saved successfuly', 200);
     }
 
-    public function cancell_trip(Request $request)
+    public function cancel_trip(Request $request)
     {
 
         $validator = Validator::make($request->all(), [
@@ -651,7 +651,7 @@ class ClientController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-        $reasons = TripCancellingReason::where('type', $request->category)->get();
+        $reasons = TripCancellingReason::whereIn('type', [$request->category,'for_all'])->get();
         return $this->sendResponse($reasons, null, 200);
     }
 }
