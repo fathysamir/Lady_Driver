@@ -343,8 +343,8 @@ class ClientController extends ApiController
             $trip_distance  = $response['distance_in_km'];
             $trip_duration  = $response['duration_in_M'];
             $trip->duration = $trip_duration;
-            $barcode_image=barcodeImage($trip->id);
-            $trip->barcode=$barcode_image;
+            $barcode_image  = barcodeImage($trip->id);
+            $trip->barcode  = $barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {
                     $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
@@ -548,8 +548,14 @@ class ClientController extends ApiController
     {
         $completed_trips = Trip::where('user_id', auth()->user()->id)->where('status', 'completed')->with(['car' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
+        }, 'scooter' => function ($query) {
+            $query->with(['mark', 'model', 'owner']);
         }])->get()->map(function ($trip) {
-            $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+            if (in_array($trip->type, ['car', 'comfort_car'])) {
+                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+            } elseif ($trip->type == 'scooter') {
+                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+            }
             return $trip;
 
         });
@@ -561,8 +567,14 @@ class ClientController extends ApiController
     {
         $cancelled_trips = Trip::where('user_id', auth()->user()->id)->where('status', 'cancelled')->with(['car' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
-        }, 'cancelled_by'])->get()->map(function ($trip) {
-            $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+        }, 'scooter' => function ($query) {
+            $query->with(['mark', 'model', 'owner']);
+        }, 'cancelled_by','cancelling_reason'])->get()->map(function ($trip) {
+            if (in_array($trip->type, ['car', 'comfort_car'])) {
+                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+            } elseif ($trip->type == 'scooter') {
+                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+            }
             return $trip;
 
         });
@@ -570,72 +582,72 @@ class ClientController extends ApiController
         return $this->sendResponse($cancelled_trips, null, 200);
     }
 
-    public function rate_trip(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'trip_id'    => [
-                'required',
-                Rule::exists('trips', 'id'),
-            ],
-            'rating'     => 'required|integer|min:1|max:5',
-            'comment'    => 'nullable',
-            'complaint'  => 'nullable',
-            'suggestion' => 'nullable',
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
+    // public function rate_trip(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'trip_id'    => [
+    //             'required',
+    //             Rule::exists('trips', 'id'),
+    //         ],
+    //         'rating'     => 'required|integer|min:1|max:5',
+    //         'comment'    => 'nullable',
+    //         'complaint'  => 'nullable',
+    //         'suggestion' => 'nullable',
+    //     ]);
+    //     // dd($request->all());
+    //     if ($validator->fails()) {
 
-            $errors = implode(" / ", $validator->errors()->all());
+    //         $errors = implode(" / ", $validator->errors()->all());
 
-            return $this->sendError(null, $errors, 400);
-        }
-        $trip = Trip::find($request->trip_id);
-        if (auth()->user()->mode == 'client') {
-            $trip->client_stare_rate = floatval($request->rating);
-            $trip->client_comment    = $request->comment;
-        } elseif (auth()->user()->mode == 'driver') {
-            $trip->driver_stare_rate = floatval($request->rating);
-            $trip->driver_comment    = $request->comment;
-        }
-        $trip->save();
-        if ($request->complaint != null) {
-            Complaint::create(['user_id' => auth()->user()->id, 'trip_id' => $trip->id, 'complaint' => $request->complaint]);
-        }
-        if ($request->suggestion != null) {
-            Suggestion::create(['user_id' => auth()->user()->id, 'suggestion' => $request->suggestion]);
-        }
-        return $this->sendResponse(null, 'trip rating saved successfuly', 200);
-    }
+    //         return $this->sendError(null, $errors, 400);
+    //     }
+    //     $trip = Trip::find($request->trip_id);
+    //     if (auth()->user()->mode == 'client') {
+    //         $trip->client_stare_rate = floatval($request->rating);
+    //         $trip->client_comment    = $request->comment;
+    //     } elseif (auth()->user()->mode == 'driver') {
+    //         $trip->driver_stare_rate = floatval($request->rating);
+    //         $trip->driver_comment    = $request->comment;
+    //     }
+    //     $trip->save();
+    //     if ($request->complaint != null) {
+    //         Complaint::create(['user_id' => auth()->user()->id, 'trip_id' => $trip->id, 'complaint' => $request->complaint]);
+    //     }
+    //     if ($request->suggestion != null) {
+    //         Suggestion::create(['user_id' => auth()->user()->id, 'suggestion' => $request->suggestion]);
+    //     }
+    //     return $this->sendResponse(null, 'trip rating saved successfuly', 200);
+    // }
 
-    public function cancel_trip(Request $request)
-    {
+    // public function cancel_trip(Request $request)
+    // {
 
-        $validator = Validator::make($request->all(), [
-            'trip_id'   => [
-                'required',
-                Rule::exists('trips', 'id'),
-            ],
+    //     $validator = Validator::make($request->all(), [
+    //         'trip_id'   => [
+    //             'required',
+    //             Rule::exists('trips', 'id'),
+    //         ],
 
-            'reason_id' => [
-                'required', Rule::exists('trip_cancelling_reasons', 'id'),
-            ],
+    //         'reason_id' => [
+    //             'required', Rule::exists('trip_cancelling_reasons', 'id'),
+    //         ],
 
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
+    //     ]);
+    //     // dd($request->all());
+    //     if ($validator->fails()) {
 
-            $errors = implode(" / ", $validator->errors()->all());
+    //         $errors = implode(" / ", $validator->errors()->all());
 
-            return $this->sendError(null, $errors, 400);
-        }
-        $trip                            = Trip::find($request->trip_id);
-        $trip->status                    = 'cancelled';
-        $trip->cancelled_by_id           = auth()->user()->id;
-        $trip->trip_cancelling_reason_id = $request->reason_id;
-        $trip->save();
-        return $this->sendResponse(null, 'trip cancelled successfuly', 200);
+    //         return $this->sendError(null, $errors, 400);
+    //     }
+    //     $trip                            = Trip::find($request->trip_id);
+    //     $trip->status                    = 'cancelled';
+    //     $trip->cancelled_by_id           = auth()->user()->id;
+    //     $trip->trip_cancelling_reason_id = $request->reason_id;
+    //     $trip->save();
+    //     return $this->sendResponse(null, 'trip cancelled successfuly', 200);
 
-    }
+    // }
 
     public function cancellation_reasons(Request $request)
     {
@@ -651,7 +663,7 @@ class ClientController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-        $reasons = TripCancellingReason::whereIn('type', [$request->category,'for_all'])->get();
+        $reasons = TripCancellingReason::whereIn('type', [$request->category, 'for_all'])->get();
         return $this->sendResponse($reasons, null, 200);
     }
 }
