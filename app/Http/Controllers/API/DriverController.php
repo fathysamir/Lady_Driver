@@ -852,40 +852,40 @@ class DriverController extends ApiController
         return $this->sendResponse($trip, null, 200);
     }
 
-    public function start_trip(Request $request)
-    {
-        $check_account = $this->check_banned();
-        if ($check_account != true) {
-            return $this->sendError(null, $check_account, 400);
-        }
-        $validator = Validator::make($request->all(), [
-            'trip_id' => [
-                'required',
-                Rule::exists('trips', 'id'),
-            ],
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
+    // public function start_trip(Request $request)
+    // {
+    //     $check_account = $this->check_banned();
+    //     if ($check_account != true) {
+    //         return $this->sendError(null, $check_account, 400);
+    //     }
+    //     $validator = Validator::make($request->all(), [
+    //         'trip_id' => [
+    //             'required',
+    //             Rule::exists('trips', 'id'),
+    //         ],
+    //     ]);
+    //     // dd($request->all());
+    //     if ($validator->fails()) {
 
-            $errors = implode(" / ", $validator->errors()->all());
+    //         $errors = implode(" / ", $validator->errors()->all());
 
-            return $this->sendError(null, $errors, 400);
-        }
-        $trip = Trip::find($request->trip_id);
-        if ($trip->status == 'pending') {
-            $trip->status     = 'in_progress';
-            $trip->start_date = date('Y-m-d');
-            $trip->start_time = date('H:i:s');
-            $trip->save();
-            return $this->sendResponse(null, 'trip started now', 200);
-        } elseif ($trip->status == 'in_progress') {
-            $trip->status   = 'completed';
-            $trip->end_date = date('Y-m-d');
-            $trip->end_time = date('H:i:s');
-            $trip->save();
-            return $this->sendResponse(null, 'trip ended now', 200);
-        }
-    }
+    //         return $this->sendError(null, $errors, 400);
+    //     }
+    //     $trip = Trip::find($request->trip_id);
+    //     if ($trip->status == 'pending') {
+    //         $trip->status     = 'in_progress';
+    //         $trip->start_date = date('Y-m-d');
+    //         $trip->start_time = date('H:i:s');
+    //         $trip->save();
+    //         return $this->sendResponse(null, 'trip started now', 200);
+    //     } elseif ($trip->status == 'in_progress') {
+    //         $trip->status   = 'completed';
+    //         $trip->end_date = date('Y-m-d');
+    //         $trip->end_time = date('H:i:s');
+    //         $trip->save();
+    //         return $this->sendResponse(null, 'trip ended now', 200);
+    //     }
+    // }
 
     public function update_location_car(Request $request)
     {
@@ -902,17 +902,33 @@ class DriverController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-        $car = Car::where('user_id', auth()->user()->id)->first();
-        if (! $car) {
-            return $this->sendError(null, "You don't create your car yet", 400);
+
+        if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
+            $car = Car::where('user_id', auth()->user()->id)->first();
+            if (! $car) {
+                return $this->sendError(null, "You don't create your car yet", 400);
+            }
+            if (auth()->user()->is_online == '0') {
+                return $this->sendError(null, "You are Offline, You should be online first", 400);
+            }
+            $car->lat = floatval($request->lat);
+            $car->lng = floatval($request->lng);
+            $car->save();
+            return $this->sendResponse(null, 'car location updated successfully', 200);
+        } elseif (auth()->user()->driver_type == 'scooter') {
+            $scooter = Scooter::where('user_id', auth()->user()->id)->first();
+            if (! $scooter) {
+                return $this->sendError(null, "You don't create your scooter yet", 400);
+            }
+            if (auth()->user()->is_online == '0') {
+                return $this->sendError(null, "You are Offline, You should be online first", 400);
+            }
+            $scooter->lat = floatval($request->lat);
+            $scooter->lng = floatval($request->lng);
+            $scooter->save();
+            return $this->sendResponse(null, 'scooter location updated successfully', 200);
         }
-        if (auth()->user()->is_online == '0') {
-            return $this->sendError(null, "You are Offline, You should be online first", 400);
-        }
-        $car->lat = floatval($request->lat);
-        $car->lng = floatval($request->lng);
-        $car->save();
-        return $this->sendResponse(null, 'car location updated successfuly', 200);
+
     }
 
     public function driver_completed_trips()
