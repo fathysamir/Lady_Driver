@@ -814,8 +814,8 @@ class DriverController extends ApiController
             return $this->sendError(null, $errors, 400);
         }
         $car = Car::where('user_id', auth()->user()->id)->first();
-        if (! $car) {
-            return $this->sendError(null, "You don't create your cat yet", 400);
+        if (! $car ) {
+            return $this->sendError(null, "You don't create your car yet", 400);
         }
         if (auth()->user()->is_online == '0') {
             return $this->sendError(null, "You are Offline, You should be online first", 400);
