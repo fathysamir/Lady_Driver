@@ -26,7 +26,6 @@ class TripDestination extends Model
         'updated_at'
     ];
     protected $guarded = [];
-    protected $hidden = ['deleted_at'];
     
 
     
