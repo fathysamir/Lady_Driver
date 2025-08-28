@@ -12,6 +12,7 @@ use App\Models\FAQ;
 use App\Models\FeedBack;
 use App\Models\Notification;
 use App\Models\Setting;
+use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\FirebaseService;
@@ -188,6 +189,8 @@ class AuthController extends ApiController
             $user->verification = '0';
             $user->token        = '';
             $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
+            $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
+
             return $this->sendResponse($user, 'this account not verified', 200);
         }
         // Generate OTP
@@ -197,9 +200,11 @@ class AuthController extends ApiController
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
         $user->save();
-        $user->token = $user->createToken('api')->plainTextToken;
-        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
+        $user->token       = $user->createToken('api')->plainTextToken;
+        $user->image       = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->hasVehicle  = $user->car()->exists() || $user->scooter()->exists();
+        $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
+
         $user->verification = '1';
         // Send OTP via Email (or SMS)
         //Mail::to($request->email)->send(new SendOTP($otpCode));
@@ -662,6 +667,31 @@ class AuthController extends ApiController
     {
         $cities = City::all();
         return $this->sendResponse($cities, null, 200);
+    }
+
+    public function save_student_date(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'university_name' => 'required|string|max:255',
+            'graduation_year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+
+        $student = Student::updateOrCreate(
+            ['user_id' => auth()->user()->id], // الشرط: كل يوزر ليه record واحد
+            [
+                'university_name' => $request->university_name,
+                'graduation_year' => $request->graduation_year,
+            ]
+        );
+
+        return $this->sendResponse($student, 'success', 200);
+
     }
 
 }
