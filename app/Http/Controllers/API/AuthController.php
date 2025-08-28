@@ -187,6 +187,7 @@ class AuthController extends ApiController
             $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
             $user->verification = '0';
             $user->token        = '';
+            $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
             return $this->sendResponse($user, 'this account not verified', 200);
         }
         // Generate OTP
@@ -198,8 +199,7 @@ class AuthController extends ApiController
         $user->save();
         $user->token = $user->createToken('api')->plainTextToken;
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->car;
-        $user->scooter;
+        $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
         $user->verification = '1';
         // Send OTP via Email (or SMS)
         //Mail::to($request->email)->send(new SendOTP($otpCode));

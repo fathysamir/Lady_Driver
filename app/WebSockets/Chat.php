@@ -492,6 +492,7 @@ class Chat implements MessageComponentInterface
                 'start_time'                    => $start_time,
                 'scheduled'                     => $scheduled,
                 'status'                        => $TripStatus,
+                'payment_method'                => $data['payment_method'],
             ]);
 
             $u                           = User::findOrFail($AuthUserID);

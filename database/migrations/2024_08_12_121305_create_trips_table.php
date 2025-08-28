@@ -45,8 +45,8 @@ return new class extends Migration
             $table->foreign('cancelled_by_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('trip_cancelling_reason_id')->nullable();
             $table->foreign('trip_cancelling_reason_id')->references('id')->on('trip_cancelling_reasons')->onDelete('cascade');
-            $table->enum('payment_status', ['unpaid', 'partial', 'paid'])->default('unpaid');
-            $table->enum('payment_method', ['cash', 'online']);
+            $table->enum('payment_status', ['unpaid', 'partial', 'paid','refunded'])->default('unpaid');
+            $table->enum('payment_method', ['cash', 'online'])->default('cash');
             $table->enum('student_trip', ['1', '0'])->default('0');
             $table->enum('type', ['car', 'comfort_car','scooter'])->default('car');
             $table->float('driver_stare_rate', 3, 2)->default(0);
