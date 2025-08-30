@@ -5,6 +5,7 @@ use App\Http\Controllers\ApiController;
 use App\Models\Car;
 use App\Models\Offer;
 use App\Models\Setting;
+use App\Models\Student;
 use App\Models\Trip;
 use App\Models\TripCancellingReason;
 use App\Models\User;
@@ -60,6 +61,8 @@ class ClientController extends ApiController
                 $maximum_distance_short_trip    = floatval(Setting::where('key', 'maximum_distance_car_short_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
                 $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_car_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
                 $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_car_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
+                $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
+
                 break;
 
             case 'comfort_car':
@@ -72,6 +75,7 @@ class ClientController extends ApiController
                 $maximum_distance_short_trip    = floatval(Setting::where('key', 'maximum_distance_comfort_short_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
                 $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_comfort_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
                 $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
+                $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
 
                 break;
 
@@ -85,6 +89,8 @@ class ClientController extends ApiController
                 $maximum_distance_short_trip    = floatval(Setting::where('key', 'maximum_distance_scooter_short_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
                 $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
                 $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+                $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+
                 break;
 
             default:
@@ -97,6 +103,8 @@ class ClientController extends ApiController
                 $maximum_distance_short_trip    = 0;
                 $increase_rate_peak_time_trip   = 0;
                 $less_cost_for_trip             = 0;
+                $student_discount               = 0;
+
                 break;
         }
 
@@ -172,11 +180,18 @@ class ClientController extends ApiController
         }
         $total_cost = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
 
+        $student = Student::where('user_id', auth()->user()->id)->where('status', 'confirmed')->where('student_discount_service', '1')->first();
+        if ($student) {
+            $student_trips_count = Trip::where('user_id', auth()->user()->id)->where('student_trip', '1')->where('status', 'completed')->where('start_date', now()->toDateString())->count();
+            if ($student_trips_count < 3) {
+
+                $total_cost = $total_cost - ($total_cost * ($student_discount / 100));
+            }
+        }
         if ($total_cost < $less_cost_for_trip) {
             $total_cost = $less_cost_for_trip;
         }
 
-        
         $response['start_date']      = $start_date;
         $response['start_time']      = $start_time;
         $response['start_lat']       = $request->start_lat;

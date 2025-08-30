@@ -5,6 +5,7 @@ use App\Models\Car;
 use App\Models\Offer;
 use App\Models\Scooter;
 use App\Models\Setting;
+use App\Models\Student;
 use App\Models\Trip;
 use App\Models\TripDestination;
 use App\Models\User;
@@ -348,6 +349,8 @@ class Chat implements MessageComponentInterface
                 $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_car_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
                 $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_car_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
                 $newTrip["car_id"]              = null;
+                $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
+
                 break;
 
             case 'comfort_car':
@@ -361,6 +364,8 @@ class Chat implements MessageComponentInterface
                 $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_comfort_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
                 $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
                 $newTrip["car_id"]              = null;
+                $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
+
                 break;
 
             case 'scooter':
@@ -374,6 +379,8 @@ class Chat implements MessageComponentInterface
                 $increase_rate_peak_time_trip   = floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
                 $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
                 $newTrip["scooter_id"]          = null;
+                $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+
                 break;
 
             default:
@@ -386,6 +393,7 @@ class Chat implements MessageComponentInterface
                 $maximum_distance_short_trip    = 0;
                 $increase_rate_peak_time_trip   = 0;
                 $less_cost_for_trip             = 0;
+                $student_discount               = 0;
                 break;
         }
 
@@ -464,7 +472,23 @@ class Chat implements MessageComponentInterface
                 $peakTimeCost = 0;
             }
             $total_cost = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
+            $student    = Student::where('user_id', $AuthUserID)->where('status', 'confirmed')->where('student_discount_service', '1')->first();
+            if ($student) {
+                $student_trips_count = Trip::where('user_id', $AuthUserID)->where('student_trip', '1')->where('status', 'completed')->where('start_date', $start_date)->count();
+                if ($student_trips_count < 3) {
 
+                    $discount     = $total_cost * ($student_discount / 100);
+                    $total_cost   = $total_cost - $discount;
+                    $student_trip = '1';
+
+                } else {
+                    $discount     = 0;
+                    $student_trip = '0';
+                }
+            } else {
+                $discount     = 0;
+                $student_trip = '0';
+            }
             if ($total_cost < $less_cost_for_trip) {
                 $total_cost = $less_cost_for_trip;
             }
@@ -493,6 +517,9 @@ class Chat implements MessageComponentInterface
                 'scheduled'                     => $scheduled,
                 'status'                        => $TripStatus,
                 'payment_method'                => $data['payment_method'],
+                'remaining_amount'              => $total_cost,
+                'discount'                      => $discount,
+                'student_trip'                  => $student_trip,
             ]);
 
             $u                           = User::findOrFail($AuthUserID);
@@ -511,9 +538,9 @@ class Chat implements MessageComponentInterface
             $newTrip['total_price']      = $total_cost;
             $newTrip['app_rate']         = 0.00;
             $newTrip['driver_rate']      = 0.00;
-            $newTrip['discount']         = 0.00;
+            $newTrip['discount']         = $discount;
             $newTrip['paid_amount']      = 0.00;
-            $newTrip['remaining_amount'] = 0.00;
+            $newTrip['remaining_amount'] = $total_cost;
             $newTrip['distance']         = $distance;
             $newTrip['duration']         = $duration;
             $newTrip['scheduled']        = $scheduled;
@@ -569,7 +596,7 @@ class Chat implements MessageComponentInterface
             $newTrip["cancelled_by_id"]           = null;
             $newTrip["trip_cancelling_reason_id"] = null;
             $newTrip["driver_stare_rate"]         = 0;
-            $newTrip["student_trip"]              = '0';
+            $newTrip["student_trip"]              = $student_trip;
             $newTrip["driver_comment"]            = null;
             $newTrip["driver_arrived"]            = null;
             $newTrip["payment_status"]            = "unpaid";
