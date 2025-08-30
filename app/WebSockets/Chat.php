@@ -2,6 +2,7 @@
 namespace App\WebSockets;
 
 use App\Models\Car;
+use App\Models\LiveLocation;
 use App\Models\Offer;
 use App\Models\Scooter;
 use App\Models\Setting;
@@ -273,47 +274,73 @@ class Chat implements MessageComponentInterface
     ///////////////////////////////////////////////////////////////////////////////////////
     public function onOpen(ConnectionInterface $conn)
     {
+
         // Store the new connection to send messages to later
         parse_str($conn->httpRequest->getUri()->getQuery(), $queryParams);
-
-        $userId = $queryParams['user_id'] ?? null;
-
-        $userToken = $queryParams['token'] ?? null;
-        $user      = User::where('id', $userId)->first();
-
-        if (! $user) {
-            echo "Invalid user. Connection refused.\n";
-            $conn->close();
-            return;
-        } else {
-
-            $tokenParts = explode('|', $userToken);
-            $tokenId    = $tokenParts[0];
-            $tokenValue = $tokenParts[1];
-
-            // // Find the token by ID and user
-            $token = $user->tokens()->where('id', $tokenId)->first();
-            // //dd($userToken,$tokenId,$tokenValue,$token->token);
-
-            // dd(Crypt::encryptString($tokenValue),$token->token);
-            if ($token && hash('sha256', $tokenValue) === $token->token) {
-                // Token matches
-                $this->clients->attach($conn, $userId);
-                $this->clientUserIdMap[$userId] = $conn;
-                $date_time                      = date('Y-m-d h:i:s a');
-                //$conn->send(json_encode(['type' => 'ping']));
-                $this->periodicPing($conn);
-                //echo "New connection! ({$conn->resourceId})\n";
-                echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
-
-            } else {
-                // Token does not match
-                echo "Token does not match.";
+        if (isset($queryParams['live_location_token']) && ! empty($queryParams['live_location_token'])) {
+            $token = $queryParams['live_location_token'];
+            $live  = LiveLocation::where('token', $token)
+                ->where('expires_at', '>', now())
+                ->first();
+            if (! $live) {
+                echo "Invalid Live Location. Connection refused.\n";
                 $conn->close();
                 return;
+            } else {
+                $this->clients->attach($conn, "live_{$live->id}");
+                $this->clientUserIdMap["live_{$live->id}"] = $conn;
+
+                $date_time = date('Y-m-d h:i:s a');
+                $this->periodicPing($conn);
+
+                echo "[ {$date_time} ], Live Location Connection! Live ID: {$live->id}, Conn ID: ({$conn->resourceId})\n";
+                $conn->send(json_encode([
+                    'type'    => 'live_connected',
+                    'message' => 'Live location connected successfully',
+                ]));
+
+            }
+
+        } else {
+
+            $userId = $queryParams['user_id'] ?? null;
+
+            $userToken = $queryParams['token'] ?? null;
+            $user      = User::where('id', $userId)->first();
+
+            if (! $user) {
+                echo "Invalid user. Connection refused.\n";
+                $conn->close();
+                return;
+            } else {
+
+                $tokenParts = explode('|', $userToken);
+                $tokenId    = $tokenParts[0];
+                $tokenValue = $tokenParts[1];
+
+                // // Find the token by ID and user
+                $token = $user->tokens()->where('id', $tokenId)->first();
+                // //dd($userToken,$tokenId,$tokenValue,$token->token);
+
+                // dd(Crypt::encryptString($tokenValue),$token->token);
+                if ($token && hash('sha256', $tokenValue) === $token->token) {
+                    // Token matches
+                    $this->clients->attach($conn, $userId);
+                    $this->clientUserIdMap[$userId] = $conn;
+                    $date_time                      = date('Y-m-d h:i:s a');
+                    //$conn->send(json_encode(['type' => 'ping']));
+                    $this->periodicPing($conn);
+                    //echo "New connection! ({$conn->resourceId})\n";
+                    echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
+
+                } else {
+                    // Token does not match
+                    echo "Token does not match.";
+                    $conn->close();
+                    return;
+                }
             }
         }
-
     }
 
     private function periodicPing(ConnectionInterface $conn)
@@ -1350,6 +1377,18 @@ class Chat implements MessageComponentInterface
                     $from->send(json_encode(['type' => 'pong']));
                     $date_time = date('Y-m-d h:i:s a');
                     echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
+                    break;
+                case 'live_location':
+                    $data = json_decode($requestData, true);
+                    $live = LiveLocation::where('token', $data['token'])
+                        ->where('expires_at', '>', now())
+                        ->first();
+                    $x['lat'] = $live->lat;
+                    $x['lng'] = $live->lng;
+                    $x['name'] = $live->user->name;
+                    $from->send(json_encode(['type' => 'live_location', 'data' => $x]));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ], live location has been sent' . "\n", $date_time);
                     break;
                 default:
                     $from->send(json_encode(['type' => 'pong']));
