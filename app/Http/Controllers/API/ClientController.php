@@ -564,6 +564,8 @@ class ClientController extends ApiController
         $tripChat = TripChat::with('sender')
             ->where('id', $id)
             ->first();
+        $tripChat->seen = "1";
+        $tripChat->save();
 
         return $this->sendResponse($tripChat, 'Message retrieved successfully', 200);
     }
