@@ -686,8 +686,10 @@ class AuthController extends ApiController
         $student = Student::updateOrCreate(
             ['user_id' => auth()->user()->id], // الشرط: كل يوزر ليه record واحد
             [
-                'university_name' => $request->university_name,
-                'graduation_year' => $request->graduation_year,
+                'university_name'          => $request->university_name,
+                'graduation_year'          => $request->graduation_year,
+                'status'                   => 'pending',
+                'student_discount_service' => '0',
             ]
         );
         if ($request->file('id_front_image')) {
@@ -701,6 +703,17 @@ class AuthController extends ApiController
         }
         return $this->sendResponse($student, 'success', 200);
 
+    }
+
+    public function change_student_discount_service()
+    {
+        $student = Student::where('user_id', auth()->user()->id)->first();
+        if (! $student) {
+            return $this->sendError(null, 'Student not found', 404);
+        }
+        $student->student_discount_service = $student->student_discount_service == 1 ? 0 : 1;
+        $student->save();
+        return $this->sendResponse($student, 'Student discount service updated successfully', 200);
     }
 
 }

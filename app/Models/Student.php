@@ -16,7 +16,8 @@ class Student extends Model
         'user_id',
         'university_name',
         'graduation_year',
-        'status'
+        'status',
+        'student_discount_service'
     ];
 
     protected $allowedSorts = [
