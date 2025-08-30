@@ -16,6 +16,7 @@ use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\CityController;
+use App\Http\Controllers\API\LiveLocationController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,7 @@ Route::get('/', function () {
     return view('welcome');
     // return view ('emails.otp');
 });
+Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/restart-websocket', [SettingController::class, 'restartWebsocket']);
 Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');

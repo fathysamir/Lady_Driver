@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
+use App\Http\Controllers\API\LiveLocationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,7 +31,7 @@ Route::get('/about_us', [AuthController::class, 'about_us'])->name('about_us');
 Route::post('/verifyOTP', [AuthController::class, 'verifyOTP'])->name('verifyOTP');
 Route::post('/resend_otp', [AuthController::class, 'resend_otp'])->name('resend_otp');
 Route::post('/reset_password', [AuthController::class, 'reset_password'])->name('reset_password');
-
+Route::get('/live-location/data/{token}', [LiveLocationController::class, 'getLocation']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/device_tocken', [AuthController::class, 'device_tocken'])->name('device_tocken');
@@ -92,5 +93,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/trip-chats/message/{id}', [ClientController::class, 'getMessage']);
     Route::post('/user/update-location', [ClientController::class, 'updateUserLocation']);
 
-
+    Route::post('/live-location/create', [LiveLocationController::class, 'create']);
+    Route::post('/live-location/update', [LiveLocationController::class, 'update']);
 });
