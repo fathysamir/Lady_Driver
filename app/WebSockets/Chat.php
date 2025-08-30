@@ -7,6 +7,7 @@ use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
+use App\Models\TripChat;
 use App\Models\TripDestination;
 use App\Models\User;
 use App\Services\FirebaseService;
@@ -1241,6 +1242,61 @@ class Chat implements MessageComponentInterface
         $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
         $from->send($res);
     }
+    private function send_message(ConnectionInterface $from, $AuthUserID, $trackSendMessageRequest)
+    {
+        $data            = json_decode($trackSendMessageRequest, true);
+        $x['message_id'] = $data['message_id'];
+        $data1           = [
+            'type'    => 'Receiving_message',
+            'data'    => $x,
+            'message' => null,
+        ];
+        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $from->send($res);
+        $message = TripChat::where('id', $data['message_id'])->first();
+
+        if ($AuthUserID == $message->trip->user_id) {
+            switch ($message->trip->type) {
+                case 'car':
+                    $client = $this->getClientByUserId($message->trip->car->user_id);
+                    if ($client) {
+                        $client->send($res);
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->car->user_id);
+                    }
+                    break;
+
+                case 'comfort_car':
+                    $client = $this->getClientByUserId($message->trip->car->user_id);
+                    if ($client) {
+                        $client->send($res);
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->car->user_id);
+                    }
+                    break;
+
+                case 'scooter':
+                    $client = $this->getClientByUserId($message->trip->scooter->user_id);
+                    if ($client) {
+                        $client->send($res);
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->scooter->user_id);
+                    }
+                    break;
+
+                default:
+
+                    break;
+            }
+        } else {
+            $client = $this->getClientByUserId($message->trip->user_id);
+            if ($client) {
+                $client->send($res);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->user_id);
+            }
+        }
+    }
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $numRecv = count($this->clients) - 1;
@@ -1286,6 +1342,9 @@ class Chat implements MessageComponentInterface
                     break;
                 case 'track_car':
                     $this->track_car($from, $AuthUserID, $requestData);
+                    break;
+                case 'send_message':
+                    $this->send_message($from, $AuthUserID, $requestData);
                     break;
                 case 'ping':
                     $from->send(json_encode(['type' => 'pong']));

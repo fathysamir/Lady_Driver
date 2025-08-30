@@ -3,11 +3,11 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\Car;
-use App\Models\Offer;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\TripCancellingReason;
+use App\Models\TripChat;
 use App\Models\User;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
@@ -207,138 +207,6 @@ class ClientController extends ApiController
         return $this->sendResponse($response, null, 200);
 
     }
-    // public function create_trip(Request $request)
-    // {
-    //     $check_account = $this->check_banned();
-    //     if ($check_account != true) {
-    //         return $this->sendError(null, $check_account, 400);
-    //     }
-    //     $validator = Validator::make($request->all(), [
-    //         'start_lat'       => 'required',
-    //         'start_lng'       => 'required',
-    //         'end_lat'         => 'required',
-    //         'end_lng'         => 'required',
-    //         'type'            => 'required',
-    //         'air_conditioned' => 'nullable|boolean',
-    //     ]);
-    //     // dd($request->all());
-    //     if ($validator->fails()) {
-
-    //         $errors = implode(" / ", $validator->errors()->all());
-
-    //         return $this->sendError(null, $errors, 400);
-    //     }
-    //     $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat, $request->end_lng);
-    //     $distance = $response['distance_in_km'];
-    //     $duration = $response['duration_in_M'];
-
-    //     $kilometer_price                = floatval(Setting::where('key', 'kilometer_price')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //     $Air_conditioning_service_price = floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //     $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //     if ($request->air_conditioned == 1) {
-    //         $driver_rate = round(($distance * $kilometer_price) + $Air_conditioning_service_price, 2);
-    //     } else {
-    //         $driver_rate = round($distance * $kilometer_price, 2);
-    //     }
-    //     $app_rate    = round(($distance * $kilometer_price * $app_ratio) / 100, 2);
-    //     $total_price = $driver_rate + $app_rate;
-
-    //     $lastTrip = Trip::orderBy('id', 'desc')->first();
-
-    //     if ($lastTrip) {
-    //         $lastCode = $lastTrip->code;
-    //         $code     = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
-    //     } else {
-    //         $code = 'TRP-000001';
-    //     }
-    //     $trip = Trip::create(['user_id' => auth()->user()->id,
-    //         'code'                          => $code,
-
-    //         'start_lat'                     => floatval($request->start_lat),
-    //         'start_lng'                     => floatval($request->start_lng),
-    //         'end_lat'                       => floatval($request->end_lat),
-    //         'end_lng'                       => floatval($request->end_lng),
-    //         'address1'                      => $request->address1,
-    //         'address2'                      => $request->address2,
-    //         'total_price'                   => $total_price,
-    //         'app_rate'                      => $app_rate,
-    //         'driver_rate'                   => $driver_rate,
-    //         'distance'                      => $distance,
-    //         'type'                          => $request->type,
-    //     ]);
-    //     if ($request->air_conditioned == '1') {
-    //         $trip->air_conditioned = '1';
-    //     } else {
-    //         $trip->air_conditioned = '0';
-    //     }
-    //     if ($request->animal == '1') {
-    //         $trip->animals = '1';
-    //     } else {
-    //         $trip->animals = '0';
-    //     }
-
-    //     $trip->save();
-
-    //     $trip->duration = $duration;
-
-    //     $radius        = 6371;
-    //     $decimalPlaces = 2;
-
-    //     $eligibleCars = Car::where('status', 'confirmed')
-    //         ->whereHas('owner', function ($query) {
-    //             $query->where('is_online', '1')
-    //                 ->where('status', 'confirmed');
-    //         })
-    //         ->where(function ($query) use ($trip) {
-    //             if ($trip->air_conditioned == '1') {
-    //                 $query->where('air_conditioned', '1');
-    //             }
-    //             if ($trip->animals == '1') {
-    //                 $query->where('animals', '1');
-    //             }
-    //             if ($trip->user->gendor == 'Male') {
-    //                 $query->where('passenger_type', 'male_female');
-    //             }
-    //         })
-    //         ->select('*')
-    //         ->selectRaw("ROUND(( $radius * acos( cos( radians($trip->start_lat) ) * cos( radians(lat) ) * cos( radians(lng) - radians($trip->start_lng) ) + sin( radians($trip->start_lat) ) * sin( radians(lat) ) ) ), $decimalPlaces) AS distance")
-    //         ->having('distance', '<=', 3)
-    //         ->get()->map(function ($car) use ($trip) {
-    //         $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-    //         $distance = $response['distance_in_km'];
-    //         if ($distance <= 3) {
-
-    //             return $car;
-    //         }
-    //     });
-    //     $eligibleDriverIds = [];
-    //     foreach ($eligibleCars as $car) {
-    //         $eligibleDriverIds[] = $car->user_id;
-    //         if ($car->owner->device_token) {
-    //             $this->firebaseService->sendNotification($car->owner->device_token, 'Lady Driver - New Trip', "There is a new trip created in your current area", ["screen" => "New Trip", "ID" => $trip->id]);
-    //             $data = [
-    //                 "title"   => "Lady Driver - New Trip",
-    //                 "message" => "There is a new trip created in your current area",
-    //                 "screen"  => "New Trip",
-    //                 "ID"      => $trip->id,
-    //             ];
-    //             Notification::create(['user_id' => $car->user_id, 'data' => json_encode($data)]);
-    //         }
-    //     }
-
-    //     return $this->sendResponse($trip, 'Trip Created Successfuly.', 200);
-    //     //dd($distance);
-
-    // }
-
-    // public function expire_trip($id)
-    // {
-    //     $trip         = Trip::find($id);
-    //     $trip->status = 'expired';
-    //     $trip->save();
-    //     Offer::where('trip_id', $trip->id)->update(['status' => 'expired']);
-    //     return $this->sendResponse(null, 'Trip is expired', 200);
-    // }
 
     public function current_trip()
     {
@@ -455,64 +323,6 @@ class ClientController extends ApiController
         }
 
     }
-
-    // public function accept_offer(Request $request)
-    // {
-    //     $check_account = $this->check_banned();
-    //     if ($check_account != true) {
-    //         return $this->sendError(null, $check_account, 400);
-    //     }
-    //     $validator = Validator::make($request->all(), [
-    //         'offer_id' => [
-    //             'required',
-    //             function ($attribute, $value, $fail) {
-    //                 $offer = Offer::where('id', $value)->where('status', 'pending')->first();
-    //                 if (! $offer) {
-    //                     $fail('The selected offer is not pending.');
-    //                 }
-    //             },
-    //         ],
-    //         'status'   => 'required',
-    //     ]);
-    //     // dd($request->all());
-    //     if ($validator->fails()) {
-
-    //         $errors = implode(" / ", $validator->errors()->all());
-
-    //         return $this->sendError(null, $errors, 400);
-    //     }
-    //     $offer = Offer::find($request->offer_id);
-    //     if ($request->status == 'accepted') {
-    //         $trip              = $offer->trip;
-    //         $app_ratio         = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //         $trip->status      = 'pending';
-    //         $trip->total_price = round(($offer->offer - $trip->driver_rate) + (($offer->offer - $trip->driver_rate) * $app_ratio / 100) + $trip->total_price, 2);
-    //         $trip->driver_rate = $offer->offer;
-    //         $trip->app_rate    = round(($offer->offer - $trip->driver_rate) + (($offer->offer - $trip->driver_rate) * $app_ratio / 100) + $trip->total_price, 2) - $offer->offer;
-    //         $trip->car_id      = $offer->car_id;
-    //         $trip->save();
-    //         $offer->status = 'accepted';
-    //         $offer->save();
-    //         Offer::where('id', '!=', $request->offer_id)->where('trip_id', $trip->id)->update(['status' => 'expired']);
-    //         if ($offer->user->device_token) {
-    //             $this->firebaseService->sendNotification($offer->user->device_token, 'Lady Driver - Accept Offer', "Your offer for trip No. (" . $trip->code . ") has been approved.", ["screen" => "Current Trip", "ID" => $trip->id]);
-    //             $data = [
-    //                 "title"   => "Lady Driver - Accept Offer",
-    //                 "message" => "Your offer for trip No. (" . $trip->code . ") has been approved.",
-    //                 "screen"  => "Current Trip",
-    //                 "ID"      => $trip->id,
-    //             ];
-    //             Notification::create(['user_id' => $offer->user_id, 'data' => json_encode($data)]);
-    //         }
-    //         return $this->sendResponse(null, 'offer accepted successfuly', 200);
-
-    //     } else {
-    //         $offer->status = 'expired';
-    //         $offer->save();
-    //         return $this->sendResponse(null, 'offer expired successfuly', 200);
-    //     }
-
-    // }
 
     // public function pay_trip(Request $request)
     // {
@@ -705,4 +515,57 @@ class ClientController extends ApiController
         }
 
     }
+
+    public function sendMessage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id'  => 'required|exists:trips,id',
+            'message'  => 'nullable|string',
+            'location' => 'nullable|string',
+            'image'    => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
+            'record'   => 'nullable|file|mimes:mp3,wav,m4a|max:5120',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+
+        $chat = TripChat::create([
+            'sender_id' => auth()->id(),
+            'trip_id'   => $request->trip_id,
+            'message'   => $request->message,
+            'location'  => $request->location,
+        ]);
+        if ($request->file('image')) {
+            uploadMedia($request->image, $chat->imageCollection, $chat);
+
+        }
+        if ($request->file('record')) {
+            uploadMedia($request->record, $chat->recordCollection, $chat);
+
+        }
+
+        return $this->sendResponse($chat, 'Message sent successfully', 201);
+    }
+
+    public function getTripMessages($id)
+    {
+        $tripChats = TripChat::with('sender')
+            ->where('trip_id', $id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return $this->sendResponse($tripChats, 'Messages retrieved successfully', 200);
+    }
+
+    public function getMessage($id)
+    {
+        $tripChat = TripChat::with('sender')
+            ->where('id', $id)
+            ->first();
+
+        return $this->sendResponse($tripChat, 'Message retrieved successfully', 200);
+    }
+
 }

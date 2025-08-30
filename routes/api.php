@@ -87,4 +87,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cancellation_reasons', [ClientController::class, 'cancellation_reasons'])->name('cancellation_reasons');
     Route::post('/add_feed_back', [AuthController::class, 'add_feed_back'])->name('add_feed_back');
 
+    Route::post('/trip-chats/send', [ClientController::class, 'sendMessage']);
+    Route::get('/trip-chats/{id}', [ClientController::class, 'getTripMessages']);
+    Route::get('/trip-chats/message/{id}', [ClientController::class, 'getMessage']);
+
 });
