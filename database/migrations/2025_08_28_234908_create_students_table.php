@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'confirmed', 'rejected'])->default('pending');
             $table->enum('student_discount_service', ['0', '1'])->default('0');
             $table->timestamps();
+            $table->softDeletes();
+
         });
     }
 
