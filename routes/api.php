@@ -90,5 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/trip-chats/send', [ClientController::class, 'sendMessage']);
     Route::get('/trip-chats/{id}', [ClientController::class, 'getTripMessages']);
     Route::get('/trip-chats/message/{id}', [ClientController::class, 'getMessage']);
+    Route::post('/user/update-location', [ClientController::class, 'updateUserLocation']);
+
 
 });

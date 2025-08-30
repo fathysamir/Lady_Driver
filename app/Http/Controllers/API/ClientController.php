@@ -570,4 +570,24 @@ class ClientController extends ApiController
         return $this->sendResponse($tripChat, 'Message retrieved successfully', 200);
     }
 
+    public function updateUserLocation(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+
+        $user      = auth()->user();
+        $user->lat = $request->lat;
+        $user->lng = $request->lng;
+        $user->save();
+
+        return $this->sendResponse($user, 'Location updated successfully', 200);
+    }
+
 }

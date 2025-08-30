@@ -902,6 +902,10 @@ class DriverController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
+        $user      = auth()->user();
+        $user->lat = floatval($request->lat);
+        $user->lng = floatval($request->lng);
+        $user->save();
 
         if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
             $car = Car::where('user_id', auth()->user()->id)->first();

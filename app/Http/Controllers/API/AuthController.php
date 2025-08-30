@@ -61,7 +61,6 @@ class AuthController extends ApiController
             'national_ID'    => 'required|digits:14',
         ];
 
-// Conditional rules for driver
         if ($request->input('mode') === 'driver') {
             $rules['image']      = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['birth_date'] = [
@@ -73,7 +72,6 @@ class AuthController extends ApiController
             $rules['year']        = 'required|integer|min:2000|max:' . date('Y');
         }
 
-// Conditional rules for client
         if ($request->input('mode') === 'client') {
             $rules['gendor'] = 'required|in:Male,Female';
         }
