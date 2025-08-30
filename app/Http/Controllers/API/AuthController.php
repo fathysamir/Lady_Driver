@@ -674,6 +674,7 @@ class AuthController extends ApiController
         $validator = Validator::make($request->all(), [
             'university_name' => 'required|string|max:255',
             'graduation_year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
+            'id_front_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -689,7 +690,15 @@ class AuthController extends ApiController
                 'graduation_year' => $request->graduation_year,
             ]
         );
-
+        if ($request->file('id_front_image')) {
+            $image = getFirstMediaUrl($student, $student->IDfrontImageCollection);
+            if ($image != null) {
+                deleteMedia($student, $student->IDfrontImageCollection);
+                uploadMedia($request->id_front_image, $student->IDfrontImageCollection, $student);
+            } else {
+                uploadMedia($request->id_front_image, $student->IDfrontImageCollection, $student);
+            }
+        }
         return $this->sendResponse($student, 'success', 200);
 
     }

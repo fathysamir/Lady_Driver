@@ -15,7 +15,8 @@ class Student extends Model
     protected $fillable = [
         'user_id',
         'university_name',
-        'graduation_year'
+        'graduation_year',
+        'status'
     ];
 
     protected $allowedSorts = [

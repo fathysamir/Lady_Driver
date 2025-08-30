@@ -175,6 +175,8 @@ class ClientController extends ApiController
         if ($total_cost < $less_cost_for_trip) {
             $total_cost = $less_cost_for_trip;
         }
+
+        
         $response['start_date']      = $start_date;
         $response['start_time']      = $start_time;
         $response['start_lat']       = $request->start_lat;

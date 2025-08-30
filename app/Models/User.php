@@ -82,4 +82,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Scooter::class);
     }
+
+     public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
 }
