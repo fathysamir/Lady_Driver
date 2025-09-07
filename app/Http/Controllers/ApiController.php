@@ -43,7 +43,7 @@ class ApiController extends Controller
 
     public function createPayment(Request $request)
     {
-        dd($request->all());
+      
         $v = Validator::make($request->all(), [
             'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
             'amount'                => 'required|numeric|min:0.01',

@@ -169,7 +169,7 @@ class AuthController extends ApiController
             'paymentMethod'         => $request->input('paymentMethod'), // PayAtFawry / PayUsingCC / FawryWallet
             'amount'                => 1,
             'customerMobile'        => '+201154857080',
-            'customerEmail'         => '01154857080fa@gmail.com',
+            'customerEmail'         => "01154857080fa@gmail.com",
             'chargeItems'           => [
                 [
                     'itemId'      => 'driver_wallet_activation',
