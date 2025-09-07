@@ -43,7 +43,7 @@ class ApiController extends Controller
 
     public function createPayment(Request $request)
     {
-      
+
         $v = Validator::make($request->all(), [
             'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
             'amount'                => 'required|numeric|min:0.01',
@@ -55,15 +55,14 @@ class ApiController extends Controller
             'description'           => 'nullable|string',
 
             // Card
-            'cardNumber'            => 'required_if:paymentMethod,PayUsingCC|string',
-            'cardExpiryYear'        => 'required_if:paymentMethod,PayUsingCC|string',
-            'cardExpiryMonth'       => 'required_if:paymentMethod,PayUsingCC|string',
-            'cvv'                   => 'required_if:paymentMethod,PayUsingCC|string',
-            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,FawryWallet|url',
+            'cardNumber'            => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
+            'cardExpiryYear'        => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
+            'cardExpiryMonth'       => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
+            'cvv'                   => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
+            'returnUrl'             => 'sometimes|required_if:paymentMethod,PayUsingCC,FawryWallet|url',
 
-            // Wallet
-            'walletMobile'          => 'required_if:paymentMethod,FawryWallet|string',
-            'walletProviderService' => 'required_if:paymentMethod,FawryWallet|string',
+            'walletMobile'          => 'sometimes|required_if:paymentMethod,FawryWallet|string',
+            'walletProviderService' => 'sometimes|required_if:paymentMethod,FawryWallet|string',
         ]);
 
         // if ($v->fails()) {
@@ -75,7 +74,7 @@ class ApiController extends Controller
 
             return $this->sendError(null, $errors, 400);
         }
-dd($request->all());
+        dd($request->all());
         $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
         $amount         = $request->amount;
         $method         = $request->paymentMethod;
