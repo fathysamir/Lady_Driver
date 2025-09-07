@@ -55,14 +55,14 @@ class ApiController extends Controller
             'description'           => 'nullable|string',
 
             // Card
-            'cardNumber'            => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
-            'cardExpiryYear'        => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
-            'cardExpiryMonth'       => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
-            'cvv'                   => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
-            'returnUrl'             => 'sometimes|required_if:paymentMethod,PayUsingCC,FawryWallet|url',
+            'cardNumber'            => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'cardExpiryYear'        => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'cardExpiryMonth'       => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'cvv'                   => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,FawryWallet|nullable|url',
 
-            'walletMobile'          => 'sometimes|required_if:paymentMethod,FawryWallet|string',
-            'walletProviderService' => 'sometimes|required_if:paymentMethod,FawryWallet|string',
+            'walletMobile'          => 'required_if:paymentMethod,FawryWallet|nullable|string',
+            'walletProviderService' => 'required_if:paymentMethod,FawryWallet|nullable|string',
         ]);
 
         // if ($v->fails()) {
