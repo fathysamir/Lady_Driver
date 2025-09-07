@@ -16,6 +16,7 @@ use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\CityController;
+use App\Http\Controllers\Dashboard\PaymentController;
 use App\Http\Controllers\API\LiveLocationController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,8 @@ Route::get('/', function () {
     return view('welcome');
     // return view ('emails.otp');
 });
+Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name('api.fawry.webhook');
+
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/restart-websocket', [SettingController::class, 'restartWebsocket']);
 Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');

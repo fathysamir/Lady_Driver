@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/change_lang', [AuthController::class, 'change_lang'])->name('change_lang');
     Route::post('/save_student_date', [AuthController::class, 'save_student_date'])->name('save_student_date');
     Route::post('/check_barcode', [ClientController::class, 'check_barcode'])->name('check_barcode');
+    Route::post('/pay250Pound', [AuthController::class, 'pay250Pound'])->name('pay250Pound');
 
     Route::get('/change_student_discount_service', [AuthController::class, 'change_student_discount_service'])->name('change_student_discount_service');
 

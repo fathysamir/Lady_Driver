@@ -123,7 +123,7 @@ class AuthController extends ApiController
             'birth_date'      => $request->birth_date,
             'age'             => $age,
             'city_id'         => $request->city_id,
-            'national_id'     => $request->national_id,
+            'national_id'     => $request->national_ID,
             'driver_type'     => $driver_type,
         ]);
         if ($request->mode == 'driver') {
@@ -151,6 +151,46 @@ class AuthController extends ApiController
 
         return $this->sendResponse(null, 'OTP sent to your email address.', 200);
 
+    }
+
+    public function pay250Pound(Request $request)
+    {
+        $user = auth()->user();
+        if ($user->type !== 'driver') {
+            return $this->sendError()(null, 'Only drivers can perform this action.', 403);
+        }
+
+        // تحقق إن الرصيد أقل من 250
+        if ($user->wallet >= 250) {
+            return $this->sendError()(null, 'Your wallet already has the required amount.', 403);
+
+        }
+        $paymentRequest = new Request([
+            'paymentMethod'         => $request->input('paymentMethod'), // PayAtFawry / PayUsingCC / FawryWallet
+            'amount'                => 1,
+            'customerMobile'        => $user->mobile,
+            'customerEmail'         => $user->email,
+            'chargeItems'           => [
+                [
+                    'itemId'      => 'driver_wallet_activation',
+                    'description' => 'Driver wallet activation deposit',
+                    'price'       => 1,
+                    'quantity'    => 1,
+                ],
+            ],
+            // بيانات إضافية لو الطريقة كارت أو محفظة
+            'cardNumber'            => $request->input('cardNumber'),
+            'cardExpiryYear'        => $request->input('cardExpiryYear'),
+            'cardExpiryMonth'       => $request->input('cardExpiryMonth'),
+            'cvv'                   => $request->input('cvv'),
+            'walletMobile'          => $request->input('walletMobile'),
+            'walletProviderService' => $request->input('walletProviderService'),
+            'returnUrl'             => $request->input('returnUrl'),
+        ]);
+
+        // استدعاء createPayment من ApiController
+        $res = $this->createPayment($paymentRequest);
+        return $this->sendResponse($res, 'Success Payment', 200);
     }
 
     public function login(Request $request)
