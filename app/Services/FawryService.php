@@ -30,11 +30,11 @@ class FawryService
      * 🔹 Reference signature
      */
     public function makeReferenceSignature(
-        string $merchantRefNum,
-        string $customerProfileId,
-        string $paymentMethod,
-        float $amount
-    ): string {
+         $merchantRefNum,
+         $customerProfileId,
+         $paymentMethod,
+         $amount
+    ){
         dd("kkk");
         $data = $this->merchantCode
         . $merchantRefNum

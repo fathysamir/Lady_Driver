@@ -84,7 +84,7 @@ class ApiController extends Controller
             case 'PayAtFawry':
                 $sig = $this->fawry->makeReferenceSignature(
                     $merchantRefNum,
-                    $request->customerProfileId ?? '',
+                    auth()->user()->id ?? '',
                     $method,
                     floatval($amount)
                 );
