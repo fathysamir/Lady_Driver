@@ -82,6 +82,7 @@ class ApiController extends Controller
         // ====== Build signature depending on method ======
         switch ($method) {
             case 'PayAtFawry':
+                dd($this->fawry);
                 $sig = $this->fawry->makeReferenceSignature(
                     $merchantRefNum,
                     auth()->user()->id ?? '',
