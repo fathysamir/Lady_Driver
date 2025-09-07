@@ -156,7 +156,7 @@ class AuthController extends ApiController
     public function pay250Pound(Request $request)
     {
         $user = auth()->user();
-        if ($user->type !== 'driver') {
+        if ($user->mode !== 'driver') {
             return $this->sendError(null, 'Only drivers can perform this action.', 403);
         }
 
