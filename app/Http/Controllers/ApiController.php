@@ -49,6 +49,9 @@ class ApiController extends Controller
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
             'chargeItems'           => 'required|array|min:1',
+            'customerProfileId'     => 'nullable|exists:users,id',
+            'customerName'          => 'nullable|string',
+            'description'           => 'nullable|string',
 
             // Card
             'cardNumber'            => 'sometimes|required_if:paymentMethod,PayUsingCC|string',
