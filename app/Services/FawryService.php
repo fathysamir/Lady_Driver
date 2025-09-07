@@ -35,6 +35,7 @@ class FawryService
         string $paymentMethod,
         float $amount
     ): string {
+        dd("kkk");
         $data = $this->merchantCode
         . $merchantRefNum
         . $customerProfileId

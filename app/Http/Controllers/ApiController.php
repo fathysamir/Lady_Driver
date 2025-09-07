@@ -86,7 +86,7 @@ class ApiController extends Controller
                     $merchantRefNum,
                     $request->customerProfileId ?? '',
                     $method,
-                    $amount
+                    floatval($amount)
                 );
                 break;
 
