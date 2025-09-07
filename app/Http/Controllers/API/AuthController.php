@@ -157,12 +157,12 @@ class AuthController extends ApiController
     {
         $user = auth()->user();
         if ($user->type !== 'driver') {
-            return $this->sendError()(null, 'Only drivers can perform this action.', 403);
+            return $this->sendError(null, 'Only drivers can perform this action.', 403);
         }
 
         // تحقق إن الرصيد أقل من 250
         if ($user->wallet >= 250) {
-            return $this->sendError()(null, 'Your wallet already has the required amount.', 403);
+            return $this->sendError(null, 'Your wallet already has the required amount.', 403);
 
         }
         $paymentRequest = new Request([
@@ -189,9 +189,8 @@ class AuthController extends ApiController
         ]);
 
         // استدعاء createPayment من ApiController
-        $res = $this->createPayment($paymentRequest);
-        dd($res);
-        return $this->sendResponse($res, 'Success Payment', 200);
+        return  $this->createPayment($paymentRequest);
+       
     }
 
     public function login(Request $request)

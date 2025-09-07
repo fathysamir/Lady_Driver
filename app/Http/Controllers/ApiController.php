@@ -5,8 +5,8 @@ use App\Models\FawryTransaction;
 use App\Services\FawryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ApiController extends Controller
 {
@@ -112,21 +112,21 @@ class ApiController extends Controller
                 break;
 
             default:
-                return response()->json(['error' => 'Unsupported payment method'], 400);
+                return $this->sendError(null, 'Unsupported payment method', 400);
         }
 
         // ====== Build payload ======
         $payload = [
-            'merchantCode'   => config('services.fawry.merchant_code'),
-            'merchantRefNum' => $merchantRefNum,
-            'customerMobile' => $request->customerMobile,
-            'customerEmail'  => $request->customerEmail,
-            'customerName'   => $request->customerName ?? '',
-            'amount'         => $this->fawry->fmtAmount($amount),
-            'chargeItems'    => $request->chargeItems,
-            'signature'      => $sig,
-            'paymentMethod'  => $method,
-            'description'    => $request->description ?? 'Payment',
+            'merchantCode'    => config('services.fawry.merchant_code'),
+            'merchantRefNum'  => $merchantRefNum,
+            'customerMobile'  => $request->customerMobile,
+            'customerEmail'   => $request->customerEmail,
+            'customerName'    => $request->customerName ?? '',
+            'amount'          => $this->fawry->fmtAmount($amount),
+            'chargeItems'     => $request->chargeItems,
+            'signature'       => $sig,
+            'paymentMethod'   => $method,
+            'description'     => $request->description ?? 'Payment',
             'orderWebHookUrl' => route('api.fawry.webhook'),
         ];
 
@@ -175,11 +175,11 @@ class ApiController extends Controller
             $trx->status           = $resp['orderStatus'] ?? $resp['statusDescription'] ?? $trx->status;
             $trx->save();
 
-            return response()->json($resp);
+            return $this->sendResponse($resp, 'Success Payment', 200);
 
         } catch (\Throwable $e) {
             Log::error("Fawry createPayment error: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to create payment', 'detail' => $e->getMessage()], 500);
+            return $this->sendError($e->getMessage(), 'Failed to create payment', 500);
         }
     }
 
