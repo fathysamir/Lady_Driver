@@ -74,7 +74,7 @@ class ApiController extends Controller
 
             return $this->sendError(null, $errors, 400);
         }
-
+dd($request->all());
         $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
         $amount         = $request->amount;
         $method         = $request->paymentMethod;
