@@ -189,7 +189,7 @@ class AuthController extends ApiController
         ]);
 
         // استدعاء createPayment من ApiController
-        $this->createPayment($paymentRequest);
+        return  $this->createPayment($paymentRequest);
        
     }
 
