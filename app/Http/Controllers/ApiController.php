@@ -14,7 +14,7 @@ class ApiController extends Controller
     public function __construct(FawryService $fawry)
     {
         $this->fawry = $fawry;
-        dd($this->fawry);
+       
     }
     public function sendResponse($data, $message = null, $code = 200): \Illuminate\Http\JsonResponse
     {

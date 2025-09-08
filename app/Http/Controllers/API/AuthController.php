@@ -165,7 +165,7 @@ class AuthController extends ApiController
             return $this->sendError(null, 'Your wallet already has the required amount.', 403);
 
         }
-        $paymentRequest = new Request([
+        $paymentRequest = [
             'paymentMethod'         => $request->input('paymentMethod'), // PayAtFawry / PayUsingCC / FawryWallet
             'amount'                => 1,
             'customerMobile'        => '+201154857080',
@@ -186,10 +186,10 @@ class AuthController extends ApiController
             'walletMobile'          => $request->input('walletMobile'),
             'walletProviderService' => $request->input('walletProviderService'),
             'returnUrl'             => $request->input('returnUrl'),
-        ]);
+        ];
 
         // استدعاء createPayment من ApiController
-        return  $this->createPayment($paymentRequest);
+        return  $this->createPayment(new Request($paymentRequest));
        
     }
 
