@@ -236,7 +236,7 @@ class AuthController extends ApiController
             case 'FawryWallet':
                 $sig = $this->fawry->makeWalletSignature(
                     $merchantRefNum,
-                    auth()->user()->id,
+                    strval(auth()->user()->id),
                     $method,
                     $amount,
                     $request->walletMobile
@@ -329,7 +329,7 @@ class AuthController extends ApiController
                         'itemId'      => '33563hbdyug53468465',
                         'description' => 'Driver wallet activation deposit',
                         'price'       => $amount,
-                        'quantity'    => "1",
+                        'quantity'    => 1,
                     ],
                 ],
                 'signature'             => $sig,
