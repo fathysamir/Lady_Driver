@@ -303,7 +303,7 @@ class AuthController extends ApiController
             'payment_method' => $method,
             'status'         => 'PENDING',
         ]);
-       
+       dd($payload);
         // call correct method
         if ($method === 'PayAtFawry') {
             $resp = $this->fawry->createReferenceCharge($payload);
