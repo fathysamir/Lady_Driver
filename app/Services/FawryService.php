@@ -95,13 +95,7 @@ class FawryService
         $amount,
         $walletMobile
     ) {
-        $data = $this->merchantCode
-        . $merchantRefNum
-        . $customerProfileId
-        . $paymentMethod
-        . $amount
-        . $walletMobile
-        . $this->securityKey;
+        $data = $this->merchantCode . $merchantRefNum . $customerProfileId . $paymentMethod . $amount . $this->securityKey;
 
         return hash('sha256', $data);
     }
@@ -109,17 +103,15 @@ class FawryService
     public function createWalletCharge(array $payload): array
     {
         $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
-        $resp = $this->client->post($url, [
+        $resp = $this->client->request('POST', $url, [
             'headers' => [
-                'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
             ],
-            'json'    => $payload,
-            'timeout' => 30,
+            'body'    => json_encode($payload, true),
         ]);
-
-        return json_decode($resp->getBody()->getContents(), true);
+        $response = json_decode($resp->getBody()->getContents(), true);
+        return $response;
     }
 
-    
 }
