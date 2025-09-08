@@ -165,6 +165,37 @@ class AuthController extends ApiController
             return $this->sendError(null, 'Your wallet already has the required amount.', 403);
 
         }
+
+        $v = Validator::make($request->all(), [
+            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
+            'amount'                => 'required|numeric|min:0.01',
+            'customerMobile'        => 'required|string',
+            'customerEmail'         => 'required|email',
+            'chargeItems'           => 'required|array|min:1',
+            'customerProfileId'     => 'nullable|exists:users,id',
+            'customerName'          => 'nullable|string',
+            'description'           => 'nullable|string',
+
+            // Card
+            'cardNumber'            => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'cardExpiryYear'        => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'cardExpiryMonth'       => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'cvv'                   => 'required_if:paymentMethod,PayUsingCC|nullable|string',
+            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,FawryWallet|nullable|url',
+
+            'walletMobile'          => 'required_if:paymentMethod,FawryWallet|nullable|string',
+            'walletProviderService' => 'required_if:paymentMethod,FawryWallet|nullable|string',
+        ]);
+
+        // if ($v->fails()) {
+        //     return response()->json(['error' => $v->errors()->all()], 422);
+        // }
+        if ($v->fails()) {
+
+            $errors = implode(" / ", $v->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
         $paymentRequest = [
             'paymentMethod'         => $request->input('paymentMethod'), // PayAtFawry / PayUsingCC / FawryWallet
             'amount'                => 1,
@@ -189,7 +220,7 @@ class AuthController extends ApiController
         ];
 
         // استدعاء createPayment من ApiController
-        return  $this->createPayment(new Request($paymentRequest));
+        return  $this->createPayment($paymentRequest);
        
     }
 

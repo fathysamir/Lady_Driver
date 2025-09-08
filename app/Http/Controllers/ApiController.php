@@ -42,39 +42,10 @@ class ApiController extends Controller
         }
     }
 
-    public function createPayment(Request $request)
+    public function createPayment($request)
     {
 
-        $v = Validator::make($request->all(), [
-            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
-            'amount'                => 'required|numeric|min:0.01',
-            'customerMobile'        => 'required|string',
-            'customerEmail'         => 'required|email',
-            'chargeItems'           => 'required|array|min:1',
-            'customerProfileId'     => 'nullable|exists:users,id',
-            'customerName'          => 'nullable|string',
-            'description'           => 'nullable|string',
-
-            // Card
-            'cardNumber'            => 'required_if:paymentMethod,PayUsingCC|nullable|string',
-            'cardExpiryYear'        => 'required_if:paymentMethod,PayUsingCC|nullable|string',
-            'cardExpiryMonth'       => 'required_if:paymentMethod,PayUsingCC|nullable|string',
-            'cvv'                   => 'required_if:paymentMethod,PayUsingCC|nullable|string',
-            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,FawryWallet|nullable|url',
-
-            'walletMobile'          => 'required_if:paymentMethod,FawryWallet|nullable|string',
-            'walletProviderService' => 'required_if:paymentMethod,FawryWallet|nullable|string',
-        ]);
-
-        // if ($v->fails()) {
-        //     return response()->json(['error' => $v->errors()->all()], 422);
-        // }
-        if ($v->fails()) {
-
-            $errors = implode(" / ", $v->errors()->all());
-
-            return $this->sendError(null, $errors, 400);
-        }
+        dd($request->amount);
        
         $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
         $amount         = $request->amount;
