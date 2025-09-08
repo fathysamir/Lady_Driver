@@ -172,7 +172,7 @@ class AuthController extends ApiController
         }
 
         $v = Validator::make($request->all(), [
-            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
+            'paymentMethod'         => 'required|string|in:PayAtFawry,CARD,FawryWallet',
             'amount'                => 'required|numeric|min:0.01',
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
