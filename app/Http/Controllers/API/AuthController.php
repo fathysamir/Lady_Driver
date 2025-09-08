@@ -247,7 +247,6 @@ class AuthController extends ApiController
                 return $this->sendError(null, 'Unsupported payment method', 400);
         }
 
-        
         $paymentExpiry = (time() + (30 * 60)) * 1000;
         // ====== Build payload ======
         $payload = [
@@ -284,6 +283,8 @@ class AuthController extends ApiController
                 'cvv'             => $request->cvv,
                 'returnUrl'       => $request->returnUrl,
                 'enable3DS'       => true,
+                'eci'             => '08',   
+                'cavv'            => 'AAABBBCCC123' 
             ]);
         }
 
@@ -304,7 +305,7 @@ class AuthController extends ApiController
             'payment_method' => $method,
             'status'         => 'PENDING',
         ]);
-dd($payload);
+        dd($payload);
         // call correct method
         if ($method === 'PayAtFawry') {
             $resp = $this->fawry->createReferenceCharge($payload);
