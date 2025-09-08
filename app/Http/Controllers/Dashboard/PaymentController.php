@@ -51,5 +51,26 @@ class PaymentController extends ApiController
         return response()->json(['success' => true]);
     }
 
-    
+    public function returnUrl(Request $request)
+    {
+        $data = [
+            'merchantRefNum'  => $request->input('merchantRefNum') ?? $request->input('merchantRefNumber'),
+            'referenceNumber' => $request->input('referenceNumber') ?? $request->input('fawryRefNumber'),
+            'amount'          => $request->input('paymentAmount') ?? $request->input('amount'),
+            'orderStatus'     => $request->input('orderStatus') ?? $request->input('status'),
+            'message'         => $request->input('message') ?? null,
+        ];
+
+        // يمكنك هنا أيضاً طلب التحقق من حالة الدفع عبر API (optional)
+        // ثم إرسال النتيجة للعرض
+
+        return view('payments.return', [
+            'status'          => $data['orderStatus'] ?? null,
+            'merchantRefNum'  => $data['merchantRefNum'] ?? null,
+            'referenceNumber' => $data['referenceNumber'] ?? null,
+            'amount'          => $data['amount'] ?? null,
+            'message'         => $data['message'] ?? null,
+        ]);
+    }
+
 }

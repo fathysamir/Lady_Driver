@@ -37,6 +37,7 @@ Route::get('/', function () {
     // return view ('emails.otp');
 });
 Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name('api.fawry.webhook');
+Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
 
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/restart-websocket', [SettingController::class, 'restartWebsocket']);
