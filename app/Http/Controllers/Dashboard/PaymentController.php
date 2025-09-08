@@ -53,6 +53,7 @@ class PaymentController extends ApiController
 
     public function returnUrl(Request $request)
     {
+        dd($request->all());
         $data = [
             'merchantRefNum'  => $request->input('merchantRefNum') ?? $request->input('merchantRefNumber'),
             'referenceNumber' => $request->input('referenceNumber') ?? $request->input('fawryRefNumber'),
