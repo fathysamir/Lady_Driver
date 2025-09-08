@@ -255,7 +255,7 @@ class AuthController extends ApiController
             'customerMobile'    => $request->customerMobile,
             'customerEmail'     => $request->customerEmail,
             'customerName'      => $request->customerName ?? '',
-            'customerProfileId' => auth()->user()->id,
+            'customerProfileId' => strval(auth()->user()->id),
             'amount'            => $amount,
             'paymentExpiry'     => 1631138400000,
             'currencyCode'      => 'EGP',
