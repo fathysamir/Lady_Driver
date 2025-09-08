@@ -304,7 +304,7 @@ class AuthController extends ApiController
             'status'         => 'PENDING',
         ]);
 
-        try {
+       
             // call correct method
             if ($method === 'PayAtFawry') {
                 $resp = $this->fawry->createReferenceCharge($payload);
@@ -321,10 +321,7 @@ class AuthController extends ApiController
 
             return $this->sendResponse($resp, 'Success Payment', 200);
 
-        } catch (\Throwable $e) {
-            Log::error("Fawry createPayment error: " . $e->getMessage());
-            return $this->sendError($e->getMessage(), 'Failed to create payment', 500);
-        }
+       
 
     }
 
