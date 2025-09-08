@@ -30,11 +30,11 @@ class FawryService
      * 🔹 Reference signature
      */
     public function makeReferenceSignature(
-         $merchantRefNum,
-         $customerProfileId,
-         $paymentMethod,
-         $amount
-    ){
+        $merchantRefNum,
+        $customerProfileId,
+        $paymentMethod,
+        $amount
+    ) {
         $data = $this->merchantCode . $merchantRefNum . $customerProfileId . $paymentMethod . $amount . $this->securityKey;
         return hash('sha256', $data);
     }
@@ -42,13 +42,12 @@ class FawryService
     public function createReferenceCharge(array $payload): array
     {
         $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
-        $resp = $this->client->post($url, [
+        $resp = $this->client->request('POST', $url, [
             'headers' => [
-                'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
             ],
-            'json'    => $payload,
-            'timeout' => 30,
+            'body'    => json_encode($payload, true),
         ]);
         return json_decode($resp->getBody()->getContents(), true);
     }
@@ -57,15 +56,15 @@ class FawryService
      * 🔹 Card 3DS signature
      */
     public function make3DSCardSignature(
-         $merchantRefNum,
-         $customerProfileId,
-         $paymentMethod,
-         $amount,
-         $cardNumber,
-         $expiryYear,
-         $expiryMonth,
-         $cvv,
-         $returnUrl
+        $merchantRefNum,
+        $customerProfileId,
+        $paymentMethod,
+        $amount,
+        $cardNumber,
+        $expiryYear,
+        $expiryMonth,
+        $cvv,
+        $returnUrl
     ) {
         $data = $this->merchantCode
         . $merchantRefNum
@@ -101,11 +100,11 @@ class FawryService
      * 🔹 Wallet signature
      */
     public function makeWalletSignature(
-         $merchantRefNum,
-         $customerProfileId,
-         $paymentMethod,
-         $amount,
-         $walletMobile
+        $merchantRefNum,
+        $customerProfileId,
+        $paymentMethod,
+        $amount,
+        $walletMobile
     ) {
         $data = $this->merchantCode
         . $merchantRefNum
