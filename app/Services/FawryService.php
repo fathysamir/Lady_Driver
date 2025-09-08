@@ -41,11 +41,7 @@ class FawryService
         . $paymentMethod
         . $amount
         . $this->securityKey;
-dd([
-    'merchant_code' => config('services.fawry.merchant_code'),
-    'secure_key' => config('services.fawry.secure_key'),
-    'base_url' => config('services.fawry.base_url')
-]);
+dd($data);
         return hash('sha256', $data);
     }
 
