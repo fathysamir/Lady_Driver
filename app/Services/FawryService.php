@@ -49,7 +49,7 @@ class FawryService
             ],
             'body'    => json_encode($payload, true),
         ]);
-        dd($resp);
+        dd($resp,json_decode($resp->getBody()->getContents(), true));
         return json_decode($resp->getBody()->getContents(), true);
     }
 
