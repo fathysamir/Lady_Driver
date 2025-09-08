@@ -95,11 +95,7 @@ class FawryService
         $amount,
         $walletMobile
     ) {
-        dd($this->merchantCode,$merchantRefNum,
-        $customerProfileId,
-        $paymentMethod,
-        $amount,
-        $walletMobile,$this->securityKey);
+        
         $data = $this->merchantCode . $merchantRefNum . $customerProfileId . $paymentMethod . $amount . $walletMobile . $this->securityKey;
 
         return hash('sha256', $data);
@@ -115,6 +111,7 @@ class FawryService
             ],
             'body'    => json_encode($payload, true),
         ]);
+        dd($resp);
         $response = json_decode($resp->getBody()->getContents(), true);
 
         return $response;
