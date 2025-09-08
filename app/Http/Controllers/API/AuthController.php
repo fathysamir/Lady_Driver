@@ -246,6 +246,8 @@ class AuthController extends ApiController
             default:
                 return $this->sendError(null, 'Unsupported payment method', 400);
         }
+
+        dd($sig);
         $paymentExpiry = (time() + (30 * 60)) * 1000;
         // ====== Build payload ======
         $payload = [
