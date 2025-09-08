@@ -22,7 +22,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -247,7 +246,7 @@ class AuthController extends ApiController
             default:
                 return $this->sendError(null, 'Unsupported payment method', 400);
         }
-
+        $paymentExpiry = (time() + (30 * 60)) * 1000;
         // ====== Build payload ======
         $payload = [
             'merchantCode'      => config('services.fawry.merchant_code'),
@@ -257,7 +256,7 @@ class AuthController extends ApiController
             'customerName'      => $request->customerName ?? '',
             'customerProfileId' => strval(auth()->user()->id),
             'amount'            => $amount,
-            'paymentExpiry'     => 9931138400000,
+            'paymentExpiry'     => $paymentExpiry,
             'currencyCode'      => 'EGP',
             'language'          => 'en-gb',
             'chargeItems'       => [
@@ -304,24 +303,21 @@ class AuthController extends ApiController
             'status'         => 'PENDING',
         ]);
 
-       
-            // call correct method
-            if ($method === 'PayAtFawry') {
-                $resp = $this->fawry->createReferenceCharge($payload);
-            } elseif ($method === 'PayUsingCC') {
-                $resp = $this->fawry->create3DSCardCharge($payload);
-            } else {
-                $resp = $this->fawry->createWalletCharge($payload);
-            }
+        // call correct method
+        if ($method === 'PayAtFawry') {
+            $resp = $this->fawry->createReferenceCharge($payload);
+        } elseif ($method === 'PayUsingCC') {
+            $resp = $this->fawry->create3DSCardCharge($payload);
+        } else {
+            $resp = $this->fawry->createWalletCharge($payload);
+        }
 
-            $trx->reference_number = $resp['referenceNumber'] ?? null;
-            $trx->response         = $resp;
-            $trx->status           = $resp['orderStatus'] ?? $resp['statusDescription'] ?? $trx->status;
-            $trx->save();
+        $trx->reference_number = $resp['referenceNumber'] ?? null;
+        $trx->response         = $resp;
+        $trx->status           = $resp['orderStatus'] ?? $resp['statusDescription'] ?? $trx->status;
+        $trx->save();
 
-            return $this->sendResponse($resp, 'Success Payment', 200);
-
-       
+        return $this->sendResponse($resp, 'Success Payment', 200);
 
     }
 
