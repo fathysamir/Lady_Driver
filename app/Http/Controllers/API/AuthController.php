@@ -219,7 +219,7 @@ class AuthController extends ApiController
                 );
                 break;
 
-            case 'PayUsingCC':
+            case 'CARD':
                 $sig = $this->fawry->make3DSCardSignature(
                     $merchantRefNum,
                     auth()->user()->id,
