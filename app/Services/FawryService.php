@@ -56,7 +56,7 @@ class FawryService
             'json'    => $payload,
             'timeout' => 30,
         ]);
-
+dd(json_decode($resp->getBody()->getContents(), true));
         return json_decode($resp->getBody()->getContents(), true);
     }
 
