@@ -9,19 +9,28 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends ApiController
 {
-    protected $fawry;
-    public function __construct(FawryService $fawry)
-    {
-        $this->fawry = $fawry;
-    }
-
+   
     public function fawryWebhook(Request $request)
     {
         $data = $request->all();
         Log::info('Fawry Webhook received', $data);
 
-        // ✅ Verify signature
-        if (! $this->fawry->verifyWebhookSignature($data)) {
+        
+         $merchantCode = config('services.fawry.merchant_code');
+        $securityKey  = config('services.fawry.secure_key');
+
+        $stringToHash = $merchantCode
+            . ($data['orderAmount'] ?? '')
+            . ($data['fawryRefNumber'] ?? '')
+            . ($data['merchantRefNumber'] ?? '')
+            . ($data['orderStatus'] ?? '')
+            . ($data['paymentMethod'] ?? '')
+            . ($data['paymentRefrenceNumber'] ?? '')
+            . $securityKey;
+
+        $expectedSignature = hash('sha256', $stringToHash);
+       
+        if (! (strtolower($expectedSignature) === strtolower($data['signature'] ?? ''))) {
             Log::warning('Fawry Webhook invalid signature', $data);
             return response()->json(['error' => 'Invalid signature'], 403);
         }

@@ -121,22 +121,5 @@ class FawryService
         return json_decode($resp->getBody()->getContents(), true);
     }
 
-    public function verifyWebhookSignature(array $data): bool
-    {
-        $merchantCode = config('services.fawry.merchant_code');
-        $securityKey  = config('services.fawry.secure_key');
-
-        $stringToHash = $merchantCode
-            . ($data['orderAmount'] ?? '')
-            . ($data['fawryRefNumber'] ?? '')
-            . ($data['merchantRefNumber'] ?? '')
-            . ($data['orderStatus'] ?? '')
-            . ($data['paymentMethod'] ?? '')
-            . ($data['paymentRefrenceNumber'] ?? '')
-            . $securityKey;
-
-        $expectedSignature = hash('sha256', $stringToHash);
-
-        return strtolower($expectedSignature) === strtolower($data['signature'] ?? '');
-    }
+    
 }
