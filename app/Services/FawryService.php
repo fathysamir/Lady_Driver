@@ -47,7 +47,7 @@ class FawryService
 
     public function createReferenceCharge(array $payload): array
     {
-        $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
+        $url  = $this->baseUrl . '/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'application/json',
@@ -91,7 +91,7 @@ class FawryService
 
     public function create3DSCardCharge(array $payload): array
     {
-        $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
+        $url  = $this->baseUrl . '/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'application/json',
@@ -127,7 +127,7 @@ class FawryService
 
     public function createWalletCharge(array $payload): array
     {
-        $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
+        $url  = $this->baseUrl . '/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'application/json',
