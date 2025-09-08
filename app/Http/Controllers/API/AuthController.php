@@ -172,7 +172,7 @@ class AuthController extends ApiController
         }
 
         $v = Validator::make($request->all(), [
-            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
+            'paymentMethod'         => 'required|string|in:PayAtFawry,CARD,FawryWallet',
             'amount'                => 'required|numeric|min:0.01',
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
@@ -247,7 +247,7 @@ class AuthController extends ApiController
                 return $this->sendError(null, 'Unsupported payment method', 400);
         }
 
-        dd($sig);
+        
         $paymentExpiry = (time() + (30 * 60)) * 1000;
         // ====== Build payload ======
         $payload = [
@@ -276,7 +276,7 @@ class AuthController extends ApiController
         ];
 
         // extra fields for Card
-        if ($method === 'PayUsingCC') {
+        if ($method === 'CARD') {
             $payload = array_merge($payload, [
                 'cardNumber'      => $request->cardNumber,
                 'cardExpiryYear'  => $request->cardExpiryYear,
@@ -308,7 +308,7 @@ class AuthController extends ApiController
         // call correct method
         if ($method === 'PayAtFawry') {
             $resp = $this->fawry->createReferenceCharge($payload);
-        } elseif ($method === 'PayUsingCC') {
+        } elseif ($method === 'CARD') {
             $resp = $this->fawry->create3DSCardCharge($payload);
         } else {
             $resp = $this->fawry->createWalletCharge($payload);
