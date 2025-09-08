@@ -246,7 +246,7 @@ class AuthController extends ApiController
             default:
                 return $this->sendError(null, 'Unsupported payment method', 400);
         }
-dd($sig,$merchantRefNum);
+
         // ====== Build payload ======
         $payload = [
             'merchantCode'    => config('services.fawry.merchant_code'),
