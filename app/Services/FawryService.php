@@ -68,7 +68,6 @@ class FawryService
         $returnUrl
     ) {
         $data = $this->merchantCode . $merchantRefNum . $customerProfileId . $paymentMethod . $amount . $cardNumber . $expiryYear . $expiryMonth . $cvv . $returnUrl . $this->securityKey;
-// dd($data,hash('sha256', $data));
         return hash('sha256', $data);
     }
 

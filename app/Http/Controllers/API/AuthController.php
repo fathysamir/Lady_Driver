@@ -282,9 +282,7 @@ class AuthController extends ApiController
                 'cardExpiryMonth' => $request->cardExpiryMonth,
                 'cvv'             => $request->cvv,
                 'returnUrl'       => $request->returnUrl,
-                'enable3DS'       => true,
-                'eci'             => '08',   
-                'cavv'            => 'AAABBBCCC123' 
+                'enable3DS'       => true
             ]);
         }
 
