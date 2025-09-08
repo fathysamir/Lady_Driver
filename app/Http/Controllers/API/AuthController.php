@@ -249,50 +249,98 @@ class AuthController extends ApiController
 
         $paymentExpiry = (time() + (30 * 60)) * 1000;
         // ====== Build payload ======
-        $payload = [
-            'merchantCode'      => config('services.fawry.merchant_code'),
-            'merchantRefNum'    => $merchantRefNum,
-            'customerMobile'    => $request->customerMobile,
-            'customerEmail'     => $request->customerEmail,
-            'customerName'      => $request->customerName ?? '',
-            'customerProfileId' => strval(auth()->user()->id),
-            'amount'            => $amount,
-            'paymentExpiry'     => $paymentExpiry,
-            'currencyCode'      => 'EGP',
-            'language'          => 'en-gb',
-            'chargeItems'       => [
-                [
-                    'itemId'      => '33563hbdyug53468465',
-                    'description' => 'Driver wallet activation deposit',
-                    'price'       => $amount,
-                    'quantity'    => "1",
+        if ($method === 'PayAtFawry') {
+            $payload = [
+                'merchantCode'      => config('services.fawry.merchant_code'),
+                'merchantRefNum'    => $merchantRefNum,
+                'customerMobile'    => $request->customerMobile,
+                'customerEmail'     => $request->customerEmail,
+                'customerName'      => $request->customerName ?? '',
+                'customerProfileId' => strval(auth()->user()->id),
+                'amount'            => $amount,
+                'paymentExpiry'     => $paymentExpiry,
+                'currencyCode'      => 'EGP',
+                'language'          => 'en-gb',
+                'chargeItems'       => [
+                    [
+                        'itemId'      => '33563hbdyug53468465',
+                        'description' => 'Driver wallet activation deposit',
+                        'price'       => $amount,
+                        'quantity'    => "1",
+                    ],
                 ],
-            ],
-            'signature'         => $sig,
-            'paymentMethod'     => $method,
-            'description'       => $request->description ?? 'Payment',
-            'orderWebHookUrl'   => route('api.fawry.webhook'),
-        ];
+                'signature'         => $sig,
+                'paymentMethod'     => $method,
+                'description'       => $request->description ?? 'Payment',
+                'orderWebHookUrl'   => route('api.fawry.webhook'),
+            ];
+        }
 
         // extra fields for Card
         if ($method === 'PayUsingCC') {
-            $payload = array_merge($payload, [
-                'cardNumber'      => $request->cardNumber,
-                'cardExpiryYear'  => $request->cardExpiryYear,
-                'cardExpiryMonth' => $request->cardExpiryMonth,
-                'cvv'             => $request->cvv,
-                'returnUrl'       => $request->returnUrl,
-                'enable3DS'       => true
-            ]);
+            $payload = [
+                'merchantCode'      => config('services.fawry.merchant_code'),
+                'merchantRefNum'    => $merchantRefNum,
+                'customerMobile'    => $request->customerMobile,
+                'customerEmail'     => $request->customerEmail,
+                'customerName'      => $request->customerName ?? '',
+                'customerProfileId' => strval(auth()->user()->id),
+                'amount'            => $amount,
+                'paymentExpiry'     => $paymentExpiry,
+                'currencyCode'      => 'EGP',
+                'language'          => 'en-gb',
+                'chargeItems'       => [
+                    [
+                        'itemId'      => '33563hbdyug53468465',
+                        'description' => 'Driver wallet activation deposit',
+                        'price'       => $amount,
+                        'quantity'    => "1",
+                    ],
+                ],
+                'signature'         => $sig,
+                'paymentMethod'     => $method,
+                'description'       => $request->description ?? 'Payment',
+                'orderWebHookUrl'   => route('api.fawry.webhook'),
+
+                'cardNumber'        => $request->cardNumber,
+                'cardExpiryYear'    => $request->cardExpiryYear,
+                'cardExpiryMonth'   => $request->cardExpiryMonth,
+                'cvv'               => $request->cvv,
+                'returnUrl'         => $request->returnUrl,
+                'enable3DS'         => true,
+            ];
         }
 
         // extra fields for Wallet
         if ($method === 'FawryWallet') {
-            $payload = array_merge($payload, [
+            $payload = [
+                'merchantCode'          => config('services.fawry.merchant_code'),
+                'merchantRefNum'        => $merchantRefNum,
+                'customerMobile'        => $request->customerMobile,
+                'customerEmail'         => $request->customerEmail,
+                'customerName'          => $request->customerName ?? '',
+                'customerProfileId'     => strval(auth()->user()->id),
+                'amount'                => $amount,
+                'paymentExpiry'         => $paymentExpiry,
+                'currencyCode'          => 'EGP',
+                'language'              => 'en-gb',
+                'chargeItems'           => [
+                    [
+                        'itemId'      => '33563hbdyug53468465',
+                        'description' => 'Driver wallet activation deposit',
+                        'price'       => $amount,
+                        'quantity'    => "1",
+                    ],
+                ],
+                'signature'             => $sig,
+                'paymentMethod'         => $method,
+                'description'           => $request->description ?? 'Payment',
+                'orderWebHookUrl'       => route('api.fawry.webhook'),
+
                 'walletMobile'          => $request->walletMobile,
                 'walletProviderService' => $request->walletProviderService,
                 'returnUrl'             => $request->returnUrl,
-            ]);
+            ];
         }
 
         // ====== Store local transaction ======
@@ -303,7 +351,7 @@ class AuthController extends ApiController
             'payment_method' => $method,
             'status'         => 'PENDING',
         ]);
-       dd($payload);
+        dd($payload);
         // call correct method
         if ($method === 'PayAtFawry') {
             $resp = $this->fawry->createReferenceCharge($payload);
