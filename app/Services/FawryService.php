@@ -39,7 +39,7 @@ class FawryService
         . $merchantRefNum
         . $customerProfileId
         . $paymentMethod
-        . $this->fmtAmount($amount)
+        . $amount
         . $this->securityKey;
 
         return hash('sha256', $data);
@@ -47,7 +47,7 @@ class FawryService
 
     public function createReferenceCharge(array $payload): array
     {
-        $url  = $this->baseUrl . '/Fawry/payments/charge';
+        $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'application/json',
@@ -64,21 +64,21 @@ class FawryService
      * 🔹 Card 3DS signature
      */
     public function make3DSCardSignature(
-        string $merchantRefNum,
-        string $customerProfileId,
-        string $paymentMethod,
-        float $amount,
-        string $cardNumber,
-        string $expiryYear,
-        string $expiryMonth,
-        string $cvv,
-        string $returnUrl
-    ): string {
+         $merchantRefNum,
+         $customerProfileId,
+         $paymentMethod,
+         $amount,
+         $cardNumber,
+         $expiryYear,
+         $expiryMonth,
+         $cvv,
+         $returnUrl
+    ) {
         $data = $this->merchantCode
         . $merchantRefNum
         . $customerProfileId
         . $paymentMethod
-        . $this->fmtAmount($amount)
+        . $amount
         . $cardNumber
         . $expiryYear
         . $expiryMonth
@@ -91,7 +91,7 @@ class FawryService
 
     public function create3DSCardCharge(array $payload): array
     {
-        $url  = $this->baseUrl . '/Fawry/payments/charge';
+        $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'application/json',
@@ -108,17 +108,17 @@ class FawryService
      * 🔹 Wallet signature
      */
     public function makeWalletSignature(
-        string $merchantRefNum,
-        string $customerProfileId,
-        string $paymentMethod,
-        float $amount,
-        string $walletMobile
-    ): string {
+         $merchantRefNum,
+         $customerProfileId,
+         $paymentMethod,
+         $amount,
+         $walletMobile
+    ) {
         $data = $this->merchantCode
         . $merchantRefNum
         . $customerProfileId
         . $paymentMethod
-        . $this->fmtAmount($amount)
+        . $amount
         . $walletMobile
         . $this->securityKey;
 
@@ -127,7 +127,7 @@ class FawryService
 
     public function createWalletCharge(array $payload): array
     {
-        $url  = $this->baseUrl . '/Fawry/payments/charge';
+        $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'application/json',
@@ -143,7 +143,7 @@ class FawryService
     public function verifyWebhookSignature(array $data): bool
     {
         $merchantCode = config('services.fawry.merchant_code');
-        $securityKey  = config('services.fawry.security_key');
+        $securityKey  = config('services.fawry.secure_key');
 
         $stringToHash = $merchantCode
             . ($data['orderAmount'] ?? '')

@@ -213,7 +213,7 @@ class AuthController extends ApiController
             case 'PayAtFawry':
                 $sig = $this->fawry->makeReferenceSignature(
                     $merchantRefNum,
-                    auth()->user()->id ?? '',
+                    auth()->user()->id,
                     $method,
                     $amount
                 );
@@ -222,7 +222,7 @@ class AuthController extends ApiController
             case 'PayUsingCC':
                 $sig = $this->fawry->make3DSCardSignature(
                     $merchantRefNum,
-                    auth()->user()->id ?? '',
+                    auth()->user()->id,
                     $method,
                     $amount,
                     $request->cardNumber,
@@ -236,7 +236,7 @@ class AuthController extends ApiController
             case 'FawryWallet':
                 $sig = $this->fawry->makeWalletSignature(
                     $merchantRefNum,
-                    auth()->user()->id ?? '',
+                    auth()->user()->id,
                     $method,
                     $amount,
                     $request->walletMobile
