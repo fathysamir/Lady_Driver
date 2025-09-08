@@ -44,19 +44,17 @@ class ApiController extends Controller
 
     public function createPayment($request)
     {
-
-        dd($request['amount']);
        
         $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
-        $amount         = $request->amount;
-        $method         = $request->paymentMethod;
+        $amount         = $request['amount'];
+        $method         = $request['paymentMethod'];
 
         // ====== Build signature depending on method ======
         switch ($method) {
             case 'PayAtFawry':
                 $sig = $this->fawry->makeReferenceSignature(
                     $merchantRefNum,
-                    auth()->user()->id ?? '',
+                    $request['customerProfileId'] ?? '',
                     $method,
                     floatval($amount)
                 );
@@ -65,24 +63,24 @@ class ApiController extends Controller
             case 'PayUsingCC':
                 $sig = $this->fawry->make3DSCardSignature(
                     $merchantRefNum,
-                    $request->customerProfileId ?? '',
+                    $request['customerProfileId'] ?? '',
                     $method,
                     $amount,
-                    $request->cardNumber,
-                    $request->cardExpiryYear,
-                    $request->cardExpiryMonth,
-                    $request->cvv,
-                    $request->returnUrl
+                    $request['cardNumber'],
+                    $request['cardExpiryYear'],
+                    $request['cardExpiryMonth'],
+                    $request['cvv'],
+                    $request['returnUrl']
                 );
                 break;
 
             case 'FawryWallet':
                 $sig = $this->fawry->makeWalletSignature(
                     $merchantRefNum,
-                    $request->customerProfileId ?? '',
+                    $request['customerProfileId'] ?? '',
                     $method,
                     $amount,
-                    $request->walletMobile
+                    $request['walletMobile']
                 );
                 break;
 
@@ -94,25 +92,25 @@ class ApiController extends Controller
         $payload = [
             'merchantCode'    => config('services.fawry.merchant_code'),
             'merchantRefNum'  => $merchantRefNum,
-            'customerMobile'  => $request->customerMobile,
-            'customerEmail'   => $request->customerEmail,
-            'customerName'    => $request->customerName ?? '',
+            'customerMobile'  => $request['customerMobile'],
+            'customerEmail'   => $request['customerEmail'],
+            'customerName'    => $request['customerName'] ?? '',
             'amount'          => $this->fawry->fmtAmount($amount),
-            'chargeItems'     => $request->chargeItems,
+            'chargeItems'     => $request['chargeItems'],
             'signature'       => $sig,
             'paymentMethod'   => $method,
-            'description'     => $request->description ?? 'Payment',
+            'description'     => $request['description'] ?? 'Payment',
             'orderWebHookUrl' => route('api.fawry.webhook'),
         ];
 
         // extra fields for Card
         if ($method === 'PayUsingCC') {
             $payload = array_merge($payload, [
-                'cardNumber'      => $request->cardNumber,
-                'cardExpiryYear'  => $request->cardExpiryYear,
-                'cardExpiryMonth' => $request->cardExpiryMonth,
-                'cvv'             => $request->cvv,
-                'returnUrl'       => $request->returnUrl,
+                'cardNumber'      => $request['cardNumber'],
+                'cardExpiryYear'  => $request['cardExpiryYear'],
+                'cardExpiryMonth' => $request['cardExpiryMonth'],
+                'cvv'             => $request['cvv'],
+                'returnUrl'       => $request['returnUrl'],
                 'enable3DS'       => true,
             ]);
         }
@@ -120,9 +118,9 @@ class ApiController extends Controller
         // extra fields for Wallet
         if ($method === 'FawryWallet') {
             $payload = array_merge($payload, [
-                'walletMobile'          => $request->walletMobile,
-                'walletProviderService' => $request->walletProviderService,
-                'returnUrl'             => $request->returnUrl,
+                'walletMobile'          => $request['walletMobile'],
+                'walletProviderService' => $request['walletProviderService'],
+                'returnUrl'             => $request['returnUrl'],
             ]);
         }
 
