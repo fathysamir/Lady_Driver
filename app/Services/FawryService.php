@@ -41,7 +41,7 @@ class FawryService
         . $paymentMethod
         . $amount
         . $this->securityKey;
-dd($data);
+
         return hash('sha256', $data);
     }
 
