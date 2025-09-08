@@ -111,9 +111,9 @@ class FawryService
             ],
             'body'    => json_encode($payload, true),
         ]);
-        dd($resp);
+        
         $response = json_decode($resp->getBody()->getContents(), true);
-
+dd($response);
         return $response;
     }
 
