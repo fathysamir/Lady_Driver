@@ -358,6 +358,7 @@ class AuthController extends ApiController
         } elseif ($method === 'PayUsingCC') {
             $resp = $this->fawry->create3DSCardCharge($payload);
         } else {
+            dd("dd");
             $resp = $this->fawry->createWalletCharge($payload);
         }
 
