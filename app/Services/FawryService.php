@@ -96,7 +96,7 @@ class FawryService
         $walletMobile
     ) {
         $data = $this->merchantCode . $merchantRefNum . $customerProfileId . $paymentMethod . $amount . $walletMobile . $this->securityKey;
-dd($data);
+
         return hash('sha256', $data);
     }
 
