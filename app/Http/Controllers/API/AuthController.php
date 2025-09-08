@@ -172,7 +172,7 @@ class AuthController extends ApiController
         }
 
         $v = Validator::make($request->all(), [
-            'paymentMethod'         => 'required|string|in:PayAtFawry,CARD,FawryWallet',
+            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
             'amount'                => 'required|numeric|min:0.01',
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
@@ -219,7 +219,7 @@ class AuthController extends ApiController
                 );
                 break;
 
-            case 'CARD':
+            case 'PayUsingCC':
                 $sig = $this->fawry->make3DSCardSignature(
                     $merchantRefNum,
                     auth()->user()->id,
@@ -276,7 +276,7 @@ class AuthController extends ApiController
         ];
 
         // extra fields for Card
-        if ($method === 'CARD') {
+        if ($method === 'PayUsingCC') {
             $payload = array_merge($payload, [
                 'cardNumber'      => $request->cardNumber,
                 'cardExpiryYear'  => $request->cardExpiryYear,
@@ -308,7 +308,7 @@ class AuthController extends ApiController
         // call correct method
         if ($method === 'PayAtFawry') {
             $resp = $this->fawry->createReferenceCharge($payload);
-        } elseif ($method === 'CARD') {
+        } elseif ($method === 'PayUsingCC') {
             $resp = $this->fawry->create3DSCardCharge($payload);
         } else {
             $resp = $this->fawry->createWalletCharge($payload);
