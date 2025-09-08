@@ -41,7 +41,11 @@ class FawryService
         . $paymentMethod
         . $amount
         . $this->securityKey;
-
+dd([
+    'merchant_code' => config('services.fawry.merchant_code'),
+    'secure_key' => config('services.fawry.secure_key'),
+    'base_url' => config('services.fawry.base_url')
+]);
         return hash('sha256', $data);
     }
 
@@ -56,7 +60,6 @@ class FawryService
             'json'    => $payload,
             'timeout' => 30,
         ]);
-dd(json_decode($resp->getBody()->getContents(), true));
         return json_decode($resp->getBody()->getContents(), true);
     }
 
