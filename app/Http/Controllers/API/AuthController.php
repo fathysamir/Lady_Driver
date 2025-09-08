@@ -6,6 +6,9 @@ use App\Mail\SendOTP;
 use App\Models\AboutUs;
 use App\Models\Car;
 use App\Models\City;
+use Illuminate\Support\Facades\Log;
+use App\Models\FawryTransaction;
+use Illuminate\Support\Str;
 use App\Models\ContactUs;
 use App\Models\DashboardMessage;
 use App\Models\FAQ;
@@ -16,6 +19,7 @@ use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\FirebaseService;
+use App\Services\FawryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -28,9 +32,11 @@ use Spatie\Permission\Models\Role;
 class AuthController extends ApiController
 {
     protected $firebaseService;
-    public function __construct(FirebaseService $firebaseService)
+    protected $fawry;
+    public function __construct(FirebaseService $firebaseService,FawryService $fawry)
     {
         $this->firebaseService = $firebaseService;
+        $this->fawry = $fawry;
     }
     public function register(Request $request)
     {
@@ -172,7 +178,6 @@ class AuthController extends ApiController
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
             
-            'customerProfileId'     => 'nullable|exists:users,id',
             'customerName'          => 'nullable|string',
             'description'           => 'nullable|string',
 
@@ -196,31 +201,125 @@ class AuthController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-        $paymentRequest = [
-            'paymentMethod'         => $request->input('paymentMethod'), // PayAtFawry / PayUsingCC / FawryWallet
-            'amount'                => 1,
-            'customerMobile'        => '+201154857080',
-            'customerEmail'         => "01154857080fa@gmail.com",
-            'chargeItems'           => [
+       
+        $amount=$request->amount;
+        // استدعاء createPayment من ApiController
+        $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
+        $amount         = number_format((float) $amount, 2, '.', '');
+        $method         = $request->paymentMethod;
+
+        // ====== Build signature depending on method ======
+        switch ($method) {
+            case 'PayAtFawry':
+                $sig = $this->fawry->makeReferenceSignature(
+                    $merchantRefNum,
+                    auth()->user()->id ?? '',
+                    $method,
+                    $amount
+                );
+                break;
+
+            case 'PayUsingCC':
+                $sig = $this->fawry->make3DSCardSignature(
+                    $merchantRefNum,
+                    auth()->user()->id ?? '',
+                    $method,
+                    $amount,
+                    $request->cardNumber,
+                    $request->cardExpiryYear,
+                    $request->cardExpiryMonth,
+                    $request->cvv,
+                    $request->returnUrl
+                );
+                break;
+
+            case 'FawryWallet':
+                $sig = $this->fawry->makeWalletSignature(
+                    $merchantRefNum,
+                    auth()->user()->id ?? '',
+                    $method,
+                    $amount,
+                    $request->walletMobile
+                );
+                break;
+
+            default:
+                return $this->sendError(null, 'Unsupported payment method', 400);
+        }
+
+        // ====== Build payload ======
+        $payload = [
+            'merchantCode'    => config('services.fawry.merchant_code'),
+            'merchantRefNum'  => $merchantRefNum,
+            'customerMobile'  => $request->customerMobile,
+            'customerEmail'   => $request->customerEmail,
+            'customerName'    => $request->customerName ?? '',
+            'amount'          => $amount,
+            'chargeItems'     => [
                 [
                     'itemId'      => 'driver_wallet_activation',
                     'description' => 'Driver wallet activation deposit',
-                    'price'       => 1,
+                    'price'       =>$amount,
                     'quantity'    => 1,
                 ],
             ],
-            // بيانات إضافية لو الطريقة كارت أو محفظة
-            'cardNumber'            => $request->input('cardNumber'),
-            'cardExpiryYear'        => $request->input('cardExpiryYear'),
-            'cardExpiryMonth'       => $request->input('cardExpiryMonth'),
-            'cvv'                   => $request->input('cvv'),
-            'walletMobile'          => $request->input('walletMobile'),
-            'walletProviderService' => $request->input('walletProviderService'),
-            'returnUrl'             => $request->input('returnUrl'),
+            'signature'       => $sig,
+            'paymentMethod'   => $method,
+            'description'     => $request->description ?? 'Payment',
+            'orderWebHookUrl' => route('api.fawry.webhook'),
         ];
 
-        // استدعاء createPayment من ApiController
-        return  $this->createPayment($paymentRequest);
+        // extra fields for Card
+        if ($method === 'PayUsingCC') {
+            $payload = array_merge($payload, [
+                'cardNumber'      => $request->cardNumber,
+                'cardExpiryYear'  => $request->cardExpiryYear,
+                'cardExpiryMonth' => $request->cardExpiryMonth,
+                'cvv'             => $request->cvv,
+                'returnUrl'       => $request->returnUrl,
+                'enable3DS'       => true,
+            ]);
+        }
+
+        // extra fields for Wallet
+        if ($method === 'FawryWallet') {
+            $payload = array_merge($payload, [
+                'walletMobile'          => $request->walletMobile,
+                'walletProviderService' => $request->walletProviderService,
+                'returnUrl'             => $request->returnUrl,
+            ]);
+        }
+
+        // ====== Store local transaction ======
+        $trx = FawryTransaction::create([
+            'user_id'        => auth()->id() ?? null,
+            'merchant_ref'   => $merchantRefNum,
+            'amount'         => $amount,
+            'payment_method' => $method,
+            'status'         => 'PENDING',
+        ]);
+
+        try {
+            // call correct method
+            if ($method === 'PayAtFawry') {
+                $resp = $this->fawry->createReferenceCharge($payload);
+            } elseif ($method === 'PayUsingCC') {
+                $resp = $this->fawry->create3DSCardCharge($payload);
+            } else {
+                $resp = $this->fawry->createWalletCharge($payload);
+            }
+
+            $trx->reference_number = $resp['referenceNumber'] ?? null;
+            $trx->response         = $resp;
+            $trx->status           = $resp['orderStatus'] ?? $resp['statusDescription'] ?? $trx->status;
+            $trx->save();
+
+            return $this->sendResponse($resp, 'Success Payment', 200);
+
+        } catch (\Throwable $e) {
+            Log::error("Fawry createPayment error: " . $e->getMessage());
+            return $this->sendError($e->getMessage(), 'Failed to create payment', 500);
+        }
        
     }
 
