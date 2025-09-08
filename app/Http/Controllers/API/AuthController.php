@@ -204,7 +204,7 @@ class AuthController extends ApiController
        
         $amount=$request->amount;
         // استدعاء createPayment من ApiController
-        $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
+        $merchantRefNum = 'md-' . Str::random(10) . '-' . time();
         $amount         = number_format((float) $amount, 2, '.', '');
         $method         = $request->paymentMethod;
 

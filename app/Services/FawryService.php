@@ -35,7 +35,6 @@ class FawryService
          $paymentMethod,
          $amount
     ){
-        dd($amount);
         $data = $this->merchantCode
         . $merchantRefNum
         . $customerProfileId
