@@ -206,7 +206,7 @@ class AuthController extends ApiController
         // استدعاء createPayment من ApiController
         $merchantRefNum = 'md-' . Str::random(10) . '-' . time();
         $amount         = number_format((float) $amount, 2, '.', '');
-        dd($amount);
+        
         $method         = $request->paymentMethod;
 
         // ====== Build signature depending on method ======
