@@ -35,13 +35,7 @@ class FawryService
          $paymentMethod,
          $amount
     ){
-        $data = $this->merchantCode
-        . $merchantRefNum
-        . $customerProfileId
-        . $paymentMethod
-        . $amount
-        . $this->securityKey;
-dd($data,hash('sha256', $data));
+        $data = $this->merchantCode . $merchantRefNum . $customerProfileId . $paymentMethod . $amount . $this->securityKey;
         return hash('sha256', $data);
     }
 

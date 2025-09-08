@@ -6,26 +6,26 @@ use App\Mail\SendOTP;
 use App\Models\AboutUs;
 use App\Models\Car;
 use App\Models\City;
-use Illuminate\Support\Facades\Log;
-use App\Models\FawryTransaction;
-use Illuminate\Support\Str;
 use App\Models\ContactUs;
 use App\Models\DashboardMessage;
 use App\Models\FAQ;
+use App\Models\FawryTransaction;
 use App\Models\FeedBack;
 use App\Models\Notification;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
-use App\Services\FirebaseService;
 use App\Services\FawryService;
+use App\Services\FirebaseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
@@ -33,10 +33,10 @@ class AuthController extends ApiController
 {
     protected $firebaseService;
     protected $fawry;
-    public function __construct(FirebaseService $firebaseService,FawryService $fawry)
+    public function __construct(FirebaseService $firebaseService, FawryService $fawry)
     {
         $this->firebaseService = $firebaseService;
-        $this->fawry = $fawry;
+        $this->fawry           = $fawry;
     }
     public function register(Request $request)
     {
@@ -177,7 +177,7 @@ class AuthController extends ApiController
             'amount'                => 'required|numeric|min:0.01',
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
-            
+
             'customerName'          => 'nullable|string',
             'description'           => 'nullable|string',
 
@@ -201,13 +201,13 @@ class AuthController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-       
-        $amount=$request->amount;
+
+        $amount = $request->amount;
         // استدعاء createPayment من ApiController
         $merchantRefNum = 'md-' . Str::random(10) . '-' . time();
         $amount         = number_format((float) $amount, 2, '.', '');
-        
-        $method         = $request->paymentMethod;
+
+        $method = $request->paymentMethod;
 
         // ====== Build signature depending on method ======
         switch ($method) {
@@ -250,24 +250,28 @@ class AuthController extends ApiController
 
         // ====== Build payload ======
         $payload = [
-            'merchantCode'    => config('services.fawry.merchant_code'),
-            'merchantRefNum'  => $merchantRefNum,
-            'customerMobile'  => $request->customerMobile,
-            'customerEmail'   => $request->customerEmail,
-            'customerName'    => $request->customerName ?? '',
-            'amount'          => $amount,
-            'chargeItems'     => [
+            'merchantCode'      => config('services.fawry.merchant_code'),
+            'merchantRefNum'    => $merchantRefNum,
+            'customerMobile'    => $request->customerMobile,
+            'customerEmail'     => $request->customerEmail,
+            'customerName'      => $request->customerName ?? '',
+            'customerProfileId' => auth()->user()->id,
+            'amount'            => $amount,
+            'paymentExpiry'     => 1631138400000,
+            'currencyCode'      => 'EGP',
+            'language'          => 'en-gb',
+            'chargeItems'       => [
                 [
-                    'itemId'      => 'driver_wallet_activation',
+                    'itemId'      => '33563hbdyug53468465',
                     'description' => 'Driver wallet activation deposit',
-                    'price'       =>$amount,
-                    'quantity'    => 1,
+                    'price'       => $amount,
+                    'quantity'    => "1",
                 ],
             ],
-            'signature'       => $sig,
-            'paymentMethod'   => $method,
-            'description'     => $request->description ?? 'Payment',
-            'orderWebHookUrl' => route('api.fawry.webhook'),
+            'signature'         => $sig,
+            'paymentMethod'     => $method,
+            'description'       => $request->description ?? 'Payment',
+            'orderWebHookUrl'   => route('api.fawry.webhook'),
         ];
 
         // extra fields for Card
@@ -321,7 +325,7 @@ class AuthController extends ApiController
             Log::error("Fawry createPayment error: " . $e->getMessage());
             return $this->sendError($e->getMessage(), 'Failed to create payment', 500);
         }
-       
+
     }
 
     public function login(Request $request)
