@@ -45,7 +45,7 @@ class ApiController extends Controller
     public function createPayment($request)
     {
 
-        dd($request->amount);
+        dd($request['amount']);
        
         $merchantRefNum = auth()->user()->id . '_md-' . Str::random(10) . '-' . time();
         $amount         = $request->amount;
