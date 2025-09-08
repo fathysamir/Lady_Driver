@@ -171,7 +171,7 @@ class AuthController extends ApiController
             'amount'                => 'required|numeric|min:0.01',
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
-            'chargeItems'           => 'required|array|min:1',
+            
             'customerProfileId'     => 'nullable|exists:users,id',
             'customerName'          => 'nullable|string',
             'description'           => 'nullable|string',
