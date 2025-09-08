@@ -172,7 +172,7 @@ class AuthController extends ApiController
         }
 
         $v = Validator::make($request->all(), [
-            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,MWALLET',
+            'paymentMethod'         => 'required|string|in:PayAtFawry,PayUsingCC,FawryWallet',
             'amount'                => 'required|numeric|min:0.01',
             'customerMobile'        => 'required|string',
             'customerEmail'         => 'required|email',
@@ -185,10 +185,10 @@ class AuthController extends ApiController
             'cardExpiryYear'        => 'required_if:paymentMethod,PayUsingCC|nullable|string',
             'cardExpiryMonth'       => 'required_if:paymentMethod,PayUsingCC|nullable|string',
             'cvv'                   => 'required_if:paymentMethod,PayUsingCC|nullable|string',
-            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,MWALLET|nullable|url',
+            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,FawryWallet|nullable|url',
 
-            'walletMobile'          => 'required_if:paymentMethod,MWALLET|nullable|string',
-            'walletProviderService' => 'required_if:paymentMethod,MWALLET|nullable|string',
+            'walletMobile'          => 'required_if:paymentMethod,FawryWallet|nullable|string',
+            'walletProviderService' => 'required_if:paymentMethod,FawryWallet|nullable|string',
         ]);
 
         // if ($v->fails()) {
@@ -233,7 +233,7 @@ class AuthController extends ApiController
                 );
                 break;
 
-            case 'MWALLET':
+            case 'FawryWallet':
                 $sig = $this->fawry->makeWalletSignature(
                     $merchantRefNum,
                     auth()->user()->id,
@@ -287,7 +287,7 @@ class AuthController extends ApiController
         }
 
         // extra fields for Wallet
-        if ($method === 'MWALLET') {
+        if ($method === 'FawryWallet') {
             $payload = array_merge($payload, [
                 'walletMobile'          => $request->walletMobile,
                 'walletProviderService' => $request->walletProviderService,
