@@ -41,6 +41,7 @@ class FawryService
 
     public function createReferenceCharge(array $payload): array
     {
+        dd($payload);
         $url  = $this->baseUrl . '/ECommerceWeb/Fawry/payments/charge';
         $resp = $this->client->post($url, [
             'headers' => [
