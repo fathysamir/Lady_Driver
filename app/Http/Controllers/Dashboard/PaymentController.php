@@ -3,42 +3,43 @@ namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\ApiController;
 use App\Models\FawryTransaction;
-use App\Services\FawryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends ApiController
 {
-   
+
     public function fawryWebhook(Request $request)
     {
         $data = $request->all();
         Log::info('Fawry Webhook received', $data);
 
-        
-         $merchantCode = config('services.fawry.merchant_code');
+        $merchantCode = config('services.fawry.merchant_code');
         $securityKey  = config('services.fawry.secure_key');
 
+        // بناء الـ hash زي ما فوري موثقاه
         $stringToHash = $merchantCode
             . ($data['orderAmount'] ?? '')
             . ($data['fawryRefNumber'] ?? '')
             . ($data['merchantRefNumber'] ?? '')
             . ($data['orderStatus'] ?? '')
             . ($data['paymentMethod'] ?? '')
-            . ($data['paymentRefrenceNumber'] ?? '')
             . $securityKey;
 
         $expectedSignature = hash('sha256', $stringToHash);
-       
-        if (! (strtolower($expectedSignature) === strtolower($data['signature'] ?? ''))) {
-            Log::warning('Fawry Webhook invalid signature', $data);
+
+        if (! (strtolower($expectedSignature) === strtolower($data['messageSignature'] ?? ''))) {
+            Log::warning('Fawry Webhook invalid signature', [
+                'expected' => $expectedSignature,
+                'received' => $data['messageSignature'] ?? null,
+            ]);
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
-        $merchantRefNum  = $data['merchantRefNumber'] ?? null;
-        $referenceNumber = $data['referenceNumber'] ?? null;
-        $orderStatus     = $data['orderStatus'] ?? null;
-        $paymentAmount   = $data['orderAmount'] ?? null;
+        $merchantRefNum = $data['merchantRefNumber'] ?? null;
+        $fawryRefNumber = $data['fawryRefNumber'] ?? null;
+        $orderStatus    = $data['orderStatus'] ?? null;
+        $paymentAmount  = $data['orderAmount'] ?? null;
 
         if (! $merchantRefNum) {
             return response()->json(['error' => 'Missing merchantRefNumber'], 400);
@@ -51,7 +52,7 @@ class PaymentController extends ApiController
         }
 
         // update transaction
-        $trx->reference_number = $referenceNumber ?? $trx->reference_number;
+        $trx->reference_number = $fawryRefNumber ?? $trx->reference_number;
         $trx->status           = $orderStatus ?? $trx->status;
         $trx->response         = $data;
         $trx->amount           = $paymentAmount ?? $trx->amount;
@@ -62,7 +63,7 @@ class PaymentController extends ApiController
 
     public function returnUrl(Request $request)
     {
-      
+
         $data = [
             'merchantRefNum'  => $request->input('merchantRefNum') ?? $request->input('merchantRefNumber'),
             'referenceNumber' => $request->input('referenceNumber') ?? $request->input('fawryRefNumber'),
