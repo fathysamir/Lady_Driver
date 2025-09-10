@@ -1253,7 +1253,7 @@ class Chat implements MessageComponentInterface
         $trip         = Trip::find($data['trip_id']);
         $x['trip_id'] = $data['trip_id'];
         if ($trip->type == 'comfort_car' || $trip->type == 'car') {
-            $car      = $trip->car();
+            $car      = $trip->car;
             dd($car->lat);
             $x['lat'] = $car->lat;
             $x['lng'] = $car->lng;
