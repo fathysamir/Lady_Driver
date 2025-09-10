@@ -1254,7 +1254,7 @@ class Chat implements MessageComponentInterface
         $x['trip_id'] = $data['trip_id'];
         if ($trip->type == 'comfort_car' || $trip->type == 'car') {
             $car      = $trip->car();
-            dd($car);
+            dd($car->lat);
             $x['lat'] = $car->lat;
             $x['lng'] = $car->lng;
         } elseif ($trip->type == 'scooter') {
