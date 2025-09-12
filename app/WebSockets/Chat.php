@@ -1247,27 +1247,52 @@ class Chat implements MessageComponentInterface
         }
 
     }
-    private function track_car(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
+    private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
     {
-        $data         = json_decode($trackCarRequest, true);
-        $trip         = Trip::find($data['trip_id']);
-        $x['trip_id'] = $data['trip_id'];
-        if ($trip->type == 'comfort_car' || $trip->type == 'car') {
-            $car      = $trip->car;
-          
-            $x['lat'] = $car->lat;
-            $x['lng'] = $car->lng;
-        } elseif ($trip->type == 'scooter') {
-            $scooter  = $trip->scooter();
-            $x['lat'] = $scooter->lat;
-            $x['lng'] = $scooter->lng;
-        }
-        $data1 = [
+        $data     = json_decode($trackCarRequest, true);
+        $lat      = $data['lat'];
+        $lng      = $data['lng'];
+        $x['lat'] = $lat;
+        $x['lng'] = $lng;
+        $data1    = [
             'type' => 'track_car',
-            'data' => $x,
-
+            'data' => $x
         ];
-        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $res         = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $driver      = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
+        $driver->lat = floatval($lat);
+        $driver->lng = floatval($lng);
+        $driver->save();
+
+        if ($driver->car) {
+            $driver->car->update([
+                'lat' => $lat,
+                'lng' => $lng,
+            ]);
+            $trip = Trip::where('car_id', $driver->car->id)->whereIn('status', ['pending', 'in_progress'])->first();
+            if ($trip) {
+                $client = $this->getClientByUserId($trip->user_id);
+                if ($client) {
+                    $client->send($res);
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
+                }
+            }
+        } elseif ($driver->scooter) {
+            $driver->scooter->update([
+                'lat' => $lat,
+                'lng' => $lng,
+            ]);
+            $trip = Trip::where('scooter_id', $driver->scooter->id)->whereIn('status', ['pending', 'in_progress'])->first();
+            if ($trip) {
+                $client = $this->getClientByUserId($trip->user_id);
+                if ($client) {
+                    $client->send($res);
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
+                }
+            }
+        }
         $from->send($res);
     }
     private function send_message(ConnectionInterface $from, $AuthUserID, $trackSendMessageRequest)
@@ -1368,8 +1393,8 @@ class Chat implements MessageComponentInterface
                 case 'start_end_trip':
                     $this->start_end_trip($from, $AuthUserID, $requestData);
                     break;
-                case 'track_car':
-                    $this->track_car($from, $AuthUserID, $requestData);
+                case 'update_location':
+                    $this->update_location($from, $AuthUserID, $requestData);
                     break;
                 case 'send_message':
                     $this->send_message($from, $AuthUserID, $requestData);
@@ -1384,8 +1409,8 @@ class Chat implements MessageComponentInterface
                     $live = LiveLocation::where('token', $data['token'])
                         ->where('expires_at', '>', now())
                         ->first();
-                    $x['lat'] = $live->lat;
-                    $x['lng'] = $live->lng;
+                    $x['lat']  = $live->lat;
+                    $x['lng']  = $live->lng;
                     $x['name'] = $live->user->name;
                     $from->send(json_encode(['type' => 'live_location', 'data' => $x]));
                     $date_time = date('Y-m-d h:i:s a');
