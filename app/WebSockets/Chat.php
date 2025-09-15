@@ -671,7 +671,7 @@ class Chat implements MessageComponentInterface
                         });
 
                     $eligibleDriverIds = [];
-dd($eligibleCars);
+
                     foreach ($eligibleCars as $car) {
                         $eligibleDriverIds[] = $car->user_id;
                         if ($car->owner->device_token) {
