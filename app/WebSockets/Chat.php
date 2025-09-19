@@ -1256,7 +1256,7 @@ class Chat implements MessageComponentInterface
         $x['lng'] = $lng;
         $data1    = [
             'type' => 'track_car',
-            'data' => $x
+            'data' => $x,
         ];
         $res         = json_encode($data1, JSON_UNESCAPED_UNICODE);
         $driver      = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
@@ -1350,6 +1350,51 @@ class Chat implements MessageComponentInterface
             }
         }
     }
+
+    public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
+    {
+        $data = json_decode($checkBarcodeRequest, true);
+        $trip = Trip::where('id', $data['trip_id'])->first();
+        if ($trip->barcode == $data['barcode']) {
+            $x['trip_id'] = $data['trip_id'];
+            $x['message'] = 'Barcode verified successfully';
+            $data1        = [
+                'type' => 'barcode_verification',
+                'data' => $x,
+            ];
+            $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+            $from->send($res);
+            if ($trip->user_id == $AuthUserID) {
+                if ($trip->car_id != null) {
+                    $driver = $this->getClientByUserId($trip->car->user_id);
+                    if ($driver) {
+                        $driver->send($res);
+                    }
+                } else {
+                    $driver = $this->getClientByUserId($trip->scooter->user_id);
+                    if ($driver) {
+                        $driver->send($res);
+                    }
+                }
+            } else {
+                $client = $this->getClientByUserId($trip->user_id);
+                if ($client) {
+                    $client->send($res);
+                }
+            }
+
+        } else {
+            $x['trip_id'] = $data['trip_id'];
+            $x['message'] = 'Invalid barcode for this trip';
+            $data1        = [
+                'type' => 'barcode_verification',
+                'data' => $x,
+            ];
+            $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+            $from->send($res);
+        }
+
+    }
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $numRecv = count($this->clients) - 1;
@@ -1397,6 +1442,9 @@ class Chat implements MessageComponentInterface
                     $this->update_location($from, $AuthUserID, $requestData);
                     break;
                 case 'send_message':
+                    $this->send_message($from, $AuthUserID, $requestData);
+                    break;
+                case 'barcode_verification_request':
                     $this->send_message($from, $AuthUserID, $requestData);
                     break;
                 case 'ping':
