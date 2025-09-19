@@ -81,7 +81,7 @@ class AuthController extends ApiController
         if ($request->input('mode') === 'client') {
             $rules['ID_front_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['ID_back_image']  = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
-            $rules['passport']  = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['passport']       = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['gendor']         = 'required|in:Male,Female';
         }
 
@@ -924,6 +924,15 @@ class AuthController extends ApiController
                 uploadMedia($request->id_front_image, $student->IDfrontImageCollection, $student);
             }
         }
+        $user = auth()->user();
+        if (! $user->student_code) {
+            do {
+                $barcode = Str::uuid();
+            } while (User::where('student_code', $barcode)->exists());
+            $user->student_code = $barcode;
+            $user->save();
+        }
+
         return $this->sendResponse($student, 'success', 200);
 
     }

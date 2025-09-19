@@ -491,30 +491,30 @@ class ClientController extends ApiController
         return $this->sendResponse($reasons, null, 200);
     }
 
-    public function check_barcode(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'trip_id' => 'required|',
-            'barcode' => 'required|string',
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
+    // public function check_barcode(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'trip_id' => 'required|',
+    //         'barcode' => 'required|string',
+    //     ]);
+    //     // dd($request->all());
+    //     if ($validator->fails()) {
+    //         $errors = implode(" / ", $validator->errors()->all());
 
-            return $this->sendError(null, $errors, 400);
-        }
+    //         return $this->sendError(null, $errors, 400);
+    //     }
 
-        $trip = Trip::where('id', $request->trip_id)->first();
-        if (! $trip) {
-            return $this->sendError(null, 'Trip not found', 404);
-        }
-        if ($trip->barcode == $request->barcode) {
-            return $this->sendResponse(null, 'Barcode verified successfully', 200);
-        } else {
-            return $this->sendError(null, 'Invalid barcode for this trip', 422);
-        }
+    //     $trip = Trip::where('id', $request->trip_id)->first();
+    //     if (! $trip) {
+    //         return $this->sendError(null, 'Trip not found', 404);
+    //     }
+    //     if ($trip->barcode == $request->barcode) {
+    //         return $this->sendResponse(null, 'Barcode verified successfully', 200);
+    //     } else {
+    //         return $this->sendError(null, 'Invalid barcode for this trip', 422);
+    //     }
 
-    }
+    // }
 
     public function sendMessage(Request $request)
     {
