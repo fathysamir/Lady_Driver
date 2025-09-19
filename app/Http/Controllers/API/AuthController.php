@@ -40,8 +40,8 @@ class AuthController extends ApiController
     public function register(Request $request)
     {
         $rules = [
-            'name'           => 'required|string|max:255',
-            'email'          => [
+            'name'         => 'required|string|max:255',
+            'email'        => [
                 'required',
                 'string',
                 'email',
@@ -49,10 +49,10 @@ class AuthController extends ApiController
                 Rule::unique('users')
                     ->whereNull('deleted_at'),
             ],
-            'password'       => 'required|string|min:8|confirmed',
-            'mode'           => 'required|in:driver,client',
-            'country_code'   => 'required|string|max:10',
-            'phone'          => [
+            'password'     => 'required|string|min:8|confirmed',
+            'mode'         => 'required|in:driver,client',
+            'country_code' => 'required|string|max:10',
+            'phone'        => [
                 'required',
                 Rule::unique('users')
                     ->where(function ($query) use ($request) {
@@ -60,10 +60,8 @@ class AuthController extends ApiController
                             ->whereNull('deleted_at');
                     }),
             ],
-            'city_id'        => 'required|exists:cities,id',
-            'ID_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_back_image'  => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'national_ID'    => 'required|digits:14',
+            'city_id'      => 'required|exists:cities,id',
+
         ];
 
         if ($request->input('mode') === 'driver') {
@@ -73,12 +71,18 @@ class AuthController extends ApiController
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
             ];
-            $rules['driver_type'] = 'required|in:scooter,car';
-            $rules['year']        = 'required|integer|min:2000|max:' . date('Y');
+            $rules['driver_type']    = 'required|in:scooter,car';
+            $rules['year']           = 'required|integer|min:2000|max:' . date('Y');
+            $rules['ID_front_image'] = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['ID_back_image']  = 'required|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['national_ID']    = 'required|digits:14';
         }
 
         if ($request->input('mode') === 'client') {
-            $rules['gendor'] = 'required|in:Male,Female';
+            $rules['ID_front_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['ID_back_image']  = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['passport']  = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
+            $rules['gendor']         = 'required|in:Male,Female';
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -149,6 +153,9 @@ class AuthController extends ApiController
         }
         if ($request->file('ID_back_image')) {
             uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+        }
+        if ($request->file('passport')) {
+            uploadMedia($request->passport, $user->passportImageCollection, $user);
         }
 
         // Send OTP via Email (or SMS)
@@ -351,14 +358,14 @@ class AuthController extends ApiController
             'payment_method' => $method,
             'status'         => 'PENDING',
         ]);
-       
+
         // call correct method
         if ($method === 'PayAtFawry') {
             $resp = $this->fawry->createReferenceCharge($payload);
         } elseif ($method === 'PayUsingCC') {
             $resp = $this->fawry->create3DSCardCharge($payload);
         } else {
-           
+
             $resp = $this->fawry->createWalletCharge($payload);
         }
 

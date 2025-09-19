@@ -21,6 +21,7 @@ class User extends Authenticatable
     public $avatarCollection       = 'avatar-image';
     public $IDfrontImageCollection = 'id-front-image';
     public $IDbackImageCollection  = 'id-back-image';
+    public $passportImageCollection = 'passport-image';
     protected $fillable            = [
         'name',
         'email',
