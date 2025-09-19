@@ -32,245 +32,6 @@ class Chat implements MessageComponentInterface
         $this->clientUserIdMap = [];
     }
 
-    // private function create_trip(ConnectionInterface $from, $AuthUserID, $tripRequest)
-    // {
-
-    //     $data     = json_decode($tripRequest, true);
-    //     $response = calculate_distance($data['start_lat'], $data['start_lng'], $data['end_lat'], $data['end_lng']);
-    //     $distance = $response['distance_in_km'];
-    //     $duration = $response['duration_in_M'];
-
-    //     $kilometer_price                = floatval(Setting::where('key', 'kilometer_price')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //     $Air_conditioning_service_price = floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //     $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Trips')->where('type', 'number')->first()->value);
-    //     if ($data['air_conditioned'] == 1) {
-    //         $driver_rate = round(($distance * $kilometer_price) + $Air_conditioning_service_price, 2);
-    //     } else {
-    //         $driver_rate = round($distance * $kilometer_price, 2);
-    //     }
-    //     $app_rate    = round(($distance * $kilometer_price * $app_ratio) / 100, 2);
-    //     $total_price = $driver_rate + $app_rate;
-    //     $lastTrip    = Trip::orderBy('id', 'desc')->first();
-
-    //     if ($lastTrip) {
-    //         $lastCode = $lastTrip->code;
-    //         $code     = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
-    //     } else {
-    //         $code = 'TRP-000001';
-    //     }
-    //     $trip = Trip::create(['user_id' => $AuthUserID,
-    //         'code'                          => $code,
-    //         'start_lat'                     => floatval($data['start_lat']),
-    //         'start_lng'                     => floatval($data['start_lng']),
-    //         'end_lat'                       => floatval($data['end_lat']),
-    //         'end_lng'                       => floatval($data['end_lng']),
-    //         'address1'                      => $data['address1'],
-    //         'address2'                      => $data['address2'],
-    //         'total_price'                   => $total_price,
-    //         'app_rate'                      => $app_rate,
-    //         'driver_rate'                   => $driver_rate,
-    //         'distance'                      => $distance,
-    //         'type'                          => $data['type'],
-    //     ]);
-    //     $u                      = User::findOrFail($AuthUserID);
-    //     $user_image             = 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection);
-    //     $newTrip['id']          = $trip->id;
-    //     $newTrip['code']        = $code;
-    //     $newTrip['user_id']     = intval($AuthUserID);
-    //     $newTrip["car_id"]      = null;
-    //     $newTrip["start_date"]  = null;
-    //     $newTrip["end_date"]    = null;
-    //     $newTrip["start_time"]  = null;
-    //     $newTrip["end_time"]    = null;
-    //     $newTrip['start_lat']   = floatval($data['start_lat']);
-    //     $newTrip['start_lng']   = floatval($data['start_lng']);
-    //     $newTrip['end_lat']     = floatval($data['end_lat']);
-    //     $newTrip['end_lng']     = floatval($data['end_lng']);
-    //     $newTrip['address1']    = $data['address1'];
-    //     $newTrip['address2']    = $data['address2'];
-    //     $newTrip['total_price'] = $total_price;
-    //     $newTrip['app_rate']    = $app_rate;
-    //     $newTrip['driver_rate'] = $driver_rate;
-    //     $newTrip['distance']    = $distance;
-    //     $newTrip['type']        = $data['type'];
-    //     if ($data['air_conditioned'] == '1') {
-    //         $trip->air_conditioned      = '1';
-    //         $newTrip['air_conditioned'] = '1';
-    //     } else {
-    //         $trip->air_conditioned      = '0';
-    //         $newTrip['air_conditioned'] = '0';
-    //     }
-
-    //     if ($data['animal'] == '1') {
-    //         $trip->animals      = '1';
-    //         $newTrip['animals'] = '0';
-    //     } else {
-    //         $trip->animals      = '0';
-    //         $newTrip['animals'] = '0';
-    //     }
-    //     $trip->save();
-    //     $from->send(json_encode(['type' => 'created_trip', 'message' => 'Trip Created Successfully']));
-    //     $date_time = date('Y-m-d h:i:s a');
-    //     echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
-
-    //     $newTrip["client_stare_rate"]         = 0;
-    //     $newTrip["client_comment"]            = null;
-    //     $newTrip["status"]                    = "created";
-    //     $newTrip["cancelled_by_id"]           = null;
-    //     $newTrip["trip_cancelling_reason_id"] = null;
-    //     $newTrip["driver_stare_rate"]         = 0;
-    //     $newTrip["driver_comment"]            = null;
-    //     $newTrip["payment_status"]            = "unpaid";
-    //     $newTrip["current_offer"]             = null;
-    //     $newTrip['duration']                  = $duration;
-
-    //     $radius        = 6371;
-    //     $decimalPlaces = 2;
-
-    //     $eligibleCars = Car::where('status', 'confirmed')
-    //         ->whereHas('owner', function ($query) {
-    //             $query->where('is_online', '1')
-    //                 ->where('status', 'confirmed');
-    //         })
-    //         ->where(function ($query) use ($trip) {
-    //             if ($trip->air_conditioned == '1') {
-    //                 $query->where('air_conditioned', '1');
-    //             }
-    //             if ($trip->animals == '1') {
-    //                 $query->where('animals', '1');
-    //             }
-    //             if ($trip->user->gendor == 'Male') {
-    //                 $query->where('passenger_type', 'male_female');
-    //             }
-    //         })
-    //         ->select('*')
-    //         ->selectRaw(
-    //             "
-    //                 ROUND(
-    //                     ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-    //                 ) AS distance",
-    //             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-    //         )
-    //         ->having('distance', '<=', 3)
-    //         ->get()
-    //         ->filter(function ($car) use ($trip) {
-    //             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-    //             return $response['distance_in_km'] <= 3;
-    //         });
-
-    //     $eligibleDriverIds = [];
-
-    //     foreach ($eligibleCars as $car) {
-    //         $eligibleDriverIds[] = $car->user_id;
-    //         if ($car->owner->device_token) {
-    //             // $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
-    //             // $data=[
-    //             //     "title"=>"Lady Driver - New Trip",
-    //             //     "message"=>"There is a new trip created in your current area",
-    //             //     "screen"=>"New Trip",
-    //             //     "ID"=>$trip->id
-    //             // ];
-    //             // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
-    //         }
-    //     }
-    //     if (count($eligibleDriverIds) > 0) {
-    //         foreach ($eligibleDriverIds as $eligibleDriverId) {
-    //             $client = $this->getClientByUserId($eligibleDriverId);
-    //             if ($client) {
-    //                 $car2                                = Car::where('user_id', $eligibleDriverId)->first();
-    //                 $response2                           = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
-    //                 $distance2                           = $response2['distance_in_km'];
-    //                 $duration2                           = $response2['duration_in_M'];
-    //                 $newTrip['client_location_distance'] = $distance2;
-    //                 $newTrip['client_location_duration'] = $duration2;
-    //                 $newTrip['created_at']               = $trip->created_at;
-    //                 $newTrip['updated_at']               = $trip->updated_at;
-    //                 $newTrip['user']['id']               = intval($AuthUserID);
-    //                 $newTrip['user']['name']             = $u->name;
-    //                 $newTrip['user']['image']            = $user_image;
-    //                 $newTrip['user']['rate']             = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
-
-    //                 $data2['type'] = 'new_trip';
-    //                 $data2['data'] = $newTrip;
-    //                 $message       = json_encode($data2, JSON_UNESCAPED_UNICODE);
-    //                 $client->send($message);
-    //                 $date_time = date('Y-m-d h:i:s a');
-    //                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
-    //             }
-    //         }
-    //     }
-
-    // }
-
-    private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
-    {
-        $data                            = json_decode($cancelTripRequest, true);
-        $trip                            = Trip::findOrFail($data['trip_id']);
-        $trip->status                    = 'cancelled';
-        $trip->cancelled_by_id           = $AuthUserID;
-        $trip->trip_cancelling_reason_id = $data['reason_id'];
-        $trip->save();
-        $canceled_trip['trip_id'] = $trip->id;
-        $data2                    = [
-            'type'    => 'canceled_trip',
-            'data'    => $canceled_trip,
-            'message' => 'Trip canceled successfully',
-        ];
-        $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
-        $client  = $this->getClientByUserId($trip->user_id);
-        if ($client) {
-            $client->send($message);
-            $date_time = date('Y-m-d h:i:s a');
-            echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
-        }
-        $driver = $this->getClientByUserId($trip->car->user_id);
-        if ($driver) {
-            $driver->send($message);
-            $date_time = date('Y-m-d h:i:s a');
-            echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
-        }
-    }
-
-    private function start_end_trip(ConnectionInterface $from, $AuthUserID, $startTripRequest)
-    {
-        $data = json_decode($startTripRequest, true);
-        $trip = Trip::find($data['trip_id']);
-        if ($trip->status == 'pending') {
-            $trip->status     = 'in_progress';
-            $trip->start_date = date('Y-m-d');
-            $trip->start_time = date('H:i:s');
-            $trip->save();
-            $type    = 'started_trip';
-            $message = 'trip started now';
-        } elseif ($trip->status == 'in_progress') {
-            $trip->status   = 'completed';
-            $trip->end_date = date('Y-m-d');
-            $trip->end_time = date('H:i:s');
-            $trip->save();
-            $type    = 'ended_trip';
-            $message = 'trip ended now';
-        }
-        $trip             = Trip::find($data['trip_id']);
-        $x['trip_id']     = $trip->id;
-        $x['trip_status'] = $trip->status;
-        $data1            = [
-            'type'    => $type,
-            'data'    => $x,
-            'message' => $message,
-        ];
-        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
-        $from->send($res);
-        $date_time = date('Y-m-d h:i:s a');
-        echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
-
-        $client = $this->getClientByUserId($trip->user_id);
-        if ($client) {
-            $client->send($res);
-            $date_time = date('Y-m-d h:i:s a');
-            echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
-        }
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////
     public function onOpen(ConnectionInterface $conn)
     {
@@ -1246,6 +1007,77 @@ class Chat implements MessageComponentInterface
 
         }
 
+    }
+    private function start_end_trip(ConnectionInterface $from, $AuthUserID, $startTripRequest)
+    {
+        $data = json_decode($startTripRequest, true);
+        $trip = Trip::find($data['trip_id']);
+        if ($trip->status == 'pending') {
+            $trip->status     = 'in_progress';
+            $trip->start_date = date('Y-m-d');
+            $trip->start_time = date('H:i:s');
+            $trip->save();
+            $type    = 'started_trip';
+            $message = 'trip started now';
+        } elseif ($trip->status == 'in_progress') {
+            $trip->status   = 'completed';
+            $trip->end_date = date('Y-m-d');
+            $trip->end_time = date('H:i:s');
+            $trip->save();
+            $type    = 'ended_trip';
+            $message = 'trip ended now';
+        }
+        $trip             = Trip::find($data['trip_id']);
+        $x['trip_id']     = $trip->id;
+        $x['trip_status'] = $trip->status;
+        $data1            = [
+            'type'    => $type,
+            'data'    => $x,
+            'message' => $message,
+        ];
+        $res = json_encode($data1, JSON_UNESCAPED_UNICODE);
+        $from->send($res);
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
+
+        $client = $this->getClientByUserId($trip->user_id);
+        if ($client) {
+            $client->send($res);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
+        }
+    }
+    private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
+    {
+        $data                            = json_decode($cancelTripRequest, true);
+        $trip                            = Trip::findOrFail($data['trip_id']);
+        $trip->status                    = 'cancelled';
+        $trip->cancelled_by_id           = $AuthUserID;
+        $trip->trip_cancelling_reason_id = $data['reason_id'];
+        $trip->save();
+        $canceled_trip['trip_id'] = $trip->id;
+        $canceled_trip['message'] = 'Trip canceled successfully';
+        $data2                    = [
+            'type' => 'canceled_trip',
+            'data' => $canceled_trip,
+        ];
+        $message = json_encode($data2, JSON_UNESCAPED_UNICODE);
+        $client  = $this->getClientByUserId($trip->user_id);
+        if ($client) {
+            $client->send($message);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
+        }
+        if ($trip->car_id != null) {
+            $driver = $this->getClientByUserId($trip->car->user_id);
+        } else {
+            $driver = $this->getClientByUserId($trip->scooter->user_id);
+        }
+        if ($driver) {
+            $driver->send($message);
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
+        }
     }
     private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
     {
