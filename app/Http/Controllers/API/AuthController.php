@@ -192,10 +192,10 @@ class AuthController extends ApiController
             'cardExpiryYear'        => 'required_if:paymentMethod,PayUsingCC|nullable|string',
             'cardExpiryMonth'       => 'required_if:paymentMethod,PayUsingCC|nullable|string',
             'cvv'                   => 'required_if:paymentMethod,PayUsingCC|nullable|string',
-            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC,MWALLET|nullable|url',
+            'returnUrl'             => 'required_if:paymentMethod,PayUsingCC|nullable|url',
 
             'walletMobile'          => 'required_if:paymentMethod,MWALLET|nullable|string',
-            'walletProviderService' => 'required_if:paymentMethod,MWALLET|nullable|string',
+            //'walletProviderService' => 'required_if:paymentMethod,MWALLET|nullable|string',
         ]);
 
         // if ($v->fails()) {
@@ -323,9 +323,10 @@ class AuthController extends ApiController
             $payload = [
                 'merchantCode'          => config('services.fawry.merchant_code'),
                 'merchantRefNum'        => $merchantRefNum,
+                'customerName'          => $request->customerName ?? '',
                 'customerMobile'        => $request->customerMobile,
                 'customerEmail'         => $request->customerEmail,
-                'customerName'          => $request->customerName ?? '',
+
                 'customerProfileId'     => strval(auth()->user()->id),
                 'amount'                => $amount,
                 'paymentExpiry'         => $paymentExpiry,
@@ -339,14 +340,16 @@ class AuthController extends ApiController
                         'quantity'    => 1,
                     ],
                 ],
+                'debitMobileWalletNo'   => $request->walletMobile,
                 'signature'             => $sig,
                 'paymentMethod'         => $method,
                 'description'           => $request->description ?? 'Payment',
+
                 'orderWebHookUrl'       => route('api.fawry.webhook'),
 
-                'walletMobile'          => $request->walletMobile,
-                'walletProviderService' => $request->walletProviderService,
-                'returnUrl'             => $request->returnUrl,
+                // 'walletMobile'          => $request->walletMobile,
+                // 'walletProviderService' => $request->walletProviderService,
+                // 'returnUrl'             => $request->returnUrl,
             ];
         }
 
@@ -600,7 +603,7 @@ class AuthController extends ApiController
                 'required',
                 'exists:cities,id',
             ],
-            'passport'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'passport'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
 
         ];
         if (auth()->user()->mode === 'driver') {
