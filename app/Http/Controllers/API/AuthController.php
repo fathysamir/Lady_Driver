@@ -600,6 +600,7 @@ class AuthController extends ApiController
                 'required',
                 'exists:cities,id',
             ],
+            'passport'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
 
         ];
         if (auth()->user()->mode === 'driver') {
@@ -647,13 +648,23 @@ class AuthController extends ApiController
             } else {
                 uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
             }
-        }if ($request->file('ID_back_image')) {
+        }
+        if ($request->file('ID_back_image')) {
             $image3 = getFirstMediaUrl($user, $user->IDbackImageCollection);
             if ($image3 != null) {
                 deleteMedia($user, $user->IDbackImageCollection);
                 uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
             } else {
                 uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+            }
+        }
+        if ($request->file('passport')) {
+            $image4 = getFirstMediaUrl($user, $user->passportImageCollection);
+            if ($image4 != null) {
+                deleteMedia($user, $user->passportImageCollection);
+                uploadMedia($request->passport, $user->passportImageCollection, $user);
+            } else {
+                uploadMedia($request->passport, $user->passportImageCollection, $user);
             }
         }
         $user                = User::find(auth()->user()->id);
@@ -892,7 +903,7 @@ class AuthController extends ApiController
         return $this->sendResponse($cities, null, 200);
     }
 
-    public function save_student_date(Request $request)
+    public function save_student_data(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'university_name' => 'required|string|max:255',

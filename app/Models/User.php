@@ -71,6 +71,24 @@ class User extends Authenticatable
         'password'          => 'hashed',
     ];
 
+     public function getImageAttribute()
+    {
+        return getFirstMediaUrl($this, $this->avatarCollection, true);
+    }
+    public function getIDFrontImageAttribute()
+    {
+        return getFirstMediaUrl($this, $this->IDfrontImageCollection, true);
+    }
+    public function getIDBackImageAttribute()
+    {
+        return getFirstMediaUrl($this, $this->IDbackImageCollection, true);
+    }
+    public function getPassportImageAttribute()
+    {
+        return getFirstMediaUrl($this, $this->passportImageCollection, true);
+    }
+
+
     public function city()
     {
         return $this->belongsTo(City::class, 'city_id', 'id')->withTrashed();
