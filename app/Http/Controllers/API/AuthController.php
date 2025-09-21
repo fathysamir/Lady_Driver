@@ -80,7 +80,6 @@ class AuthController extends ApiController
 
         if ($request->input('mode') === 'client') {
             $rules['ID_front_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
-            $rules['ID_back_image']  = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['passport']       = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['gendor']         = 'required|in:Male,Female';
         }
