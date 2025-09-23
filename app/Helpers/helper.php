@@ -129,10 +129,11 @@ function barcodeImage($id)
     $dns2d = new DNS2D();
 
     $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
-
+    $qrData   = base64_decode($qrBase64);
+    $p        = uploadMedia($qrData, $trip->barcodeImageCollection, $trip);
     // Decode to binary data
-    
-    return $qrBase64;
+
+    return $p;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {
