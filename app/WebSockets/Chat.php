@@ -14,7 +14,6 @@ use App\Models\User;
 use App\Services\FirebaseService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Milon\Barcode\DNS2D;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 
@@ -311,16 +310,15 @@ class Chat implements MessageComponentInterface
                 'discount'                      => $discount,
                 'student_trip'                  => $student_trip,
             ]);
-            
 
             $p = barcodeImage($trip->id);
-            
 
             $u                           = User::findOrFail($AuthUserID);
-            $user_image                  = 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection);
+            $user_image                  = getFirstMedia($u, $u->avatarCollection) ? 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection) : null;
             $newTrip['id']               = $trip->id;
             $newTrip['code']             = $code;
             $newTrip['barcode']          = 'https://api.lady-driver.com' . getFirstMedia($trip, $trip->barcodeImageCollection);
+            dd($newTrip['barcode']);
             $newTrip['user_id']          = intval($AuthUserID);
             $newTrip["start_date"]       = $start_date;
             $newTrip["end_date"]         = null;
@@ -856,7 +854,7 @@ class Chat implements MessageComponentInterface
         $offer_result['offer']                    = floatval($data['offer']);
         $offer_result['user']['id']               = $offer->user()->first()->id;
         $offer_result['user']['name']             = $offer->user()->first()->name;
-        $offer_result['user']['image']            = 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection);
+        $offer_result['user']['image']            = getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection)? 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection):null;
         if ($trip->type == 'comfort_car' || $trip->type == 'car') {
             $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
                 $query->where('user_id', $driver_->id);
