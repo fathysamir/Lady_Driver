@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\FirebaseService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Milon\Barcode\DNS2D;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 
@@ -310,12 +311,19 @@ class Chat implements MessageComponentInterface
                 'discount'                      => $discount,
                 'student_trip'                  => $student_trip,
             ]);
+            $dns2d = new DNS2D();
+
+            $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
+
+            // Decode to binary data
+            $qrData = base64_decode($qrBase64);
+            uploadMedia($qrData, $trip->barcodeImageCollection, $trip);
 
             $u                           = User::findOrFail($AuthUserID);
             $user_image                  = 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection);
             $newTrip['id']               = $trip->id;
             $newTrip['code']             = $code;
-            $newTrip['barcode']          = barcodeImage($trip->id);
+            $newTrip['barcode']          = 'https://api.lady-driver.com' . getFirstMedia($trip, $trip->barcodeImageCollection);
             $newTrip['user_id']          = intval($AuthUserID);
             $newTrip["start_date"]       = $start_date;
             $newTrip["end_date"]         = null;

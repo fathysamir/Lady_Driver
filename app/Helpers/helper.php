@@ -139,10 +139,9 @@ function barcodeImage($id)
     if (! file_exists(dirname($filePath))) {
         mkdir(dirname($filePath), 0755, true);
     }
-
     // Save file
     file_put_contents($filePath, $qrData);
-    return url($fileName);;
+    return url($fileName);
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {

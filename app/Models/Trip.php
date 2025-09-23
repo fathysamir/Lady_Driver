@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Trip extends Model
 {
     use HasFactory, SoftDeletes;
+    public $barcodeImageCollection = 'barcode-image';
     protected $table    = 'trips';
     protected $fillable = [
         'user_id',
