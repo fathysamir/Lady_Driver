@@ -313,7 +313,7 @@ class Chat implements MessageComponentInterface
             ]);
             $dns2d = new DNS2D();
 
-            $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
+            $qrBase64 = $dns2d->getBarcodePNG($barcode, 'QRCODE');
 
             // Decode to binary data
             $qrData = base64_decode($qrBase64);
