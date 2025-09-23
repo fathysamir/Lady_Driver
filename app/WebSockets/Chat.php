@@ -317,7 +317,7 @@ class Chat implements MessageComponentInterface
 
             // Decode to binary data
             $qrData = base64_decode($qrBase64);
-            uploadMedia($qrData, $trip->barcodeImageCollection, $trip);
+            $p=uploadMedia($qrData, $trip->barcodeImageCollection, $trip);
 
             $u                           = User::findOrFail($AuthUserID);
             $user_image                  = 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection);
