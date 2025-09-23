@@ -152,7 +152,7 @@ function saveQrToMedia($qrData, $collection_name, $model)
         'collection_name'     => $collection_name,
         'Path'                => $path,
     ]);
-
+dd($path);
     return $path;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
