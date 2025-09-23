@@ -58,7 +58,7 @@ class Chat implements MessageComponentInterface
                 $conn->send(json_encode([
                     'type'    => 'live_connected',
                     'message' => 'Live location connected successfully',
-                ]));
+                ],JSON_UNESCAPED_SLASHES));
 
             }
 
@@ -204,7 +204,7 @@ class Chat implements MessageComponentInterface
         }
 
         if ($distance > $maximum_distance_long_trip) {
-            $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."]));
+            $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."],JSON_UNESCAPED_SLASHES));
         } else {
             $total_cost1 = 0;
 
@@ -318,7 +318,6 @@ class Chat implements MessageComponentInterface
             $newTrip['id']               = $trip->id;
             $newTrip['code']             = $code;
             $newTrip['barcode']          = 'https://api.lady-driver.com' . getFirstMedia($trip, $trip->barcodeImageCollection);
-            dd($newTrip['barcode']);
             $newTrip['user_id']          = intval($AuthUserID);
             $newTrip["start_date"]       = $start_date;
             $newTrip["end_date"]         = null;
@@ -380,7 +379,7 @@ class Chat implements MessageComponentInterface
                 $newTrip['address4']  = $data['address4'];
             }
 
-            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully']));
+            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'],JSON_UNESCAPED_SLASHES));
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
             $newTrip["client_stare_rate"]         = 0;
