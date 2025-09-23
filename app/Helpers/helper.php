@@ -142,9 +142,6 @@ function barcodeImage($id)
 
     // Save file
     file_put_contents($filePath, $qrData);
-
-
-
     return url($fileName);;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
