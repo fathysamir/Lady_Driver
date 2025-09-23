@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use App\Models\Trip;
 use Milon\Barcode\Facades\DNS1DFacade as DNS1D;
+use Milon\Barcode\DNS2D;
 
 function uploadMedia($request_file, $collection_name, $model)
 {
@@ -125,9 +126,28 @@ function barcodeImage($id)
 {
     $trip = Trip::findOrFail($id);
 
-    $barcodePng = DNS1D::getBarcodePNG($trip->barcode, 'C128');
+    //$barcodePng = DNS1D::getBarcodePNG($trip->barcode, 'C128');
+    $dns2d = new DNS2D();
 
-    return response($barcodePng)->header('Content-Type', 'image/png');
+    $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
+
+    // Decode to binary data
+    $qrData   = base64_decode($qrBase64);
+    $fileName = 'barcodes/trips/barcode_' . $trip->id . '.png';
+    $filePath = public_path($fileName);
+
+    // Create dir if not exists
+    if (! file_exists(dirname($filePath))) {
+        mkdir(dirname($filePath), 0755, true);
+    }
+
+    // Save file
+    file_put_contents($filePath, $qrData);
+
+    // Generate public URL
+    $url = asset($fileName);
+
+    return $url;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {

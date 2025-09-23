@@ -1,25 +1,26 @@
 <?php
 
+use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\CarController;
 use App\Http\Controllers\Dashboard\CarMarkController;
 use App\Http\Controllers\Dashboard\CarModelController;
 use App\Http\Controllers\Dashboard\ChatController;
+use App\Http\Controllers\Dashboard\CityController;
 use App\Http\Controllers\Dashboard\ClientController;
 use App\Http\Controllers\Dashboard\ComplaintController;
 use App\Http\Controllers\Dashboard\ContactUsController;
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\FeedBackController;
 use App\Http\Controllers\Dashboard\MotorcycleController;
+use App\Http\Controllers\Dashboard\PaymentController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
-use App\Http\Controllers\Dashboard\CityController;
-use App\Http\Controllers\Dashboard\PaymentController;
-use App\Http\Controllers\API\LiveLocationController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Milon\Barcode\DNS2D;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +32,31 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/image', function () {
+    $dns2d = new DNS2D();
+
+    $qrBase64 = $dns2d->getBarcodePNG('31e7dcea-d9a9-416e-863e-975117aa90b4', 'QRCODE');
+
+    // Decode to binary data
+    $qrData   = base64_decode($qrBase64);
+    $fileName = 'barcodes/barcode_2.png';
+    $filePath = public_path($fileName);
+
+    // Create dir if not exists
+    if (! file_exists(dirname($filePath))) {
+        mkdir(dirname($filePath), 0755, true);
+    }
+
+    // Save file
+    file_put_contents($filePath, $qrData);
+
+    // Generate public URL
+    $url = asset($fileName);
+
+    return response()->json([
+        'barcode_url' => $url,
+    ]);
+});
 
 Route::get('/', function () {
     return view('welcome');
