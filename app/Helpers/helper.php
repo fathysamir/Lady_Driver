@@ -125,15 +125,35 @@ function barcodeImage($id)
 {
     $trip = Trip::findOrFail($id);
 
-    //$barcodePng = DNS1D::getBarcodePNG($trip->barcode, 'C128');
     $dns2d = new DNS2D();
-
     $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
     $qrData   = base64_decode($qrBase64);
-    $p        = uploadMedia($qrData, $trip->barcodeImageCollection, $trip);
-    // Decode to binary data
 
-    return $p;
+    return saveQrToMedia($qrData, $trip->barcodeImageCollection, $trip);
+}
+function saveQrToMedia($qrData, $collection_name, $model)
+{
+    $directory = public_path('images');
+
+    if (! File::exists($directory)) {
+        File::makeDirectory($directory, 0755, true);
+    }
+
+    $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+    $image           = $model->id . '_' . $invitation_code . '_' . time() . '.png'; // دايمًا PNG للـ QR
+
+    file_put_contents(public_path('images/' . $image), $qrData);
+
+    $path = '/images/' . $image;
+
+    DB::table('media')->insert([
+        'attachmentable_type' => get_class($model),
+        'attachmentable_id'   => $model->id,
+        'collection_name'     => $collection_name,
+        'Path'                => $path,
+    ]);
+
+    return $path;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {
