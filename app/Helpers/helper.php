@@ -1,9 +1,8 @@
 <?php
 
+use App\Models\Trip;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use App\Models\Trip;
-use Milon\Barcode\Facades\DNS1DFacade as DNS1D;
 use Milon\Barcode\DNS2D;
 
 function uploadMedia($request_file, $collection_name, $model)
@@ -144,10 +143,9 @@ function barcodeImage($id)
     // Save file
     file_put_contents($filePath, $qrData);
 
-    // Generate public URL
-    $url = asset($fileName);
 
-    return $url;
+
+    return url($fileName);;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {

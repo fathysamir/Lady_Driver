@@ -51,11 +51,11 @@ Route::get('/image', function () {
     file_put_contents($filePath, $qrData);
 
     // Generate public URL
-    $url = asset($fileName);
+    $url = url($fileName);
 
     return response()->json([
         'barcode_url' => $url,
-    ]);
+    ], 200, [], JSON_UNESCAPED_SLASHES);
 });
 
 Route::get('/', function () {
