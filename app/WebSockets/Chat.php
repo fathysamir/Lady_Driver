@@ -311,9 +311,9 @@ class Chat implements MessageComponentInterface
                 'discount'                      => $discount,
                 'student_trip'                  => $student_trip,
             ]);
-            $dns2d = new DNS2D();
+            
 
-            $qrBase64 = $dns2d->getBarcodePNG($barcode, 'QRCODE');
+            $qrBase64 = barcodeImage($trip->id);
 
             // Decode to binary data
             $qrData = base64_decode($qrBase64);

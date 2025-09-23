@@ -131,17 +131,8 @@ function barcodeImage($id)
     $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
 
     // Decode to binary data
-    $qrData   = base64_decode($qrBase64);
-    $fileName = 'barcodes/trips/barcode_' . $trip->id . '.png';
-    $filePath = public_path($fileName);
-
-    // Create dir if not exists
-    if (! file_exists(dirname($filePath))) {
-        mkdir(dirname($filePath), 0755, true);
-    }
-    // Save file
-    file_put_contents($filePath, $qrData);
-    return url($fileName);
+    
+    return $qrBase64;
 }
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {
