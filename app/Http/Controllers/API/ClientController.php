@@ -27,7 +27,6 @@ class ClientController extends ApiController
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
         }
-dd($request->all());
         $validator = Validator::make($request->all(), [
             'start_date'      => 'nullable|date|date_format:Y-m-d',
             'start_time'      => 'nullable|date_format:H:i', // Optional time format validation (24-hour)
