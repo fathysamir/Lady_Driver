@@ -19,6 +19,7 @@ class NewChatMessage implements ShouldBroadcast
     {
         $this->chat = $chat;
         $this->receiverId = $receiverId;
+        dd($this->chat,$this->receiverId);
     }
 
     public function broadcastOn()
