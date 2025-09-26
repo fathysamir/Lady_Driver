@@ -34,7 +34,7 @@ class Chat implements MessageComponentInterface
         $factory               = new Factory($loop);
         $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
             echo "✅ Connected to Redis\n";
-
+dd('gf');
             $redis->psubscribe('user.*');
             $redis->on('pmessage', function ($pattern, $channel, $message) {
                 $data = json_decode($message, true);
