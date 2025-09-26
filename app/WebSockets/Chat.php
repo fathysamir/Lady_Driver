@@ -12,6 +12,7 @@ use App\Models\TripChat;
 use App\Models\TripDestination;
 use App\Models\User;
 use App\Services\FirebaseService;
+use Clue\React\Redis\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Ratchet\ConnectionInterface;
@@ -30,6 +31,23 @@ class Chat implements MessageComponentInterface
         $this->loop            = $loop;
         $this->firebaseService = new FirebaseService();
         $this->clientUserIdMap = [];
+        $factory               = new Factory($loop);
+        $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
+            echo "✅ Connected to Redis\n";
+
+            $redis->psubscribe('user.*');
+            $redis->on('pmessage', function ($pattern, $channel, $message) {
+                $data = json_decode($message, true);
+
+                $parts  = explode('.', $channel);
+                $userId = $parts[1] ?? null;
+
+                if ($userId && isset($this->clientUserIdMap[$userId])) {
+                    $this->clientUserIdMap[$userId]->send(json_encode($data));
+                    echo "➡️ Sent to user {$userId}\n";
+                }
+            });
+        });
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +76,7 @@ class Chat implements MessageComponentInterface
                 $conn->send(json_encode([
                     'type'    => 'live_connected',
                     'message' => 'Live location connected successfully',
-                ],JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
             }
 
@@ -204,7 +222,7 @@ class Chat implements MessageComponentInterface
         }
 
         if ($distance > $maximum_distance_long_trip) {
-            $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."],JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         } else {
             $total_cost1 = 0;
 
@@ -379,7 +397,7 @@ class Chat implements MessageComponentInterface
                 $newTrip['address4']  = $data['address4'];
             }
 
-            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'],JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
             $newTrip["client_stare_rate"]         = 0;
@@ -467,7 +485,7 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2,JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -853,7 +871,7 @@ class Chat implements MessageComponentInterface
         $offer_result['offer']                    = floatval($data['offer']);
         $offer_result['user']['id']               = $offer->user()->first()->id;
         $offer_result['user']['name']             = $offer->user()->first()->name;
-        $offer_result['user']['image']            = getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection)? 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection):null;
+        $offer_result['user']['image']            = getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection) ? 'https://api.lady-driver.com' . getFirstMedia($offer->user()->first(), $offer->user()->first()->avatarCollection) : null;
         if ($trip->type == 'comfort_car' || $trip->type == 'car') {
             $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
                 $query->where('user_id', $driver_->id);

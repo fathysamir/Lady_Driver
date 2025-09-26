@@ -544,6 +544,18 @@ class ClientController extends ApiController
             uploadMedia($request->record, $chat->recordCollection, $chat);
 
         }
+        $trip = Trip::findOrFail($request->trip_id);
+        if ($trip->user_id != auth()->id()) {
+            $receiverId = $trip->user_id;
+        } else {
+            if ($trip->type == 'scooter') {
+                $receiverId = $trip->scooter->user_id;
+            } else {
+                $receiverId = $trip->car->user_id;
+            }
+
+        }
+        event(new \App\Events\NewChatMessage($chat, $receiverId));
 
         return $this->sendResponse($chat, 'Message sent successfully', 201);
     }
