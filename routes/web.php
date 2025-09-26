@@ -33,29 +33,7 @@ use Milon\Barcode\DNS2D;
 |
 */
 Route::get('/image', function () {
-    $dns2d = new DNS2D();
-
-    $qrBase64 = $dns2d->getBarcodePNG('31e7dcea-d9a9-416e-863e-975117aa90b4', 'QRCODE');
-
-    // Decode to binary data
-    $qrData   = base64_decode($qrBase64);
-    $fileName = 'barcodes/barcode_2.png';
-    $filePath = public_path($fileName);
-
-    // Create dir if not exists
-    if (! file_exists(dirname($filePath))) {
-        mkdir(dirname($filePath), 0755, true);
-    }
-
-    // Save file
-    file_put_contents($filePath, $qrData);
-
-    // Generate public URL
-    $url = url($fileName);
-
-    return response()->json([
-        'barcode_url' => $url,
-    ], 200, [], JSON_UNESCAPED_SLASHES);
+    return view('test');
 });
 
 Route::get('/', function () {
