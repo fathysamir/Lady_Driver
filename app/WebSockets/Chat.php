@@ -34,12 +34,11 @@ class Chat implements MessageComponentInterface
         $factory               = new Factory($loop);
         $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
             echo "✅ Connected to Redis\n";
-dd('lll');
             // استمع لأي قناة تبدأ بـ user.
             $redis->psubscribe('user.*');
 
             $redis->on('pmessage', function ($pattern, $channel, $message) {
-                dd('jjj');
+                dump("📡 Redis message received", $channel, $message);
                 $payload = json_decode($message, true);
 
                 // Laravel بيبث كـ: laravel_database_user.2125
