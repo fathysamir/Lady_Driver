@@ -31,34 +31,34 @@ class Chat implements MessageComponentInterface
         $this->loop            = $loop;
         $this->firebaseService = new FirebaseService();
         $this->clientUserIdMap = [];
-        $factory               = new Factory($loop);
-        $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
-            echo "✅ Connected to Redis\n";
-            // استمع لأي قناة تبدأ بـ user.
-            $redis->psubscribe('user.*');
+        // $factory               = new Factory($loop);
+        // $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
+        //     echo "✅ Connected to Redis\n";
+        //     // استمع لأي قناة تبدأ بـ user.
+        //     $redis->psubscribe('user.*');
 
-            $redis->on('pmessage', function ($pattern, $channel, $message) {
-                $payload = json_decode($message, true);
+        //     $redis->on('pmessage', function ($pattern, $channel, $message) {
+        //         $payload = json_decode($message, true);
 
-                // Laravel بيبث كـ: laravel_database_user.2125
-                $parts  = explode('.', $channel);
-                $userId = $parts[count($parts) - 1] ?? null;
+        //         // Laravel بيبث كـ: laravel_database_user.2125
+        //         $parts  = explode('.', $channel);
+        //         $userId = $parts[count($parts) - 1] ?? null;
 
-                echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
+        //         echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
 
-                if ($userId && isset($this->clientUserIdMap[$userId])) {
-                    $event = [
-                        'event' => $payload['event'] ?? null,
-                        'data'  => $payload['data'] ?? $payload,
-                    ];
+        //         if ($userId && isset($this->clientUserIdMap[$userId])) {
+        //             $event = [
+        //                 'event' => $payload['event'] ?? null,
+        //                 'data'  => $payload['data'] ?? $payload,
+        //             ];
 
-                    $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-                    echo "➡️ Sent to user {$userId}\n";
-                } else {
-                    echo "❌ No active WS client for user {$userId}\n";
-                }
-            });
-        });
+        //             $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        //             echo "➡️ Sent to user {$userId}\n";
+        //         } else {
+        //             echo "❌ No active WS client for user {$userId}\n";
+        //         }
+        //     });
+        // });
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
