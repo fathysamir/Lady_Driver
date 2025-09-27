@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Events;
 
 use App\Models\TripChat;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -17,16 +17,15 @@ class NewChatMessage implements ShouldBroadcast
 
     public function __construct(TripChat $chat, $receiverId)
     {
-        $this->chat = $chat;
+        $this->chat       = $chat;
         $this->receiverId = $receiverId;
-        
+
     }
 
     public function broadcastOn()
     {
-        return ['user.' . $this->receiverId]; // channel name
+        return new Channel('user.' . $this->receiverId);
     }
-
     public function broadcastAs()
     {
         return 'new_message';

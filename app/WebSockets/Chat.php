@@ -36,14 +36,20 @@ class Chat implements MessageComponentInterface
             echo "✅ Connected to Redis\n";
             $redis->psubscribe('user.*');
             $redis->on('pmessage', function ($pattern, $channel, $message) {
-                $data = json_decode($message, true);
+                $payload = json_decode($message, true);
 
                 $parts  = explode('.', $channel);
-                $userId = $parts[1] ?? null;
+                $userId = $parts[count($parts) - 1] ?? null; // خذ آخر جزء
 
                 if ($userId && isset($this->clientUserIdMap[$userId])) {
-                    $this->clientUserIdMap[$userId]->send(json_encode($data));
+                    $event = [
+                        'event' => $payload['event'],
+                        'data'  => $payload['data'],
+                    ];
+                    $this->clientUserIdMap[$userId]->send(json_encode($event));
                     echo "➡️ Sent to user {$userId}\n";
+                } else {
+                    echo "❌ No client connected for {$userId}\n";
                 }
             });
         });
