@@ -34,22 +34,30 @@ class Chat implements MessageComponentInterface
         $factory               = new Factory($loop);
         $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
             echo "✅ Connected to Redis\n";
+dd('lll');
+            // استمع لأي قناة تبدأ بـ user.
             $redis->psubscribe('user.*');
+
             $redis->on('pmessage', function ($pattern, $channel, $message) {
+                dd('jjj');
                 $payload = json_decode($message, true);
 
+                // Laravel بيبث كـ: laravel_database_user.2125
                 $parts  = explode('.', $channel);
-                $userId = $parts[count($parts) - 1] ?? null; // خذ آخر جزء
+                $userId = $parts[count($parts) - 1] ?? null;
+
+                echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
 
                 if ($userId && isset($this->clientUserIdMap[$userId])) {
                     $event = [
-                        'event' => $payload['event'],
-                        'data'  => $payload['data'],
+                        'event' => $payload['event'] ?? null,
+                        'data'  => $payload['data'] ?? $payload,
                     ];
-                    $this->clientUserIdMap[$userId]->send(json_encode($event));
+
+                    $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
                     echo "➡️ Sent to user {$userId}\n";
                 } else {
-                    echo "❌ No client connected for {$userId}\n";
+                    echo "❌ No active WS client for user {$userId}\n";
                 }
             });
         });
