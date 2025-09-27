@@ -38,7 +38,6 @@ class Chat implements MessageComponentInterface
             $redis->psubscribe('user.*');
 
             $redis->on('pmessage', function ($pattern, $channel, $message) {
-                dump("📡 Redis message received", $channel, $message);
                 $payload = json_decode($message, true);
 
                 // Laravel بيبث كـ: laravel_database_user.2125
