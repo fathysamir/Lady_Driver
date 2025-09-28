@@ -39,7 +39,8 @@
         async function fetchLocation() {
             const res = await fetch(`/api/live-location/${token}`);
             if (!res.ok) return;
-            const data = await res.json();
+            let data = await res.json();
+            console.log(data);
             if (data.lat && data.lng) {
                 const pos = {
                     lat: parseFloat(data.lat),
