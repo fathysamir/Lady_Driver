@@ -52,6 +52,7 @@
         }
 
         initMap();
+        fetchLocation();
         setInterval(fetchLocation, 5000); // كل 10 ثواني
     </script>
 </body>
