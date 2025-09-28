@@ -22,7 +22,6 @@
 <script>
 (function(){
     const token = "{{ $link->token }}";
-    const payload = @json($link->payload);
     const fallback = "{{ $fallbackUrl }}";
 
     // configure your app details (set these in .env and use config())
