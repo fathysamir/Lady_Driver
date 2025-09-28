@@ -24,6 +24,7 @@ class Chat implements MessageComponentInterface
     protected $loop;
     protected $firebaseService;
     private $clientUserIdMap;
+    
 
     public function __construct($loop)
     {
