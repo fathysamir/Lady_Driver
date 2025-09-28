@@ -31,22 +31,35 @@ class Chat implements MessageComponentInterface
 
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
-        $url                   = "redis://127.0.0.1:6379";
+        $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
+            echo "✅ Connected to Redis\n";
+            // استمع لأي قناة تبدأ بـ user.
+            $redis->psubscribe('user.*');
 
-        $factory->createLazyClient($url)->then(
-            function ($redis) {
-                echo "✅ Connected to Redis\n";
+            $redis->on('pmessage', function ($pattern, $channel, $message) {
+                $payload = json_decode($message, true);
 
-                $redis->psubscribe('*');
+                // القناة ممكن تكون laravel_database_user.2125
+                $parts  = explode('.', $channel);
+                $userId = $parts[count($parts) - 1] ?? null;
 
-                $redis->on('pmessage', function ($pattern, $channel, $message) {
-                    echo "📡 Got message on {$channel}: {$message}\n";
-                });
-            },
-            function (\Exception $e) {
-                echo "❌ Redis connection failed: " . $e->getMessage() . "\n";
-            }
-        );
+                echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
+
+                if ($userId && isset($this->clientUserIdMap[$userId])) {
+                    $event = [
+                        'event' => $payload['event'] ?? null,
+                        'data'  => $payload['data'] ?? $payload,
+                    ];
+
+                    $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                    echo "➡️ Sent to user {$userId}\n";
+                } else {
+                    echo "❌ No active WS client for user {$userId}\n";
+                }
+            });
+        }, function (\Exception $e) {
+            echo "❌ Redis connection failed: " . $e->getMessage() . "\n";
+        });
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
