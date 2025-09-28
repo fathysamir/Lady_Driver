@@ -1307,7 +1307,7 @@ class Chat implements MessageComponentInterface
                     $this->send_message($from, $AuthUserID, $requestData);
                     break;
                 case 'barcode_verification_request':
-                    $this->send_message($from, $AuthUserID, $requestData);
+                    $this->check_barcode($from, $AuthUserID, $requestData);
                     break;
                 case 'ping':
                     $from->send(json_encode(['type' => 'pong']));
