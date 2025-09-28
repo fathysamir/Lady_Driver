@@ -11,7 +11,6 @@ use App\Models\Trip;
 use App\Models\TripChat;
 use App\Models\TripDestination;
 use App\Models\User;
-use App\Services\FirebaseService;
 use Clue\React\Redis\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -24,24 +23,23 @@ class Chat implements MessageComponentInterface
     protected $loop;
     protected $firebaseService;
     private $clientUserIdMap;
-    
 
     public function __construct($loop)
     {
-        $this->clients         = new \SplObjectStorage();
-        $this->loop            = $loop;
-       
+        $this->clients = new \SplObjectStorage();
+        $this->loop    = $loop;
+
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
         $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
             echo "✅ Connected to Redis\n";
             // استمع لأي قناة تبدأ بـ user.
-            $redis->psubscribe('user.*');
+            $redis->psubscribe('*user.*');
 
             $redis->on('pmessage', function ($pattern, $channel, $message) {
                 $payload = json_decode($message, true);
 
-                // Laravel بيبث كـ: laravel_database_user.2125
+                // القناة ممكن تكون laravel_database_user.2125
                 $parts  = explode('.', $channel);
                 $userId = $parts[count($parts) - 1] ?? null;
 
