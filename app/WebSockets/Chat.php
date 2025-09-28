@@ -45,7 +45,7 @@ class Chat implements MessageComponentInterface
 
                 if ($userId && isset($this->clientUserIdMap[$userId])) {
                     $event = [
-                        'event' => $payload['event'] ?? null,
+                        'type' => $payload['event'] ?? null,
                         'data'  => $payload['data'] ?? $payload,
                     ];
 

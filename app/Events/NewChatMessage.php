@@ -39,6 +39,8 @@ class NewChatMessage implements ShouldBroadcast
             'sender'   => $this->chat->sender_id,
             'message'  => $this->chat->message,
             'location' => $this->chat->location,
+            'image'    => $this->chat->image,
+            'record'   => $this->chat->record,
             'created'  => $this->chat->created_at->toDateTimeString(),
         ];
     }

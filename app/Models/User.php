@@ -18,11 +18,11 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    public $avatarCollection       = 'avatar-image';
-    public $IDfrontImageCollection = 'id-front-image';
-    public $IDbackImageCollection  = 'id-back-image';
+    public $avatarCollection        = 'avatar-image';
+    public $IDfrontImageCollection  = 'id-front-image';
+    public $IDbackImageCollection   = 'id-back-image';
     public $passportImageCollection = 'passport-image';
-    protected $fillable            = [
+    protected $fillable             = [
         'name',
         'email',
         'phone',
@@ -48,7 +48,7 @@ class User extends Authenticatable
         'student_code',
         'city_id',
         'level',
-        'driver_type'
+        'driver_type',
     ];
 
     /**
@@ -70,16 +70,21 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
     ];
-
-     public function getImageAttribute()
+    protected $appends = [
+        'image',
+        'id_front_image',
+        'id_back_image',
+        'passport_image',
+    ];
+    public function getImageAttribute()
     {
         return getFirstMediaUrl($this, $this->avatarCollection, true);
     }
-    public function getIDFrontImageAttribute()
+    public function getIdFrontImageAttribute()
     {
         return getFirstMediaUrl($this, $this->IDfrontImageCollection, true);
     }
-    public function getIDBackImageAttribute()
+    public function getIdBackImageAttribute()
     {
         return getFirstMediaUrl($this, $this->IDbackImageCollection, true);
     }
@@ -87,7 +92,6 @@ class User extends Authenticatable
     {
         return getFirstMediaUrl($this, $this->passportImageCollection, true);
     }
-
 
     public function city()
     {
@@ -102,7 +106,7 @@ class User extends Authenticatable
         return $this->hasOne(Scooter::class);
     }
 
-     public function student()
+    public function student()
     {
         return $this->hasOne(Student::class);
     }

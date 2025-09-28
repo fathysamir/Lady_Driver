@@ -25,6 +25,11 @@ class TripChat extends Model
         'updated_at',
     ];
     protected $guarded = [];
+    protected $appends = [
+        'image',
+        'record'
+
+    ];
     public function getMessageAttribute($value)
     {
         if ($value != null) {
@@ -59,7 +64,7 @@ class TripChat extends Model
     {
         return $this->belongsTo(User::class, 'sender_id', 'id')->withTrashed();
     }
-     public function trip()
+    public function trip()
     {
         return $this->belongsTo(Trip::class, 'trip_id', 'id')->withTrashed();
     }
