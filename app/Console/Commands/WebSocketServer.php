@@ -1,18 +1,18 @@
 <?php
-
 namespace App\Console\Commands;
 
+use App\WebSockets\Chat;
 use Illuminate\Console\Command;
-use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
+use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
-use React\EventLoop\Loop;
 //use MyApp\Chat;
-use App\WebSockets\Chat; 
+use React\EventLoop\Loop;
+use React\Socket\SocketServer;
 
 class WebSocketServer extends Command
 {
-    protected $signature = 'websockets:init';
+    protected $signature   = 'websockets:init';
     protected $description = 'Start the WebSocket server';
 
     public function __construct()
@@ -21,17 +21,21 @@ class WebSocketServer extends Command
     }
 
     public function handle()
-    {   $loop = Loop::get();
-        $server = IoServer::factory(
+    {$loop = Loop::get();
+
+        $chat = new Chat($loop);
+
+        $socket = new SocketServer('0.0.0.0:8080', [], $loop);
+
+        $server = new IoServer(
             new HttpServer(
-                new WsServer(
-                    new Chat($loop)
-                )
+                new WsServer($chat)
             ),
-            8080
+            $socket,
+            $loop
         );
 
-        $this->info('WebSocket server started on port 8080');
-        $server->run();
-    }
+        $this->info('🚀 WebSocket server started on port 8080');
+
+        $loop->run();}
 }
