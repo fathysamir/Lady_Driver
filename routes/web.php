@@ -44,6 +44,7 @@ Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name(
 Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
 
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
+Route::get('/live/{token}', [LiveLocationController::class, 'viewPage2']);
 Route::get('/restart-websocket', [SettingController::class, 'restartWebsocket']);
 Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');

@@ -34,7 +34,7 @@
     const schemeURL = `${appScheme}://live?token=${token}`;
     const universalURL = window.location.href; // this is your https://example.com/l/{token}
     // Android intent URL (Chrome supports)
-    const androidIntent = `intent://l/${token}#Intent;scheme=${appScheme};package=${androidPackage};S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
+    const androidIntent = `intent://live-location/${token}#Intent;scheme=${appScheme};package=${androidPackage};S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
 
     // detect platform
     const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -51,7 +51,7 @@
 
     function fallbackToWeb() {
         document.getElementById('status').textContent = "Redirecting to browser…";
-        setTimeout(() => { window.location.href = fallback; }, 200);
+        setTimeout(() => { window.location.href = 'https://api.lady-driver.com/live/'+token; }, 200);
     }
 
     function tryOpen() {
@@ -87,6 +87,7 @@
     // open button
     document.getElementById('openBrowser').addEventListener('click', function(){
         window.location.href = fallback;
+        window.location.href = 'https://api.lady-driver.com/live/'+token;
     });
 
 })();
