@@ -37,7 +37,7 @@
         }
 
         async function fetchLocation() {
-            const res = await fetch(`/api/live-location/${token}`);
+            const res = await fetch(`/api/live-location/data/${token}`);
             if (!res.ok) return;
             let data = await res.json();
             console.log(data);
