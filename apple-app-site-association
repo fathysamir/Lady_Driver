@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "6V2W29PGCG.com.ladydriver.eg",
+        "paths": [ "/live-location/*" ]
+      }
+    ]
+  }
+}

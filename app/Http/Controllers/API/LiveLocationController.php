@@ -29,8 +29,9 @@ class LiveLocationController extends ApiController
 
         return $this->sendResponse([
             'link'       => $link,
+            'token'      => $token,
             'expires_at' => $live->expires_at,
-        ],null,200);
+        ], null, 200);
     }
 
     // تحديث الإحداثيات
@@ -47,7 +48,7 @@ class LiveLocationController extends ApiController
             ->first();
 
         if (! $live) {
-            return $this->sendError(null,'No active share found', 404);
+            return $this->sendError(null, 'No active share found', 404);
         }
 
         $live->update([
@@ -60,7 +61,7 @@ class LiveLocationController extends ApiController
             'lng' => $request->lng,
         ]);
 
-        return $this->sendResponse(null,'Location updated',200);
+        return $this->sendResponse(null, 'Location updated', 200);
     }
 
     // API: get location JSON
@@ -84,6 +85,17 @@ class LiveLocationController extends ApiController
     // صفحة الخريطة العامة
     public function viewPage($token)
     {
-        return view('live-location', ['token' => $token]);
+        $link = LiveLocation::where('token', $token)->firstOrFail();
+
+        // optional: check expiration
+        if ($link->expires_at && $link->expires_at->isPast()) {
+            abort(410, 'Link expired');
+        }
+        $lat         = $link->lat ?? null;
+        $lng         = $link->lng ?? null;
+        $fallbackUrl = $lat && $lng
+            ? "https://www.google.com/maps/search/?api=1&query={$lat},{$lng}"
+            : 'https://lady-driver.com/';
+        return view('live_location2', compact('fallbackUrl', 'link'));
     }
 }
