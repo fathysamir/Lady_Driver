@@ -11,7 +11,6 @@ use App\Models\Trip;
 use App\Models\TripChat;
 use App\Models\TripDestination;
 use App\Models\User;
-use Clue\React\Redis\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Ratchet\ConnectionInterface;
@@ -28,37 +27,40 @@ class Chat implements MessageComponentInterface
     {
         $this->clients = new \SplObjectStorage();
         $this->loop    = $loop;
-        echo "✅ Connected to Redis\n";
+
         $this->clientUserIdMap = [];
-        $factory               = new Factory($loop);
-        $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
+        $redis                 = new \Redis();
+        $redis->connect('127.0.0.1', 6379);
+
+// تأكد الاتصال شغال
+        if ($redis->ping()) {
             echo "✅ Connected to Redis\n";
-            // استمع لأي قناة تبدأ بـ user.
-            $redis->psubscribe('user.*');
+        }
 
-            $redis->on('pmessage', function ($pattern, $channel, $message) {
-                $payload = json_decode($message, true);
+// استمع لأي قناة تبدأ بـ user.
+        $redis->psubscribe(['user.*'], function ($redis, $pattern, $channel, $message) {
+            $payload = json_decode($message, true);
 
-                // القناة ممكن تكون laravel_database_user.2125
-                $parts  = explode('.', $channel);
-                $userId = $parts[count($parts) - 1] ?? null;
+            // القناة ممكن تكون laravel_database_user.2125
+            $parts  = explode('.', $channel);
+            $userId = $parts[count($parts) - 1] ?? null;
 
-                echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
+            echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
 
-                if ($userId && isset($this->clientUserIdMap[$userId])) {
-                    $event = [
-                        'event' => $payload['event'] ?? null,
-                        'data'  => $payload['data'] ?? $payload,
-                    ];
+            if ($userId && isset($this->clientUserIdMap[$userId])) {
+                $event = [
+                    'event' => $payload['event'] ?? null,
+                    'data'  => $payload['data'] ?? $payload,
+                ];
 
-                    $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-                    echo "➡️ Sent to user {$userId}\n";
-                } else {
-                    echo "❌ No active WS client for user {$userId}\n";
-                }
-            });
-        }, function (\Exception $e) {
-            echo "❌ Redis connection failed: " . $e->getMessage() . "\n";
+                $this->clientUserIdMap[$userId]->send(
+                    json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                );
+
+                echo "➡️ Sent to user {$userId}\n";
+            } else {
+                echo "❌ No active WS client for user {$userId}\n";
+            }
         });
     }
 
