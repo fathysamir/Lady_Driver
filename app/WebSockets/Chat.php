@@ -33,7 +33,6 @@ class Chat implements MessageComponentInterface
         $factory               = new Factory($loop);
         $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
             echo "✅ Connected to Redis\n";
-            dd("Ddd");
             // استمع لأي قناة تبدأ بـ user.
             $redis->psubscribe('*');
 
