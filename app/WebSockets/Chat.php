@@ -28,7 +28,7 @@ class Chat implements MessageComponentInterface
     {
         $this->clients = new \SplObjectStorage();
         $this->loop    = $loop;
-
+        echo "✅ Connected to Redis\n";
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
         $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
