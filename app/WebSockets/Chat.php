@@ -31,7 +31,7 @@ class Chat implements MessageComponentInterface
 
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
-        $factory->createLazyClient('redis://127.0.0.1:6379')->then(function ($redis) {
+        $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
             echo "✅ Connected to Redis\n";
             // استمع لأي قناة تبدأ بـ user.
             $redis->psubscribe('user.*');
