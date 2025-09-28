@@ -38,7 +38,7 @@ class Chat implements MessageComponentInterface
 
             $redis->on('pmessage', function ($pattern, $channel, $message) {
                 $payload = json_decode($message, true);
-
+dd($payload);
                 // القناة ممكن تكون laravel_database_user.2125
                 $parts  = explode('.', $channel);
                 $userId = $parts[count($parts) - 1] ?? null;
