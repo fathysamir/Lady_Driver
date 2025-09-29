@@ -766,20 +766,23 @@ class AuthController extends ApiController
     public function about_us()
     {
 
-        $response['description'] = AboutUs::where('key', 'description')->first()->value;
-        $response['phone1']      = AboutUs::where('key', 'phone1')->first()->value;
-        $response['email1']      = AboutUs::where('key', 'email1')->first()->value;
-        $response['phone2']      = AboutUs::where('key', 'phone2')->first()->value;
-        $response['email2']      = AboutUs::where('key', 'email2')->first()->value;
-        $response['phone3']      = AboutUs::where('key', 'phone3')->first()->value;
-        $response['email3']      = AboutUs::where('key', 'email3')->first()->value;
-        $response['phone4']      = AboutUs::where('key', 'phone4')->first()->value;
-        $response['email4']      = AboutUs::where('key', 'email4')->first()->value;
-        $response['facebook']    = AboutUs::where('key', 'facebook')->first()->value;
-        $response['instagram']   = AboutUs::where('key', 'instagram')->first()->value;
-        $response['twitter']     = AboutUs::where('key', 'twitter')->first()->value;
-        $response['tiktok']      = AboutUs::where('key', 'tiktok')->first()->value;
-        $response['linked-in']   = AboutUs::where('key', 'linked-in')->first()->value;
+        $response['description']      = AboutUs::where('key', 'description')->first()->value;
+        $response['phone1']           = AboutUs::where('key', 'phone1')->first()->value;
+        $response['email1']           = AboutUs::where('key', 'email1')->first()->value;
+        $response['phone2']           = AboutUs::where('key', 'phone2')->first()->value;
+        $response['email2']           = AboutUs::where('key', 'email2')->first()->value;
+        $response['phone3']           = AboutUs::where('key', 'phone3')->first()->value;
+        $response['email3']           = AboutUs::where('key', 'email3')->first()->value;
+        $response['phone4']           = AboutUs::where('key', 'phone4')->first()->value;
+        $response['email4']           = AboutUs::where('key', 'email4')->first()->value;
+        $response['facebook']         = AboutUs::where('key', 'facebook')->first()->value;
+        $response['instagram']        = AboutUs::where('key', 'instagram')->first()->value;
+        $response['twitter']          = AboutUs::where('key', 'twitter')->first()->value;
+        $response['tiktok']           = AboutUs::where('key', 'tiktok')->first()->value;
+        $response['linked-in']        = AboutUs::where('key', 'linked-in')->first()->value;
+        $response['app_link_android'] = AboutUs::where('key', 'app-link-android')->first()->value;
+        $response['app_link_IOS']     = AboutUs::where('key', 'app-link-IOS')->first()->value;
+        $response['website']          = AboutUs::where('key', 'website')->first()->value;
         return $this->sendResponse($response, null, 200);
 
     }
