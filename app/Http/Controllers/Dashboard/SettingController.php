@@ -201,8 +201,8 @@ class SettingController extends Controller
         $linked_in        = AboutUs::where('key', 'linked-in')->first()->value;
         $app_link_android = AboutUs::where('key', 'app-link-android')->first()->value;
         $app_link_IOS     = AboutUs::where('key', 'app-link-IOS')->first()->value;
-
-        return view('dashboard.about_us.view', compact('app_link_IOS', 'description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link_android'));
+        $website           = AboutUs::where('key', 'website')->first()->value;
+        return view('dashboard.about_us.view', compact('app_link_IOS', 'website','description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link_android'));
     }
 
     public function update_about_us(Request $request)
@@ -222,7 +222,9 @@ class SettingController extends Controller
         AboutUs::where('key', 'linked-in')->update(['value' => $request->linked_in]);
         AboutUs::where('key', 'tiktok')->update(['value' => $request->tiktok]);
         AboutUs::where('key', 'app-link-android')->update(['value' => $request->app_link_android]);
-         AboutUs::where('key', 'app-link-IOS')->update(['value' => $request->app_link_IOS]);
+        AboutUs::where('key', 'app-link-IOS')->update(['value' => $request->app_link_IOS]);
+        AboutUs::where('key', 'website')->update(['value' => $request->website]);
+
         return redirect('/admin-dashboard/about_us/view')->with('success', 'About Us updated successfully.');
     }
 

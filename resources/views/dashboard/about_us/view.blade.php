@@ -99,6 +99,10 @@
                                     <label>Application Link (IOS)</label>
                                     <input type="text" class="form-control" name="app_link_IOS" value="{{ $app_link_IOS }}">
                                 </div>
+                                <div class="form-group">
+                                    <label>Website</label>
+                                    <input type="text" class="form-control" name="website" value="{{ $website }}">
+                                </div>
 
 
                                 <div class="form-group">
