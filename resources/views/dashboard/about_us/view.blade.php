@@ -92,8 +92,8 @@
                                     <input type="text" class="form-control" name="linked_in" value="{{ $linked_in }}">
                                 </div>
                                 <div class="form-group">
-                                    <label>Application Link</label>
-                                    <input type="text" class="form-control" name="app_link" value="{{ $app_link }}">
+                                    <label>Application Link (Android)</label>
+                                    <input type="text" class="form-control" name="app_link_android" value="{{ $app_link_android }}">
                                 </div>
 
 
