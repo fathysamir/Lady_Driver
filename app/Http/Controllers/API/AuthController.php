@@ -706,7 +706,7 @@ class AuthController extends ApiController
 
     public function FAQs()
     {
-        $FAQs = FAQ::where('is_active', 1)->get();
+        $FAQs = FAQ::where('is_active', '1')->get();
         return $this->sendResponse($FAQs, null, 200);
     }
 
