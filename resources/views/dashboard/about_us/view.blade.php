@@ -95,6 +95,10 @@
                                     <label>Application Link (Android)</label>
                                     <input type="text" class="form-control" name="app_link_android" value="{{ $app_link_android }}">
                                 </div>
+                                 <div class="form-group">
+                                    <label>Application Link (IOS)</label>
+                                    <input type="text" class="form-control" name="app_link_IOS" value="{{ $app_link_IOS }}">
+                                </div>
 
 
                                 <div class="form-group">

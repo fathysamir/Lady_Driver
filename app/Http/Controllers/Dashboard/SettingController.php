@@ -185,22 +185,24 @@ class SettingController extends Controller
     public function about_us()
     {
 
-        $description = AboutUs::where('key', 'description')->first()->value;
-        $phone1      = AboutUs::where('key', 'phone1')->first()->value;
-        $email1      = AboutUs::where('key', 'email1')->first()->value;
-        $phone2      = AboutUs::where('key', 'phone2')->first()->value;
-        $email2      = AboutUs::where('key', 'email2')->first()->value;
-        $phone3      = AboutUs::where('key', 'phone3')->first()->value;
-        $email3      = AboutUs::where('key', 'email3')->first()->value;
-        $phone4      = AboutUs::where('key', 'phone4')->first()->value;
-        $email4      = AboutUs::where('key', 'email4')->first()->value;
-        $facebook    = AboutUs::where('key', 'facebook')->first()->value;
-        $instagram   = AboutUs::where('key', 'instagram')->first()->value;
-        $twitter     = AboutUs::where('key', 'twitter')->first()->value;
-        $tiktok      = AboutUs::where('key', 'tiktok')->first()->value;
-        $linked_in   = AboutUs::where('key', 'linked-in')->first()->value;
-        $app_link_android    = AboutUs::where('key', 'app-link-android')->first()->value;
-        return view('dashboard.about_us.view', compact('description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link_android'));
+        $description      = AboutUs::where('key', 'description')->first()->value;
+        $phone1           = AboutUs::where('key', 'phone1')->first()->value;
+        $email1           = AboutUs::where('key', 'email1')->first()->value;
+        $phone2           = AboutUs::where('key', 'phone2')->first()->value;
+        $email2           = AboutUs::where('key', 'email2')->first()->value;
+        $phone3           = AboutUs::where('key', 'phone3')->first()->value;
+        $email3           = AboutUs::where('key', 'email3')->first()->value;
+        $phone4           = AboutUs::where('key', 'phone4')->first()->value;
+        $email4           = AboutUs::where('key', 'email4')->first()->value;
+        $facebook         = AboutUs::where('key', 'facebook')->first()->value;
+        $instagram        = AboutUs::where('key', 'instagram')->first()->value;
+        $twitter          = AboutUs::where('key', 'twitter')->first()->value;
+        $tiktok           = AboutUs::where('key', 'tiktok')->first()->value;
+        $linked_in        = AboutUs::where('key', 'linked-in')->first()->value;
+        $app_link_android = AboutUs::where('key', 'app-link-android')->first()->value;
+        $app_link_IOS     = AboutUs::where('key', 'app-link-IOS')->first()->value;
+
+        return view('dashboard.about_us.view', compact('app_link_IOS', 'description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link_android'));
     }
 
     public function update_about_us(Request $request)
@@ -220,6 +222,7 @@ class SettingController extends Controller
         AboutUs::where('key', 'linked-in')->update(['value' => $request->linked_in]);
         AboutUs::where('key', 'tiktok')->update(['value' => $request->tiktok]);
         AboutUs::where('key', 'app-link-android')->update(['value' => $request->app_link_android]);
+         AboutUs::where('key', 'app-link-IOS')->update(['value' => $request->app_link_IOS]);
         return redirect('/admin-dashboard/about_us/view')->with('success', 'About Us updated successfully.');
     }
 
