@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/Privacy_Policy', [AuthController::class, 'Privacy_Policy'])->name('Privacy_Policy');
+Route::get('/terms_conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/cities', [AuthController::class, 'cities'])->name('cities');
 Route::get('/app_version', [AuthController::class, 'app_version'])->name('app_version');
 Route::post('/update_app_version', [AuthController::class, 'update_app_version'])->name('update_app_version');
