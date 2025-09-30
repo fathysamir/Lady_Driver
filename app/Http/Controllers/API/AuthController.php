@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
-
+use Illuminate\Support\Facades\Log;
 class AuthController extends ApiController
 {
     protected $firebaseService;
@@ -91,7 +91,7 @@ class AuthController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-
+        Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
         do {
             $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);

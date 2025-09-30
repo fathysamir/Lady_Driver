@@ -8,11 +8,18 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
+
 class ApiController extends Controller
 {
    
     public function sendResponse($data, $message = null, $code = 200): \Illuminate\Http\JsonResponse
     {
+        Log::info('Response:', ['json' => json_encode([
+            'success' => true,
+            'message' => $message,
+            'data'    => $data,
+        ])]);
+
         return response()->json([
             'success' => true,
             'message' => $message,
@@ -22,6 +29,11 @@ class ApiController extends Controller
 
     public function sendError($data = null, $message = null, $code = 400): \Illuminate\Http\JsonResponse
     {
+        Log::info('Error Response:', ['json' => json_encode([
+            'success' => true,
+            'message' => $message,
+            'data'    => $data,
+        ])]);
         return response()->json([
             'success' => false,
             'message' => $message,
