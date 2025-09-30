@@ -30,7 +30,7 @@ class ApiController extends Controller
     public function sendError($data = null, $message = null, $code = 400): \Illuminate\Http\JsonResponse
     {
         Log::info('Error Response:', ['json' => json_encode([
-            'success' => true,
+            'success' => false,
             'message' => $message,
             'data'    => $data,
         ])]);
