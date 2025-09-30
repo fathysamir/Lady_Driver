@@ -3,282 +3,244 @@
 
 <head>
     <title>Live Location</title>
+	<style>
+    /* Reset خفيف */
+    :root{
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#0f172a;
+      --primary:#0b5fff;
+      --border:#e6e9ef;
+      --radius:12px;
+      font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", system-ui, sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),#f3f5f9);
+      color:var(--accent);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:40px 20px;
+      line-height:1.6;
+    }
+
+    .wrap{
+      max-width:930px;
+      margin:0 auto;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 6px 20px rgba(12,24,48,0.06);
+    }
+
+    h1{
+      margin:0 0 10px;
+      font-size:26px;
+    }
+    .lead{
+      color:var(--muted);
+      margin:0 0 22px;
+    }
+
+    section + section{margin-top:18px}
+
+    h2{
+      margin:18px 0 10px;
+      font-size:18px;
+      color:var(--primary);
+    }
+
+    ul{padding-inline-start:1.05rem;margin:6px 0 14px}
+    li{margin:8px 0}
+
+    .meta{
+      display:flex;
+      gap:18px;
+      flex-wrap:wrap;
+      margin:10px 0 14px;
+    }
+    .meta .item{
+      background:#fbfcff;
+      border:1px solid var(--border);
+      padding:10px 12px;
+      border-radius:10px;
+      min-width:160px;
+    }
+    .muted{color:var(--muted); font-size:14px}
+
+    .contact{
+      margin-top:16px;
+      padding-top:14px;
+      border-top:1px dashed var(--border);
+    }
+
+    /* Responsive */
+   
+  </style>
 </head>
 
 <body>
-    <div class="entry-content clear" itemprop="text">
+    <div class="wrap">
+    <div class="card" role="main" aria-labelledby="policy-title">
+      <h1 id="policy-title">سياسة الخصوصية — شركة ليـدي درايفر للنقل الذكي</h1>
+      <p class="lead">
+        مرحبًا بك في ليـدي درايفر. نولي خصوصية وسلامة وراحة مستخدماتنا أهمية قصوى. تشرح هذه السياسة كيف نجمع ونستخدم ونحمي المعلومات الشخصية وفقًا للتشريعات المصرية.
+      </p>
 
-
-        <div data-elementor-type="wp-page" data-elementor-id="2453" class="elementor elementor-2453"
-            data-elementor-post-type="page">
-            <div class="elementor-element elementor-element-edf29dd e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="edf29dd" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-2693034 elementor-widget elementor-widget-text-editor"
-                        data-id="2693034" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>1. Introduction</p>
-                            <p>Welcome to Lady Driver, the first app designed specifically for women to offer smart
-                                transportation services with complete safety, comfort, and privacy. Lady Driver is an
-                                Egyptian application headquartered in Cairo, aiming to support women’s financial
-                                independence and promote a safe and healthy transportation environment. By using this
-                                app, you agree to all the terms outlined in this policy.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-f8d9e16 e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="f8d9e16" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-b495484 elementor-widget elementor-widget-text-editor"
-                        data-id="b495484" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>2. Safety and Privacy<br><br></p>
-                            <p>The app provides a safe and comfortable environment for every woman, featuring options
-                                such as location sharing with trusted contacts and emergency contact numbers like the
-                                police, ambulance, rescue, and fire services.</p>
-                            <p>We enforce strict registration procedures to ensure that all users are women only, with a
-                                thorough review of personal information and official documents.</p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">The app includes a secure
-                                    internal communication system, voice recording during conversations between the
-                                    client and the driver, and the ability to send images for precise location
-                                    sharing.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">All user data is stored with
-                                    complete confidentiality according to global digital protection standards and is not
-                                    shared with third parties without the user’s explicit consent</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-57fa62a e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="57fa62a" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-a699c88 elementor-widget elementor-widget-text-editor"
-                        data-id="a699c88" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>3. Driver Requirements</p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Drivers must be at least 21
-                                    years old.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Vehicles must be suitable for
-                                    comfortable and safe passenger transportation.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">The minimum accepted car model
-                                    is 2006; models from 2015 and below are required to undergo inspection at a
-                                    certified center.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Drivers are not considered
-                                    employees of the company, and the company is not liable for any incidents occurring
-                                    during trips.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Drivers must maintain a balance
-                                    of 250 EGP in their in-app wallet to allow for commission deductions.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Drivers can withdraw their
-                                    earnings twice a week.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Men are strictly prohibited from
-                                    working as drivers on the app.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">All drivers must comply with
-                                    local traffic laws and regulations.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Drivers must ensure a premium
-                                    experience for clients, including maintaining vehicle cleanliness and not playing
-                                    music without the client’s approval.</span></p>
-                            <div>&nbsp;</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-49b7eed e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="49b7eed" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-8ae24b7 elementor-widget elementor-widget-text-editor"
-                        data-id="8ae24b7" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>4. Healthy and Sustainable Environment</p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Smoking is strictly prohibited
-                                    during rides; any violation grants the affected party the right to cancel the trip
-                                    without fees.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">The app supports green and
-                                    sustainable policies and encourages drivers to own eco-friendly electric
-                                    vehicles.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Pets are allowed if the driver
-                                    consents.</span></p>
-                            <p><span style="font-style: inherit; font-weight: inherit;">Both drivers and clients are
-                                    educated on the importance of environmental conservation and reducing carbon
-                                    emissions.</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-8fbcf21 e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="8fbcf21" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-7d61142 elementor-widget elementor-widget-text-editor"
-                        data-id="7d61142" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>5. Available Services</p>
-                            <p>Standard rides, comfort rides, scooter services, and bus services.</p>
-                            <p>Intercity rides, long-distance, and short-distance trips.</p>
-                            <p>Advanced booking available through the app.</p>
-                            <p>Option to select a preferred driver for recurring trips.</p>
-                            <p>Clients can choose the type of vehicle according to their preference.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-7f74b55 e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="7f74b55" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-a18972e elementor-widget elementor-widget-text-editor"
-                        data-id="a18972e" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>6. Payment and E-Wallet Policy</p>
-                            <p>The app supports payments via Visa cards, bank cards, and e-wallets available in Egypt.
-                            </p>
-                            <p>Clients can add funds to their in-app wallet for alternative payment methods.</p>
-                            <p>If a driver wishes to delete their account, they may reclaim the remaining wallet balance
-                                if there are no outstanding amounts.</p>
-                            <p>Users can review their financial transaction history and payment details with full
-                                transparency.</p>
-                            <p>Users bear any additional fees imposed by financial institutions for electronic payments.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-288cf9a e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="288cf9a" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-c4e3125 elementor-widget elementor-widget-text-editor"
-                        data-id="c4e3125" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>7. Tax and Legal Responsibility</p>
-                            <p>The company complies with all Egyptian tax laws, and drivers are responsible for paying
-                                their applicable taxes according to the regulations of the Egyptian Tax Authority.</p>
-                            <p>Drivers are responsible for their own tax obligations and must issue invoices if
-                                required.</p>
-                            <p>Lady Driver is not liable for any misuse of the app by users.</p>
-                            <p>Possessing or transporting drugs, hashish, or any other illegal substances in the vehicle
-                                will result in legal accountability for the driver or the client, and the company holds
-                                no responsibility in such cases.</p>
-                            <p>Drivers are fully responsible for the cleanliness and safety of their vehicles and must
-                                conduct regular vehicle inspections.</p>
-                            <p>In the event of an accident, the driver bears full legal and insurance responsibility for
-                                their vehicle</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-b415def e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="b415def" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-c9d262e elementor-widget elementor-widget-text-editor"
-                        data-id="c9d262e" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>8. Incentives and Rewards</p>
-                            <p>The company motivates drivers with periodic rewards and bonuses in recognition of their
-                                efforts.</p>
-                            <p>Drivers can earn loyalty points that can be redeemed for cash or exclusive in-app
-                                benefits.</p>
-                            <p>Free training courses are provided to drivers to enhance driving and customer service
-                                skills.</p>
-                            <p>Promotional offers are presented to both clients and drivers from time to time.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-266ab3a e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="266ab3a" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-51f4069 elementor-widget elementor-widget-text-editor"
-                        data-id="51f4069" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>9. Ease of Use</p>
-                            <p>The app is designed to be user-friendly and intuitive to ensure the best experience for
-                                both clients and drivers.</p>
-                            <p>It supports global languages and includes a dark mode for a more comfortable experience.
-                            </p>
-                            <p>The interface can be customized to suit the needs of the client or the driver.</p>
-                            <p>24/7 technical support is available within the app.</p>
-                            <p>The app includes a mutual rating feature between clients and drivers to maintain quality
-                                standards.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-b121166 e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="b121166" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-61a4d20 elementor-widget elementor-widget-text-editor"
-                        data-id="61a4d20" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>10. Contact Channels</p>
-                            <p>Lady Driver is active on all major social media platforms, including Facebook, Instagram,
-                                TikTok, LinkedIn, and others.</p>
-                            <p>Technical support can be reached via email or the in-app chat service.</p>
-                            <p>The company offers regular newsletters containing service updates and exclusive offers.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-973baf2 e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="973baf2" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-da31e61 elementor-widget elementor-widget-text-editor"
-                        data-id="da31e61" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>Shipping Policy – Lady Driver Smart Transportation</p>
-                            <p>1. Nature of the Service<br>Lady Driver is a ride-hailing platform dedicated to passenger
-                                transport only.<br>We do not provide shipping, delivery, or courier services for
-                                packages, parcels, or goods—whether accompanied or unaccompanied by the passenger.</p>
-                            <p>2. Responsibility for Personal Belongings<br>Passengers are fully responsible for their
-                                own personal belongings during any trip.</p>
-                            <p>Lady Driver holds no liability for any lost, damaged, or forgotten items—at any time.</p>
-                            <p>The company does not offer compensation, recovery, or legal responsibility for personal
-                                items under any circumstances.</p>
-                            <p>3. Forgotten Items in the Vehicle<br>If a passenger forgets any item in the car, she may
-                                report it using the “Lost Item” feature within the app to contact the driver directly.
-                            </p>
-                            <p>Lady Driver does not guarantee the retrieval of lost items and holds no legal obligation
-                                to do so.</p>
-                            <p>Responsibility for communication and item return lies solely between the driver and the
-                                passenger.</p>
-                            <p>4. Driver Liability<br>Each driver using the platform is individually responsible for
-                                complying with service terms and refraining from transporting any prohibited or illegal
-                                materials.</p>
-                            <p>The company is not legally responsible for any individual actions taken by drivers beyond
-                                the scope of the platform’s terms and policies.</p>
-                            <p>5. Prohibited Items<br>It is strictly forbidden to use the service for the transport of:
-                            </p>
-                            <p>Hazardous, flammable, or dangerous materials.</p>
-                            <p>High-value items such as jewelry, cash, or electronics.</p>
-                            <p>Any substances or goods that are illegal under Egyptian law or violate platform safety
-                                policies.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="elementor-element elementor-element-3a565f0 e-flex e-con-boxed e-con e-parent e-lazyloaded"
-                data-id="3a565f0" data-element_type="container">
-                <div class="e-con-inner">
-                    <div class="elementor-element elementor-element-dded707 elementor-widget elementor-widget-text-editor"
-                        data-id="dded707" data-element_type="widget" data-widget_type="text-editor.default">
-                        <div class="elementor-widget-container">
-                            <p>At Lady Driver, we don’t just provide a means of transportation—we create a travel
-                                experience that offers you the independence, safety, and comfort you deserve. We believe
-                                every ride holds precious moments, and that’s why we ensure every detail of our services
-                                meets the highest standards of quality and professionalism.</p>
-                            <p>We are here to be your partner every step of the way. For a smooth experience, you can
-                                reach out to our support team via email or in-app chat, and stay updated through our
-                                newsletter with the latest updates and exclusive offers.</p>
-                            <p>Your trust fuels our vision, and your comfort is our ultimate goal. With Lady Driver,
-                                you’re at the heart of our journey—because every road you take is a new beginning toward
-                                greater freedom and limitless comfort.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div class="meta" aria-hidden="false">
+        <div class="item">
+          <div class="muted">الاسم التجاري</div>
+          <div><strong>Lady Driver للنقل الذكي</strong></div>
         </div>
+        <div class="item">
+          <div class="muted">السجل التجاري</div>
+          <div><strong>243941</strong></div>
+        </div>
+        <div class="item">
+          <div class="muted">المقر</div>
+          <div><strong>القاهرة، مصر</strong></div>
+        </div>
+      </div>
 
+      <section>
+        <h2>1. المعلومات التي نجمعها</h2>
+        <h3 class="muted">أ. المعلومات الشخصية</h3>
+        <ul>
+          <li>الاسم الكامل</li>
+          <li>رقم الهاتف</li>
+          <li>البريد الإلكتروني</li>
+          <li>عنوان المنزل أو نقاط الالتقاء المفضلة</li>
+          <li>معلومات الدفع والفوترة (عند الحاجة)</li>
+          <li>صورة البطاقة أو رخصة القيادة للسائقين</li>
+        </ul>
 
+        <h3 class="muted">ب. المعلومات التقنية</h3>
+        <ul>
+          <li>بيانات الموقع (Geolocation) لتحسين تجربة الخدمة</li>
+          <li>نوع الجهاز ونظام التشغيل</li>
+          <li>عنوان الـ IP لتحسين الأمان وكشف الأنماط المشبوهة</li>
+          <li>ملفات تعريف الارتباط وتقنيات التتبع لتحليل الأداء</li>
+        </ul>
+      </section>
 
+      <section>
+        <h2>2. كيف نستخدم المعلومات</h2>
+        <ul>
+          <li>توفير خدمات نقل آمنة وفعّالة</li>
+          <li>تخصيص تجربة المستخدم بناءً على التفضيلات</li>
+          <li>معالجة المدفوعات وإصدار الفواتير بأمان</li>
+          <li>إرسال إشعارات الرحلات، العروض، والتحديثات</li>
+          <li>الامتثال للقوانين واللوائح المصرية</li>
+          <li>تعزيز الأمان ومراقبة النشاطات المشبوهة</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. مشاركة المعلومات مع أطراف ثالثة</h2>
+        <p class="muted">لا نقوم ببيع أو تأجير بياناتك لطرف ثالث. ومع ذلك، قد نشارك بعض البيانات في الحالات التالية:</p>
+        <ul>
+          <li>مزودو الخدمات (بوابات الدفع، استضافة سحابيّة، إلخ) لضمان عمل الخدمة بسلاسة</li>
+          <li>الامتثال القانوني: عند طلب الجهات المختصة أو بمقتضى القانون</li>
+          <li>حالات الطوارئ: لحماية سلامة المستخدمين أو الجمهور</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. أمن البيانات</h2>
+        <p class="muted">نتخذ إجراءات صارمة لحماية بياناتك، مثل:</p>
+        <ul>
+          <li>تشفير البيانات الحساسة</li>
+          <li>استخدام بروتوكولات آمنة أثناء النقل والتخزين</li>
+          <li>تقييد الوصول للأشخاص المصرّح لهم فقط</li>
+          <li>نظم كشف التسلل ومراجعات أمنيّة دورية</li>
+          <li>تفعيل المصادقة الثنائية عند الحاجة</li>
+          <li>تسجيل النشاطات لمراقبة محاولات الوصول غير المصرّح بها</li>
+          <li>تدريب الفريق على ممارسات الخصوصية والأمن</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>5. حقوق المستخدم</h2>
+        <ul>
+          <li>الاطّلاع على بياناتك المخزنة</li>
+          <li>تصحيح المعلومات غير الدقيقة</li>
+          <li>طلب حذف البيانات (وفق الالتزامات القانونية)</li>
+          <li>سحب الموافقة أو إيقاف الاستخدام عبر إعدادات الحساب</li>
+          <li>الاعتراض على المعالجة لأغراض محددة (مثل التسويق)</li>
+          <li>طلب تقييد المعالجة أو نقل البيانات عند الإمكان تقنياً</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>6. تعليق أو حذف الحساب</h2>
+        <p class="muted">تحتفظ الشركة بحق تعليق أو حذف أي حساب في حالات مثل:</p>
+        <ul>
+          <li>انتهاك القوانين المصرية أو سياسات الشركة</li>
+          <li>سلوك يهدد سلامة المستخدمين</li>
+          <li>تقديم معلومات مضللة أو احتيالية</li>
+          <li>استخدام الخدمة بشكل يخالف شروط الاستخدام (حجوزات وهمية، إلغاءات متكررة بدون مبرر، إلخ)</li>
+          <li>استغلال المنصة لأنشطة احتيالية أو جنائية</li>
+          <li>نشر محتوى مسيء أو غير لائق</li>
+        </ul>
+        <p class="muted">سيُبلغ المستخدمون بالأسباب والإجراءات، وقد يتاح لهم الاستئناف وفق سياسة الشركة.</p>
+      </section>
+
+      <section>
+        <h2>7. العمولات والعقوبات المالية</h2>
+        <p class="muted">تحتفظ الشركة بالحق في تعديل عمولات السائقين وفقًا للظروف الاقتصادية واحتياجات التشغيل.</p>
+        <p class="muted">قد تُفرض عقوبات مالية على السائقين في حالات مثل:</p>
+        <ul>
+          <li>إهانة العملاء أو التمييز</li>
+          <li>ممارسات تخالف المعايير المهنية أو تضر بسمعة الشركة</li>
+        </ul>
+        <p class="muted">وفي حال ارتكب زبون مخالفة قانونية أو اعتدى لفظيًّا أو جسديًّا، تحتفظ الشركة بحق اتخاذ الإجراءات القانونية اللازمة.</p>
+      </section>
+
+      <section>
+        <h2>8. السن الأدنى</h2>
+        <p class="muted">الحد الأدنى لاستخدام خدمات ليـدي درايفر هو 18 سنة. لا يُسمح للقُصّر باستخدام الخدمة إلا بمرافقة بالغ مسؤول.</p>
+      </section>
+
+      <section>
+        <h2>9. حماية بيانات الأطفال والقُصّر</h2>
+        <p class="muted">نحترم خصوصية الأطفال دون 18 عامًا ولا نجمع بياناتهم الشخصية دون موافقة صريحة من الوالد أو الوصي القانوني. إذا ثبت جمع بيانات طفل بدون موافقة، سنتخذ خطوات سريعة لحذفها.</p>
+      </section>
+
+      <section>
+        <h2>10. تحديثات سياسة الخصوصية</h2>
+        <p class="muted">قد نُعدّل هذه السياسة من وقت لآخر استجابةً للتغيّرات القانونية أو التشغيلية. سيُعلم المستخدمون بالتحديثات المهمة عبر البريد الإلكتروني أو التطبيق، وستحتوي التحديثات على تاريخ السريان وملخص للتغييرات.</p>
+        <p class="muted">الاستمرار في استخدام الخدمة بعد التحديث يعني قبولك للسياسة المعدّلة.</p>
+      </section>
+
+      <section>
+        <h2>11. سياسة مكافحة التمييز والاستغلال</h2>
+        <p class="muted">نؤمن بالقيمة الإنسانية والكرامة ونعتمد سياسة عدم تسامح مطلق مع التمييز أو الاستغلال أو التحرش بأنواعه. أي انتهاك يؤدي إلى تعليق نهائي للحساب واتخاذ الإجراءات القانونية إذا لزم الأمر.</p>
+        <p class="muted">المنصة مخصّصة لتمكين المرأة وتوفير بيئة آمنة، وهذا لا يعني تمييزًا ضد الرجال، بل هدفنا توفير حماية وخصوصية أكبر للنساء في التنقل.</p>
+      </section>
+
+      <section class="contact" aria-labelledby="contact-title">
+        <h2 id="contact-title">تواصل معنا</h2>
+        <p class="muted">
+          لأي استفسار بخصوص سياسة الخصوصية أو بياناتك الشخصية، تواصل معنا عبر:
+        </p>
+        <ul>
+          <li><strong>البريد الإلكتروني:</strong> <a href="mailto:[email protected]">[email protected]</a></li>
+          <li><strong>الهاتف:</strong> 01100362888 / 01154695582</li>
+          <li><strong>العنوان:</strong> القاهرة، مصر</li>
+          <li><strong>الموقع:</strong> lady-driver.com</li>
+        </ul>
+      </section>
+
+     
     </div>
+  </div>
 </body>
 
 </html>
