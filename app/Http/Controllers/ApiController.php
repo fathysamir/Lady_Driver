@@ -17,7 +17,7 @@ class ApiController extends Controller
             'success' => true,
             'message' => $message,
             'data'    => $data,
-        ], $code);
+        ], $code,[],JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     public function sendError($data = null, $message = null, $code = 400): \Illuminate\Http\JsonResponse
@@ -26,7 +26,7 @@ class ApiController extends Controller
             'success' => false,
             'message' => $message,
             'data'    => $data,
-        ], $code);
+        ], $code,[],JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
     public function check_banned()
     {
