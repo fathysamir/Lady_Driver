@@ -3,6 +3,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\LiveLocation;
+use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -75,11 +76,17 @@ class LiveLocationController extends ApiController
             return response()->json(['error' => 'Expired or invalid link'], 404);
         }
         $user = User::findOrFail($live->user_id);
-        $trip = null;
+        $trip = Trip::where('user_id', $live->user_id)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->with(['finalDestination' => function ($q) {
+                $q->orderBy('id'); // أو order by ترتيب النقاط
+            }])->first();
+
         return response()->json([
             'lat'  => $live->lat,
             'lng'  => $live->lng,
             'user' => $live->user->name,
+            'trip' => $trip,
         ]);
     }
 

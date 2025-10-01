@@ -82,7 +82,10 @@
     }
 
     /* Responsive */
-   
+    @media (max-width:640px){
+      body{padding:18px}
+      .card{padding:18px}
+    }
   </style>
 </head>
 
