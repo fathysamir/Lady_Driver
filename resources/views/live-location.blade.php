@@ -29,7 +29,7 @@
                     lat,
                     lng
                 },
-                zoom: 13,
+                zoom: 17,
             });
 
             marker = new google.maps.Marker({
