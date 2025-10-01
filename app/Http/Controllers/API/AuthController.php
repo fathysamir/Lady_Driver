@@ -70,6 +70,7 @@ class AuthController extends ApiController
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+                'regex:/^\d{4}-\d{2}-\d{2}$/',
             ];
             $rules['driver_type']    = 'required|in:scooter,car';
             $rules['year']           = 'required|integer|min:2000|max:' . date('Y');
