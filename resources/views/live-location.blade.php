@@ -59,7 +59,7 @@
                     map.setCenter(pos);
                     x = true;
                 }
-                 
+
             }
 
             if (data.trip && data.trip.final_destination.length > 0) {
@@ -90,17 +90,14 @@
                 if (status === google.maps.DirectionsStatus.OK) {
                     const route = result.routes[0].overview_path;
 
-                    // امسح القديم
                     if (finishedPolyline) finishedPolyline.setMap(null);
                     if (nextPolyline) nextPolyline.setMap(null);
 
-                    // موقع المستخدم الحالي
                     const currentPos = {
                         lat: parseFloat(data.lat),
                         lng: parseFloat(data.lng)
                     };
 
-                    // دور على أقرب نقطة من currentPos في المسار
                     let nearestIndex = 0;
                     let nearestDist = Infinity;
                     route.forEach((p, i) => {
@@ -114,7 +111,6 @@
                         }
                     });
 
-                    // الجزء الرمادي (خلص)
                     finishedPolyline = new google.maps.Polyline({
                         path: route.slice(0, nearestIndex + 1),
                         strokeColor: "#808080",
@@ -123,7 +119,6 @@
                         map
                     });
 
-                    // الجزء الأزرق (لسه باقي)
                     nextPolyline = new google.maps.Polyline({
                         path: route.slice(nearestIndex),
                         strokeColor: "#0000FF",
@@ -131,11 +126,47 @@
                         strokeWeight: 6,
                         map
                     });
+
+                    // ✅ حط ماركر صغير أخضر عند نقطة البداية
+                    new google.maps.Marker({
+                        position: start,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 6,
+                            fillColor: "green",
+                            fillOpacity: 1,
+                            strokeColor: "white",
+                            strokeWeight: 2
+                        },
+                        title: "Start"
+                    });
+
+                    // ✅ وحط ماركر صغير أخضر عند كل Destination
+                    data.trip.final_destination.forEach((d, i) => {
+                        new google.maps.Marker({
+                            position: {
+                                lat: parseFloat(d.lat),
+                                lng: parseFloat(d.lng)
+                            },
+                            map: map,
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                scale: 6,
+                                fillColor: "green",
+                                fillOpacity: 1,
+                                strokeColor: "white",
+                                strokeWeight: 2
+                            },
+                            title: "Destination " + (i + 1)
+                        });
+                    });
                 } else {
                     console.error("Directions request failed: " + status);
                 }
             });
         }
+
 
         initMap();
         fetchLocation();
