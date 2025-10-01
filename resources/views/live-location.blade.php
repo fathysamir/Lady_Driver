@@ -54,7 +54,7 @@
                     lng: parseFloat(data.lng)
                 };
                 marker.setPosition(pos);
-                map.setCenter(pos);
+                // map.setCenter(pos);
             }
 
             if (data.trip && data.trip.final_destination.length > 0) {
