@@ -134,7 +134,7 @@
                         icon: {
                             path: google.maps.SymbolPath.CIRCLE,
                             scale: 6,
-                            fillColor: "green",
+                            fillColor: "gold",
                             fillOpacity: 1,
                             strokeColor: "white",
                             strokeWeight: 2
@@ -153,7 +153,7 @@
                             icon: {
                                 path: google.maps.SymbolPath.CIRCLE,
                                 scale: 6,
-                                fillColor: "green",
+                                fillColor: "gold",
                                 fillOpacity: 1,
                                 strokeColor: "white",
                                 strokeWeight: 2
