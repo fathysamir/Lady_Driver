@@ -4,6 +4,8 @@
 <head>
     <title>Live Location</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0&libraries=geometry"></script>
+
     <style>
         #map {
             height: 100vh;
@@ -16,7 +18,8 @@
     <div id="map"></div>
 
     <script>
-        let map, marker, directionsService, directionsRenderer;
+        let map, marker, directionsService;
+        let finishedPolyline, nextPolyline;
 
         const token = "{{ $token }}";
 
@@ -38,15 +41,6 @@
             });
 
             directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                suppressMarkers: true,
-                polylineOptions: {
-                    strokeColor: "#0000FF",
-                    strokeOpacity: 0.8,
-                    strokeWeight: 6
-                }
-            });
-            directionsRenderer.setMap(map);
         }
 
         async function fetchLocation() {
@@ -74,7 +68,7 @@
                 lng: parseFloat(data.trip.start_lng)
             };
 
-            const destinations = data.trip.final_destination.map(d => ({
+            const waypoints = data.trip.final_destination.map(d => ({
                 location: {
                     lat: parseFloat(d.lat),
                     lng: parseFloat(d.lng)
@@ -84,23 +78,56 @@
 
             directionsService.route({
                 origin: start,
-                destination: destinations[destinations.length - 1].location,
-                waypoints: destinations.slice(0, -1), // كل الوجهات ما عدا الأخيرة كـ waypoints
+                destination: waypoints[waypoints.length - 1].location,
+                waypoints: waypoints.slice(0, -1),
                 travelMode: google.maps.TravelMode.DRIVING,
             }, (result, status) => {
                 if (status === google.maps.DirectionsStatus.OK) {
-                    directionsRenderer.setDirections(result);
+                    const route = result.routes[0].overview_path;
 
-                    // markers للـ destinations
-                    destinations.forEach((wp, i) => {
-                        new google.maps.Marker({
-                            position: wp.location,
-                            map,
-                            label: `${i+1}`
-                        });
+                    // امسح القديم
+                    if (finishedPolyline) finishedPolyline.setMap(null);
+                    if (nextPolyline) nextPolyline.setMap(null);
+
+                    // موقع المستخدم الحالي
+                    const currentPos = {
+                        lat: parseFloat(data.lat),
+                        lng: parseFloat(data.lng)
+                    };
+
+                    // دور على أقرب نقطة من currentPos في المسار
+                    let nearestIndex = 0;
+                    let nearestDist = Infinity;
+                    route.forEach((p, i) => {
+                        const d = google.maps.geometry.spherical.computeDistanceBetween(
+                            new google.maps.LatLng(currentPos.lat, currentPos.lng),
+                            p
+                        );
+                        if (d < nearestDist) {
+                            nearestDist = d;
+                            nearestIndex = i;
+                        }
+                    });
+
+                    // الجزء الرمادي (خلص)
+                    finishedPolyline = new google.maps.Polyline({
+                        path: route.slice(0, nearestIndex + 1),
+                        strokeColor: "#808080",
+                        strokeOpacity: 1.0,
+                        strokeWeight: 6,
+                        map
+                    });
+
+                    // الجزء الأزرق (لسه باقي)
+                    nextPolyline = new google.maps.Polyline({
+                        path: route.slice(nearestIndex),
+                        strokeColor: "#0000FF",
+                        strokeOpacity: 1.0,
+                        strokeWeight: 6,
+                        map
                     });
                 } else {
-                    console.error("Directions request failed due to " + status);
+                    console.error("Directions request failed: " + status);
                 }
             });
         }
