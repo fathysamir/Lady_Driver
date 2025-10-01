@@ -4,7 +4,8 @@
 <head>
     <title>Live Location</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0&libraries=geometry"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0&libraries=geometry">
+    </script>
 
     <style>
         #map {
@@ -42,7 +43,7 @@
 
             directionsService = new google.maps.DirectionsService();
         }
-
+        let x = false;
         async function fetchLocation() {
             const res = await fetch(`/api/live-location/data/${token}`);
             if (!res.ok) return;
@@ -54,7 +55,11 @@
                     lng: parseFloat(data.lng)
                 };
                 marker.setPosition(pos);
-                // map.setCenter(pos);
+                if (x == false) {
+                    map.setCenter(pos);
+                    x = true;
+                }
+                 
             }
 
             if (data.trip && data.trip.final_destination.length > 0) {
