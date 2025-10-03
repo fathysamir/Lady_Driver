@@ -84,6 +84,12 @@ class AuthController extends ApiController
             $rules['ID_front_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['passport']       = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['gendor']         = 'required|in:Male,Female';
+            $rules['birth_date'] = [
+                'nullable',
+                'date',
+                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/'
+            ];
         }
 
         $validator = Validator::make($request->all(), $rules);
