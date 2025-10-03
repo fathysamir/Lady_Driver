@@ -22,12 +22,13 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Log;
+
 class AuthController extends ApiController
 {
     protected $firebaseService;
@@ -70,7 +71,17 @@ class AuthController extends ApiController
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                'regex:/^\d{4}-\d{2}-\d{2}$/',
+                function ($attribute, $value, $fail) {
+                    // Check if the date contains only English numbers
+                    if (! preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $value)) {
+                        $fail('The ' . $attribute . ' must be in YYYY-MM-DD format with English numbers.');
+                    }
+
+                    // Additional check for Arabic numerals
+                    if (preg_match('/[٠-٩]/', $value)) {
+                        $fail('The ' . $attribute . ' must use English numbers only.');
+                    }
+                },
             ];
             $rules['driver_type']    = 'required|in:scooter,car';
             $rules['year']           = 'required|integer|min:2000|max:' . date('Y');
