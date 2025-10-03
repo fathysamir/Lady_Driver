@@ -103,6 +103,7 @@ class AuthController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
+        dd($request->all());
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
         do {
