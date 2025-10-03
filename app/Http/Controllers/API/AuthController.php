@@ -71,17 +71,7 @@ class AuthController extends ApiController
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                function ($attribute, $value, $fail) {
-                    // Check if the date contains only English numbers
-                    if (! preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $value)) {
-                        $fail('The ' . $attribute . ' must be in YYYY-MM-DD format with English numbers.');
-                    }
-
-                    // Additional check for Arabic numerals
-                    if (preg_match('/[٠-٩]/', $value)) {
-                        $fail('The ' . $attribute . ' must use English numbers only.');
-                    }
-                },
+                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/'
             ];
             $rules['driver_type']    = 'required|in:scooter,car';
             $rules['year']           = 'required|integer|min:2000|max:' . date('Y');
