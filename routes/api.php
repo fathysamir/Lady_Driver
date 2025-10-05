@@ -27,6 +27,7 @@ Route::get('/cities', [AuthController::class, 'cities'])->name('cities');
 Route::get('/app_version', [AuthController::class, 'app_version'])->name('app_version');
 Route::post('/update_app_version', [AuthController::class, 'update_app_version'])->name('update_app_version');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/register2', [AuthController::class, 'register2'])->name('register2');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
 Route::get('/about_us', [AuthController::class, 'about_us'])->name('about_us');
