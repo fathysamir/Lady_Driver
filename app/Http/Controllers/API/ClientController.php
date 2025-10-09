@@ -229,7 +229,7 @@ class ClientController extends ApiController
             $prevLat = $trip->start_lat;
             $prevLng = $trip->start_lng;
 
-            foreach ($trip->destinations as $destination) {
+            foreach ($trip->finalDestination as $destination) {
                 $response = calculate_distance($prevLat, $prevLng, $destination->lat, $destination->lng);
 
                 $totalDistance += $response['distance_in_km'];
