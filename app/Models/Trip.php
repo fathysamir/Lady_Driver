@@ -93,7 +93,7 @@ class Trip extends Model
 
      public function finalDestination()
     {
-        return $this->hasMany(TripDestination::class, 'trip_id');
+        return $this->hasMany(TripDestination::class, 'trip_id')->orderBy('id');
     }
 
 

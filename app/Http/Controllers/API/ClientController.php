@@ -217,14 +217,33 @@ class ClientController extends ApiController
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
-        }, 'finalDestination'])->first();
+        }, 'destinations' => function ($xx) {
+            $xx->orderBy('id');
+        }])->first();
 
         if ($trip) {
-            $response       = calculate_distance($trip->start_lat, $trip->start_lng, $trip->end_lat, $trip->end_lng);
-            $trip_distance  = $response['distance_in_km'];
-            $trip_duration  = $response['duration_in_M'];
+            $totalDistance = 0;
+            $totalDuration = 0;
+
+            // Start from trip starting point
+            $prevLat = $trip->start_lat;
+            $prevLng = $trip->start_lng;
+
+            foreach ($trip->destinations as $destination) {
+                $response = calculate_distance($prevLat, $prevLng, $destination->lat, $destination->lng);
+
+                $totalDistance += $response['distance_in_km'];
+                $totalDuration += $response['duration_in_M'];
+
+                // update previous point
+                $prevLat = $destination->lat;
+                $prevLng = $destination->lng;
+            }
+
+            $trip_distance  = $totalDistance;
+            $trip_duration  = $totalDuration;
             $trip->duration = $trip_duration;
-            $barcode_image  = barcodeImage($trip->id);
+            $barcode_image  = url(barcodeImage($trip->id));
             $trip->barcode  = $barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {

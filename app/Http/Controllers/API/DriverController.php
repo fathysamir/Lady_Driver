@@ -832,7 +832,7 @@ class DriverController extends ApiController
             $query->with(['mark', 'model']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model']);
-        }, 'user'])->first();
+        }, 'user','finalDestination'])->first();
         if (in_array($trip->type, ['car', 'comfort_car'])) {
             $response = calculate_distance($lastAcceptedOffer->car->lat, $lastAcceptedOffer->car->lng, $trip->start_lat, $trip->start_lng);
         } elseif ($trip->type == 'scooter') {
@@ -843,7 +843,7 @@ class DriverController extends ApiController
         $trip->client_location_distance = $distance;
         $trip->client_location_duration = $duration;
 
-        $barcode_image = barcodeImage($trip->id);
+        $barcode_image = url(barcodeImage($trip->id));
         $trip->barcode = $barcode_image;
         if ($trip->status == 'completed' || $trip->status == 'cancelled') {
             return $this->sendError(null, 'no current trip existed', 400);
