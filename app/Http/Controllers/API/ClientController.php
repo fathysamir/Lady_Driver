@@ -217,7 +217,7 @@ class ClientController extends ApiController
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
-        }, 'destinations' => function ($xx) {
+        }, 'finalDestination' => function ($xx) {
             $xx->orderBy('id');
         }])->first();
 
