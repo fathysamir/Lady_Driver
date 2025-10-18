@@ -1,27 +1,19 @@
 <?php
-
 namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Trip;
 use App\Models\Car;
 use App\Models\DriverLicense;
+use App\Models\Trip;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 use Image;
-use Str;
-use File;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
-{//done
+{ //done
     public function index(Request $request)
     {
         $all_users = User::orderBy('id', 'desc');
@@ -31,7 +23,7 @@ class UserController extends Controller
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                     ->orWhere('id', 'LIKE', '%' . $request->search . '%');
+                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
             });
         }
         if ($request->has('mode') && $request->mode != null) {
@@ -127,9 +119,7 @@ class UserController extends Controller
     //             'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
     //             'role'=>['required',Rule::in(Role::pluck('id'))]
 
-
     //         ]);
-
 
     //         if ($validator->fails()) {
     //             return Redirect::back()->withInput()->withErrors($validator);
@@ -157,29 +147,28 @@ class UserController extends Controller
 
     // }
 
-
     public function edit($id)
     {
-        $user = User::where('id', $id)->first();
+        $user       = User::where('id', $id)->first();
         $user->seen = '1';
         $user->save();
-        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->image           = getFirstMediaUrl($user, $user->avatarCollection);
         $user->driving_license = DriverLicense::where('user_id', $user->id)->first();
-        $user->car = Car::where('user_id', $user->id)->first();
+        $user->car             = Car::where('user_id', $user->id)->first();
         if ($user->driving_license) {
             $user->driving_license->front_image = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseFrontImageCollection);
-            $user->driving_license->back_image = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseBackImageCollection);
+            $user->driving_license->back_image  = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseBackImageCollection);
         }
         if ($user->mode == 'client') {
-            $user->rate = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
-            $user->trips_count = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress','completed'])->count();
+            $user->rate        = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
+            $user->trips_count = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
         } elseif ($user->mode == 'driver') {
             $user->rate = round(Trip::whereHas('car', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate')) ?? 0.00;
             $user->trips_count = Trip::whereHas('car', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            })->whereIn('status', ['pending', 'in_progress','completed'])->count();
+            })->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
         }
         return view('dashboard.users.edit', compact('user'));
     }
@@ -193,14 +182,14 @@ class UserController extends Controller
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
-
-        User::where('id', $id)->update([ 'status' => $request->status]);
+        $user = User::where('id', $id)->first();
+        $user->update(['status' => $request->status]);
+        if ($request->status == 'blocked') {
+            $user->tokens()->delete();
+        }
         return redirect('/admin-dashboard/users');
 
     }
-
-
-
 
     public function delete($id)
     {
