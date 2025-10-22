@@ -99,4 +99,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/live-location/create', [LiveLocationController::class, 'create']);
     Route::post('/live-location/update', [LiveLocationController::class, 'update']);
+    Route::get('/get_near_drivers', [ClientController::class, 'get_near_drivers']);
+    Route::post('/add-address', [ClientController::class, 'add_address']);
+    Route::get('/get_all_user_addresses', [ClientController::class, 'get_all_user_addresses']);
+
 });

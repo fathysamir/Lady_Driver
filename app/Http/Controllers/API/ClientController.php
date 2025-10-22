@@ -3,12 +3,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\Car;
+use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\TripCancellingReason;
 use App\Models\TripChat;
-use App\Models\User;
+use App\Models\UserAddress;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -618,6 +619,209 @@ class ClientController extends ApiController
         $user->save();
 
         return $this->sendResponse($user, 'Location updated successfully', 200);
+    }
+
+    public function get_near_drivers(Request $request)
+    {
+        if ($request->boolean('mock')) {
+            $mockDrivers = [
+                [
+                    'name'         => 'Ahmed Ali',
+                    'vehicle_type' => 'Car',
+                    'lat'          => 30.0582,
+                    'lng'          => 31.3279,
+                ],
+                [
+                    'name'         => 'Fathy Samir',
+                    'vehicle_type' => 'Scooter',
+                    'lat'          => 30.0582,
+                    'lng'          => 31.3279,
+                ],
+            ];
+
+            return $this->sendResponse([
+                'count'   => count($mockDrivers),
+                'drivers' => $mockDrivers,
+            ], 'Mock data returned successfully.', 200);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ], [
+            'lat.required' => 'Latitude is required.',
+            'lng.required' => 'Longitude is required.',
+            'lat.numeric'  => 'Latitude must be a valid number.',
+            'lng.numeric'  => 'Longitude must be a valid number.',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(' / ', $validator->errors()->all());
+            return $this->sendError('Validation Error', $errors, 422);
+        }
+
+        $lat    = $request->lat;
+        $lng    = $request->lng;
+        $radius = 3; // km
+
+        $haversine = "(6371 * acos(cos(radians(?))
+                * cos(radians(lat))
+                * cos(radians(lng) - radians(?))
+                + sin(radians(?))
+                * sin(radians(lat))))";
+
+        $tripFilter = fn($q) => $q->whereIn('status', ['in_progress', 'pending']);
+
+        $carDrivers = Car::with('owner:id,name,is_online')
+            ->where('is_comfort', '0')
+            ->whereHas('owner', function ($q) {
+                $q->where('is_online', 1)
+                    ->where('status', 'confirmed');
+            })
+            ->whereDoesntHave('trips', $tripFilter)
+            ->select('lat', 'lng', 'user_id')
+            ->selectRaw("$haversine AS distance", [$lat, $lng, $lat])
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance')
+            ->get()
+            ->map(function ($car) {
+                return [
+                    'name'         => $car->owner->name ?? null,
+                    'vehicle_type' => 'Car',
+                    'lat'          => (float) $car->lat,
+                    'lng'          => (float) $car->lng,
+                ];
+            });
+
+        $scooterDrivers = Scooter::with('owner:id,name,is_online')
+            ->whereHas('owner', fn($q) => $q->where('is_online', 1))
+            ->whereDoesntHave('trips', $tripFilter)
+            ->select('lat', 'lng', 'user_id')
+            ->selectRaw("$haversine AS distance", [$lat, $lng, $lat])
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance')
+            ->get()
+            ->map(function ($scooter) {
+                return [
+                    'name'         => $scooter->owner->name ?? null,
+                    'vehicle_type' => 'Scooter',
+                    'lat'          => (float) $scooter->lat,
+                    'lng'          => (float) $scooter->lng,
+                ];
+            });
+
+        $drivers = $carDrivers->concat($scooterDrivers)->values();
+
+        return $this->sendResponse([
+            'count'   => $drivers->count(),
+            'drivers' => $drivers,
+        ], 'Nearby drivers retrieved successfully.', 200);
+    }
+    public function add_address(Request $request)
+    {
+        if ($request->mock) {
+            $response = [
+                'id'    => 10,
+                'title' => 'Home',
+                'lat'   => 30.0500,
+                'lng'   => 31.2400,
+            ];
+            return $this->sendResponse($response, null, 200);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'lat'   => 'required|numeric|between:-90,90',
+            'lng'   => 'required|numeric|between:-180,180',
+            'title' => 'required|string|max:255',
+        ], [
+            'lat.required'   => 'Latitude is required.',
+            'lng.required'   => 'Longitude is required.',
+            'title.required' => 'Address title is required.',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(' / ', $validator->errors()->all());
+            return $this->sendError('Validation Error', $errors, 422);
+        }
+
+        $user = auth()->user();
+        if (! $user) {
+            return $this->sendError('Unauthorized', 'User not authenticated.', 401);
+        }
+
+        // ✅ Optional: Prevent duplicate addresses for same location
+        $exists = UserAddress::where('user_id', $user->id)
+            ->where('lat', $request->lat)
+            ->where('lng', $request->lng)
+            ->exists();
+
+        if ($exists) {
+            return $this->sendError('Duplicate Address', 'This address already exists.', 409);
+        }
+
+        // ✅ Create new address
+        $address = UserAddress::create([
+            'user_id' => $user->id,
+            'lat'     => $request->lat,
+            'lng'     => $request->lng,
+            'title'   => $request->title,
+        ]);
+
+        // ✅ Format response
+        $response = [
+            'id'    => $address->id,
+            'title' => $address->title,
+            'lat'   => (float) $address->lat,
+            'lng'   => (float) $address->lng,
+        ];
+
+        return $this->sendResponse($response, 'Address added successfully.', 201);
+    }
+
+    public function get_all_user_addresses(Request $request)
+    {
+        // ✅ Mock mode (for demo/testing)
+        if ($request->mock) {
+            $response = [
+                'count'     => 2,
+                'addresses' => [
+                    [
+                        'id'      => 10,
+                        'title'   => 'Home',
+                        'lat'     => 30.0459,
+                        'lng'     => 31.2243,
+                    ],
+                    [
+                        'id'      => 11,
+                        'title'   => 'Work',
+                        'lat'     => 30.0602,
+                        'lng'     => 31.3309,
+                    ],
+                ],
+            ];
+
+            return $this->sendResponse($response, null, 200);
+        }
+
+        // ✅ Ensure the user is authenticated
+        $user = auth()->user();
+        if (! $user) {
+            return $this->sendError('Unauthorized', 'User not authenticated.', 401);
+        }
+
+        // ✅ Retrieve addresses for the authenticated user
+        $addresses = UserAddress::where('user_id', $user->id)
+            ->select('id', 'title', 'lat', 'lng')
+            ->orderBy('id', 'desc')
+            ->get();
+            
+
+        $response = [
+            'count'     => $addresses->count(),
+            'addresses' => $addresses,
+        ];
+
+        return $this->sendResponse($response, null, 200);
     }
 
 }
