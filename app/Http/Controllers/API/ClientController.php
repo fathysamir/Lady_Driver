@@ -623,7 +623,7 @@ class ClientController extends ApiController
 
     public function get_near_drivers(Request $request)
     {
-        if ($request->boolean('mock')) {
+        if ($request->mock) {
             $mockDrivers = [
                 [
                     'name'         => 'Ahmed Ali',
@@ -786,16 +786,16 @@ class ClientController extends ApiController
                 'count'     => 2,
                 'addresses' => [
                     [
-                        'id'      => 10,
-                        'title'   => 'Home',
-                        'lat'     => 30.0459,
-                        'lng'     => 31.2243,
+                        'id'    => 10,
+                        'title' => 'Home',
+                        'lat'   => 30.0459,
+                        'lng'   => 31.2243,
                     ],
                     [
-                        'id'      => 11,
-                        'title'   => 'Work',
-                        'lat'     => 30.0602,
-                        'lng'     => 31.3309,
+                        'id'    => 11,
+                        'title' => 'Work',
+                        'lat'   => 30.0602,
+                        'lng'   => 31.3309,
                     ],
                 ],
             ];
@@ -814,11 +814,57 @@ class ClientController extends ApiController
             ->select('id', 'title', 'lat', 'lng')
             ->orderBy('id', 'desc')
             ->get();
-            
 
         $response = [
             'count'     => $addresses->count(),
             'addresses' => $addresses,
+        ];
+
+        return $this->sendResponse($response, null, 200);
+    }
+
+    public function delete_address(Request $request)
+    {
+        // ✅ Mock mode for testing/demo
+        if ($request->mock) {
+            $response = [
+                'deleted_id' => 10,
+                'message'    => 'Address deleted successfully (mock).',
+            ];
+            return $this->sendResponse($response, null, 200);
+        }
+
+        // ✅ Validate required parameters
+        $validator = Validator::make($request->all(), [
+            'address_id' => 'required|integer|exists:user_addresses,id',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(' / ', $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+
+        // ✅ Ensure user is authenticated
+        $user = auth()->user();
+        if (! $user) {
+            return $this->sendError('Unauthorized', 'User not authenticated.', 401);
+        }
+
+        // ✅ Find address
+        $address = UserAddress::where('id', $request->address_id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $address) {
+            return $this->sendError('Not Found', 'Address not found or does not belong to user.', 404);
+        }
+
+        // ✅ Soft delete
+        $address->delete();
+
+        $response = [
+            'deleted_id' => $request->address_id,
+            'message'    => 'Address deleted successfully.',
         ];
 
         return $this->sendResponse($response, null, 200);
