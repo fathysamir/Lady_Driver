@@ -667,7 +667,7 @@ class ClientController extends ApiController
         $tripFilter = fn($q) => $q->whereIn('status', ['in_progress', 'pending']);
 
         $carDrivers = Car::with('owner:id,name,is_online')
-            ->where('is_comfort', '0')
+            ->where('status', 'confirmed')
             ->whereHas('owner', function ($q) {
                 $q->where('is_online', 1)
                     ->where('status', 'confirmed');
