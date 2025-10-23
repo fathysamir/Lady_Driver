@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('trip_id');
             $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
-             $table->double('lat', 10, 6)->nullable();
+            $table->double('lat', 10, 6)->nullable();
             $table->double('lng', 10, 6)->nullable();
             $table->string('address', 255)->nullable();
             $table->timestamps();

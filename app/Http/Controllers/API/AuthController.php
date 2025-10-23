@@ -39,7 +39,7 @@ class AuthController extends ApiController
         $this->fawry           = $fawry;
     }
 
-     public function register2(Request $request)
+    public function register2(Request $request)
     {
         $rules = [
             'name'         => 'required|string|max:255',
@@ -1019,7 +1019,7 @@ class AuthController extends ApiController
         return $this->sendResponse($acceptLang, 'success', 200);
 
     }
-
+    
     public function cities()
     {
         $cities = City::all();
