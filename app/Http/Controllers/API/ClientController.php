@@ -692,7 +692,7 @@ class ClientController extends ApiController
                     'lng'          => (float) $car->lng,
                 ];
             });
-        dd($carDrivers);
+       
         $scooterDrivers = Scooter::with('owner:id,name,is_online')->where('status', 'confirmed')
             ->whereHas('owner', function ($q) {
                 $q->where('is_online', 1)
