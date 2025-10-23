@@ -664,12 +664,6 @@ class ClientController extends ApiController
         $lng    = $request->lng;
         $radius = 3; // km
 
-        $haversine = "(6371 * acos(cos(radians(?))
-                * cos(radians(lat))
-                * cos(radians(lng) - radians(?))
-                + sin(radians(?))
-                * sin(radians(lat))))";
-
         $tripFilter = fn($q) => $q->whereIn('status', ['in_progress', 'pending']);
 
         $carDrivers = Car::with('owner:id,name,is_online')
@@ -680,10 +674,17 @@ class ClientController extends ApiController
             })
             ->whereDoesntHave('trips', $tripFilter)
             ->select('lat', 'lng', 'user_id')
-            ->selectRaw("$haversine AS distance", [$lat, $lng, $lat])
-            ->having('distance', '<=', $radius)
-            ->orderBy('distance')
+
+            ->selectRaw(
+                "
+                    ROUND(
+                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
+                    ) AS distance",
+                [$lat, $lng, $lat, 2]
+            )
+            ->having('distance', '<=', 3)
             ->get()
+
             ->map(function ($car) {
                 return [
                     'name'         => $car->owner->name ?? null,
@@ -692,7 +693,7 @@ class ClientController extends ApiController
                     'lng'          => (float) $car->lng,
                 ];
             });
-dd($carDrivers);
+        dd($carDrivers);
         $scooterDrivers = Scooter::with('owner:id,name,is_online')
             ->whereHas('owner', fn($q) => $q->where('is_online', 1))
             ->whereDoesntHave('trips', $tripFilter)
