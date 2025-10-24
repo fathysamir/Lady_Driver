@@ -49,6 +49,7 @@ class User extends Authenticatable
         'city_id',
         'level',
         'driver_type',
+        'is_verified'
     ];
 
     /**

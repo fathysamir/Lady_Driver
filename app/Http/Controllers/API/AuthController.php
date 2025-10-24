@@ -158,7 +158,7 @@ class AuthController extends ApiController
                 'email',
                 'max:255',
                 Rule::unique('users')
-                    ->whereNull('deleted_at'),
+                    ->whereNull('deleted_at')->where('is_verified','1'),
             ],
             'password'     => 'required|string|min:8|confirmed',
             'mode'         => 'required|in:driver,client',
@@ -168,7 +168,7 @@ class AuthController extends ApiController
                 Rule::unique('users')
                     ->where(function ($query) use ($request) {
                         return $query->where('country_code', $request->country_code)
-                            ->whereNull('deleted_at');
+                            ->whereNull('deleted_at')->where('is_verified','1');
                     }),
             ],
             'city_id'      => 'required|exists:cities,id',
