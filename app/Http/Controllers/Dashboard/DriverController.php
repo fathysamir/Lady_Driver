@@ -19,15 +19,18 @@ class DriverController extends Controller
     {
         $all_users = User::where('mode', 'driver');
         if ($request->type == 'cars') {
-            $all_users->whereHas('car', function ($q) {
-                $q->where('is_comfort', '0');
-            });
+            $all_users->where('driver_type', 'car');
+            // $all_users->whereHas('car', function ($q) {
+            //     $q->where('is_comfort', '0');
+            // });
         } elseif ($request->type == 'comfort_cars') {
-            $all_users->whereHas('car', function ($q) {
-                $q->where('is_comfort', '1');
-            });
+            $all_users->where('driver_type', 'comfort_car');
+            // $all_users->whereHas('car', function ($q) {
+            //     $q->where('is_comfort', '1');
+            // });
         } elseif ($request->type == 'scooters') {
-            $all_users->whereHas('scooter');
+            $all_users->where('driver_type', 'scooter');
+
         }
         $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
