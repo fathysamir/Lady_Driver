@@ -17,6 +17,7 @@ class DriverController extends Controller
 { //done
     public function index(Request $request)
     {
+        User::where('driver_type', null)->update(['driver_type','car']);
         $all_users = User::where('mode', 'driver');
         if ($request->type == 'cars') {
             $all_users->where('driver_type', 'car');
