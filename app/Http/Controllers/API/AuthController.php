@@ -8,10 +8,12 @@ use App\Models\Car;
 use App\Models\City;
 use App\Models\ContactUs;
 use App\Models\DashboardMessage;
+use App\Models\DriverLicense;
 use App\Models\FAQ;
 use App\Models\FawryTransaction;
 use App\Models\FeedBack;
 use App\Models\Notification;
+use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
@@ -67,17 +69,17 @@ class AuthController extends ApiController
         ];
 
         if ($request->input('mode') === 'driver') {
-           
-            $rules['driver_type']    = 'required|in:scooter,car';
-            $rules['year']           = 'required|integer|min:2000|max:' . date('Y');
-           
-            $rules['national_ID']    = 'required|digits:14';
+
+            $rules['driver_type'] = 'required|in:scooter,car';
+            $rules['year']        = 'required|integer|min:2000|max:' . date('Y');
+
+            $rules['national_ID'] = 'required|digits:14';
         }
 
         if ($request->input('mode') === 'client') {
 
-            $rules['gendor']         = 'required|in:Male,Female';
-            
+            $rules['gendor'] = 'required|in:Male,Female';
+
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -140,13 +142,301 @@ class AuthController extends ApiController
         $user->assignRole([$role->id]);
         // Generate OTP
 
-        
-
         // Send OTP via Email (or SMS)
         Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
 
         return $this->sendResponse(null, 'OTP sent to your email address.', 200);
 
+    }
+
+    public function driver_register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'                        => 'required|string|max:255',
+            'email'                       => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')
+                    ->whereNull('deleted_at')->where('is_verified', '1'),
+            ],
+            'password'                    => 'required|string|min:8|confirmed',
+            'country_code'                => 'required|string|max:10',
+            'phone'                       => [
+                'required',
+                Rule::unique('users')
+                    ->where(function ($query) use ($request) {
+                        return $query->where('country_code', $request->country_code)
+                            ->whereNull('deleted_at')->where('is_verified', '1');
+                    }),
+            ],
+            'image'                       => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'birth_date'                  => [
+                'required',
+                'date',
+                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
+            ],
+            'city_id'                     => ['required', Rule::unique('cities')->whereNull('deleted_at')],
+
+            'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
+            'ID_front_image'              => 'required_with:national_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_back_image'               => 'required_with:national_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
+
+            'passport_ID'                 => 'nullable|required_without:national_ID',
+            'passport_image'              => 'required_with:passport_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
+
+            'driving_license_number'      => 'required|string|max:50',
+            'license_expire_date'         => [
+                'required',
+                'date_format:Y-m-d',
+                'after_or_equal:today',
+            ],
+            'license_front_image'         => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'license_back_image'          => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+
+            'vehicle_type'                => ['required', Rule::in(['car', 'scooter'])],
+            'car_mark_id'                 => [
+                'required_if:vehicle_type,car',
+                'nullable',
+                Rule::exists('car_marks', 'id'),
+            ],
+            'car_model_id'                => [
+                'required_if:vehicle_type,car',
+                'nullable',
+                Rule::exists('car_models', 'id'),
+            ],
+            'scooter_mark_id'             => [
+                'required_if:vehicle_type,scooter',
+                'nullable',
+                Rule::exists('motorcycle_marks', 'id'),
+            ],
+            'scooter_model_id'            => [
+                'required_if:vehicle_type,scooter',
+                'nullable',
+                Rule::exists('motorcycle_models', 'id'),
+            ],
+            'air_conditioned'             => 'nullable|boolean',
+            'allow_pets'                  => 'nullable|boolean',
+            'color'                       => 'required|string|max:255',
+            'year'                        => 'required|integer|min:1990|max:' . date('Y'),
+            'plate_num'                   => 'required|string|max:255',
+            'vehicle_image'               => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'plate_image'                 => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'vehicle_license_expire_date' => [
+                'required',
+                'date_format:Y-m-d',
+                'after_or_equal:today',
+            ],
+            'vehicle_license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'vehicle_license_back_image'  => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+        Log::info('Incoming Request from Flutter:', $request->all());
+        $otpCode = generateOTP();
+        do {
+            $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
+        } while (User::where('invitation_code', $invitation_code)->exists());
+        if ($request->birth_date) {
+            $age = Carbon::parse($request->birth_date)->age;
+        } else {
+            $age = null;
+        }
+
+        if ($request->vehicle_type == 'car') {
+            $comfort_year = Setting::where('key', 'comfort_car_start_from_year')->where('category', 'General')->where('type', 'number')->first()->value;
+            if (intval($request->year) >= intval($comfort_year)) {
+                $driver_type = 'comfort_car';
+                $is_comfort  = '1';
+            } else {
+                $driver_type = 'car';
+                $is_comfort  = '0';
+            }
+        } else {
+            $driver_type = 'scooter';
+        }
+
+        $user = User::create([
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'password'        => Hash::make($request->password),
+            'phone'           => $request->phone,
+            'country_code'    => $request->country_code,
+            'mode'            => 'driver',
+            'OTP'             => $otpCode,
+            'invitation_code' => $invitation_code,
+            'gendor'          => 'Female',
+            'birth_date'      => $request->birth_date,
+            'age'             => $age,
+            'city_id'         => $request->city_id,
+            'national_id'     => $request->national_ID,
+            'passport_id'     => $request->passport_ID,
+            'driver_type'     => $driver_type,
+            'level'           => '1',
+        ]);
+        $role = Role::where('name', 'Client')->first();
+
+        $user->assignRole([$role->id]);
+        if ($request->file('image')) {
+            uploadMedia($request->image, $user->avatarCollection, $user);
+        }
+        if ($request->file('ID_front_image')) {
+            uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+        }
+        if ($request->file('ID_back_image')) {
+            uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+        }
+        if ($request->file('passport_image')) {
+            uploadMedia($request->passport_image, $user->passportImageCollection, $user);
+        }
+
+        $license = DriverLicense::create(['user_id' => $user->id,
+            'license_num'                               => $request->driving_license_number,
+            'expire_date'                               => $request->license_expire_date]);
+
+        uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
+        uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
+        if ($request->vehicle_type == 'car') {
+            $lastCar = Car::orderBy('id', 'desc')->first();
+
+            if ($lastCar) {
+                $lastCode = $lastCar->code;
+                $code     = 'CAR-' . str_pad((int) substr($lastCode, 4) + 1, 9, '0', STR_PAD_LEFT);
+            } else {
+                $code = 'CAR-000000001';
+            }
+            $car = Car::create(['user_id' => $user->id,
+                'car_mark_id'                 => $request->car_mark_id,
+                'code'                        => $code,
+                'car_model_id'                => $request->car_model_id,
+                'color'                       => $request->color,
+                'year'                        => $request->year,
+                'car_plate'                   => $request->plate_num,
+                'passenger_type'              => 'female',
+                'license_expire_date'         => $request->vehicle_license_expire_date,
+                'is_comfort'                  => $is_comfort,
+            ]);
+            if ($request->air_conditioned) {
+                $car->air_conditioned = '1';
+            } else {
+                $car->air_conditioned = '0';
+            }
+
+            if ($request->allow_pets) {
+                $car->animals = '1';
+            } else {
+                $car->animals = '0';
+            }
+            $car->save();
+            uploadMedia($request->vehicle_image, $car->avatarCollection, $car);
+            uploadMedia($request->plate_image, $car->PlateImageCollection, $car);
+            uploadMedia($request->vehicle_license_front_image, $car->LicenseFrontImageCollection, $car);
+            uploadMedia($request->vehicle_license_front_image, $car->LicenseBackImageCollection, $car);
+        } elseif ($request->vehicle_type == 'scooter') {
+            $lastScooter = Scooter::orderBy('id', 'desc')->first();
+
+            if ($lastScooter) {
+                $lastCode = $lastScooter->code;
+                $code     = 'SCO-' . str_pad((int) substr($lastCode, 4) + 1, 9, '0', STR_PAD_LEFT);
+            } else {
+                $code = 'SCT-000000001';
+            }
+            $scooter = Scooter::create(['user_id' => auth()->user()->id,
+                'motorcycle_mark_id'                  => $request->scooter_mark_id,
+                'code'                                => $code,
+                'motorcycle_model_id'                 => $request->scooter_model_id,
+                'color'                               => $request->color,
+                'year'                                => $request->year,
+                'scooter_plate'                       => $request->plate_num,
+                'license_expire_date'                 => $request->vehicle_license_expire_date,
+            ]);
+            uploadMedia($request->vehicle_image, $scooter->avatarCollection, $scooter);
+            uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
+            uploadMedia($request->vehicle_license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
+            uploadMedia($request->vehicle_license_front_image, $scooter->LicenseBackImageCollection, $scooter);
+        }
+        Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
+        return $this->sendResponse(null, 'OTP sent to your email address.', 200);
+
+    }
+    public function client_register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'         => 'required|string|max:255',
+            'email'        => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')
+                    ->whereNull('deleted_at')->where('is_verified', '1'),
+            ],
+            'password'     => 'required|string|min:8|confirmed',
+            'country_code' => 'required|string|max:10',
+            'phone'        => [
+                'required',
+                Rule::unique('users')
+                    ->where(function ($query) use ($request) {
+                        return $query->where('country_code', $request->country_code)
+                            ->whereNull('deleted_at')->where('is_verified', '1');
+                    }),
+            ],
+            'image'        => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'birth_date'   => [
+                'required',
+                'date',
+                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
+            ],
+            'city_id'      => ['required', Rule::unique('cities')->whereNull('deleted_at')],
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+        Log::info('Incoming Request from Flutter:', $request->all());
+        $otpCode = generateOTP();
+        do {
+            $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
+        } while (User::where('invitation_code', $invitation_code)->exists());
+        if ($request->birth_date) {
+            $age = Carbon::parse($request->birth_date)->age;
+        } else {
+            $age = null;
+        }
+        $user = User::create([
+
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'password'        => Hash::make($request->password),
+            'phone'           => $request->phone,
+            'country_code'    => $request->country_code,
+            'mode'            => 'client',
+            'OTP'             => $otpCode,
+            'invitation_code' => $invitation_code,
+            'gendor'          => 'Female',
+            'birth_date'      => $request->birth_date,
+            'age'             => $age,
+            'city_id'         => $request->city_id,
+            'driver_type'     => null,
+        ]);
+        $role = Role::where('name', 'Client')->first();
+
+        $user->assignRole([$role->id]);
+        // Generate OTP
+
+        if ($request->file('image')) {
+            uploadMedia($request->image, $user->avatarCollection, $user);
+        }
+        Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
+
+        return $this->sendResponse(null, 'OTP sent to your email address.', 200);
     }
     public function register(Request $request)
     {
@@ -158,7 +448,7 @@ class AuthController extends ApiController
                 'email',
                 'max:255',
                 Rule::unique('users')
-                    ->whereNull('deleted_at')->where('is_verified','1'),
+                    ->whereNull('deleted_at')->where('is_verified', '1'),
             ],
             'password'     => 'required|string|min:8|confirmed',
             'mode'         => 'required|in:driver,client',
@@ -168,7 +458,7 @@ class AuthController extends ApiController
                 Rule::unique('users')
                     ->where(function ($query) use ($request) {
                         return $query->where('country_code', $request->country_code)
-                            ->whereNull('deleted_at')->where('is_verified','1');
+                            ->whereNull('deleted_at')->where('is_verified', '1');
                     }),
             ],
             'city_id'      => 'required|exists:cities,id',
@@ -181,7 +471,7 @@ class AuthController extends ApiController
                 'required',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/'
+                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ];
             $rules['driver_type']    = 'required|in:scooter,car';
             $rules['year']           = 'required|integer|min:2000|max:' . date('Y');
@@ -194,11 +484,11 @@ class AuthController extends ApiController
             $rules['ID_front_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['passport']       = 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120';
             $rules['gendor']         = 'required|in:Male,Female';
-            $rules['birth_date'] = [
+            $rules['birth_date']     = [
                 'nullable',
                 'date',
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/'
+                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ];
         }
 
@@ -1019,7 +1309,7 @@ class AuthController extends ApiController
         return $this->sendResponse($acceptLang, 'success', 200);
 
     }
-    
+
     public function cities()
     {
         $cities = City::all();

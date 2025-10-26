@@ -425,7 +425,7 @@ class Chat implements MessageComponentInterface
             $newTrip['user']['id']                = intval($AuthUserID);
             $newTrip['user']['name']              = $u->name;
             $newTrip['user']['image']             = $user_image;
-            $newTrip['user']['rate']              = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+            $newTrip['user']['rate']              = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
             switch ($type) {
                 case 'car':
                     $decimalPlaces = 2;
@@ -885,7 +885,7 @@ class Chat implements MessageComponentInterface
         if ($trip->type == 'comfort_car' || $trip->type == 'car') {
             $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
                 $query->where('user_id', $driver_->id);
-            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
+            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
 
             $offer_result['car']['id']            = $offer->car()->first()->id;
             $offer_result['car']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->car()->first(), $offer->car()->first()->avatarCollection);
@@ -899,7 +899,7 @@ class Chat implements MessageComponentInterface
         } elseif ($trip->type == 'scooter') {
             $offer_result['user']['rate'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
                 $query->where('user_id', $driver_->id);
-            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
+            })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
             $offer_result['scooter']['id']            = $offer->scooter()->first()->id;
             $offer_result['scooter']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
             $offer_result['scooter']['year']          = $offer->scooter()->first()->year;

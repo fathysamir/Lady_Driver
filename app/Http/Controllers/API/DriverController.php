@@ -560,7 +560,7 @@ class DriverController extends ApiController
         $driving_license->license_front_image = getFirstMediaUrl($driving_license, $driving_license->LicenseFrontImageCollection);
         $driving_license->license_back_image  = getFirstMediaUrl($driving_license, $driving_license->LicenseBackImageCollection);
 
-        return $this->sendResponse($driving_license, 'License Driving is Created Successfuly', 200);
+        return $this->sendResponse($driving_license, 'License Driving is Created Successfully', 200);
 
     }
 
@@ -641,7 +641,7 @@ class DriverController extends ApiController
                             $trip->client_location_distance = $distance;
                             $trip->client_location_duration = $duration;
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                             return $trip;
                         }
@@ -683,7 +683,7 @@ class DriverController extends ApiController
                             $trip->client_location_distance = $distance;
                             $trip->client_location_duration = $duration;
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                             return $trip;
                         }
@@ -719,7 +719,7 @@ class DriverController extends ApiController
                             $trip->client_location_distance = $distance;
                             $trip->client_location_duration = $duration;
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+                            $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                             return $trip;
                         }

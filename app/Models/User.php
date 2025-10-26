@@ -31,6 +31,7 @@ class User extends Authenticatable
         'OTP',
         'is_online',
         'national_id',
+        'passport_id',
         'lat',
         'lng',
         'address',

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->enum('mode', ['client', 'driver', 'admin'])->default('client');
             $table->enum('gendor', ['Male', 'Female', 'other'])->default('Female');
             $table->string('national_id')->unique()->nullable();
+            $table->string('passport_id')->unique()->nullable();
             $table->double('lat', 10, 6)->nullable();
             $table->double('lng', 10, 6)->nullable();
             $table->longText('address')->nullable();
