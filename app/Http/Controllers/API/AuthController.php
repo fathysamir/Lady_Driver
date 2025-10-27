@@ -393,7 +393,6 @@ class AuthController extends ApiController
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
-            'city_id'      => ['required', Rule::unique('cities')->whereNull('deleted_at')],
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -423,7 +422,6 @@ class AuthController extends ApiController
             'gendor'          => 'Female',
             'birth_date'      => $request->birth_date,
             'age'             => $age,
-            'city_id'         => $request->city_id,
             'driver_type'     => null,
         ]);
         $role = Role::where('name', 'Client')->first();
