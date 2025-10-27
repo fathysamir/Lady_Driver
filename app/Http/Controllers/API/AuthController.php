@@ -260,7 +260,7 @@ class AuthController extends ApiController
         } else {
             $driver_type = 'scooter';
         }
-
+dd($request->all());
         $user = User::create([
             'name'            => $request->name,
             'email'           => $request->email,
