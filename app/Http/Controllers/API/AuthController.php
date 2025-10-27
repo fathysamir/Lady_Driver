@@ -178,7 +178,7 @@ class AuthController extends ApiController
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
-            'city_id'                     => ['required', Rule::unique('cities')->whereNull('deleted_at')],
+            'city_id'                     => ['required',Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
             'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
             'ID_front_image'              => 'required_with:national_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
