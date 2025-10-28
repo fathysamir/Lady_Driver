@@ -98,13 +98,13 @@ class ClientController extends ApiController
         }
         $response['start_date'] = $start_date;
         $response['start_time'] = $start_time;
-        $response['start_lat']  = $request->start_lat;
-        $response['start_lng']  = $request->start_lng;
+        $response['start_lat']  = (float)$request->start_lat;
+        $response['start_lng']  = (float)$request->start_lng;
         $response_x             = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
         $distance               = $response_x['distance_in_km'];
         $duration               = $response_x['duration_in_M'];
-        $response['end_lat_1']  = $request->end_lat_1;
-        $response['end_lng_1']  = $request->end_lng_1;
+        $response['end_lat_1']  = (float)$request->end_lat_1;
+        $response['end_lng_1']  = (float)$request->end_lng_1;
         if ($request->end_lat_2 != null && $request->end_lng_2 != null) {
             $response_x            = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2);
             $distance              = $distance + $response_x['distance_in_km'];
