@@ -231,6 +231,7 @@ class AuthController extends ApiController
             ],
             'vehicle_license_front_image' => 'required|string',
             'vehicle_license_back_image'  => 'required|string',
+            'registration_id'=>'required'
         ]);
         // dd($request->all());
         if ($validator->fails()) {
