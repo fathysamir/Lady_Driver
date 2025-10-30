@@ -42,6 +42,12 @@ Route::get('/', function () {
 });
 Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name('api.fawry.webhook');
 Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
+Route::get('/password/reset/{token}', function ($token) {
+    return response()->json([
+        'success' => true,
+        'token' => $token
+    ]);
+})->name('password.reset');
 
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/live/{token}', [LiveLocationController::class, 'viewPage2']);

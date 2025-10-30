@@ -71,6 +71,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
+        'locked_until' => 'datetime',
     ];
     protected $appends = [
         'image',
@@ -112,4 +113,6 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class);
     }
+   
+  
 }

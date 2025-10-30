@@ -37,6 +37,7 @@ Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('sa
 Route::get('/about_us', [AuthController::class, 'about_us'])->name('about_us');
 Route::post('/verifyOTP', [AuthController::class, 'verifyOTP'])->name('verifyOTP');
 Route::post('/resend_otp', [AuthController::class, 'resend_otp'])->name('resend_otp');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
 Route::post('/reset_password', [AuthController::class, 'reset_password'])->name('reset_password');
 Route::get('/live-location/data/{token}', [LiveLocationController::class, 'getLocation']);
 Route::middleware('auth:sanctum')->group(function () {

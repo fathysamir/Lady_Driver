@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -858,62 +859,116 @@ class AuthController extends ApiController
 
     public function login(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'email'        => 'required|string',
             'password'     => 'required|string|min:8',
             'device_token' => 'required',
         ]);
-        // dd($request->all());
+    
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
             return $this->sendError(null, $errors, 400);
         }
+    
         $login     = $request->email;
         $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-
-        // Find the user based on email or phone
-        $user = User::where($fieldType, $login)->first();
-
+        $user      = User::where($fieldType, $login)->first();
+    
+        // =====  Load Security Config =====
+        $attemptsField = 'login_attempts';
+        $maxAttempts   = config('security.max_attempts', 5);
+        $lockMinutes   = config('security.lock_minutes', 15);
+        $logChannel    = config('security.log_channel', 'auth');
+        // ===================================
+    
         if ($user) {
-            if (! Hash::check($request->password, $user->password)) {
-                return $this->sendError(null, 'Invalid credentials, password is incorrect', 401);
+    
+            // Account Locked Check
+            if (!is_null($user->locked_until) && now()->lt($user->locked_until)) {
+                $remaining = now()->diffInMinutes($user->locked_until);
+         
+
+    
+                Log::channel('auth')->warning('Blocked login attempt', [
+                    $fieldType => $login,
+                    'remaining_minutes' => $remaining,
+                ]);
+    
+                return $this->sendError(null, "Account locked. Try again in $remaining minutes", 423);
             }
+    
+            //Wrong Password
+            if (!Hash::check($request->password, $user->password)) {
+    
+                $user->{$attemptsField}++;
+    
+                if ($user->{$attemptsField} >= $maxAttempts) {
+                    $user->locked_until = now()->addMinutes($lockMinutes);
+    
+                    Log::channel('auth')->error('Account locked due to too many failed attempts', [
+                        $fieldType => $login,
+                        'locked_until' => $user->locked_until,
+                    ]);
+    
+                    $user->{$attemptsField} = 0; // reset after lock
+                } else {
+    
+                    Log::channel('auth')->info('Wrong password attempt', [
+                        $fieldType => $login,
+                        'attempts_left' => $maxAttempts - $user->{$attemptsField},
+                    ]);
+                }
+    
+                $user->save();
+    
+                return $this->sendError(null, 'Invalid credentials', 401);
+            }
+    
+           
+            $user->{$attemptsField} = 0;
+            $user->locked_until = null;
+            $user->save();
+    
+            Log::channel('auth')->info('Successful login', [
+                $fieldType => $login,
+            ]);
         } else {
-            return $this->sendError(null, 'Invalid credentials, your ' . $fieldType . ' is incorrect', 401);
+    
+            Log::channel('auth')->info('User not found', [
+                $fieldType => $login,
+            ]);
+    
+            return $this->sendError(null, "Invalid $fieldType", 401);
         }
+    
+       
         if ($user->status == 'blocked') {
-            return $this->sendError(null, 'this account is blocked', 401);
+            return $this->sendError(null, 'This account is blocked', 401);
         }
+    
         if ($user->is_verified == '0') {
-            $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
+            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
             $user->verification = '0';
-            $user->token        = '';
-            $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
-            $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
-
-            return $this->sendResponse($user, 'this account not verified', 200);
+            $user->token = '';
+            $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
+            $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
+    
+            return $this->sendResponse($user, 'This account is not verified', 200);
         }
-        // Generate OTP
-        // $otpCode = generateOTP();
-        // $user->OTP= $otpCode ;
-        // $user->save();
+    
         $user->device_token = $request->device_token;
-        $user->is_online    = '1';
+        $user->is_online = '1';
         $user->save();
-        $user->token       = $user->createToken('api')->plainTextToken;
-        $user->image       = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->hasVehicle  = $user->car()->exists() || $user->scooter()->exists();
+    
+        $user->token = $user->createToken('api')->plainTextToken;
+        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
         $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
-
         $user->verification = '1';
-        // Send OTP via Email (or SMS)
-        //Mail::to($request->email)->send(new SendOTP($otpCode));
-
-        //return $this->sendResponse(null,'OTP sent to your email address.',200);
+    
         return $this->sendResponse($user, null, 200);
-
     }
+    
 
     public function device_tocken(Request $request)
     {
@@ -1152,6 +1207,37 @@ class AuthController extends ApiController
         return $this->sendResponse($user, 'Account Updated Successfuly', 200);
 
     }
+
+    public function forgotPassword(Request $request)
+    {
+        
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+    
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+    
+        //Link
+        $status = Password::sendResetLink(['email' => $request->email]);
+    
+        if ($status === Password::RESET_LINK_SENT) {
+            return $this->sendResponse(null, 'Password reset link sent successfully to your email.', 200);
+        }
+    
+        if ($status === Password::INVALID_USER) {
+            return $this->sendError(null, 'User with this email does not exist.', 404);
+        }
+    
+        // fallback 
+        return $this->sendError(null, 'Something went wrong while sending the reset link.', 400);
+    }
+    
+
+
+    
 
     public function reset_password(Request $request)
     {
