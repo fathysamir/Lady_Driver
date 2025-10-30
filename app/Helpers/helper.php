@@ -227,7 +227,6 @@ function uploadImage($request_file, $registration_id = null)
         $registration_id = $re_id;
     }
 
-    $registration_id = $registration_id ??
     DB::table('registration_images')->insert([
         'registration_id' => $registration_id,
         'path'            => $path,
