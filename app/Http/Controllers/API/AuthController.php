@@ -423,6 +423,13 @@ class AuthController extends ApiController
 
     public function save_image(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
         $response = uploadImage($request->image, $request->registration_id);
         return $this->sendResponse($response, 'Image Uploaded successfully.', 200);
 
