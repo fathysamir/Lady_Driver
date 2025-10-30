@@ -178,7 +178,7 @@ class AuthController extends ApiController
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
-            'city_id'                     => ['required',Rule::exists('cities', 'id')->whereNull('deleted_at')],
+            'city_id'                     => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
             'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
             'ID_front_image'              => 'required_with:national_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -260,7 +260,7 @@ class AuthController extends ApiController
         } else {
             $driver_type = 'scooter';
         }
-dd($request->all());
+
         $user = User::create([
             'name'            => $request->name,
             'email'           => $request->email,
@@ -283,24 +283,35 @@ dd($request->all());
 
         $user->assignRole([$role->id]);
         if ($request->file('image')) {
-            uploadMedia($request->image, $user->avatarCollection, $user);
+            //uploadMedia($request->image, $user->avatarCollection, $user);
+            uploadMediaByURL($request->image, $user->avatarCollection, $user);
         }
         if ($request->file('ID_front_image')) {
-            uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+            //uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+            uploadMediaByURL($request->ID_front_image, $user->IDfrontImageCollection, $user);
+
         }
         if ($request->file('ID_back_image')) {
-            uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+            // uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+            uploadMediaByURL($request->ID_back_image, $user->IDbackImageCollection, $user);
+
         }
         if ($request->file('passport_image')) {
-            uploadMedia($request->passport_image, $user->passportImageCollection, $user);
+            // uploadMedia($request->passport_image, $user->passportImageCollection, $user);
+            uploadMediaByURL($request->passport_image, $user->passportImageCollection, $user);
+
         }
 
         $license = DriverLicense::create(['user_id' => $user->id,
             'license_num'                               => $request->driving_license_number,
             'expire_date'                               => $request->license_expire_date]);
 
-        uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
-        uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
+        // uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
+        uploadMediaByURL($request->license_front_image, $license->LicenseFrontImageCollection, $license);
+
+        // uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
+        uploadMediaByURL($request->license_back_image, $license->LicenseBackImageCollection, $license);
+
         if ($request->vehicle_type == 'car') {
             $lastCar = Car::orderBy('id', 'desc')->first();
 
@@ -333,10 +344,10 @@ dd($request->all());
                 $car->animals = '0';
             }
             $car->save();
-            uploadMedia($request->vehicle_image, $car->avatarCollection, $car);
-            uploadMedia($request->plate_image, $car->PlateImageCollection, $car);
-            uploadMedia($request->vehicle_license_front_image, $car->LicenseFrontImageCollection, $car);
-            uploadMedia($request->vehicle_license_front_image, $car->LicenseBackImageCollection, $car);
+            uploadMediaByURL($request->vehicle_image, $car->avatarCollection, $car);
+            uploadMediaByURL($request->plate_image, $car->PlateImageCollection, $car);
+            uploadMediaByURL($request->vehicle_license_front_image, $car->LicenseFrontImageCollection, $car);
+            uploadMediaByURL($request->vehicle_license_front_image, $car->LicenseBackImageCollection, $car);
         } elseif ($request->vehicle_type == 'scooter') {
             $lastScooter = Scooter::orderBy('id', 'desc')->first();
 
@@ -355,13 +366,65 @@ dd($request->all());
                 'scooter_plate'                       => $request->plate_num,
                 'license_expire_date'                 => $request->vehicle_license_expire_date,
             ]);
-            uploadMedia($request->vehicle_image, $scooter->avatarCollection, $scooter);
-            uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
-            uploadMedia($request->vehicle_license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
-            uploadMedia($request->vehicle_license_front_image, $scooter->LicenseBackImageCollection, $scooter);
+            uploadMediaByURL($request->vehicle_image, $scooter->avatarCollection, $scooter);
+            uploadMediaByURL($request->plate_image, $scooter->PlateImageCollection, $scooter);
+            uploadMediaByURL($request->vehicle_license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
+            uploadMediaByURL($request->vehicle_license_front_image, $scooter->LicenseBackImageCollection, $scooter);
         }
         Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
+        $used_paths = [];
+
+        if (isset($request->image)) {
+            $used_paths[] = $request->image;
+        }
+
+        if (isset($request->ID_front_image)) {
+            $used_paths[] = $request->ID_front_image;
+        }
+
+        if (isset($request->ID_back_image)) {
+            $used_paths[] = $request->ID_back_image;
+        }
+
+        if (isset($request->passport_image)) {
+            $used_paths[] = $request->passport_image;
+        }
+
+        if (isset($request->license_front_image)) {
+            $used_paths[] = $request->license_front_image;
+        }
+
+        if (isset($request->license_back_image)) {
+            $used_paths[] = $request->license_back_image;
+        }
+
+        if (isset($request->vehicle_image)) {
+            $used_paths[] = $request->vehicle_image;
+        }
+
+        if (isset($request->plate_image)) {
+            $used_paths[] = $request->plate_image;
+        }
+
+        if (isset($request->vehicle_license_front_image)) {
+            $used_paths[] = $request->vehicle_license_front_image;
+        }
+
+        if (isset($request->vehicle_license_back_image)) {
+            $used_paths[] = $request->vehicle_license_back_image;
+        }
+
+        if ($request->registration_id) {
+            deleteUnusedRegistrationImages($request->registration_id, $used_paths);
+        }
         return $this->sendResponse(null, 'OTP sent to your email address.', 200);
+
+    }
+
+    public function save_image(Request $request)
+    {
+        $response = uploadImage($request->image, $request->registration_id);
+        return $this->sendResponse($response, 'Image Uploaded successfully.', 200);
 
     }
     public function client_register(Request $request)

@@ -125,7 +125,7 @@ function barcodeImage($id)
 {
     $trip = Trip::findOrFail($id);
 
-    $dns2d = new DNS2D();
+    $dns2d    = new DNS2D();
     $qrBase64 = $dns2d->getBarcodePNG($trip->barcode, 'QRCODE');
     $qrData   = base64_decode($qrBase64);
 
@@ -200,4 +200,61 @@ function highlight($text, $search)
         return str_ireplace($search, "<mark style='background-color:rgb(143, 118, 9); padding:0px;'>$search</mark>", $text);
     }
     return $text;
+}
+
+function uploadImage($request_file, $registration_id = null)
+{
+    ini_set('post_max_size', '500M');
+    ini_set('upload_max_filesize', '500M');
+    ini_set('memory_limit', '500M');
+    set_time_limit(10000000);
+    $directory = public_path('images');
+
+    if (! File::exists($directory)) {
+        File::makeDirectory($directory, 0755, true);
+    }
+    $invitation_code  = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+    $invitation_code2 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+    $image            = $invitation_code2 . '' . $invitation_code . '' . time() . '.' . $request_file->extension();
+
+    $request_file->move(public_path('images/'), $image);
+    $path = ('/images/') . $image;
+    if (! $registration_id) {
+        do {
+            $re_id = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 5);
+        } while (DB::table('registration_images')->where('registration_id', $re_id)->exists());
+
+        $registration_id = $re_id;
+    }
+
+    $registration_id = $registration_id ??
+    DB::table('registration_images')->insert([
+        'registration_id' => $registration_id,
+        'path'            => $path,
+    ]);
+    $response['registration_id'] = $registration_id;
+    $response['path']            = $path;
+
+    return $response;
+}
+
+function deleteUnusedRegistrationImages($registration_id, $used_paths = [])
+{
+    // Get all images linked to that registration_id
+    $images = DB::table('registration_images')
+        ->where('registration_id', $registration_id)
+        ->get();
+
+    foreach ($images as $image) {
+        $path = public_path($image->path);
+
+        // Delete if not in used list and file exists
+        if (!in_array($image->path, $used_paths) && File::exists($path)) {
+            File::delete($path);
+        }
+    }
+
+    DB::table('registration_images')
+        ->where('registration_id', $registration_id)
+        ->delete();
 }

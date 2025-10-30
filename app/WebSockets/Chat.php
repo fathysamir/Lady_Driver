@@ -231,6 +231,9 @@ class Chat implements MessageComponentInterface
             $duration   = $duration + $response_x['duration_in_M'];
         }
 
+        //$distance=$data['type'];
+
+
         if ($distance > $maximum_distance_long_trip) {
             $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         } else {

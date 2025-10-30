@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/save_image', [AuthController::class, 'save_image'])->name('save_image');
 Route::get('/Privacy_Policy', [AuthController::class, 'Privacy_Policy'])->name('Privacy_Policy');
 Route::get('/terms_conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
 Route::get('/cities', [AuthController::class, 'cities'])->name('cities');
