@@ -171,7 +171,7 @@ class AuthController extends ApiController
                             ->whereNull('deleted_at')->where('is_verified', '1');
                     }),
             ],
-            'image'                       => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'image'                       => 'required|string',
             'birth_date'                  => [
                 'required',
                 'date',
@@ -181,11 +181,11 @@ class AuthController extends ApiController
             'city_id'                     => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
             'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
-            'ID_front_image'              => 'required_with:national_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_back_image'               => 'required_with:national_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_front_image'              => 'required_with:national_ID|string',
+            'ID_back_image'               => 'required_with:national_ID|string',
 
             'passport_ID'                 => 'nullable|required_without:national_ID',
-            'passport_image'              => 'required_with:passport_ID|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'passport_image'              => 'required_with:passport_ID|string',
 
             'driving_license_number'      => 'required|string|max:50',
             'license_expire_date'         => [
@@ -193,8 +193,8 @@ class AuthController extends ApiController
                 'date_format:Y-m-d',
                 'after_or_equal:today',
             ],
-            'license_front_image'         => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'license_back_image'          => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'license_front_image'         => 'required|string',
+            'license_back_image'          => 'required|string',
 
             'vehicle_type'                => ['required', Rule::in(['car', 'scooter'])],
             'car_mark_id'                 => [
@@ -222,15 +222,15 @@ class AuthController extends ApiController
             'color'                       => 'required|string|max:255',
             'year'                        => 'required|integer|min:1990|max:' . date('Y'),
             'plate_num'                   => 'required|string|max:255',
-            'vehicle_image'               => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'plate_image'                 => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'vehicle_image'               => 'required|string',
+            'plate_image'                 => 'required|string',
             'vehicle_license_expire_date' => [
                 'required',
                 'date_format:Y-m-d',
                 'after_or_equal:today',
             ],
-            'vehicle_license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'vehicle_license_back_image'  => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'vehicle_license_front_image' => 'required|string',
+            'vehicle_license_back_image'  => 'required|string',
         ]);
         // dd($request->all());
         if ($validator->fails()) {
