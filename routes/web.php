@@ -18,7 +18,7 @@ use App\Http\Controllers\Dashboard\PaymentController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
-use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Milon\Barcode\DNS2D;
 
@@ -42,6 +42,11 @@ Route::get('/', function () {
 });
 Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name('api.fawry.webhook');
 Route::get('/payment/return', [PaymentController::class, 'returnUrl'])->name('payment.return');
+Route::get('/reset-password/{token}', function ($token, Request $request) {
+    $email = $request->query('email');
+    return view('reset-password', compact('token', 'email'));
+})->name('password.reset');
+
 
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/live/{token}', [LiveLocationController::class, 'viewPage2']);
