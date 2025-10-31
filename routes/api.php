@@ -21,6 +21,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/marks', [DriverController::class, 'marks'])->name('marks');
+Route::get('/models', [DriverController::class, 'models'])->name('models');
+Route::get('/scooter_marks', [DriverController::class, 'scooter_marks'])->name('scooter_marks');
+Route::get('/scooter_models', [DriverController::class, 'scooter_models'])->name('scooter_models');
 
 Route::post('/save_image', [AuthController::class, 'save_image'])->name('save_image');
 Route::get('/Privacy_Policy', [AuthController::class, 'Privacy_Policy'])->name('Privacy_Policy');
@@ -75,10 +79,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
     Route::post('/create_offer', [DriverController::class, 'create_offer'])->name('create_offer');
-    Route::get('/marks', [DriverController::class, 'marks'])->name('marks');
-    Route::get('/models', [DriverController::class, 'models'])->name('models');
-    Route::get('/scooter_marks', [DriverController::class, 'scooter_marks'])->name('scooter_marks');
-    Route::get('/scooter_models', [DriverController::class, 'scooter_models'])->name('scooter_models');
 
     Route::get('/current_trip', [ClientController::class, 'current_trip'])->name('current_trip');
     Route::post('/accept_offer', [ClientController::class, 'accept_offer'])->name('accept_offer');
