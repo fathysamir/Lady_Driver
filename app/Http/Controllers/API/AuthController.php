@@ -18,6 +18,8 @@ use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use App\Services\FawryService;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
@@ -151,6 +153,17 @@ class AuthController extends ApiController
 
     public function driver_register(Request $request)
     {
+        $images = DB::table('registration_images')
+            ->get();
+
+        foreach ($images as $image) {
+            $path = public_path($image->path);
+
+            // Delete if not in used list and file exists
+            if (File::exists($path)) {
+                File::delete($path);
+            }
+        }
         $validator = Validator::make($request->all(), [
             'name'                        => 'required|string|max:255',
             'email'                       => [
@@ -233,7 +246,7 @@ class AuthController extends ApiController
             ],
             'vehicle_license_front_image' => 'required|string',
             'vehicle_license_back_image'  => 'required|string',
-            'registration_id'=>'required'
+            'registration_id'             => 'required',
         ]);
         // dd($request->all());
         if ($validator->fails()) {
