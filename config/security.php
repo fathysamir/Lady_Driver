@@ -1,10 +1,7 @@
 <?php
 
 return [
-
-    'attempts_field' => 'login_attempts',
-    'max_attempts' => env('MAX_LOGIN_ATTEMPTS', 5),
-    'lock_minutes' => env('LOCKOUT_DURATION', 15),
-    
-
+    'max_attempts' => env('SECURITY_MAX_ATTEMPTS', 5),
+    'lock_minutes' => env('SECURITY_LOCK_MINUTES',15),
+    'log_channel'  => env('SECURITY_LOG_CHANNEL', 'auth'),
 ];

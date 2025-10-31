@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -858,116 +859,105 @@ class AuthController extends ApiController
     }
 
     public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email'        => 'required|string',
-            'password'     => 'required|string|min:8',
-            'device_token' => 'required',
-        ]);
-    
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
-        }
-    
-        $login     = $request->email;
-        $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        $user      = User::where($fieldType, $login)->first();
-    
-        // =====  Load Security Config =====
-        $attemptsField = 'login_attempts';
-        $maxAttempts   = config('security.max_attempts', 5);
-        $lockMinutes   = config('security.lock_minutes', 15);
-        $logChannel    = config('security.log_channel', 'auth');
-        // ===================================
-    
-        if ($user) {
-    
-            // Account Locked Check
-            if (!is_null($user->locked_until) && now()->lt($user->locked_until)) {
-                $remaining = now()->diffInMinutes($user->locked_until);
-         
+{
+    $validator = Validator::make($request->all(), [
+        'email'        => 'required|string',
+        'password'     => 'required|string|min:8',
+        'device_token' => 'required',
+    ]);
 
-    
-                Log::channel('auth')->warning('Blocked login attempt', [
-                    $fieldType => $login,
-                    'remaining_minutes' => $remaining,
-                ]);
-    
-                return $this->sendError(null, "Account locked. Try again in $remaining minutes", 423);
-            }
-    
-            //Wrong Password
-            if (!Hash::check($request->password, $user->password)) {
-    
-                $user->{$attemptsField}++;
-    
-                if ($user->{$attemptsField} >= $maxAttempts) {
-                    $user->locked_until = now()->addMinutes($lockMinutes);
-    
-                    Log::channel('auth')->error('Account locked due to too many failed attempts', [
-                        $fieldType => $login,
-                        'locked_until' => $user->locked_until,
-                    ]);
-    
-                    $user->{$attemptsField} = 0; // reset after lock
-                } else {
-    
-                    Log::channel('auth')->info('Wrong password attempt', [
-                        $fieldType => $login,
-                        'attempts_left' => $maxAttempts - $user->{$attemptsField},
-                    ]);
-                }
-    
-                $user->save();
-    
-                return $this->sendError(null, 'Invalid credentials', 401);
-            }
-    
-           
-            $user->{$attemptsField} = 0;
-            $user->locked_until = null;
-            $user->save();
-    
-            Log::channel('auth')->info('Successful login', [
-                $fieldType => $login,
-            ]);
-        } else {
-    
-            Log::channel('auth')->info('User not found', [
-                $fieldType => $login,
-            ]);
-    
-            return $this->sendError(null, "Invalid $fieldType", 401);
-        }
-    
-       
-        if ($user->status == 'blocked') {
-            return $this->sendError(null, 'This account is blocked', 401);
-        }
-    
-        if ($user->is_verified == '0') {
-            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-            $user->verification = '0';
-            $user->token = '';
-            $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
-            $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
-    
-            return $this->sendResponse($user, 'This account is not verified', 200);
-        }
-    
-        $user->device_token = $request->device_token;
-        $user->is_online = '1';
-        $user->save();
-    
-        $user->token = $user->createToken('api')->plainTextToken;
-        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
-        $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
-        $user->verification = '1';
-    
-        return $this->sendResponse($user, null, 200);
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
     }
+
+    $login     = $request->email;
+    $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+    $user      = User::where($fieldType, $login)->first();
+
+    // =====  Load Security Config =====
+    $maxAttempts = config('security.max_attempts', 5);
+    $lockMinutes = config('security.lock_minutes', 15);
+    $logChannel  = config('security.log_channel', 'auth');
+    $key = Str::lower("login:" . $login);
+    // ===================================
+    if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+        $seconds = RateLimiter::availableIn($key);
+        $minutes = ceil($seconds / 60);
+
+        Log::channel($logChannel)->warning('Blocked login attempt', [
+            $fieldType => $login,
+            'remaining_minutes' => $minutes,
+        ]);
+
+        return $this->sendError(null, "Account locked. Try again in $minutes minutes", 423);
+    }
+
+    if ($user) {
+
+        //Wrong Password
+        if (!Hash::check($request->password, $user->password)) {
+
+            RateLimiter::hit($key, $lockMinutes * 60);
+            $attemptsLeft = $maxAttempts - RateLimiter::attempts($key);
+
+            Log::channel($logChannel)->info('Wrong password attempt', [
+                $fieldType => $login,
+                'attempts_left' => max(0, $attemptsLeft),
+            ]);
+
+            if ($attemptsLeft <= 0) {
+                Log::channel($logChannel)->error('Account temporarily locked due to too many failed attempts', [
+                    $fieldType => $login,
+                ]);
+            }
+
+            return $this->sendError(null, 'Invalid credentials', 401);
+        }
+
+        // Password correct + reset limiter
+        RateLimiter::clear($key);
+
+        Log::channel($logChannel)->info('Successful login', [
+            $fieldType => $login,
+        ]);
+    } else {
+
+        Log::channel($logChannel)->info('User not found', [
+            $fieldType => $login,
+        ]);
+
+        RateLimiter::hit($key, $lockMinutes * 60);
+
+        return $this->sendError(null, "Invalid $fieldType", 401);
+    }
+    if ($user->status == 'blocked') {
+        return $this->sendError(null, 'This account is blocked', 401);
+    }
+
+    if ($user->is_verified == '0') {
+        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->verification = '0';
+        $user->token = '';
+        $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
+        $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
+
+        return $this->sendResponse($user, 'This account is not verified', 200);
+    }
+
+    $user->device_token = $request->device_token;
+    $user->is_online = '1';
+    $user->save();
+
+    $user->token = $user->createToken('api')->plainTextToken;
+    $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+    $user->hasVehicle = $user->car()->exists() || $user->scooter()->exists();
+    $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
+    $user->verification = '1';
+
+    return $this->sendResponse($user, null, 200);
+}
+
     
 
     public function device_tocken(Request $request)
