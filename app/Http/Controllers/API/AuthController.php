@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
+use App\Mail\ForgotPasswordMail;
 use App\Mail\SendOTP;
 use App\Models\AboutUs;
 use App\Models\Car;
@@ -22,6 +23,7 @@ use App\Services\FawryService;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -875,12 +877,12 @@ class AuthController extends ApiController
     $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
     $user      = User::where($fieldType, $login)->first();
 
-    // =====  Load Security Config =====
+    // ===== Security Config =====
     $maxAttempts = config('security.max_attempts', 5);
     $lockMinutes = config('security.lock_minutes', 15);
     $logChannel  = config('security.log_channel', 'auth');
     $key = Str::lower("login:" . $login);
-    // ===================================
+    //===================================
     if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
         $seconds = RateLimiter::availableIn($key);
         $minutes = ceil($seconds / 60);
@@ -1198,62 +1200,64 @@ class AuthController extends ApiController
 
     }
 
+
+   
     public function forgotPassword(Request $request)
     {
-        
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
-    
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
-        }
-    
-        //Link
-        $status = Password::sendResetLink(['email' => $request->email]);
-    
-        if ($status === Password::RESET_LINK_SENT) {
-            return $this->sendResponse(null, 'Password reset link sent successfully to your email.', 200);
-        }
-    
-        if ($status === Password::INVALID_USER) {
-            return $this->sendError(null, 'User with this email does not exist.', 404);
-        }
-    
-        // fallback 
-        return $this->sendError(null, 'Something went wrong while sending the reset link.', 400);
-    }
-    
 
+        $userEmail = $request->email;
+        $user = User::where('email', $userEmail)->first();
+        $userName = $user->name ?? 'User';
 
-    
+        $token = bin2hex(random_bytes(32));
 
-    public function reset_password(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email'    => 'required|string|email',
-            'otp'      => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $userEmail],
+            [
+                'token' => $token,
+                'created_at' => now()
+            ]
+        );
+
+        // reset
+        $resetUrl = url('/reset-password?token='.$token.'&email='.$userEmail);
+
+        //send email
+        Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
+
+        return response()->json([
+            'message' => 'Password reset link sent successfully to your email.'
         ]);
-        // dd($request->all());
-        if ($validator->fails()) {
+    }
 
-            $errors = implode(" / ", $validator->errors()->all());
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed', // password_confirmation
+        ]);
 
-            return $this->sendError(null, $errors, 400);
-        }
-        $user = User::where('email', $request->email)
-            ->where('otp', $request->otp)
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
             ->first();
 
-        if (! $user) {
-            return $this->sendError(null, 'Invalid or expired OTP', 401);
-
+        if (!$record) {
+            return response()->json(['message' => 'Invalid or expired token.'], 400);
         }
+
+        $user = User::where('email', $request->email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
-        return $this->sendResponse(null, 'Password updated successfully, You can login with new password.', 200);
+
+    
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json(['message' => 'Password has been reset successfully.']);
     }
 
     public function FAQs()
