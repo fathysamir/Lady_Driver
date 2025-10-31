@@ -154,7 +154,7 @@ class AuthController extends ApiController
     public function driver_register(Request $request)
     {
         $images = DB::table('registration_images')
-            ->get()->delete();
+            ->delete();
 
         
         $validator = Validator::make($request->all(), [
