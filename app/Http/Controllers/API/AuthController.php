@@ -1205,7 +1205,7 @@ class AuthController extends ApiController
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|string',
         ]);
 
         $userEmail = $request->email;
@@ -1236,7 +1236,7 @@ class AuthController extends ApiController
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|string',
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed', // password_confirmation
         ]);
