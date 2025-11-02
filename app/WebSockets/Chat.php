@@ -28,7 +28,7 @@ class Chat implements MessageComponentInterface
     {
         $this->clients = new \SplObjectStorage();
         $this->loop    = $loop;
-        
+
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
         $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
@@ -46,7 +46,7 @@ class Chat implements MessageComponentInterface
                 if ($userId && isset($this->clientUserIdMap[$userId])) {
                     $event = [
                         'type' => $payload['event'] ?? null,
-                        'data'  => $payload['data'] ?? $payload,
+                        'data' => $payload['data'] ?? $payload,
                     ];
 
                     $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
@@ -232,7 +232,6 @@ class Chat implements MessageComponentInterface
         }
 
         //$distance=$data['type'];
-
 
         if ($distance > $maximum_distance_long_trip) {
             $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
@@ -431,8 +430,10 @@ class Chat implements MessageComponentInterface
             $newTrip['user']['rate']              = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
             switch ($type) {
                 case 'car':
-                    $decimalPlaces = 2;
-                    $eligibleCars  = Car::where('status', 'confirmed')->where('is_comfort', '0')
+
+                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
+                    $decimalPlaces          = 2;
+                    $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '0')
 
                         ->whereHas('owner', function ($query) {
                             $query->where('is_online', '1')
@@ -486,7 +487,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = round(($total_cost * $app_ratio) / 100, 2);
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(($total_cost * $app_ratio) / 100, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -508,8 +509,9 @@ class Chat implements MessageComponentInterface
                     break;
 
                 case 'comfort_car':
-                    $decimalPlaces = 2;
-                    $eligibleCars  = Car::where('status', 'confirmed')->where('is_comfort', '1')
+                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
+                    $decimalPlaces          = 2;
+                    $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '1')
 
                         ->whereHas('owner', function ($query) {
                             $query->where('is_online', '1')
@@ -560,7 +562,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = round(($total_cost * $app_ratio) / 100, 2);
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(($total_cost * $app_ratio) / 100, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -582,8 +584,9 @@ class Chat implements MessageComponentInterface
                     break;
 
                 case 'scooter':
-                    $decimalPlaces    = 2;
-                    $eligibleScooters = Scooter::where('status', 'confirmed')
+                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
+                    $decimalPlaces          = 2;
+                    $eligibleScooters       = Scooter::where('status', 'confirmed')
 
                         ->whereHas('owner', function ($query) {
                             $query->where('is_online', '1')
@@ -626,7 +629,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = round(($total_cost * $app_ratio) / 100, 2);
+                                $newTrip['app_rate']                  = $application_commission=='On'?round(($total_cost * $app_ratio) / 100, 2):0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
