@@ -53,7 +53,9 @@ class SettingController extends Controller
                 $value = null;
             }
 
-        } else {
+        } else if ($set->type == 'boolean') {
+            $value=$request->value?'On':'Off';
+        }else {
             $value = floatval($request->value);
         }
         $set->update(['label' => $request->label,

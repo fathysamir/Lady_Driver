@@ -49,10 +49,12 @@
 
                                     <select class="form-control" disabled>
                                         <option value="General" {!! $setting->category == 'General' ? 'selected' : '' !!}>General</option>
-                                        <option value="Clients" {!! $setting->category == 'Clients' ? 'selected' : '' !!}>Clients</option>
+                                        <option value="Users" {!! $setting->category == 'Users' ? 'selected' : '' !!}>Users</option>
                                         <option value="Trips" {!! $setting->category == 'Trips' ? 'selected' : '' !!}>Trips</option>
-                                        <option value="Trips" {!! $setting->category == 'Car Trips' ? 'selected' : '' !!}>Car Trips</option>
-                                        <option value="Trips" {!! $setting->category == 'Motorcycle Trips' ? 'selected' : '' !!}>Motorcycle Trips</option>
+                                        <option value="Car Trips" {!! $setting->category == 'Car Trips' ? 'selected' : '' !!}>Car Trips</option>
+                                        <option value="Scooter Trips" {!! $setting->category == 'Scooter Trips' ? 'selected' : '' !!}>Motorcycle Trips</option>
+                                        <option value="Comfort Trips" {!! $setting->category == 'Comfort Trips' ? 'selected' : '' !!}>Comfort Trips</option>
+
                                     </select>
 
                                 </div>
@@ -76,6 +78,19 @@
                                                 <input type="text" disabled class="form-control"
                                                     value="{{ $setting->unit }}">
 
+                                            </div>
+                                        </div>
+                                    </div>
+                                @elseif($setting->type == 'boolean')
+                                    <div class="form-row">
+                                        <div class="form-group col-md-12">
+                                            <div class="custom-control custom-switch mt-2">
+                                                <input type="checkbox" class="custom-control-input"
+                                                    id="boolean_value_{{ $setting->id }}" name="value" value="1"
+                                                    {{ $setting->value=='On' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="boolean_value_{{ $setting->id }}">
+                                                    {{ $setting->label ?? 'Enabled' }}
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
