@@ -47,6 +47,20 @@ Route::get('/reset-password/{token}', function ($token, Request $request) {
     return view('reset-password', compact('token', 'email'));
 })->name('password.reset');
 
+//Dynamic link for opening app or web for reset password
+Route::get('/open-reset', function (Request $request) {
+    $token = $request->query('token');
+    $email = $request->query('email');
+
+    //App and web links
+    $appLink = "myapp://reset-password/{$token}?email={$email}";
+    $webLink = url("/reset-password/{$token}?email={$email}");
+    
+    return view('emails.open-reset', compact('appLink', 'webLink'));
+
+});
+
+
 
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/live/{token}', [LiveLocationController::class, 'viewPage2']);

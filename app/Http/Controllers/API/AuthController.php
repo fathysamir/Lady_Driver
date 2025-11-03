@@ -1223,7 +1223,7 @@ class AuthController extends ApiController
         );
 
         // reset
-        $resetUrl = url('/reset-password?token='.$token.'&email='.$userEmail);
+        $resetUrl = url('/open-reset?token='.$token.'&email='.$userEmail);
 
         //send email
         Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
@@ -1233,7 +1233,7 @@ class AuthController extends ApiController
         ]);
     }
 
-    public function resetPassword(Request $request)
+    public function resetpassword(Request $request)
     {
         $request->validate([
             'email' => 'required|string',
