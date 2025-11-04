@@ -79,7 +79,7 @@ class LiveLocationController extends ApiController
         $trip = Trip::where('user_id', $live->user_id)
             ->whereIn('status', ['pending', 'in_progress'])
             ->with(['finalDestination' => function ($q) {
-                $q->orderBy('id'); // أو order by ترتيب النقاط
+                $q->orderBy('id');
             }])->first();
 
         return response()->json([
