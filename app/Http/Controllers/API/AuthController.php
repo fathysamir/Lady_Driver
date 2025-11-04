@@ -19,7 +19,6 @@ use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use App\Services\FawryService;
 use App\Services\FirebaseService;
