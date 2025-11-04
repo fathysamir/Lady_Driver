@@ -148,7 +148,6 @@
                 Thank you for choosing LADY DRIVER. Use the following OTP to complete your registration. OTP is valid
                 for 5 minutes. Do not share this code with others, including LADY DRIVER team.
             </div>
-            <div class="otp-code">{{ $otp }}</div>
         </div>
     </div>
 
