@@ -36,6 +36,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
+
 class AuthController extends ApiController
 {
     protected $firebaseService;
