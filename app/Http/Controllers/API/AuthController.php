@@ -1205,15 +1205,23 @@ class AuthController extends ApiController
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|string',
+            'email' => 'required|string|email',
         ]);
-
+    
         $userEmail = $request->email;
         $user      = User::where('email', $userEmail)->first();
+    
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email address not found.',
+            ], 404);
+        }
+    
         $userName  = $user->name ?? 'User';
-
+    
         $token = bin2hex(random_bytes(32));
-
+    
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $userEmail],
             [
@@ -1221,17 +1229,19 @@ class AuthController extends ApiController
                 'created_at' => now(),
             ]
         );
-
-        // reset
+    
+        // Reset link
         $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
-
-        //send email
+    
+        // Send email
         Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
-
+    
         return response()->json([
-            'message' => 'Password reset link sent successfully to your email.',
+            'success' => true,
+            'message' => 'Password reset link has been sent to your email.',
         ]);
     }
+    
 
     public function resetpassword(Request $request)
     {
