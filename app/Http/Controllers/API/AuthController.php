@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
+use App\Mail\ForgotPasswordMail;
 use App\Mail\SendOTP;
 use App\Models\AboutUs;
 use App\Models\Car;
@@ -25,9 +26,12 @@ use App\Services\FirebaseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -863,33 +867,81 @@ class AuthController extends ApiController
 
     public function login(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'email'        => 'required|string',
             'password'     => 'required|string|min:8',
             'device_token' => 'required',
         ]);
-        // dd($request->all());
+
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
             return $this->sendError(null, $errors, 400);
         }
+
         $login     = $request->email;
         $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        $user      = User::where($fieldType, $login)->first();
 
-        // Find the user based on email or phone
-        $user = User::where($fieldType, $login)->first();
+        // ===== Security Config =====
+        $maxAttempts = config('security.max_attempts', 5);
+        $lockMinutes = config('security.lock_minutes', 15);
+        $logChannel  = config('security.log_channel', 'auth');
+        $key         = Str::lower("login:" . $login);
+        //===================================
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
+            $minutes = ceil($seconds / 60);
+
+            Log::channel($logChannel)->warning('Blocked login attempt', [
+                $fieldType          => $login,
+                'remaining_minutes' => $minutes,
+            ]);
+
+            return $this->sendError(null, "Account locked. Try again in $minutes minutes", 423);
+        }
 
         if ($user) {
+
+            //Wrong Password
             if (! Hash::check($request->password, $user->password)) {
-                return $this->sendError(null, 'Invalid credentials, password is incorrect', 401);
+
+                RateLimiter::hit($key, $lockMinutes * 60);
+                $attemptsLeft = $maxAttempts - RateLimiter::attempts($key);
+
+                Log::channel($logChannel)->info('Wrong password attempt', [
+                    $fieldType      => $login,
+                    'attempts_left' => max(0, $attemptsLeft),
+                ]);
+
+                if ($attemptsLeft <= 0) {
+                    Log::channel($logChannel)->error('Account temporarily locked due to too many failed attempts', [
+                        $fieldType => $login,
+                    ]);
+                }
+
+                return $this->sendError(null, 'Invalid credentials', 401);
             }
+
+            // Password correct + reset limiter
+            RateLimiter::clear($key);
+
+            Log::channel($logChannel)->info('Successful login', [
+                $fieldType => $login,
+            ]);
         } else {
-            return $this->sendError(null, 'Invalid credentials, your ' . $fieldType . ' is incorrect', 401);
+
+            Log::channel($logChannel)->info('User not found', [
+                $fieldType => $login,
+            ]);
+
+            RateLimiter::hit($key, $lockMinutes * 60);
+
+            return $this->sendError(null, "Invalid $fieldType", 401);
         }
         if ($user->status == 'blocked') {
-            return $this->sendError(null, 'this account is blocked', 401);
+            return $this->sendError(null, 'This account is blocked', 401);
         }
+
         if ($user->is_verified == '0') {
             $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
             $user->verification = '0';
@@ -897,27 +949,20 @@ class AuthController extends ApiController
             $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
             $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
 
-            return $this->sendResponse($user, 'this account not verified', 200);
+            return $this->sendResponse($user, 'This account is not verified', 200);
         }
-        // Generate OTP
-        // $otpCode = generateOTP();
-        // $user->OTP= $otpCode ;
-        // $user->save();
+
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
         $user->save();
-        $user->token       = $user->createToken('api')->plainTextToken;
-        $user->image       = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->hasVehicle  = $user->car()->exists() || $user->scooter()->exists();
-        $user->driver_type = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
 
+        $user->token        = $user->createToken('api')->plainTextToken;
+        $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
+        $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
         $user->verification = '1';
-        // Send OTP via Email (or SMS)
-        //Mail::to($request->email)->send(new SendOTP($otpCode));
 
-        //return $this->sendResponse(null,'OTP sent to your email address.',200);
         return $this->sendResponse($user, null, 200);
-
     }
 
     public function device_tocken(Request $request)
@@ -1158,31 +1203,61 @@ class AuthController extends ApiController
 
     }
 
-    public function reset_password(Request $request)
+    public function forgotPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email'    => 'required|string|email',
-            'otp'      => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+        $request->validate([
+            'email' => 'required|string',
         ]);
-        // dd($request->all());
-        if ($validator->fails()) {
 
-            $errors = implode(" / ", $validator->errors()->all());
+        $userEmail = $request->email;
+        $user      = User::where('email', $userEmail)->first();
+        $userName  = $user->name ?? 'User';
 
-            return $this->sendError(null, $errors, 400);
-        }
-        $user = User::where('email', $request->email)
-            ->where('otp', $request->otp)
+        $token = bin2hex(random_bytes(32));
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $userEmail],
+            [
+                'token'      => $token,
+                'created_at' => now(),
+            ]
+        );
+
+        // reset
+        $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
+
+        //send email
+        Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
+
+        return response()->json([
+            'message' => 'Password reset link sent successfully to your email.',
+        ]);
+    }
+
+    public function resetpassword(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|string',
+            'token'    => 'required|string',
+            'password' => 'required|string|min:8|confirmed', // password_confirmation
+        ]);
+
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
             ->first();
 
-        if (! $user) {
-            return $this->sendError(null, 'Invalid or expired OTP', 401);
-
+        if (! $record) {
+            return response()->json(['message' => 'Invalid or expired token.'], 400);
         }
+
+        $user           = User::where('email', $request->email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
-        return $this->sendResponse(null, 'Password updated successfully, You can login with new password.', 200);
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json(['message' => 'Password has been reset successfully.']);
     }
 
     public function FAQs()
