@@ -19,13 +19,13 @@ use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
-use Illuminate\Support\Facades\File;
 use App\Services\FawryService;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -35,7 +35,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
-
 
 class AuthController extends ApiController
 {
@@ -1208,21 +1207,21 @@ class AuthController extends ApiController
         $request->validate([
             'email' => 'required|string|email',
         ]);
-    
+
         $userEmail = $request->email;
         $user      = User::where('email', $userEmail)->first();
-    
-        if (!$user) {
+
+        if (! $user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Email address not found.',
             ], 404);
         }
-    
-        $userName  = $user->name ?? 'User';
-    
+
+        $userName = $user->name ?? 'User';
+
         $token = bin2hex(random_bytes(32));
-    
+
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $userEmail],
             [
@@ -1230,19 +1229,18 @@ class AuthController extends ApiController
                 'created_at' => now(),
             ]
         );
-    
+
         // Reset link
         $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
-    
+
         // Send email
         Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Password reset link has been sent to your email.',
         ]);
     }
-    
 
     public function resetpassword(Request $request)
     {
