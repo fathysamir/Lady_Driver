@@ -21,7 +21,8 @@ class WebSocketServer extends Command
     }
 
     public function handle()
-    {$loop = Loop::get();
+    {
+        $loop = Loop::get();
 
         $chat = new Chat($loop);
 

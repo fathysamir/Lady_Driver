@@ -619,7 +619,7 @@ class DriverController extends ApiController
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'car')->with('user:id,name');
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'car')->with(['user:id,name','finalDestination']);
                     if ($driver_car->air_conditioned == '0') {
                         $tripsWithin3Km->where('air_conditioned', '0');
                     }
@@ -663,7 +663,7 @@ class DriverController extends ApiController
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'comfort_car')->with('user:id,name');
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'comfort_car')->with(['user:id,name','finalDestination']);
 
                     if ($driver_car->animals == '0') {
                         $tripsWithin3Km->where('animals', '0');
@@ -705,7 +705,7 @@ class DriverController extends ApiController
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'scooter')->with('user:id,name')->whereHas('user', function ($query) {
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'scooter')->with(['user:id,name','finalDestination'])->whereHas('user', function ($query) {
                         $query->where('gendor', 'Female');
                     });
 
@@ -967,7 +967,7 @@ class DriverController extends ApiController
             $car             = Car::where('user_id', auth()->user()->id)->first();
             $cancelled_trips = Trip::where('car_id', $car->id)->where('status', 'cancelled')->with(['car' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'cancelled_by'])->get()->map(function ($trip) {
+            }, 'user', 'cancelled_by','finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;
@@ -977,7 +977,7 @@ class DriverController extends ApiController
             $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
             $cancelled_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'cancelled')->with(['scooter' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'cancelled_by'])->get()->map(function ($trip) {
+            }, 'user', 'cancelled_by','finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;

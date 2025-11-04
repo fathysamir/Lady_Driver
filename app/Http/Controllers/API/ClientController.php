@@ -257,7 +257,7 @@ class ClientController extends ApiController
                 'car'             => ['discount' => 0,
                     'total_cost'                     => 125.50,
                 ],
-                'comfort'         => ['discount' => 0,
+                'comfort_car'         => ['discount' => 0,
                     'total_cost'                     => 125.50,
                 ],
                 'scooter'         => ['discount' => 0,
@@ -438,18 +438,18 @@ class ClientController extends ApiController
         $total_cost = ceil($total_cost1 + $peakTimeCost);
         if ($student) {
             if ($student_trips_count < 3) {
-                $response['comfort']['discount'] = $total_cost * ($student_discount / 100);
+                $response['comfort_car']['discount'] = $total_cost * ($student_discount / 100);
                 $total_cost                      = $total_cost - ($total_cost * ($student_discount / 100));
             } else {
-                $response['comfort']['discount'] = 0;
+                $response['comfort_car']['discount'] = 0;
             }
         } else {
-            $response['comfort']['discount'] = 0;
+            $response['comfort_car']['discount'] = 0;
         }
         if ($total_cost < $less_cost_for_trip) {
             $total_cost = $less_cost_for_trip;
         }
-        $response['comfort']['total_cost'] = $total_cost;
+        $response['comfort_car']['total_cost'] = $total_cost;
 
         $kilometer_price_short_trip   = floatval(Setting::where('key', 'kilometer_price_scooter_short_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
         $kilometer_price_long_trip    = floatval(Setting::where('key', 'kilometer_price_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
