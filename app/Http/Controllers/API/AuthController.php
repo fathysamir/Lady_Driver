@@ -1203,44 +1203,62 @@ class AuthController extends ApiController
     }
 
     public function forgotPassword(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|string|email',
-        ]);
+{
+    // Check email format with custom regex
+    $validator = Validator::make($request->all(), [
+        'email' => [
+            'required',
+            'email:rfc',
+            'regex:/^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/'
+        ]
+    ], [
+        'email.required' => 'Email field is required',
+        'email.email'    => 'Email must be a valid format like user@example.com',
+        'email.regex'    => 'Email must be a valid format like user@example.com',
+    ]);
 
-        $userEmail = $request->email;
-        $user      = User::where('email', $userEmail)->first();
-
-        if (! $user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email address not found.',
-            ], 404);
-        }
-
-        $userName = $user->name ?? 'User';
-
-        $token = bin2hex(random_bytes(32));
-
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $userEmail],
-            [
-                'token'      => $token,
-                'created_at' => now(),
-            ]
-        );
-
-        // Reset link
-        $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
-
-        // Send email
-        Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
-
+   
+    if ($validator->fails()) {
         return response()->json([
-            'success' => true,
-            'message' => 'Password reset link has been sent to your email.',
-        ]);
+            'success' => false,
+            'message' => 'Invalid email format or email field is required.',
+        ], 422);
     }
+
+    $userEmail = trim(strtolower($request->email));
+
+    $user = User::whereRaw('LOWER(TRIM(email)) = ?', [$userEmail])->first();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Email address not found.',
+        ], 404);
+    }
+
+    $userName = $user->name ?? 'User';
+
+    $token = bin2hex(random_bytes(32));
+
+    DB::table('password_reset_tokens')->updateOrInsert(
+        ['email' => $userEmail],
+        [
+            'token'      => $token,
+            'created_at' => now(),
+        ]
+    );
+
+    $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
+    Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
+    
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Password reset link has been sent to your email.',
+    ], 200);
+}
+
+    
 
     public function resetpassword(Request $request)
     {
