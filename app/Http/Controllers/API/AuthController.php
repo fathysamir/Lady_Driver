@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+//  "DA:D5:25:D7:5C:32:1D:61:A4:2F:72:E4:E4:63:BF:7F:C9:9D:29:57:BB:8E:83:B8:51:62:9E:A2:31:B8:81:C5"
 
 
 class AuthController extends ApiController
