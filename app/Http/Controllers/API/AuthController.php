@@ -1260,14 +1260,29 @@ class AuthController extends ApiController
 
     
 
-    public function resetpassword(Request $request)
-    {
-        $request->validate([
+public function resetpassword(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
             'email'    => 'required|string',
             'token'    => 'required|string',
-            'password' => 'required|string|min:8|confirmed', // password_confirmation
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.required'    => 'The email field is required.',
+            'token.required'    => 'The token field is required.',
+            'password.required' => 'The password field is required.',
+            'password.confirmed' => 'Password confirmation does not match.',
+            'password.min'      => 'The password must be at least 8 characters.',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error.',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // Check if the provided email and token exist
         $record = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->where('token', $request->token)
@@ -1277,13 +1292,28 @@ class AuthController extends ApiController
             return response()->json(['message' => 'Invalid or expired token.'], 400);
         }
 
-        $user           = User::where('email', $request->email)->first();
+        // Check if the user exists
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        // Update the password
         $user->password = Hash::make($request->password);
         $user->save();
 
+        // Delete used token
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-        return response()->json(['message' => 'Password has been reset successfully.']);
+
+        return response()->json(['message' => 'Password has been reset successfully.'], 200);
+
+    } catch (\Exception $e) {
+        // Catch any unexpected errors
+        return response()->json(['message' => 'An unexpected error occurred.'], 500);
     }
+}
+
 
     public function FAQs()
     {
