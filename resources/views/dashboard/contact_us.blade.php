@@ -7,7 +7,7 @@
     <meta name="description" content=""/>
     <meta name="author" content=""/>
     <link rel="icon" type="image/x-icon" href="{{asset('dashboard/logo.png')}}">
-    <title>@yield('title', 'Lady Driver - Terms and Conditions')</title>
+    <title>@yield('title', 'Lady Driver - Contact Us')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- loader-->
     <link href="{{asset('dashboard/assets/css/pace.min.css')}}" rel="stylesheet"/>

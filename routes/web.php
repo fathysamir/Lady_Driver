@@ -18,6 +18,7 @@ use App\Http\Controllers\Dashboard\PaymentController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Controllers\Dashboard\PrivacyAndTermController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Milon\Barcode\DNS2D;
@@ -65,8 +66,8 @@ Route::get('/open-reset', function (Request $request) {
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/live/{token}', [LiveLocationController::class, 'viewPage2']);
 Route::get('/restart-websocket', [SettingController::class, 'restartWebsocket']);
-Route::get('/terms&conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
-Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacy_policy'])->name('privacy_policy');
+Route::get('/terms-conditions/{lang}', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
+Route::get('/privacy_policy/{lang}', [AuthController::class, 'privacypolicy'])->name('privacy_policy');
 Route::get('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 Route::get('/contact_us', [AuthController::class, 'contact_us'])->name('contact_us');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
@@ -182,4 +183,15 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/chats/send-message', [ChatController::class, 'send_message_view'])->name('send_message_view');
     Route::post('/chats/send-message/to', [ChatController::class, 'send_message'])->name('send.messages');
     Route::get('/chats/get-users', [ChatController::class, 'get_users'])->name('chats.get_users');
-});
+///////////////////////////////////////////////
+    Route::get('/privacy-policy', [PrivacyAndTermController::class, 'edit'])->name('dashboard.privacy.edit');
+    Route::get('/privacy-policy/{lang}', [PrivacyAndTermController::class, 'getByLang'])->name('dashboard.privacy.get');
+    Route::post('/privacy-policy/update', [PrivacyAndTermController::class, 'update'])->name('dashboard.privacy.update');
+
+    Route::get('/terms-conditions', [PrivacyAndTermController::class, 'termsedit'])->name('dashboard.privacy.edit');
+    Route::get('/terms-conditions/{lang}', [PrivacyAndTermController::class, 'termsgetByLang'])->name('dashboard.terms.get');
+    Route::post('/terms-conditions/update', [PrivacyAndTermController::class, 'termsupdate'])->name('dashboard.terms.update');
+    ///////////////////////////////////////////////
+}); 
+
+

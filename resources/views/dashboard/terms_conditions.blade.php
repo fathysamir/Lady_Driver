@@ -1,78 +1,82 @@
-<!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
+@extends('dashboard.layout.app')
 
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <link rel="icon" type="image/x-icon" href="{{ asset('dashboard/logo.png') }}">
-    <title>@yield('title', 'Lady Driver - ' . $title)</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- loader-->
-    <link href="{{ asset('dashboard/assets/css/pace.min.css') }}" rel="stylesheet" />
-    <script src="{{ asset('dashboard/assets/js/pace.min.js') }}"></script>
-    <!--favicon-->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <!-- Vector CSS -->
-    <link href="{{ asset('dashboard/assets/plugins/vectormap/jquery-jvectormap-2.0.2.css') }}" rel="stylesheet" />
-    <!-- simplebar CSS-->
-    <link href="{{ asset('dashboard/assets/plugins/simplebar/css/simplebar.css') }}" rel="stylesheet" />
-    <!-- Bootstrap core CSS-->
-    <link href="{{ asset('dashboard/assets/css/bootstrap.min.css') }}" rel="stylesheet" />
-    <!-- animate CSS-->
-    <link href="{{ asset('dashboard/assets/css/animate.css') }}" rel="stylesheet" type="text/css" />
-    <!-- Icons CSS-->
-    <link href="{{ asset('dashboard/assets/css/icons.css') }}" rel="stylesheet" type="text/css" />
-    <!-- Sidebar CSS-->
-    <link href="{{ asset('dashboard/assets/css/sidebar-menu.css') }}" rel="stylesheet" />
-    <!-- Custom Style-->
-    <link href="{{ asset('dashboard/assets/css/app-style.css') }}" rel="stylesheet" />
-    <!-- RTL Support -->
-    @if (app()->getLocale() == 'ar')
-        <style>
-            body {
-                direction: rtl;
-                text-align: right;
+@section('content')
+<div class="main-content p-4" style="margin-left: 250px; max-width: calc(100% - 250px);margin-top: 50px;">
+<h4>Terms & Conditions</h4>
+
+
+<div class="mb-3">
+    <label class="form-label fw-bold">Select Language:</label>
+    <select id="langSwitcher" name="lang" class="form-control" style="width: 10%;">
+        <option value="en">English</option>
+        <option value="ar">Arabic</option>
+    </select>
+</div>
+
+    <textarea id="privacyEditor" class="form-control" rows="12"></textarea>
+    <div class="text-center mt-4" style="padding-bottom: 10px; margin-bottom: 25px;">
+        <button id="saveBtn" class="btn btn-primary px-5 py-2">Save</button>
+    </div>
+</div>
+
+<script src="https://cdn.tiny.cloud/1/orchmjkwdde0ld7ft8cgo8n3nhma90mpok6mgtiumdwwmclc/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+let currentLang = 'en';
+
+tinymce.init({
+    selector: '#privacyEditor',
+    height: 400,
+    menubar: false,
+    plugins: 'link lists code',
+    toolbar: 'undo redo | bold italic underline | bullist numlist | link | code',
+    skin: 'oxide-dark', 
+    content_css: false,
+    content_style: `
+      html, body {
+        background: transparent !important;
+        color: #fff !important;
+      }
+    `,
+    setup: function (editor) {
+        editor.on('init', function () {
+            const iframe = editor.iframeElement;
+            if (iframe) {
+                iframe.style.background = 'transparent';
             }
+            loadContent(currentLang);
+        });
+    }
+});
 
-            .navbar,
-            .card-body,
-            .footer,
-            .content-wrapper {
-                direction: rtl;
-            }
-        </style>
-    @endif
-</head>
+function loadContent(lang) {
+    fetch(`/admin-dashboard/terms-conditions/${lang}`)
+        .then(res => res.json())
+        .then(data => {
+            tinymce.get('privacyEditor').setContent(data.value || '');
+        });
+}
 
-<body class="bg-theme bg-theme1">
+document.getElementById('langSwitcher').addEventListener('change', (e) => {
+    currentLang = e.target.value;
+    loadContent(currentLang);
+});
 
-    <!-- Start wrapper-->
-    {!! $content !!}
-    <!--End wrapper-->
+document.getElementById('saveBtn').addEventListener('click', () => {
+    const content = tinymce.get('privacyEditor').getContent();
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="{{ asset('dashboard/assets/js/jquery.min.js') }}"></script>
-    <script src="{{ asset('dashboard/assets/js/popper.min.js') }}"></script>
-    <script src="{{ asset('dashboard/assets/js/bootstrap.min.js') }}"></script>
+    fetch('/admin-dashboard/terms-conditions/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ lang: currentLang, value: content })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || 'Saved!'));
+});
 
-    <!-- simplebar js -->
-    <script src="{{ asset('dashboard/assets/plugins/simplebar/js/simplebar.js') }}"></script>
-    <!-- sidebar-menu js -->
-    <script src="{{ asset('dashboard/assets/js/sidebar-menu.js') }}"></script>
-    <!-- loader scripts -->
-    <script src="{{ asset('dashboard/assets/js/jquery.loading-indicator.js') }}"></script>
-    <!-- Custom scripts -->
-    <script src="{{ asset('dashboard/assets/js/app-script.js') }}"></script>
-    <!-- Chart js -->
-
-    <script src="{{ asset('dashboard/assets/plugins/Chart.js/Chart.min.js') }}"></script>
-
-    <!-- Index js -->
-    <script src="{{ asset('dashboard/assets/js/index.js') }}"></script>
-
-</body>
-
-</html>
+loadContent(currentLang);
+</script>
+@endsection

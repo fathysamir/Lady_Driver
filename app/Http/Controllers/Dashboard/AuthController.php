@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\PrivacyAndTerm;
 use App\Models\ContactUs;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
@@ -81,71 +82,32 @@ class AuthController extends Controller
 
     }
     //////////////////////////////////////////////////////////////////////////////////////
-    public function privacy_policy($lang)
-    {
+    public function privacypolicy($lang)
+{
+    $privacy = PrivacyAndTerm::where('type', 'privacy')
+                ->where('lang', $lang)
+                ->first();
 
-        // $curl = curl_init();
+    $title = $lang == 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy';
+    $content = $privacy ? $privacy->value : ''; 
 
-        // curl_setopt_array($curl, array(
-        //   CURLOPT_URL => 'https://beta.hypersender.com/api/whatsapp/v1/9e2c5957-7063-4bff-840f-18e0b36473c8/send-text',
-        //   CURLOPT_RETURNTRANSFER => true,
-        //   CURLOPT_ENCODING => '',
-        //   CURLOPT_MAXREDIRS => 10,
-        //   CURLOPT_TIMEOUT => 0,
-        //   CURLOPT_FOLLOWLOCATION => true,
-        //   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        //   CURLOPT_CUSTOMREQUEST => 'POST',
-        //   CURLOPT_POSTFIELDS => '{
-        //                         "recipient": "+201125289475",
-        //                         "textMessage": {
-        //                             "text": "lady driver otp : 125964"
-        //                         }
-        //                         }',
-        //   CURLOPT_HTTPHEADER => array(
-        //     'Content-Type: application/json',
-        //     'Accept: application/json',
-        //     'Authorization: Bearer 218|7wDVG6OVhVRPDyGINE4IzWEqCbeL5pZfynDDu16l6d1f614c'
-        //   ),
-        // ));
+    return view('Website.privacy_policy', compact('privacy','title', 'content'));
+}
 
-        // $response = curl_exec($curl);
+public function terms_conditions($lang)
+{
+    $terms = PrivacyAndTerm::where('type', 'terms')
+                ->where('lang', $lang)
+                ->first();
 
-        // curl_close($curl);
+    $title = $lang == 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions';
+    $content = $terms ? $terms->value : ''; 
 
-        // dd($response);
-        $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
-        if (! in_array($lang, $supportedLanguages)) {
-            $lang = 'en';
-        }
+    return view('Website.terms-conditions', compact('terms','title', 'content'));
+}
 
-        // Set the application locale for this request
-        App::setLocale($lang);
 
-        // Retrieve the translations
-        $title   = __('privacy_policy.title');
-        $content = __('privacy_policy.content');
-
-        return view('dashboard.privacy_policy', compact('title', 'content'));
-    }
-
-    public function terms_conditions($lang)
-    {
-        $supportedLanguages = ['en', 'ar', 'de', 'fr', 'es', 'tr', 'ru', 'zh'];
-        if (! in_array($lang, $supportedLanguages)) {
-            $lang = 'en';
-        }
-
-        // Set the application locale for this request
-        App::setLocale($lang);
-
-        // Retrieve the translations
-        $title   = __('terms_conditions.title');
-        $content = __('terms_conditions.content');
-
-        return view('dashboard.terms_conditions', compact('title', 'content'));
-
-    }
-
+ //////////////////////////////////////////////////////////////////////////////////////
     public function contact_us()
     {
         return view('dashboard.contact_us');

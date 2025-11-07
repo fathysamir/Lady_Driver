@@ -133,7 +133,16 @@
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Feed Back</span>
             </a>
         </li>
-        
+        <li>
+    <a href="{{ url('/admin-dashboard/privacy-policy') }}">
+        <i class="zmdi zmdi-view-dashboard"></i> <span>Privacy Policy</span>
+    </a>
+</li>
+<li>
+    <a href="{{ url('/admin-dashboard/terms-conditions') }}">
+        <i class="zmdi zmdi-view-dashboard"></i> <span>Terms Conditions</span>
+    </a>
+</li>
 
     </ul>
 
