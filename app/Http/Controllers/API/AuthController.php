@@ -37,6 +37,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
+//  "DA:D5:25:D7:5C:32:1D:61:A4:2F:72:E4:E4:63:BF:7F:C9:9D:29:57:BB:8E:83:B8:51:62:9E:A2:31:B8:81:C5"
+
 class AuthController extends ApiController
 {
     protected $firebaseService;
@@ -1204,117 +1206,112 @@ class AuthController extends ApiController
     }
 
     public function forgotPassword(Request $request)
-{
-    // Check email format with custom regex
-    $validator = Validator::make($request->all(), [
-        'email' => [
-            'required',
-            'email:rfc',
-            'regex:/^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/'
-        ]
-    ], [
-        'email.required' => 'Email field is required',
-        'email.email'    => 'Email must be a valid format like user@example.com',
-        'email.regex'    => 'Email must be a valid format like user@example.com',
-    ]);
-
-   
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid email format or email field is required.',
-        ], 422);
-    }
-
-    $userEmail = trim(strtolower($request->email));
-
-    $user = User::whereRaw('LOWER(TRIM(email)) = ?', [$userEmail])->first();
-
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Email address not found.',
-        ], 404);
-    }
-
-    $userName = $user->name ?? 'User';
-
-    $token = bin2hex(random_bytes(32));
-
-    DB::table('password_reset_tokens')->updateOrInsert(
-        ['email' => $userEmail],
-        [
-            'token'      => $token,
-            'created_at' => now(),
-        ]
-    );
-
-    $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
-    Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
-    
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Password reset link has been sent to your email.',
-    ], 200);
-}
-
-    
-
-public function resetpassword(Request $request)
-{
-    try {
+    {
+        // Check email format with custom regex
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|string',
-            'token'    => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+            'email' => [
+                'required',
+                'email:rfc',
+                'regex:/^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/',
+            ],
         ], [
-            'email.required'    => 'The email field is required.',
-            'token.required'    => 'The token field is required.',
-            'password.required' => 'The password field is required.',
-            'password.confirmed' => 'Password confirmation does not match.',
-            'password.min'      => 'The password must be at least 8 characters.',
+            'email.required' => 'Email field is required',
+            'email.email'    => 'Email must be a valid format like user@example.com',
+            'email.regex'    => 'Email must be a valid format like user@example.com',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation error.',
-                'errors'  => $validator->errors(),
+                'success' => false,
+                'message' => 'Invalid email format or email field is required.',
             ], 422);
         }
 
-        // Check if the provided email and token exist
-        $record = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->where('token', $request->token)
-            ->first();
+        $userEmail = trim(strtolower($request->email));
 
-        if (! $record) {
-            return response()->json(['message' => 'Invalid or expired token.'], 400);
-        }
-
-        // Check if the user exists
-        $user = User::where('email', $request->email)->first();
+        $user = User::whereRaw('LOWER(TRIM(email)) = ?', [$userEmail])->first();
 
         if (! $user) {
-            return response()->json(['message' => 'User not found.'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Email address not found.',
+            ], 404);
         }
 
-        // Update the password
-        $user->password = Hash::make($request->password);
-        $user->save();
+        $userName = $user->name ?? 'User';
 
-        // Delete used token
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        $token = bin2hex(random_bytes(32));
 
-        return response()->json(['message' => 'Password has been reset successfully.'], 200);
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $userEmail],
+            [
+                'token'      => $token,
+                'created_at' => now(),
+            ]
+        );
 
-    } catch (\Exception $e) {
-        // Catch any unexpected errors
-        return response()->json(['message' => 'An unexpected error occurred.'], 500);
+        $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
+        Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset link has been sent to your email.',
+        ], 200);
     }
-}
 
+    public function resetpassword(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email'    => 'required|string',
+                'token'    => 'required|string',
+                'password' => 'required|string|min:8|confirmed',
+            ], [
+                'email.required'     => 'The email field is required.',
+                'token.required'     => 'The token field is required.',
+                'password.required'  => 'The password field is required.',
+                'password.confirmed' => 'Password confirmation does not match.',
+                'password.min'       => 'The password must be at least 8 characters.',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Validation error.',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            // Check if the provided email and token exist
+            $record = DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->where('token', $request->token)
+                ->first();
+
+            if (! $record) {
+                return response()->json(['message' => 'Invalid or expired token.'], 400);
+            }
+
+            // Check if the user exists
+            $user = User::where('email', $request->email)->first();
+
+            if (! $user) {
+                return response()->json(['message' => 'User not found.'], 404);
+            }
+
+            // Update the password
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+            // Delete used token
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+            return response()->json(['message' => 'Password has been reset successfully.'], 200);
+
+        } catch (\Exception $e) {
+            // Catch any unexpected errors
+            return response()->json(['message' => 'An unexpected error occurred.'], 500);
+        }
+    }
 
     public function FAQs()
     {
