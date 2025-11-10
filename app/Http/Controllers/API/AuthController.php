@@ -428,7 +428,7 @@ class AuthController extends ApiController
         if ($request->registration_id) {
             deleteUnusedRegistrationImages($request->registration_id, $used_paths);
         }
-        return $this->sendResponse(null, 'OTP sent to your email address.', 200);
+        return $this->sendResponse($otpCode, 'OTP sent to your email address.', 200);
 
     }
 
@@ -515,7 +515,7 @@ class AuthController extends ApiController
         }
         Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
 
-        return $this->sendResponse(null, 'OTP sent to your email address.', 200);
+        return $this->sendResponse($otpCode, 'OTP sent to your email address.', 200);
     }
     public function register(Request $request)
     {
