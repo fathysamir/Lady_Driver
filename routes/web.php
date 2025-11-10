@@ -99,6 +99,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::put('/client/update/{id}', [ClientController::class, 'update'])->name('update.client');
     Route::get('/client/delete/{id}', [ClientController::class, 'delete'])->name('delete.client');
     Route::any('/archived-clients', [ClientController::class, 'index_archives'])->name('archived_clients');
+    Route::any('/archived-students', [ClientController::class, 'index_archives'])->name('archived_students');
     Route::get('/client/restore/{id}', [ClientController::class, 'restore'])->name('restore.client');
     /////////////////////////////////////////
     Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');

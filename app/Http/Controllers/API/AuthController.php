@@ -1516,6 +1516,7 @@ class AuthController extends ApiController
         $cities = City::all();
         return $this->sendResponse($cities, null, 200);
     }
+    
 
     public function save_student_data(Request $request)
     {
@@ -1524,15 +1525,14 @@ class AuthController extends ApiController
             'graduation_year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
             'id_front_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
-        // dd($request->all());
+    
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
-
+    
         $student = Student::updateOrCreate(
-            ['user_id' => auth()->user()->id], // الشرط: كل يوزر ليه record واحد
+            ['user_id' => auth()->user()->id],
             [
                 'university_name'          => $request->university_name,
                 'graduation_year'          => $request->graduation_year,
@@ -1540,6 +1540,7 @@ class AuthController extends ApiController
                 'student_discount_service' => '0',
             ]
         );
+    
         if ($request->file('id_front_image')) {
             $image = getFirstMediaUrl($student, $student->IDfrontImageCollection);
             if ($image != null) {
@@ -1549,6 +1550,7 @@ class AuthController extends ApiController
                 uploadMedia($request->id_front_image, $student->IDfrontImageCollection, $student);
             }
         }
+    
         $user = auth()->user();
         if (! $user->student_code) {
             do {
@@ -1557,9 +1559,8 @@ class AuthController extends ApiController
             $user->student_code = $barcode;
             $user->save();
         }
-
-        return $this->sendResponse($student, 'success', 200);
-
+    
+        return $this->sendResponse($student, 'Success', 200);
     }
 
     public function change_student_discount_service()

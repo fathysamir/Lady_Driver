@@ -80,11 +80,16 @@
                                     action="{{ route('clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 55%;">Clients - {{ $count }}</h5>
+
+                                    <h5 class="card-title" style="width: 55%;">
+                                   {{ request()->query('type') === 'students' ? 'Students' : 'Clients' }} - {{ $count }}
+                                    </h5>
+
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-                                            <a class="btn btn-light px-3" type="button"
-                                                href="{{ route('archived_clients') }}"
-                                                style="margin:0% 0% 1% 1%; width: 170px; ">Deleted Accounts</a>
+                                        <a class="btn btn-light px-3" type="button"
+                                        href="{{ route('archived_clients', ['type' => $type]) }}"
+                                        style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
+
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
                                             <input type="text" class="form-control" placeholder="Enter keywords"
@@ -96,7 +101,7 @@
 
 
                                     <div id="filterOptions" style="display: none; text-align:center;">
-                                        <div style="display: flex;">
+                                        <div style="display: flex;justify-content: center;">
                                             <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
@@ -113,14 +118,7 @@
                                                     Blocked</option>
                                                 <!-- Add more options as needed -->
                                             </select>
-                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
-                                                name="city">
-                                                <option value="">Select City</option>
-                                                @foreach ($cities as $city)
-                                                    <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
-                                                @endforeach
-                                                <!-- Add more options as needed -->
-                                            </select>
+                                    
                                         </div>
 
 

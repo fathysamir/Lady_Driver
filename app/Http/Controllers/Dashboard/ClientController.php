@@ -13,73 +13,104 @@ use Image;
 
 class ClientController extends Controller
 { //done
+   
     public function index(Request $request)
-    {
-        $all_users = User::where('mode', 'client')->with('city:id,name')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+{
+    $query = User::where('mode', 'client')->with('city:id,name');
 
-        if ($request->has('search') && $request->search != null) {
-            $all_users->where(function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
-            });
-        }
+    $type = $request->query('type');
 
-        if ($request->has('status') && $request->status != null) {
-            $all_users->where('status', $request->status);
-        }
-        if ($request->has('city') && $request->city != null) {
-            $all_users->where('city_id', $request->city);
-        }
-
-        $count     = $all_users->count();
-        $all_users = $all_users->paginate(12);
-
-        $all_users->getCollection()->transform(function ($user) {
-            // Add the 'image' key based on some condition
-            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-            return $user;
-        });
-        $cities = City::all();
-        $search = $request->search;
-        $status = $request->status;
-        $city   = $request->city;
-
-        return view('dashboard.clients.index', compact('all_users', 'count', 'cities', 'search', 'status','city'));
-
+    if ($type === 'students') {
+        $query->whereNotNull('student_code');
+        $title = 'Students';
+    } elseif ($type === 'clients') {
+        $query->whereNull('student_code');
+        $title = 'Clients';
+    } else {
+        $query->whereNull('student_code');
+        $title = 'Clients';
     }
 
-    public function index_archives(Request $request)
-    {
-        // Start with all users, including soft deleted ones
-        $all_users = User::withTrashed()->where('mode', 'client')->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
-
-        // Apply search filter if provided
-        if ($request->has('search') && $request->search != null) {
-            $all_users->where(function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
-            });
-        }
-        // Only include soft deleted users
-        $all_users->whereNotNull('deleted_at');
-        $count = $all_users->count();
-        // Paginate the results
-        $all_users = $all_users->paginate(12);
-
-        // Transform the user collection to add the 'image' key
-        $all_users->getCollection()->transform(function ($user) {
-            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-            return $user;
-        });
-
+    
+    if ($request->filled('search')) {
         $search = $request->search;
-
-        return view('dashboard.clients.index_archives', compact('all_users', 'count', 'search'));
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%")
+              ->orWhere('phone', 'LIKE', "%{$search}%")
+              ->orWhere('id', $search);
+        });
     }
+
+    if ($request->filled('status')) $query->where('status', $request->status);
+    if ($request->filled('city'))   $query->where('city_id', $request->city);
+
+    $query->orderBy('created_at', 'desc')
+          ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+
+    $all_users = $query->paginate(12)->withQueryString();
+    $count = $all_users->total();
+
+    // Transform collection For image adding
+    $all_users->setCollection(
+        $all_users->getCollection()->transform(function ($user) {
+            $user->image = getFirstMediaUrl($user, $user->avatarCollection) ?? 'default-avatar.png';
+            return $user;
+        })
+    );
+    $cities = City::all();
+
+    $search = $request->search;
+    $status = $request->status;
+    $city   = $request->city;
+
+    return view('dashboard.clients.index', compact('all_users',  'count',  'cities',   'search',  'status',  'city', 'title', 'type' ));
+}
+
+
+
+public function index_archives(Request $request)
+{
+    $type = $request->query('type');
+    
+    $query = User::withTrashed()->where('mode', 'client')->whereNotNull('deleted_at');
+
+    if ($type === 'students') {
+        $query->whereNotNull('student_code');
+        $title = 'Deleted Students';
+    } else {
+        $query->whereNull('student_code');
+        $title = 'Deleted Clients';
+    }
+
+    // Apply search filter if provided
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%")
+              ->orWhere('phone', 'LIKE', "%{$search}%")
+              ->orWhere('id', $search);
+        });
+    }
+
+    $query->orderBy('created_at', 'desc')
+          ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+
+    $all_users = $query->paginate(12)->withQueryString();
+    $count = $all_users->total();
+
+    // Transform collection For image adding
+    $all_users->getCollection()->transform(function ($user) {
+        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        return $user;
+    });
+
+    $search = $request->search;
+
+    return view('dashboard.clients.index_archives', compact('all_users', 'count', 'search', 'type', 'title'));
+}
+
 
     public function edit($id, Request $request)
     {
