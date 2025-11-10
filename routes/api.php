@@ -93,7 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/update_location_car', [DriverController::class, 'update_location_car'])->name('update_location_car');
     Route::post('/rate_trip', [ClientController::class, 'rate_trip'])->name('rate_trip');
     Route::post('/cancel_trip', [ClientController::class, 'cancel_trip'])->name('cancel_trip');
-
+    Route::post('/update_trip_price', [ClientController::class, 'update_trip_price'])->name('update_trip_price');
     Route::get('/cancellation_reasons', [ClientController::class, 'cancellation_reasons'])->name('cancellation_reasons');
     Route::post('/add_feed_back', [AuthController::class, 'add_feed_back'])->name('add_feed_back');
 

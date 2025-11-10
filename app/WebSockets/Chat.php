@@ -387,7 +387,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost+$discount) * $app_ratio) / 100)-$discount, 2) : 0.00;
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -462,7 +462,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost+$discount) * $app_ratio) / 100)-$discount, 2) : 0.00;
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -529,7 +529,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost+$discount) * $app_ratio) / 100)-$discount, 2) : 0.00;
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -566,7 +566,7 @@ class Chat implements MessageComponentInterface
         $startTime   = time();
 
         // Save a reference so we can cancel it later
-        $timer = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $newTrip, $type, $startTime,$maxDuration) {
+        $timer = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $newTrip, $type, $startTime, $maxDuration) {
             // Stop broadcasting if too old or trip already taken
             $trip->refresh();
             if ($trip->status !== 'created' && $trip->status !== 'scheduled') {
@@ -580,7 +580,7 @@ class Chat implements MessageComponentInterface
                 $this->loop->cancelTimer($timer);
                 return;
             }
-
+            $newTrip['total_price'] = $trip->total_cost;
             // Re-run driver search (same logic per type)
             switch ($type) {
                 case 'car':
@@ -640,7 +640,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost+$trip->discount) * $app_ratio) / 100)-$trip->discount, 2) : 0.00;
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
                                 $newTrip['driver_rate']               = $trip->total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -715,7 +715,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost+$trip->discount) * $app_ratio) / 100)-$trip->discount, 2) : 0.00;
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
                                 $newTrip['driver_rate']               = $trip->total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
@@ -782,7 +782,7 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost+$trip->discount) * $app_ratio) / 100)-$trip->discount, 2) : 0.00;
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
                                 $newTrip['driver_rate']               = $trip->total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
