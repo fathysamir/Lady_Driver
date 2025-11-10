@@ -14,10 +14,10 @@ use App\Models\FAQ;
 use App\Models\FawryTransaction;
 use App\Models\FeedBack;
 use App\Models\Notification;
+use App\Models\PrivacyAndTerm;
 use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
-use App\Models\PrivacyAndTerm;
 use App\Models\Trip;
 use App\Models\User;
 use App\Services\FawryService;
@@ -428,7 +428,8 @@ class AuthController extends ApiController
         if ($request->registration_id) {
             deleteUnusedRegistrationImages($request->registration_id, $used_paths);
         }
-        return $this->sendResponse($otpCode, 'OTP sent to your email address.', 200);
+        $res['otp'] = $otpCode;
+        return $this->sendResponse($res, 'OTP sent to your email address.', 200);
 
     }
 
@@ -514,8 +515,8 @@ class AuthController extends ApiController
             uploadMedia($request->image, $user->avatarCollection, $user);
         }
         Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
-
-        return $this->sendResponse($otpCode, 'OTP sent to your email address.', 200);
+        $res['otp'] = $otpCode;
+        return $this->sendResponse($res, 'OTP sent to your email address.', 200);
     }
     public function register(Request $request)
     {
@@ -1577,45 +1578,45 @@ class AuthController extends ApiController
     public function getPrivacyPolicy(Request $request)
     {
         $lang = $request->header('lang', 'en');
-    
+
         $privacy = PrivacyAndTerm::where('type', 'privacy')
             ->where('lang', $lang)
             ->first();
-    
-        if (!$privacy) {
+
+        if (! $privacy) {
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'No content found for this language',
             ], 422);
         }
-    
+
         return response()->json([
             'status' => true,
-            'lang' => $lang,
-            'value' => $privacy->value,
+            'lang'   => $lang,
+            'value'  => $privacy->value,
         ]);
     }
-      
+
     public function getTermsAndConditions(Request $request)
     {
         $lang = $request->header('lang', 'en');
-    
+
         $terms = PrivacyAndTerm::where('type', 'terms')
             ->where('lang', $lang)
             ->first();
-    
-        if (!$terms) {
+
+        if (! $terms) {
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'No content found for this language',
             ], 422);
         }
-    
+
         return response()->json([
             'status' => true,
-            'lang' => $lang,
-            'value' => $terms->value,
+            'lang'   => $lang,
+            'value'  => $terms->value,
         ]);
-    }   
-    
+    }
+
 }
