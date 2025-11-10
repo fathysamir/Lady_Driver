@@ -27,8 +27,8 @@ Route::get('/scooter_marks', [DriverController::class, 'scooter_marks'])->name('
 Route::get('/scooter_models', [DriverController::class, 'scooter_models'])->name('scooter_models');
 
 Route::post('/save_image', [AuthController::class, 'save_image'])->name('save_image');
-Route::get('/Privacy_Policy', [AuthController::class, 'Privacy_Policy'])->name('Privacy_Policy');
-Route::get('/terms_conditions', [AuthController::class, 'terms_conditions'])->name('terms_conditions');
+Route::get('/privacy-policy', [AuthController::class, 'getPrivacyPolicy'])->name('getPrivacyPolicy');
+Route::get('/terms-conditions', [AuthController::class, 'getTermsAndConditions'])->name('terms_conditions');
 Route::get('/cities', [AuthController::class, 'cities'])->name('cities');
 Route::get('/app_version', [AuthController::class, 'app_version'])->name('app_version');
 Route::post('/update_app_version', [AuthController::class, 'update_app_version'])->name('update_app_version');
