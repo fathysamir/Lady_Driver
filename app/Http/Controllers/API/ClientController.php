@@ -252,16 +252,26 @@ class ClientController extends ApiController
                 'end_lat_3'       => null,
                 'end_lng_3'       => null,
                 'air_conditioned' => true,
-                'distance'        => 100.21,
-                'duration'        => 50,
-                'car'             => ['discount' => 0,
-                    'total_cost'                     => 125.50,
+                'car'             => [
+                    'total_cost_before_discount' => 125.50,
+                    'discount'                   => 0,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
                 ],
-                'comfort_car'     => ['discount' => 0,
-                    'total_cost'                     => 125.50,
+                'comfort_car'     => [
+                    'total_cost_before_discount' => 135.50,
+                    'discount'                   => 10,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
                 ],
-                'scooter'         => ['discount' => 0,
-                    'total_cost'                     => 125.50,
+                'scooter'         => [
+                    'total_cost_before_discount' => 145.50,
+                    'discount'                   => 20,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
                 ],
             ];
             return $this->sendResponse($response, null, 200);
@@ -358,6 +368,34 @@ class ClientController extends ApiController
         $less_cost_for_trip             = floatval(Setting::where('key', 'less_cost_for_car_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
         $student_discount               = floatval(Setting::where('key', 'student_discount')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
         $total_cost1                    = 0;
+        $response_x                     = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'car');
+        $distance                       = $response_x['distance_in_km'];
+        $duration                       = $response_x['duration_in_M'];
+        $response['end_lat_1']          = (float) $request->end_lat_1;
+        $response['end_lng_1']          = (float) $request->end_lng_1;
+        if ($request->end_lat_2 != null && $request->end_lng_2 != null) {
+            $response_x            = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'car');
+            $distance              = $distance + $response_x['distance_in_km'];
+            $duration              = $duration + $response_x['duration_in_M'];
+            $response['end_lat_2'] = (float) $request->end_lat_2;
+            $response['end_lng_2'] = (float) $request->end_lng_2;
+        } else {
+            $response['end_lat_2'] = null;
+            $response['end_lng_2'] = null;
+        }
+        if ($request->end_lat_3 != null && $request->end_lng_3 != null) {
+            $response_x            = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'car');
+            $distance              = $distance + $response_x['distance_in_km'];
+            $duration              = $duration + $response_x['duration_in_M'];
+            $response['end_lat_3'] = (float) $request->end_lat_3;
+            $response['end_lng_3'] = (float) $request->end_lng_3;
+        } else {
+            $response['end_lat_3'] = null;
+            $response['end_lng_3'] = null;
+        }
+
+        $response['car']['distance'] = $distance;
+        $response['car']['duration'] = $duration;
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
         }
@@ -386,7 +424,8 @@ class ClientController extends ApiController
         } else {
             $peakTimeCost = 0;
         }
-        $total_cost = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
+        $total_cost                                    = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
+        $response['car']['total_cost_before_discount'] = $total_cost;
         if ($student) {
             if ($student_trips_count < 3) {
                 $response['car']['discount'] = $total_cost * ($student_discount / 100);
@@ -412,6 +451,34 @@ class ClientController extends ApiController
         $less_cost_for_trip           = floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
         $student_discount             = floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
         $total_cost1                  = 0;
+        $response_x                   = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'car');
+        $distance                     = $response_x['distance_in_km'];
+        $duration                     = $response_x['duration_in_M'];
+        $response['end_lat_1']        = (float) $request->end_lat_1;
+        $response['end_lng_1']        = (float) $request->end_lng_1;
+        if ($request->end_lat_2 != null && $request->end_lng_2 != null) {
+            $response_x            = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'car');
+            $distance              = $distance + $response_x['distance_in_km'];
+            $duration              = $duration + $response_x['duration_in_M'];
+            $response['end_lat_2'] = (float) $request->end_lat_2;
+            $response['end_lng_2'] = (float) $request->end_lng_2;
+        } else {
+            $response['end_lat_2'] = null;
+            $response['end_lng_2'] = null;
+        }
+        if ($request->end_lat_3 != null && $request->end_lng_3 != null) {
+            $response_x            = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'car');
+            $distance              = $distance + $response_x['distance_in_km'];
+            $duration              = $duration + $response_x['duration_in_M'];
+            $response['end_lat_3'] = (float) $request->end_lat_3;
+            $response['end_lng_3'] = (float) $request->end_lng_3;
+        } else {
+            $response['end_lat_3'] = null;
+            $response['end_lng_3'] = null;
+        }
+
+        $response['comfort_car']['distance'] = $distance;
+        $response['comfort_car']['duration'] = $duration;
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
         }
@@ -435,7 +502,8 @@ class ClientController extends ApiController
         } else {
             $peakTimeCost = 0;
         }
-        $total_cost = ceil($total_cost1 + $peakTimeCost);
+        $total_cost                                            = ceil($total_cost1 + $peakTimeCost);
+        $response['comfort_car']['total_cost_before_discount'] = $total_cost;
         if ($student) {
             if ($student_trips_count < 3) {
                 $response['comfort_car']['discount'] = $total_cost * ($student_discount / 100);
@@ -461,6 +529,34 @@ class ClientController extends ApiController
         $less_cost_for_trip           = floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
         $student_discount             = floatval(Setting::where('key', 'student_discount')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
         $total_cost1                  = 0;
+        $response_x                   = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'scooter');
+        $distance                     = $response_x['distance_in_km'];
+        $duration                     = $response_x['duration_in_M'];
+        $response['end_lat_1']        = (float) $request->end_lat_1;
+        $response['end_lng_1']        = (float) $request->end_lng_1;
+        if ($request->end_lat_2 != null && $request->end_lng_2 != null) {
+            $response_x            = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'scooter');
+            $distance              = $distance + $response_x['distance_in_km'];
+            $duration              = $duration + $response_x['duration_in_M'];
+            $response['end_lat_2'] = (float) $request->end_lat_2;
+            $response['end_lng_2'] = (float) $request->end_lng_2;
+        } else {
+            $response['end_lat_2'] = null;
+            $response['end_lng_2'] = null;
+        }
+        if ($request->end_lat_3 != null && $request->end_lng_3 != null) {
+            $response_x            = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'scooter');
+            $distance              = $distance + $response_x['distance_in_km'];
+            $duration              = $duration + $response_x['duration_in_M'];
+            $response['end_lat_3'] = (float) $request->end_lat_3;
+            $response['end_lng_3'] = (float) $request->end_lng_3;
+        } else {
+            $response['end_lat_3'] = null;
+            $response['end_lng_3'] = null;
+        }
+
+        $response['scooter']['distance'] = $distance;
+        $response['scooter']['duration'] = $duration;
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).", 400);
         }
@@ -489,7 +585,9 @@ class ClientController extends ApiController
         } else {
             $peakTimeCost = 0;
         }
-        $total_cost = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
+        $total_cost                                        = ceil($total_cost1 + $peakTimeCost + $air_conditioning_cost);
+        $response['scooter']['total_cost_before_discount'] = $total_cost;
+
         if ($student) {
             if ($student_trips_count < 3) {
                 $response['scooter']['discount'] = $total_cost * ($student_discount / 100);

@@ -97,12 +97,27 @@ function generateOTP()
     return rand(100000, 999999);
 }
 
-function calculate_distance($lat1, $lng1, $lat2, $lng2)
+function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
 {
 
     $api_key = 'AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0';
+    switch (strtolower($vehicleType)) {
+        case 'scooter':
+        case 'motorbike':
+        case 'bike':
+            $mode = 'two_wheeler'; // special mode for scooters / motorbikes
+            break;
+        case 'walking':
+            $mode = 'walking';
+            break;
+        case 'transit':
+            $mode = 'transit';
+            break;
+        default:
+            $mode = 'driving';
+    }
     //$base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
-    $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&departure_time=now&traffic_model=best_guess&key=$api_key";
+    $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&mode=$mode&departure_time=now&traffic_model=best_guess&key=$api_key";
     //$request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
 
     $response = file_get_contents($request_url);
@@ -110,8 +125,10 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2)
 
     if ($data['status'] == 'OK') {
 
-        $distance                    = $data['rows'][0]['elements'][0]['distance']['value']; // Distance in meters
-        $duration                    = $data['rows'][0]['elements'][0]['duration_in_traffic']['value'];
+        $element  = $data['rows'][0]['elements'][0];
+        $distance = $element['distance']['value'] ?? 0; // meters
+        $duration = $element['duration_in_traffic']['value'] ?? $element['duration']['value'] ?? 0; // seconds
+
         $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
         $response2['duration_in_M']  = ceil($duration / 60);
 
