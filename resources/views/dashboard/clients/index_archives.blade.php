@@ -1,5 +1,7 @@
 @extends('dashboard.layout.app')
-@section('title', 'Dashboard - archived clients')
+@section('title')
+    Dashboard - archived {{ $type == 'students' ? 'students' : 'clients' }}
+@endsection
 @section('content')
     <style>
         .pagination {

@@ -1,5 +1,5 @@
 @extends('dashboard.layout.app')
-@section('title', 'Dashboard - clients')
+@section('title', 'Dashboard - ' . (request()->query('type') === 'students' ? 'Students' : 'Clients'))
 @section('content')
     <style>
         .pagination {
