@@ -561,7 +561,7 @@ class Chat implements MessageComponentInterface
     private function startTripBroadcast($trip, $newTrip, $type)
     {
                             // Broadcast trip every 5 seconds for max 3 minutes
-        $maxDuration = 180; // seconds
+        $maxDuration = 300; // seconds
         $interval    = 5;   // seconds
         $startTime   = time();
 
@@ -580,7 +580,7 @@ class Chat implements MessageComponentInterface
                 $this->loop->cancelTimer($timer);
                 return;
             }
-            $newTrip['total_price'] = $trip->total_cost;
+            $newTrip['total_price'] = (float)$trip->total_price;
             // Re-run driver search (same logic per type)
             switch ($type) {
                 case 'car':
