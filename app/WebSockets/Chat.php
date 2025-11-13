@@ -580,7 +580,7 @@ class Chat implements MessageComponentInterface
                 $this->loop->cancelTimer($timer);
                 return;
             }
-            $newTrip['total_price'] = $trip->total_cost;
+            $newTrip['total_price'] = $trip->total_price;
             // Re-run driver search (same logic per type)
             switch ($type) {
                 case 'car':
