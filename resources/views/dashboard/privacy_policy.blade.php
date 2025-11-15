@@ -24,12 +24,10 @@
 <script>
 let currentLang = 'en';
 
-// -----------------------------
-// INIT EDITOR
-// -----------------------------
+
 function initEditor(lang) {
 
-    // لو فيه Editor شغال: امسحه
+    
     if (tinymce.get('privacyEditor')) {
         tinymce.get('privacyEditor').remove();
     }
@@ -39,10 +37,10 @@ function initEditor(lang) {
         height: 400,
         menubar: false,
 
-        // 🔥 بدون أي plugin للصور
+        
         plugins: 'link lists code directionality paste',
 
-        // 🔥 toolbar بدون زرار صور
+      
         toolbar: 'undo redo | bold italic underline | bullist numlist | link | ltr rtl | code',
 
         skin: 'oxide-dark',
@@ -50,7 +48,6 @@ function initEditor(lang) {
 
         directionality: lang === 'ar' ? 'rtl' : 'ltr',
 
-        // 🔥 الشفافية + RTL/LTR + لون الخط
         content_style: `
             html, body {
                 background: transparent !important;
@@ -66,21 +63,18 @@ function initEditor(lang) {
 
             editor.on('init', function () {
 
-                // 🔥 جعل iframe نفسه شفاف
                 const iframe = editor.iframeElement;
                 if (iframe) {
                     iframe.style.background = 'transparent';
                     iframe.style.backgroundColor = 'transparent';
                 }
 
-                // 🔥 جعل body شفاف
                 editor.getBody().style.background = "transparent";
                 editor.getBody().style.backgroundColor = "transparent";
 
                 loadContent(lang);
             });
 
-            // 🔥 منع لصق الصور
             editor.on('paste', (event) => {
                 const clipboard = (event.clipboardData || event.originalEvent?.clipboardData);
                 if (!clipboard) return;
@@ -94,7 +88,7 @@ function initEditor(lang) {
                 }
             });
 
-            // 🔥 منع <img> لو جات من HTML
+            
             editor.on('BeforeSetContent', (e) => {
                 if (e.content.includes("<img")) {
                     e.preventDefault();
@@ -110,14 +104,11 @@ function initEditor(lang) {
             });
         },
 
-        // 🔥 مسموح بعناصر معينة فقط (مفيش img)
-        valid_elements: "-p,-strong,-b,-i,-em,-u,-ul,-ol,-li,-a[href],-span,-br,-div",
+        
     });
 }
 
-// -----------------------------
-// LOAD CONTENT
-// -----------------------------
+
 function loadContent(lang) {
     fetch(`/admin-dashboard/privacy-policy/${lang}`)
         .then(res => res.json())
@@ -126,17 +117,13 @@ function loadContent(lang) {
         });
 }
 
-// -----------------------------
-// LANGUAGE SWITCH
-// -----------------------------
+
 document.getElementById('langSwitcher').addEventListener('change', (e) => {
     currentLang = e.target.value;
     initEditor(currentLang);
 });
 
-// -----------------------------
-// SAVE CONTENT
-// -----------------------------
+
 document.getElementById('saveBtn').addEventListener('click', () => {
     const content = tinymce.get('privacyEditor').getContent();
 
@@ -152,9 +139,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     .then(data => alert(data.message || 'Saved!'));
 });
 
-// -----------------------------
-// FIRST RUN
-// -----------------------------
+
 initEditor(currentLang);
 
 </script>

@@ -24,9 +24,7 @@
 <script>
 let currentLang = 'en';
 
-// -----------------------------
-// INIT EDITOR
-// -----------------------------
+
 function initEditor(lang) {
 
     if (tinymce.get('termsEditor')) {
@@ -102,13 +100,11 @@ function initEditor(lang) {
             });
         },
 
-        valid_elements: "-p,-strong,-b,-i,-em,-u,-ul,-ol,-li,-a[href],-span,-br,-div",
+       
     });
 }
 
-// -----------------------------
-// LOAD CONTENT
-// -----------------------------
+
 function loadContent(lang) {
     fetch(`/admin-dashboard/terms-conditions/${lang}`)
         .then(res => res.json())
@@ -117,17 +113,13 @@ function loadContent(lang) {
         });
 }
 
-// -----------------------------
-// LANGUAGE SWITCH
-// -----------------------------
+
 document.getElementById('langSwitcher').addEventListener('change', (e) => {
     currentLang = e.target.value;
     initEditor(currentLang);
 });
 
-// -----------------------------
-// SAVE CONTENT
-// -----------------------------
+
 document.getElementById('saveBtn').addEventListener('click', () => {
     const content = tinymce.get('termsEditor').getContent();
 
@@ -143,9 +135,6 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     .then(data => alert(data.message || 'Saved!'));
 });
 
-// -----------------------------
-// FIRST RUN
-// -----------------------------
 initEditor(currentLang);
 
 </script>
