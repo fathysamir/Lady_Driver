@@ -38,7 +38,8 @@ function initEditor(lang) {
 
         plugins: 'link lists code directionality paste',
 
-        toolbar: 'undo redo | bold italic underline | bullist numlist | link | ltr rtl | code',
+        toolbar: 'undo redo | bold italic underline | fontsizeselect fontsizeinput | bullist numlist | link | ltr rtl | code',
+        fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt 48pt',
 
         skin: 'oxide-dark',
         content_css: false,
