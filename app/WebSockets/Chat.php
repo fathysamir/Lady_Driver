@@ -12,6 +12,7 @@ use App\Models\TripChat;
 use App\Models\TripDestination;
 use App\Models\User;
 use Clue\React\Redis\Factory;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Ratchet\ConnectionInterface;
@@ -560,10 +561,26 @@ class Chat implements MessageComponentInterface
     }
     private function startTripBroadcast($trip, $newTrip, $type)
     {
-                            // Broadcast trip every 5 seconds for max 3 minutes
-        $maxDuration = 300; // seconds
-        $interval    = 5;   // seconds
-        $startTime   = time();
+                                 // Broadcast trip every 5 seconds for max 3 minutes
+        $maxDuration      = 300; // seconds
+        $interval         = 5;   // seconds
+        $startTime        = time();
+        $x                = rand(1, 4);
+        $trip->seen_count = $trip->seen_count + $x;
+        $trip->save();
+        $newTrip['seen_count']['count'] = $trip->seen_count;
+        $limit                          = min($trip->seen_count, 6); // max 6 images
+
+        $files = collect(File::files(public_path('driver_images')))
+            ->map(function ($file) {
+                return url('/driver_images/' . $file->getFilename()); // return public path format
+            })
+            ->shuffle()
+            ->take($limit)
+            ->values()
+            ->toArray();
+
+        $newTrip['seen_count']['images'] = $files;
 
         // Save a reference so we can cancel it later
         $timer = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $newTrip, $type, $startTime, $maxDuration) {
@@ -580,7 +597,7 @@ class Chat implements MessageComponentInterface
                 $this->loop->cancelTimer($timer);
                 return;
             }
-            $newTrip['total_price'] = (float)$trip->total_price;
+            $newTrip['total_price'] = (float) $trip->total_price;
             // Re-run driver search (same logic per type)
             switch ($type) {
                 case 'car':

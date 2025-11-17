@@ -53,6 +53,8 @@ return new class extends Migration
             $table->longText('driver_comment')->nullable();
             $table->timestamp('driver_arrived')->nullable();
             $table->enum('scheduled', ['0', '1'])->default('0');
+            $table->integer('seen_count')->default(0);
+            
             
             $table->timestamps();
             $table->softDeletes();
