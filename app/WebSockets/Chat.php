@@ -577,7 +577,7 @@ class Chat implements MessageComponentInterface
 
         $files = collect(File::files(public_path('driver_images')))
             ->map(function ($file) {
-                return url('/driver_images/' . $file->getFilename()); // return public path format
+                return 'https://api.lady-driver.com' . '/driver_images/' . $file->getFilename(); // return public path format
             })
             ->shuffle()
             ->take($limit)
