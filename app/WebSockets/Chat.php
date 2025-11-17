@@ -310,7 +310,9 @@ class Chat implements MessageComponentInterface
                 $newTrip['end_lng_3'] = $data['end_lng_3'];
                 $newTrip['address4']  = $data['address4'];
             }
+            $newTrip_client['seen_count']['count'] = 0;
 
+            $newTrip_client['seen_count']['images'] = [];
             $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
@@ -568,8 +570,10 @@ class Chat implements MessageComponentInterface
         $x                = rand(1, 4);
         $trip->seen_count = $trip->seen_count + $x;
         $trip->save();
-        $newTrip['seen_count']['count'] = $trip->seen_count;
-        $limit                          = min($trip->seen_count, 6); // max 6 images
+        $newTrip_client                        = [];
+        $newTrip_client['id']                  = $trip->id;
+        $newTrip_client['seen_count']['count'] = $trip->seen_count;
+        $limit                                 = min($trip->seen_count, 6); // max 6 images
 
         $files = collect(File::files(public_path('driver_images')))
             ->map(function ($file) {
@@ -580,8 +584,14 @@ class Chat implements MessageComponentInterface
             ->values()
             ->toArray();
 
-        $newTrip['seen_count']['images'] = $files;
-
+        $newTrip_client['seen_count']['images'] = $files;
+        $user_id                                = $trip->user_id;
+        $client_trip_                           = $this->getClientByUserId($user_id);
+        if ($client_trip_) {
+            $client_trip_->send(json_encode(['type' => 'created_trip', 'data' => $newTrip_client, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        }
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $trip->user_id);
         // Save a reference so we can cancel it later
         $timer = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $newTrip, $type, $startTime, $maxDuration) {
             // Stop broadcasting if too old or trip already taken
