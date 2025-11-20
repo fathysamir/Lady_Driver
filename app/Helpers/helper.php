@@ -1,10 +1,9 @@
 <?php
-
+use App\Models\User;
 use App\Models\Trip;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use App\Models\User;
 use Milon\Barcode\DNS2D;
 
 
