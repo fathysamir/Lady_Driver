@@ -667,8 +667,8 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
-                                $newTrip['driver_rate']               = $trip->total_cost - $newTrip['app_rate'];
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+                                $newTrip['driver_rate']               = $trip->total_price - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                                 $distance2                            = $response2['distance_in_km'];
@@ -742,8 +742,8 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
-                                $newTrip['driver_rate']               = $trip->total_cost - $newTrip['app_rate'];
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+                                $newTrip['driver_rate']               = $trip->total_price - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                                 $distance2                            = $response2['distance_in_km'];
@@ -809,8 +809,8 @@ class Chat implements MessageComponentInterface
                             if ($client) {
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_cost + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
-                                $newTrip['driver_rate']               = $trip->total_cost - $newTrip['app_rate'];
+                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+                                $newTrip['driver_rate']               = $trip->total_price - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
                                 $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                                 $distance2                            = $response2['distance_in_km'];
@@ -1579,7 +1579,9 @@ class Chat implements MessageComponentInterface
             $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
                 $query->where('user_id', $driver_->id);
             })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
-
+            $offer_result['user']['trips_count'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                $query->where('user_id', $driver_->id);
+            })->where('status', 'completed')->count();
             $offer_result['car']['id']            = $offer->car()->first()->id;
             $offer_result['car']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->car()->first(), $offer->car()->first()->avatarCollection);
             $offer_result['car']['year']          = $offer->car()->first()->year;
@@ -1593,15 +1595,18 @@ class Chat implements MessageComponentInterface
             $offer_result['user']['rate'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
                 $query->where('user_id', $driver_->id);
             })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
-            $offer_result['scooter']['id']            = $offer->scooter()->first()->id;
-            $offer_result['scooter']['image']         = 'https://api.lady-driver.com' . getFirstMedia($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
-            $offer_result['scooter']['year']          = $offer->scooter()->first()->year;
-            $offer_result['scooter']['car_mark_id']   = $offer->scooter()->first()->car_mark_id;
-            $offer_result['scooter']['car_model_id']  = $offer->scooter()->first()->car_model_id;
-            $offer_result['scooter']['mark']['id']    = $offer->scooter()->first()->mark()->first()->id;
-            $offer_result['scooter']['mark']['name']  = $offer->scooter()->first()->mark()->first()->name;
-            $offer_result['scooter']['model']['id']   = $offer->scooter()->first()->model()->first()->id;
-            $offer_result['scooter']['model']['name'] = $offer->scooter()->first()->model()->first()->name;
+            $offer_result['user']['trips_count'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                $query->where('user_id', $driver_->id);
+            })->where('status', 'completed')->count();
+            $offer_result['scooter']['id']               = $offer->scooter()->first()->id;
+            $offer_result['scooter']['image']            = 'https://api.lady-driver.com' . getFirstMedia($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
+            $offer_result['scooter']['year']             = $offer->scooter()->first()->year;
+            $offer_result['scooter']['scooter_mark_id']  = $offer->scooter()->first()->motorcycle_mark_id;
+            $offer_result['scooter']['scooter_model_id'] = $offer->scooter()->first()->motorcycle_model_id;
+            $offer_result['scooter']['mark']['id']       = $offer->scooter()->first()->mark()->first()->id;
+            $offer_result['scooter']['mark']['name']     = $offer->scooter()->first()->mark()->first()->name;
+            $offer_result['scooter']['model']['id']      = $offer->scooter()->first()->model()->first()->id;
+            $offer_result['scooter']['model']['name']    = $offer->scooter()->first()->model()->first()->name;
         }
         $offer_result['created_at'] = $offer->created_at;
 
@@ -1636,9 +1641,9 @@ class Chat implements MessageComponentInterface
         $from->send($message);
         $date_time = date('Y-m-d h:i:s a');
         echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $AuthUserID);
-        $client = $this->getClientByUserId($offer->user_id);
-        if ($client) {
-            $client->send($message);
+        $driver = $this->getClientByUserId($offer->user_id);
+        if ($driver) {
+            $driver->send($message);
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->user_id);
         }
@@ -1654,7 +1659,7 @@ class Chat implements MessageComponentInterface
             $data1         = [
                 'type'    => 'rejected_offer',
                 'data'    => $x,
-                'message' => 'The selected offer is not pending.',
+                'message' => 'The selected offer is expired.',
             ];
             $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $from->send($res);
@@ -1666,18 +1671,21 @@ class Chat implements MessageComponentInterface
             $trip = $offer->trip;
             switch ($trip->type) {
                 case 'car':
-                    $app_ratio    = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
-                    $trip->car_id = $offer->car_id;
+                    $app_ratio              = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
+                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
+                    $trip->car_id           = $offer->car_id;
                     break;
 
                 case 'comfort_car':
-                    $app_ratio    = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
-                    $trip->car_id = $offer->car_id;
+                    $app_ratio              = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
+                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
+                    $trip->car_id           = $offer->car_id;
                     break;
 
                 case 'scooter':
-                    $app_ratio        = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
-                    $trip->scooter_id = $offer->scooter_id;
+                    $app_ratio              = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $offer->user->level)->first()->value);
+                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
+                    $trip->scooter_id       = $offer->scooter_id;
                     break;
 
                 default:
@@ -1688,8 +1696,9 @@ class Chat implements MessageComponentInterface
                 $trip->status = 'pending';
             }
             $trip->total_price = $offer->offer;
-            $trip->app_rate    = round(($offer->offer * $app_ratio) / 100, 2);
-            $trip->driver_rate = $offer->offer - round(($offer->offer * $app_ratio) / 100, 2);
+            $trip->app_rate    = $application_commission == 'On' ? round(((($offer->offer + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+            $trip->driver_rate = $trip->total_price - ($application_commission == 'On' ? round(((($offer->offer + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00);
+
             $trip->save();
             if ($trip->status == 'created') {
                 $offer->status = 'accepted';
