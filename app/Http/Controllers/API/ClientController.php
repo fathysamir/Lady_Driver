@@ -705,9 +705,12 @@ class ClientController extends ApiController
                         $offer_result['car']['model']['id']   = $offer->car()->first()->model()->first()->id;
                         $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
                     } elseif ($trip->type == 'scooter') {
-                        $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                        $offer_result['user']['rate'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
                             $query->where('user_id', $driver_->id);
                         })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
+                        $offer_result['user']['trips_count'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                            $query->where('user_id', $driver_->id);
+                        })->where('status', 'completed')->count();
                         $offer_result['scooter']['id']            = $offer->scooter()->first()->id;
                         $offer_result['scooter']['image']         = getFirstMediaUrl($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
                         $offer_result['scooter']['year']          = $offer->scooter()->first()->year;
