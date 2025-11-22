@@ -588,9 +588,9 @@ class ClientController extends ApiController
             return $this->sendError(null, $check_account, 400);
         }
         $trip = Trip::where('user_id', auth()->user()->id)->whereIn('status', ['created', 'pending', 'in_progress'])->with(['car' => function ($query) {
-            $query->with(['mark:name', 'model:name', 'owner']);
+            $query->with(['mark:id,name', 'model:id,name', 'owner']);
         }, 'scooter' => function ($query) {
-            $query->with(['mark:name', 'model:name', 'owner']);
+            $query->with(['mark:id,name', 'model:id,name', 'owner']);
         }, 'finalDestination' => function ($xx) {
             $xx->orderBy('id');
         }])->first();
