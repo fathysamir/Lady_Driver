@@ -1,9 +1,11 @@
 <?php
-
+use App\Models\User;
 use App\Models\Trip;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Milon\Barcode\DNS2D;
+
 
 function uploadMedia($request_file, $collection_name, $model)
 {
@@ -274,3 +276,28 @@ function deleteUnusedRegistrationImages($registration_id, $used_paths = [])
         ->where('registration_id', $registration_id)
         ->delete();
 }
+
+
+
+
+function username_Generation($name)
+{
+    $base = Str::slug($name, '');
+
+    if (!$base) {
+        $base = 'user';
+    }
+
+    do {
+        if (Str::contains($base, '_')) {
+            $suffix = rand(100, 9999); 
+        } else {
+            $suffix = '_' . rand(100, 9999);
+        }
+
+        $username = strtolower($base . $suffix);
+    } while (User::where('username', $username)->exists());
+
+    return $username;
+}
+

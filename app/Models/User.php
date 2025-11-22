@@ -24,6 +24,7 @@ class User extends Authenticatable
     public $passportImageCollection = 'passport-image';
     protected $fillable             = [
         'name',
+        'username',
         'email',
         'phone',
         'age',

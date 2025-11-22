@@ -272,8 +272,11 @@ class AuthController extends ApiController
             $driver_type = 'scooter';
         }
 
+        $username = username_Generation($request->name);
+
         $user = User::create([
             'name'            => $request->name,
+            'username' => $username,
             'email'           => $request->email,
             'password'        => Hash::make($request->password),
             'phone'           => $request->phone,
@@ -429,6 +432,7 @@ class AuthController extends ApiController
             deleteUnusedRegistrationImages($request->registration_id, $used_paths);
         }
         $res['otp'] = $otpCode;
+        $res['username'] = $user->username;
         return $this->sendResponse($res, 'OTP sent to your email address.', 200);
 
     }
@@ -491,9 +495,12 @@ class AuthController extends ApiController
         } else {
             $age = null;
         }
+        $username = username_Generation($request->name);
+
         $user = User::create([
 
             'name'            => $request->name,
+            'username'        => $username,
             'email'           => $request->email,
             'password'        => Hash::make($request->password),
             'phone'           => $request->phone,
@@ -516,6 +523,7 @@ class AuthController extends ApiController
         }
         Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
         $res['otp'] = $otpCode;
+        $res['username'] = $user->username; 
         return $this->sendResponse($res, 'OTP sent to your email address.', 200);
     }
     public function register(Request $request)
