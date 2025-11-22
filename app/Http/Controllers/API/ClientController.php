@@ -591,7 +591,7 @@ class ClientController extends ApiController
             $query->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
         }, 'scooter' => function ($query) {
             $query->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
-        }, 'finalDestination' => function ($xx) {
+        }, 'finalDestination:id,trip_id,lat,lng,address' => function ($xx) {
             $xx->orderBy('id');
         }])->first();
 
@@ -629,7 +629,6 @@ class ClientController extends ApiController
             $trip->barcode  = $barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {
-                    $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
                     $driver_                 = $trip->car->owner;
                     $trip->car->owner->rate  = Trip::whereHas('car', function ($query) use ($driver_) {
                         $query->where('user_id', $driver_->id);
@@ -639,7 +638,6 @@ class ClientController extends ApiController
                     })->where('status', 'completed')->count();
                     $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
                 } elseif ($trip->type == 'scooter') {
-                    $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
                     $driver_                     = $trip->scooter->owner;
                     $trip->scooter->owner->rate  = Trip::whereHas('scooter', function ($query) use ($driver_) {
                         $query->where('user_id', $driver_->id);
