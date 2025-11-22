@@ -71,11 +71,11 @@ class TripChat extends Model
 
     public function getImageAttribute()
     {
-        return getFirstMediaUrl($this, $this->imageCollection, true);
+        return getFirstMediaUrl($this, $this->imageCollection);
     }
     public function getRecordAttribute()
     {
-        return getFirstMediaUrl($this, $this->recordCollection, true);
+        return getFirstMediaUrl($this, $this->recordCollection);
     }
 
 }

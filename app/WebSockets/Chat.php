@@ -1624,8 +1624,7 @@ class Chat implements MessageComponentInterface
 
     }
 
-    private function cancel_offer(ConnectionInterface $from, $AuthUserID, $expireOfferRequest)
-    {
+    private function cancel_offer(ConnectionInterface $from, $AuthUserID, $expireOfferRequest){
         $data          = json_decode($expireOfferRequest, true);
         $offer         = Offer::findOrFail($data['offer_id']);
         $offer->status = 'expired';
@@ -1787,10 +1786,10 @@ class Chat implements MessageComponentInterface
         $trip->trip_cancelling_reason_id = $data['reason_id'];
         $trip->save();
         $canceled_trip['trip_id'] = $trip->id;
-        $canceled_trip['message'] = 'Trip canceled successfully';
         $data2                    = [
             'type' => 'canceled_trip',
             'data' => $canceled_trip,
+            'message'=>'Trip canceled successfully'
         ];
         $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $client  = $this->getClientByUserId($trip->user_id);
@@ -1858,61 +1857,61 @@ class Chat implements MessageComponentInterface
         }
         $from->send($res);
     }
-    private function send_message(ConnectionInterface $from, $AuthUserID, $trackSendMessageRequest)
-    {
-        $data            = json_decode($trackSendMessageRequest, true);
-        $x['message_id'] = $data['message_id'];
-        $data1           = [
-            'type'    => 'Receiving_message',
-            'data'    => $x,
-            'message' => null,
-        ];
-        $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $from->send($res);
-        $message = TripChat::where('id', $data['message_id'])->first();
+    // private function send_message(ConnectionInterface $from, $AuthUserID, $trackSendMessageRequest)
+    // {
+    //     $data            = json_decode($trackSendMessageRequest, true);
+    //     $x['message_id'] = $data['message_id'];
+    //     $data1           = [
+    //         'type'    => 'Receiving_message',
+    //         'data'    => $x,
+    //         'message' => null,
+    //     ];
+    //     $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    //     $from->send($res);
+    //     $message = TripChat::where('id', $data['message_id'])->first();
 
-        if ($AuthUserID == $message->trip->user_id) {
-            switch ($message->trip->type) {
-                case 'car':
-                    $client = $this->getClientByUserId($message->trip->car->user_id);
-                    if ($client) {
-                        $client->send($res);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->car->user_id);
-                    }
-                    break;
+    //     if ($AuthUserID == $message->trip->user_id) {
+    //         switch ($message->trip->type) {
+    //             case 'car':
+    //                 $client = $this->getClientByUserId($message->trip->car->user_id);
+    //                 if ($client) {
+    //                     $client->send($res);
+    //                     $date_time = date('Y-m-d h:i:s a');
+    //                     echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->car->user_id);
+    //                 }
+    //                 break;
 
-                case 'comfort_car':
-                    $client = $this->getClientByUserId($message->trip->car->user_id);
-                    if ($client) {
-                        $client->send($res);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->car->user_id);
-                    }
-                    break;
+    //             case 'comfort_car':
+    //                 $client = $this->getClientByUserId($message->trip->car->user_id);
+    //                 if ($client) {
+    //                     $client->send($res);
+    //                     $date_time = date('Y-m-d h:i:s a');
+    //                     echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->car->user_id);
+    //                 }
+    //                 break;
 
-                case 'scooter':
-                    $client = $this->getClientByUserId($message->trip->scooter->user_id);
-                    if ($client) {
-                        $client->send($res);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->scooter->user_id);
-                    }
-                    break;
+    //             case 'scooter':
+    //                 $client = $this->getClientByUserId($message->trip->scooter->user_id);
+    //                 if ($client) {
+    //                     $client->send($res);
+    //                     $date_time = date('Y-m-d h:i:s a');
+    //                     echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->scooter->user_id);
+    //                 }
+    //                 break;
 
-                default:
+    //             default:
 
-                    break;
-            }
-        } else {
-            $client = $this->getClientByUserId($message->trip->user_id);
-            if ($client) {
-                $client->send($res);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->user_id);
-            }
-        }
-    }
+    //                 break;
+    //         }
+    //     } else {
+    //         $client = $this->getClientByUserId($message->trip->user_id);
+    //         if ($client) {
+    //             $client->send($res);
+    //             $date_time = date('Y-m-d h:i:s a');
+    //             echo sprintf('[ %s ] Message "%s" sent to user %d' . "\n", $date_time, $res, $message->trip->user_id);
+    //         }
+    //     }
+    // }
 
     public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
     {
@@ -2004,9 +2003,9 @@ class Chat implements MessageComponentInterface
                 case 'update_location':
                     $this->update_location($from, $AuthUserID, $requestData);
                     break;
-                case 'send_message':
-                    $this->send_message($from, $AuthUserID, $requestData);
-                    break;
+                // case 'send_message':
+                //     $this->send_message($from, $AuthUserID, $requestData);
+                //     break;
                 case 'barcode_verification_request':
                     $this->check_barcode($from, $AuthUserID, $requestData);
                     break;

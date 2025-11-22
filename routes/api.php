@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
     Route::post('/create_offer', [DriverController::class, 'create_offer'])->name('create_offer');
+    Route::post('/driver_arriving', [DriverController::class, 'driver_arriving'])->name('driver_arriving');
 
     Route::get('/current_trip', [ClientController::class, 'current_trip'])->name('current_trip');
     Route::post('/accept_offer', [ClientController::class, 'accept_offer'])->name('accept_offer');

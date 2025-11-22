@@ -619,7 +619,7 @@ class DriverController extends ApiController
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'car')->with(['user:id,name','finalDestination']);
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'car')->with(['user:id,name', 'finalDestination']);
                     if ($driver_car->air_conditioned == '0') {
                         $tripsWithin3Km->where('air_conditioned', '0');
                     }
@@ -663,7 +663,7 @@ class DriverController extends ApiController
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'comfort_car')->with(['user:id,name','finalDestination']);
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'comfort_car')->with(['user:id,name', 'finalDestination']);
 
                     if ($driver_car->animals == '0') {
                         $tripsWithin3Km->where('animals', '0');
@@ -705,7 +705,7 @@ class DriverController extends ApiController
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'scooter')->with(['user:id,name','finalDestination'])->whereHas('user', function ($query) {
+                        ->whereIn('status', ['created', 'scheduled'])->where('type', 'scooter')->with(['user:id,name', 'finalDestination'])->whereHas('user', function ($query) {
                         $query->where('gendor', 'Female');
                     });
 
@@ -754,64 +754,6 @@ class DriverController extends ApiController
 
     }
 
-    // public function create_offer(Request $request)
-    // {
-    //     $check_account = $this->check_banned();
-    //     if ($check_account != true) {
-    //         return $this->sendError(null, $check_account, 400);
-    //     }
-    //     $validator = Validator::make($request->all(), [
-    //         'trip_id' => [
-    //             'required',
-    //             Rule::exists('trips', 'id'),
-    //         ],
-    //         'offer'   => 'required',
-
-    //     ]);
-    //     // dd($request->all());
-    //     if ($validator->fails()) {
-
-    //         $errors = implode(" / ", $validator->errors()->all());
-
-    //         return $this->sendError(null, $errors, 400);
-    //     }
-    //     $driver_car = Car::where('user_id', auth()->user()->id)->first();
-    //     $lastOffer  = Offer::orderBy('id', 'desc')->first();
-
-    //     if ($lastOffer) {
-    //         $lastCode = $lastOffer->code;
-    //         $code     = 'OFR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
-    //     } else {
-    //         $code = 'OFR-000001';
-    //     }
-    //     $offer = Offer::create(['user_id' => auth()->user()->id,
-    //         'code'                            => $code,
-    //         'car_id'                          => $driver_car->id,
-    //         'trip_id'                         => intval($request->trip_id),
-    //         'offer'                           => floatval($request->offer)]);
-    //     $trip = Trip::findOrFail($request->trip_id);
-    //     if ($trip->user->device_token) {
-    //         $this->firebaseService->sendNotification($trip->user->device_token, 'Lady Driver - New Offer', "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").", ["screen" => "Current Trip", "ID" => $trip->id]);
-    //         $data = [
-    //             "title"   => "Lady Driver - New Offer",
-    //             "message" => "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").",
-    //             "screen"  => "Current Trip",
-    //             "ID"      => $trip->id,
-    //         ];
-    //         Notification::create(['user_id' => $trip->user_id, 'data' => json_encode($data)]);
-    //     }
-    //     return $this->sendResponse($offer, null, 200);
-
-    // }
-
-    // public function expire_offer($id)
-    // {
-    //     $offer         = Offer::find($id);
-    //     $offer->status = 'expired';
-    //     $offer->save();
-    //     return $this->sendResponse(null, 'Offer is expired', 200);
-    // }
-
     public function driver_current_trip()
     {
         $check_account = $this->check_banned();
@@ -832,7 +774,7 @@ class DriverController extends ApiController
             $query->with(['mark', 'model']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model']);
-        }, 'user','finalDestination'])->first();
+        }, 'user', 'finalDestination'])->first();
         if (in_array($trip->type, ['car', 'comfort_car'])) {
             $response = calculate_distance($lastAcceptedOffer->car->lat, $lastAcceptedOffer->car->lng, $trip->start_lat, $trip->start_lng);
         } elseif ($trip->type == 'scooter') {
@@ -967,7 +909,7 @@ class DriverController extends ApiController
             $car             = Car::where('user_id', auth()->user()->id)->first();
             $cancelled_trips = Trip::where('car_id', $car->id)->where('status', 'cancelled')->with(['car' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'cancelled_by','finalDestination'])->get()->map(function ($trip) {
+            }, 'user', 'cancelled_by', 'finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;
@@ -977,7 +919,7 @@ class DriverController extends ApiController
             $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
             $cancelled_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'cancelled')->with(['scooter' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'cancelled_by','finalDestination'])->get()->map(function ($trip) {
+            }, 'user', 'cancelled_by', 'finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;
@@ -986,4 +928,132 @@ class DriverController extends ApiController
         }
         return $this->sendResponse($cancelled_trips, null, 200);
     }
+
+    public function driver_arriving(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+
+            'lat'     => 'required|numeric|between:-90,90',
+            'lng'     => 'required|numeric|between:-180,180',
+            'trip_id' => 'required|exists:trips,id',
+
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+        $trip = Trip::find($request->trip_id);
+
+        if (! $trip) {
+            return $this->sendError(null, 'Trip not found', 404);
+        }
+
+        // Calculate distance between driver location and trip start point
+        $driverLat = $request->lat;
+        $driverLng = $request->lng;
+        $startLat  = $trip->start_lat;
+        $startLng  = $trip->start_lng;
+
+        $distance = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
+
+        if ($distance <= 15) {
+
+            // Only save first time of arriving
+            if (! $trip->driver_arrived) {
+                $trip->driver_arrived = now();
+                $trip->save();
+            }
+            $receiverId = $trip->user_id;
+            $data       = [
+                'trip_id'    => $trip->id,
+                'message'    => 'Driver arrived on pickup point',
+                'distance'   => $distance,
+                'arrived_at' => $trip->driver_arrived,
+            ];
+            event(new \App\Events\DriverArriving($data, $receiverId));
+
+        }
+
+        return $this->sendError([
+            'distance' => $distance,
+        ], 'You are not close enough', 404);
+    }
+
+    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6371000; // meters
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+        cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+        sin($dLng / 2) * sin($dLng / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c; // distance in meters
+    }
+
+    // public function create_offer(Request $request)
+    // {
+    //     $check_account = $this->check_banned();
+    //     if ($check_account != true) {
+    //         return $this->sendError(null, $check_account, 400);
+    //     }
+    //     $validator = Validator::make($request->all(), [
+    //         'trip_id' => [
+    //             'required',
+    //             Rule::exists('trips', 'id'),
+    //         ],
+    //         'offer'   => 'required',
+
+    //     ]);
+    //     // dd($request->all());
+    //     if ($validator->fails()) {
+
+    //         $errors = implode(" / ", $validator->errors()->all());
+
+    //         return $this->sendError(null, $errors, 400);
+    //     }
+    //     $driver_car = Car::where('user_id', auth()->user()->id)->first();
+    //     $lastOffer  = Offer::orderBy('id', 'desc')->first();
+
+    //     if ($lastOffer) {
+    //         $lastCode = $lastOffer->code;
+    //         $code     = 'OFR-' . str_pad((int) substr($lastCode, 4) + 1, 6, '0', STR_PAD_LEFT);
+    //     } else {
+    //         $code = 'OFR-000001';
+    //     }
+    //     $offer = Offer::create(['user_id' => auth()->user()->id,
+    //         'code'                            => $code,
+    //         'car_id'                          => $driver_car->id,
+    //         'trip_id'                         => intval($request->trip_id),
+    //         'offer'                           => floatval($request->offer)]);
+    //     $trip = Trip::findOrFail($request->trip_id);
+    //     if ($trip->user->device_token) {
+    //         $this->firebaseService->sendNotification($trip->user->device_token, 'Lady Driver - New Offer', "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").", ["screen" => "Current Trip", "ID" => $trip->id]);
+    //         $data = [
+    //             "title"   => "Lady Driver - New Offer",
+    //             "message" => "Offer No. (" . $offer->code . ") was created on your trip by Captain (" . auth()->user()->name . ").",
+    //             "screen"  => "Current Trip",
+    //             "ID"      => $trip->id,
+    //         ];
+    //         Notification::create(['user_id' => $trip->user_id, 'data' => json_encode($data)]);
+    //     }
+    //     return $this->sendResponse($offer, null, 200);
+
+    // }
+
+    // public function expire_offer($id)
+    // {
+    //     $offer         = Offer::find($id);
+    //     $offer->status = 'expired';
+    //     $offer->save();
+    //     return $this->sendResponse(null, 'Offer is expired', 200);
+    // }
 }
