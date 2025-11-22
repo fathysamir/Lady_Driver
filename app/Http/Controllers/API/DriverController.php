@@ -975,7 +975,10 @@ class DriverController extends ApiController
                 'arrived_at' => $trip->driver_arrived,
             ];
             event(new \App\Events\DriverArriving($data, $receiverId));
-
+            return $this->sendResponse([
+                'distance'   => $distance,
+                'arrived_at' => $trip->driver_arrived,
+            ], 'You are close to pickup point', 200);
         }
 
         return $this->sendError([
