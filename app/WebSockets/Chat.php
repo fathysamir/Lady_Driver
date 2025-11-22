@@ -563,38 +563,39 @@ class Chat implements MessageComponentInterface
     }
     private function startTripBroadcast($trip, $newTrip, $type)
     {
-                                 // Broadcast trip every 5 seconds for max 3 minutes
-        $maxDuration      = 300; // seconds
-        $interval         = 5;   // seconds
-        $startTime        = time();
-        $x                = rand(1, 4);
-        $trip->seen_count = $trip->seen_count + $x;
-        $trip->save();
-        $newTrip_client                        = [];
-        $newTrip_client['id']                  = $trip->id;
-        $newTrip_client['seen_count']['count'] = $trip->seen_count;
-        $limit                                 = min($trip->seen_count, 6); // max 6 images
+                            // Broadcast trip every 5 seconds for max 3 minutes
+        $maxDuration = 300; // seconds
+        $interval    = 5;   // seconds
+        $startTime   = time();
 
-        $files = collect(File::files(public_path('driver_images')))
-            ->map(function ($file) {
-                return 'https://api.lady-driver.com' . '/driver_images/' . $file->getFilename(); // return public path format
-            })
-            ->shuffle()
-            ->take($limit)
-            ->values()
-            ->toArray();
-
-        $newTrip_client['seen_count']['images'] = $files;
-        $user_id                                = $trip->user_id;
-        $client_trip_                           = $this->getClientByUserId($user_id);
-        if ($client_trip_) {
-            $client_trip_->send(json_encode(['type' => 'created_trip', 'data' => $newTrip_client, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-        }
-        $date_time = date('Y-m-d h:i:s a');
-        echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $trip->user_id);
         // Save a reference so we can cancel it later
         $timer = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $newTrip, $type, $startTime, $maxDuration) {
             // Stop broadcasting if too old or trip already taken
+            $x                = rand(1, 4);
+            $trip->seen_count = $trip->seen_count + $x;
+            $trip->save();
+            $newTrip_client                        = [];
+            $newTrip_client['id']                  = $trip->id;
+            $newTrip_client['seen_count']['count'] = $trip->seen_count;
+            $limit                                 = min($trip->seen_count, 6); // max 6 images
+
+            $files = collect(File::files(public_path('driver_images')))
+                ->map(function ($file) {
+                    return 'https://api.lady-driver.com' . '/driver_images/' . $file->getFilename(); // return public path format
+                })
+                ->shuffle()
+                ->take($limit)
+                ->values()
+                ->toArray();
+
+            $newTrip_client['seen_count']['images'] = $files;
+            $user_id                                = $trip->user_id;
+            $client_trip_                           = $this->getClientByUserId($user_id);
+            if ($client_trip_) {
+                $client_trip_->send(json_encode(['type' => 'created_trip', 'data' => $newTrip_client, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            }
+            $date_time = date('Y-m-d h:i:s a');
+            echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $trip->user_id);
             $trip->refresh();
             if ($trip->status !== 'created' && $trip->status !== 'scheduled') {
                 echo "🛑 Trip {$trip->id} stopped broadcasting (status: {$trip->status})\n";
@@ -1344,8 +1345,7 @@ class Chat implements MessageComponentInterface
         }
 
     }
-    private function expire_trip(ConnectionInterface $from, $AuthUserID, $expireTripRequest)
-    {
+    private function expire_trip(ConnectionInterface $from, $AuthUserID, $expireTripRequest){
         $data         = json_decode($expireTripRequest, true);
         $trip         = Trip::findOrFail($data['trip_id']);
         $trip->status = 'expired';
@@ -1483,8 +1483,7 @@ class Chat implements MessageComponentInterface
 
     }
 
-    private function create_offer(ConnectionInterface $from, $AuthUserID, $offerRequest)
-    {
+    private function create_offer(ConnectionInterface $from, $AuthUserID, $offerRequest){
         $data      = json_decode($offerRequest, true);
         $driver    = User::findOrFail($AuthUserID);
         $lastOffer = Offer::orderBy('id', 'desc')->first();

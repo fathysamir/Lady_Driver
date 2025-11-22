@@ -325,13 +325,11 @@ class ClientController extends ApiController
         $response['start_time'] = $start_time;
         $response['start_lat']  = (float) $request->start_lat;
         $response['start_lng']  = (float) $request->start_lng;
-       
-      
 
         $response['air_conditioned'] = $request->boolean('air_conditioned');
-       
-        $student                     = Student::where('user_id', auth()->user()->id)->where('status', 'confirmed')->where('student_discount_service', '1')->first();
-        $student_trips_count         = Trip::where('user_id', auth()->user()->id)->where('student_trip', '1')->where('status', 'completed')->where('start_date', now()->toDateString())->count();
+
+        $student             = Student::where('user_id', auth()->user()->id)->where('status', 'confirmed')->where('student_discount_service', '1')->first();
+        $student_trips_count = Trip::where('user_id', auth()->user()->id)->where('student_trip', '1')->where('status', 'completed')->where('start_date', now()->toDateString())->count();
 
         $Air_conditioning_service_price = floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
         $kilometer_price_short_trip     = floatval(Setting::where('key', 'kilometer_price_car_short_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
@@ -590,9 +588,9 @@ class ClientController extends ApiController
             return $this->sendError(null, $check_account, 400);
         }
         $trip = Trip::where('user_id', auth()->user()->id)->whereIn('status', ['created', 'pending', 'in_progress'])->with(['car' => function ($query) {
-            $query->with(['mark', 'model', 'owner']);
+            $query->with(['mark:name', 'model:name', 'owner']);
         }, 'scooter' => function ($query) {
-            $query->with(['mark', 'model', 'owner']);
+            $query->with(['mark:name', 'model:name', 'owner']);
         }, 'finalDestination' => function ($xx) {
             $xx->orderBy('id');
         }])->first();
@@ -604,9 +602,20 @@ class ClientController extends ApiController
             // Start from trip starting point
             $prevLat = $trip->start_lat;
             $prevLng = $trip->start_lng;
+            $type    = '';
+            switch (strtolower($trip->type)) {
+                case 'scooter':
+                    $type = 'scooter'; // special mode for scooters / motorbikes
+                    break;
+                case 'comfort_car':
+                    $type = 'car';
+                    break;
+                default:
+                    $type = 'car';
+            }
 
             foreach ($trip->finalDestination as $destination) {
-                $response = calculate_distance($prevLat, $prevLng, $destination->lat, $destination->lng);
+                $response = calculate_distance($prevLat, $prevLng, $destination->lat, $destination->lng, $type);
 
                 $totalDistance += $response['distance_in_km'];
                 $totalDuration += $response['duration_in_M'];
@@ -615,10 +624,7 @@ class ClientController extends ApiController
                 $prevLat = $destination->lat;
                 $prevLng = $destination->lng;
             }
-
-            $trip_distance  = $totalDistance;
-            $trip_duration  = $totalDuration;
-            $trip->duration = $trip_duration;
+            $trip->duration = $totalDuration;
             $barcode_image  = url(barcodeImage($trip->id));
             $trip->barcode  = $barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
@@ -628,6 +634,9 @@ class ClientController extends ApiController
                     $trip->car->owner->rate  = Trip::whereHas('car', function ($query) use ($driver_) {
                         $query->where('user_id', $driver_->id);
                     })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
+                    $trip->car->owner->trips_count = Trip::whereHas('car', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })->where('status', 'completed')->count();
                     $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
                 } elseif ($trip->type == 'scooter') {
                     $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
@@ -635,15 +644,18 @@ class ClientController extends ApiController
                     $trip->scooter->owner->rate  = Trip::whereHas('scooter', function ($query) use ($driver_) {
                         $query->where('user_id', $driver_->id);
                     })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
+                    $trip->scooter->owner->trips_count = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })->where('status', 'completed')->count();
                     $trip->scooter->image = getFirstMediaUrl($trip->scooter, $trip->scooter->avatarCollection);
                 }
 
             }
             if ($trip->status == 'pending') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {
-                    $response = calculate_distance($trip->car->lat, $trip->car->lng, $trip->start_lat, $trip->start_lng);
+                    $response = calculate_distance($trip->car->lat, $trip->car->lng, $trip->start_lat, $trip->start_lng, 'car');
                 } elseif ($trip->type == 'scooter') {
-                    $response = calculate_distance($trip->scooter->lat, $trip->scooter->lng, $trip->start_lat, $trip->start_lng);
+                    $response = calculate_distance($trip->scooter->lat, $trip->scooter->lng, $trip->start_lat, $trip->start_lng, 'scooter');
                 }
                 $distance                       = $response['distance_in_km'];
                 $duration                       = $response['duration_in_M'];
@@ -653,9 +665,9 @@ class ClientController extends ApiController
             if ($trip->status == 'created') {
                 $pendingOffers = $trip->offers()->where('status', 'pending')->get()->map(function ($offer) use ($trip) {
                     if (in_array($trip->type, ['car', 'comfort_car'])) {
-                        $response = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+                        $response = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng, 'car');
                     } elseif ($trip->type == 'scooter') {
-                        $response = calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
+                        $response = calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng, 'scooter');
 
                     }
                     $distance = $response['distance_in_km'];
@@ -681,6 +693,9 @@ class ClientController extends ApiController
                         $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
                             $query->where('user_id', $driver_->id);
                         })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
+                        $offer_result['user']['trips_count'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                            $query->where('user_id', $driver_->id);
+                        })->where('status', 'completed')->count();
                         $offer_result['car']['id']            = $offer->car()->first()->id;
                         $offer_result['car']['image']         = getFirstMediaUrl($offer->car()->first(), $offer->car()->first()->avatarCollection);
                         $offer_result['car']['year']          = $offer->car()->first()->year;
@@ -697,8 +712,8 @@ class ClientController extends ApiController
                         $offer_result['scooter']['id']            = $offer->scooter()->first()->id;
                         $offer_result['scooter']['image']         = getFirstMediaUrl($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
                         $offer_result['scooter']['year']          = $offer->scooter()->first()->year;
-                        $offer_result['scooter']['car_mark_id']   = $offer->scooter()->first()->motorcycle_mark_id;
-                        $offer_result['scooter']['car_model_id']  = $offer->scooter()->first()->motorcycle_model_id;
+                        $offer_result['scooter']['scooter_mark_id']   = $offer->scooter()->first()->motorcycle_mark_id;
+                        $offer_result['scooter']['scooter_mark_id']  = $offer->scooter()->first()->motorcycle_model_id;
                         $offer_result['scooter']['mark']['id']    = $offer->scooter()->first()->mark()->first()->id;
                         $offer_result['scooter']['mark']['name']  = $offer->scooter()->first()->mark()->first()->name;
                         $offer_result['scooter']['model']['id']   = $offer->scooter()->first()->model()->first()->id;
