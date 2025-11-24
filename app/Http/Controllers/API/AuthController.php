@@ -1368,7 +1368,7 @@ class AuthController extends ApiController
             'country_code' => 'required|string|max:5',
             'phone' => 'required|string|max:20',
             'position'     => 'required|string|max:191',
-            'cv' => 'required|file|mimes:pdf,doc,docx|max:6144',
+            'cv' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:6144',
         ]);
     
         if ($validator->fails()) {
