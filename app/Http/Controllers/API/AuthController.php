@@ -5,6 +5,7 @@ use App\Http\Controllers\ApiController;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\SendOTP;
 use App\Models\AboutUs;
+use App\Models\Careers;
 use App\Models\Car;
 use App\Models\City;
 use App\Models\ContactUs;
@@ -1358,6 +1359,36 @@ class AuthController extends ApiController
 
     }
 
+    public function careers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name'   => 'required|string|max:191',
+            'last_name'    => 'required|string|max:191',
+            'email' => 'required|email:rfc,dns|max:191',
+            'country_code' => 'required|string|max:5',
+            'phone' => 'required|string|max:20',
+            'position'     => 'required|string|max:191',
+            'cv' => 'required|file|mimes:pdf,doc,docx|max:6144',
+        ]);
+    
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+    
+            return $this->sendError(null, $errors, 400);
+        }   
+    
+        $career = Careers::create($validator->validated());
+    
+        if ($request->hasFile('cv')) {
+            uploadMedia($request->cv,$career->CvCollection,$career);
+
+        }
+    
+        return $this->sendResponse($career, 'Application received', 200);
+    }
+    
+
+    
     public function save_contact_us(Request $request)
     {
 

@@ -38,6 +38,7 @@ Route::post('/client_register', [AuthController::class, 'client_register'])->nam
 Route::post('/register2', [AuthController::class, 'register2'])->name('register2');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
+Route::post('/careers', [AuthController::class, 'careers'])->name('career.apply');
 Route::get('/about_us', [AuthController::class, 'about_us'])->name('about_us');
 Route::post('/verifyOTP', [AuthController::class, 'verifyOTP'])->name('verifyOTP');
 Route::post('/resend_otp', [AuthController::class, 'resend_otp'])->name('resend_otp');
@@ -109,5 +110,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-address', [ClientController::class, 'add_address']);
     Route::get('/get_all_user_addresses', [ClientController::class, 'get_all_user_addresses']);
     Route::get('/delete_address', [ClientController::class, 'delete_address']);
+
 
 });
