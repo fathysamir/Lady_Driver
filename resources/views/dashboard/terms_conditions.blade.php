@@ -1,8 +1,13 @@
 @extends('dashboard.layout.app')
-
 @section('content')
-<div class="main-content p-4" style="margin-left: 250px; max-width: calc(100% - 250px);margin-top: 50px;">
-    <h4>Terms & Conditions</h4>
+<div class="content-wrapper">
+        <div class="container-fluid">
+        <div class="row mt-3">
+                <div class="col-lg-12">
+                    <div class="card" style="margin-top:-15px;">
+                        <div class="card-body">
+                        <h5 class="card-title">Terms & Conditions</h5>
+                        <hr>
 
     <div class="mb-3">
         <label class="form-label fw-bold">Select Language:</label>
@@ -15,8 +20,10 @@
     <textarea id="termsEditor" class="form-control" rows="12"></textarea>
 
     <div class="text-center mt-4" style="padding-bottom: 10px; margin-bottom: 25px;">
-        <button id="saveBtn" class="btn btn-primary px-5 py-2">Save</button>
+        <button id="saveBtn" class="btn btn-light px-5">Save</button>
     </div>
+</div>
+</div>
 </div>
 
 <script src="https://cdn.tiny.cloud/1/orchmjkwdde0ld7ft8cgo8n3nhma90mpok6mgtiumdwwmclc/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>

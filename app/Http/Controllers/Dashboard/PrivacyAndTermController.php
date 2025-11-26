@@ -44,7 +44,7 @@ class PrivacyAndTermController extends Controller
 
 public function termsedit()
 {
-    // الصفحة اللي فيها الـ Editor
+   
     return view('dashboard.terms_conditions');
 }
 
