@@ -42,6 +42,15 @@
                                                 <option value="">Select Category</option>
                                                 <option value="client">Client</option>
                                                 <option value="driver">Driver</option>
+                                                <option value="all">All</option>
+                                                <!-- Add more options as needed -->
+                                            </select>
+                                            <select class="form-control" style="width: 33%; margin: 0% 1% 0% 0;"
+                                                name="status">
+                                                <option value="">Select Status</option>
+                                                <option value="before">Before Start Trip</option>
+                                                <option value="after">After Start Trip</option>
+                                                
                                                 <!-- Add more options as needed -->
                                             </select>
                                             <select class="form-control" style="width: 33%; margin: 0% 0% 0% 1;"
@@ -83,6 +92,7 @@
                                             <th scope="col">Reason</th>
 
                                             <th scope="col">Category</th>
+                                            <th scope="col">Status</th>
                                             <th scope="col">Value Type</th>
                                             <th scope="col">Value</th>
 
@@ -96,6 +106,7 @@
                                                     style="cursor: pointer;">
                                                     <td>{!! highlight($reason->en_reason, $search ?? '') !!}<br> {!! highlight($reason->ar_reason, $search ?? '') !!}</td>
                                                     <td>{{ ucwords($reason->type) }}</td>
+                                                    <td>{{ ucwords($reason->status) }}</td>
                                                     <td>{{ ucwords($reason->value_type) }}</td>
                                                     <td>{{ $reason->value }}</td>
                                                     <td>
