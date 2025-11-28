@@ -54,8 +54,8 @@ class SettingController extends Controller
             }
 
         } else if ($set->type == 'boolean') {
-            $value=$request->value?'On':'Off';
-        }else {
+            $value = $request->value ? 'On' : 'Off';
+        } else {
             $value = floatval($request->value);
         }
         $set->update(['label' => $request->label,
@@ -96,16 +96,10 @@ class SettingController extends Controller
             'en_reason'  => ['required', 'string', 'max:191'],
             'ar_reason'  => ['required', 'string', 'max:191'],
             'category'   => ['required'],
+            'status'     => ['required'],
             'value_type' => ['nullable'],
-            'value'      => ['nullable'],
+            'value'      => ['nullable', 'numeric', 'required_with:value_type'],
         ];
-
-        // Check if 'value_type' is present in the request and not null
-        if ($request->has('value_type') && $request->input('value_type') !== null) {
-            $rules['value'] = ['required']; // Set 'value' field as required
-        } else {
-            $rules['value'] = ['nullable']; // Set 'value' field as nullable
-        }
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -117,6 +111,7 @@ class SettingController extends Controller
             'en_reason' => $request->en_reason,
             'ar_reason' => $request->ar_reason,
             'type'      => $request->category,
+            'status'    => $request->status,
         ]);
         if ($request->value_type != null) {
             $reason->value_type = $request->value_type;
@@ -140,16 +135,10 @@ class SettingController extends Controller
             'en_reason'  => ['required', 'string', 'max:191'],
             'ar_reason'  => ['required', 'string', 'max:191'],
             'category'   => ['required'],
+            'status'     => ['required'],
             'value_type' => ['nullable'],
-            'value'      => ['nullable'],
+            'value'      => ['nullable', 'numeric', 'required_with:value_type'],
         ];
-
-        // Check if 'value_type' is present in the request and not null
-        if ($request->has('value_type') && $request->input('value_type') !== null) {
-            $rules['value'] = ['required', 'numeric', 'max:99']; // Set 'value' field as required
-        } else {
-            $rules['value'] = ['nullable']; // Set 'value' field as nullable
-        }
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -160,6 +149,7 @@ class SettingController extends Controller
         TripCancellingReason::where('id', $id)->update(['en_reason' => $request->en_reason,
             'ar_reason'                                                 => $request->ar_reason,
             'type'                                                      => $request->category,
+            'status'                                                    => $request->status,
 
         ]);
         $reason = TripCancellingReason::find($id);
@@ -203,8 +193,8 @@ class SettingController extends Controller
         $linked_in        = AboutUs::where('key', 'linked-in')->first()->value;
         $app_link_android = AboutUs::where('key', 'app-link-android')->first()->value;
         $app_link_IOS     = AboutUs::where('key', 'app-link-IOS')->first()->value;
-        $website           = AboutUs::where('key', 'website')->first()->value;
-        return view('dashboard.about_us.view', compact('app_link_IOS', 'website','description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link_android'));
+        $website          = AboutUs::where('key', 'website')->first()->value;
+        return view('dashboard.about_us.view', compact('app_link_IOS', 'website', 'description', 'phone1', 'email1', 'phone2', 'email2', 'phone3', 'email3', 'phone4', 'email4', 'facebook', 'twitter', 'instagram', 'tiktok', 'linked_in', 'app_link_android'));
     }
 
     public function update_about_us(Request $request)

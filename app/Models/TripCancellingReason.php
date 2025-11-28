@@ -15,6 +15,7 @@ class TripCancellingReason extends Model
         'ar_reason',
         'en_reason',
         'type',
+        'status',
         'value_type',
         'value'
     ];
