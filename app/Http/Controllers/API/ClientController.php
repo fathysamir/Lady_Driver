@@ -887,18 +887,27 @@ class ClientController extends ApiController
     public function cancellation_reasons(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'category' => [
-                'required',
-            ],
+            'trip_id' => 'required|exists:trips,id',
         ]);
-        // dd($request->all());
         if ($validator->fails()) {
 
             $errors = implode(" / ", $validator->errors()->all());
 
             return $this->sendError(null, $errors, 400);
         }
-        $reasons = TripCancellingReason::whereIn('type', [$request->category, 'for_all'])->get();
+        $trip=Trip::findOrFail($request->trip_id);
+        if($trip->user_id == auth()->user()->id){
+            $type='client';
+        }else{
+            $type='driver';
+        }
+
+        if($trip->status == 'pending'){
+            $status='before';
+        }elseif($trip->status == 'in_progress'){
+            $status='after';
+        }
+        $reasons = TripCancellingReason::whereIn('type', [$type, 'all'])->where('status',$status)->get();
         return $this->sendResponse($reasons, null, 200);
     }
 
