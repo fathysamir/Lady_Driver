@@ -1785,6 +1785,7 @@ class Chat implements MessageComponentInterface
     {
         $data                            = json_decode($cancelTripRequest, true);
         $trip                            = Trip::findOrFail($data['trip_id']);
+        $sss_status=$trip->status;
         $trip->status                    = 'cancelled';
         $trip->cancelled_by_id           = $AuthUserID;
         $trip->trip_cancelling_reason_id = $data['reason_id'];
@@ -1892,7 +1893,7 @@ class Chat implements MessageComponentInterface
                     'start_date'                      => $trip->start_date,
                     'start_time'                      => $trip->start_time,
                     'scheduled'                       => $trip->scheduled,
-                    'status'                          => $trip->status,
+                    'status'                          => $sss_status,
                     'payment_method'                  => $trip->payment_method,
                     'remaining_amount'                => $total_cost,
                     'discount'                        => $discount,
