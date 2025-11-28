@@ -279,7 +279,6 @@ function deleteUnusedRegistrationImages($registration_id, $used_paths = [])
 
 
 
-
 function username_Generation($name)
 {
     $base = Str::slug($name, '');
