@@ -32,6 +32,7 @@ return new class extends Migration
             $table->decimal('paid_amount', 8, 2)->nullable(); // amount paid //////////
             $table->decimal('remaining_amount', 8, 2)->nullable(); /////////////////
             $table->double('distance', 8, 2)->nullable(); ////////////
+            $table->integer('duration')->default(0);
             $table->double('start_lat', 10, 6)->nullable(); /********** */
             $table->double('start_lng', 10, 6)->nullable();/************** */
             $table->string('address1', 255)->nullable();/***************** */

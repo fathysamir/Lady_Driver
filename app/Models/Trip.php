@@ -30,6 +30,7 @@ class Trip extends Model
         'paid_amount',
         'remaining_amount',
         'distance',
+        'duration',
         'client_stare_rate',
         'client_comment',
         'driver_stare_rate',
