@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('email');
             $table->string('country_code');
             $table->string('phone');
+            $table->enum('status', ['pending', 'confirmed', 'banned', 'blocked'])->default('pending'); 
             $table->string('position');
+            $table->softDeletes(); 
             $table->timestamps();
         });
         

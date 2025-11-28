@@ -54,8 +54,9 @@ return new class extends Migration
             $table->timestamp('driver_arrived')->nullable();
             $table->enum('scheduled', ['0', '1'])->default('0');
             $table->integer('seen_count')->default(0);
-            
-            
+            $table->enum('trip_type', ['standard', 'comfort', 'scooter'])->default('standard');
+
+
             $table->timestamps();
             $table->softDeletes();
         });

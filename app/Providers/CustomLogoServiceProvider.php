@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use App\Models\ContactUs;
 use App\Models\User;
 use App\Models\Car;
+use App\Models\Careers;
 use App\Models\Complaint;
 use App\Models\Suggestion;
 class CustomLogoServiceProvider extends ServiceProvider
@@ -41,6 +42,12 @@ class CustomLogoServiceProvider extends ServiceProvider
             //$logo=url(Setting::where('key','logo')->where('category','website')->where('type','file')->first()->value);
             $new_cars_count=Car::where('status','pending')->count();
             return $new_cars_count;
+        });
+        $this->app->bind('new_careers_count', function () {
+            // Logic to determine the path to the logo image
+            //$logo=url(Setting::where('key','logo')->where('category','website')->where('type','file')->first()->value);
+            $new_careers_count=Careers::where('status','pending')->count();
+            return $new_careers_count;
         });
         $this->app->bind('new_complaints_count', function () {
             // Logic to determine the path to the logo image

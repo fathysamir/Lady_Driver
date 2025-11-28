@@ -11,6 +11,7 @@ use App\Http\Controllers\Dashboard\CityController;
 use App\Http\Controllers\Dashboard\ClientController;
 use App\Http\Controllers\Dashboard\ComplaintController;
 use App\Http\Controllers\Dashboard\ContactUsController;
+use App\Http\Controllers\Dashboard\CareersController;
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\FeedBackController;
 use App\Http\Controllers\Dashboard\MotorcycleController;
@@ -193,6 +194,14 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/terms-conditions/{lang}', [PrivacyAndTermController::class, 'termsgetByLang'])->name('dashboard.terms.get');
     Route::post('/terms-conditions/update', [PrivacyAndTermController::class, 'termsupdate'])->name('dashboard.terms.update');
     ///////////////////////////////////////////////
+    Route::any('/careers', [CareersController::class, 'index'])->name('careers'); //index blade
+    Route::get('/career/view/{id}', [CareersController::class, 'show'])->name('view.career'); //show blade
+    Route::put('/career/view/{id}', [CareersController::class, 'update'])->name('update.career');
+    Route::get('/archived-Applications', [CareersController::class, 'index_archives'])->name('archived_careers'); //index_archives blade
+    Route::get('/career/delete/{id}', [CareersController::class, 'delete'])->name('delete.career');
+    Route::get('/career/restore/{id}', [CareersController::class, 'restore'])->name('restore.career');
+
+    
 }); 
 
 
