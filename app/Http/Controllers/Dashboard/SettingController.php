@@ -78,6 +78,9 @@ class SettingController extends Controller
         if ($request->has('type') && $request->type != null) {
             $all_reasons->where('type', $request->type);
         }
+        if ($request->has('status') && $request->status != null) {
+            $all_reasons->where('status', $request->status);
+        }
         if ($request->has('value_type') && $request->value_type != null) {
             $all_reasons->where('value_type', $request->value_type);
         }
