@@ -39,11 +39,29 @@
                                         </option>
                                         <option value="driver"@if (old('category') == 'driver') selected @endif>Driver
                                         </option>
+                                         <option value="all"@if (old('category') == 'all') selected @endif>All
+                                        </option>
 
                                     </select>
                                     @if ($errors->has('category'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('category') }}</p>
+                                    @endif
+                                </div>
+                                <div class="form-group">
+                                    <label>Status</label>
+
+                                    <select class="form-control" name="status">
+                                        <option value="">Select Status</option>
+                                        <option value="before"@if (old('status') == 'before') selected @endif>Before Start Trip
+                                        </option>
+                                        <option value="after"@if (old('status') == 'after') selected @endif>After Start Trip
+                                        </option>
+
+                                    </select>
+                                    @if ($errors->has('status'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('status') }}</p>
                                     @endif
                                 </div>
 

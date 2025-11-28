@@ -40,6 +40,8 @@
                                         </option>
                                         <option value="driver"@if ($reason->type == 'driver') selected @endif>Driver
                                         </option>
+                                        <option value="all"@if ($reason->type == 'all') selected @endif>All
+                                        </option>
 
                                     </select>
                                     @if ($errors->has('category'))
@@ -47,6 +49,23 @@
                                             {{ $errors->first('category') }}</p>
                                     @endif
                                 </div>
+                                <div class="form-group">
+                                    <label>Status</label>
+
+                                    <select class="form-control" name="status">
+                                        <option value="">Select Status</option>
+                                        <option value="before"@if ($reason->status == 'before') selected @endif>Before Start Trip
+                                        </option>
+                                        <option value="after"@if ($reason->status == 'after') selected @endif>After Start Trip
+                                        </option>
+
+                                    </select>
+                                    @if ($errors->has('status'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('status') }}</p>
+                                    @endif
+                                </div>
+
 
                                 <div class="form-group">
                                     <label>Value Type</label>
