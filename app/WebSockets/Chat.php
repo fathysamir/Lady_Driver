@@ -1786,6 +1786,11 @@ class Chat implements MessageComponentInterface
         $data                            = json_decode($cancelTripRequest, true);
         $trip                            = Trip::findOrFail($data['trip_id']);
         $sss_status=$trip->status;
+        if($trip->status =='pending'){
+            $sss_status='created';
+        }elseif($trip->status =='scheduled'){
+            $sss_status='scheduled';
+        }
         $trip->status                    = 'cancelled';
         $trip->cancelled_by_id           = $AuthUserID;
         $trip->trip_cancelling_reason_id = $data['reason_id'];
