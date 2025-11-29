@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/expire_trip/{id}', [ClientController::class, 'expire_trip'])->name('expire_trip');
     Route::post('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 
-    Route::post('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
+    Route::get('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
 
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
     Route::post('/create_offer', [DriverController::class, 'create_offer'])->name('create_offer');

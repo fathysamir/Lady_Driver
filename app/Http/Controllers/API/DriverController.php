@@ -628,7 +628,9 @@ class DriverController extends ApiController
     }
     public function created_trips(Request $request)
     {
-        if ($request->mock) {
+        $mock = $request->query('mock', false);
+
+        if ($mock) {
             $response = [
                 'user_id'         => auth()->user()->id,
                 'start_date'      => '2025-12-08',
