@@ -607,31 +607,14 @@ class DriverController extends ApiController
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    public function mockTripResponse()
-    {
 
-        return $this->sendResponse([
-            'start_date'      => '2025-12-08',
-            'start_time'      => '18:06',
-            'start_lat'       => 29.2154558,
-            'start_lng'       => 31.2154875,
-            'end_lat_1'       => 29.2154558,
-            'end_lng_1'       => 30.3333333,
-            'air_conditioned' => true,
-            'distance'        => 100.21,
-            'duration'        => 50,
-            'car'             => ['discount' => 0, 'total_cost' => 125.50],
-            'comfort'         => ['discount' => 0, 'total_cost' => 125.50],
-            'scooter'         => ['discount' => 0, 'total_cost' => 125.50],
-        ], null, 200);
-
-    }
     public function created_trips(Request $request)
     {
-        $mock = $request->query('mock', false);
 
-        if ($mock) {
-            $response = [
+        if ($request->query('mock')) {
+            $driverType = auth()->user()->driver_type;
+
+            $commonData = [
                 'user_id'         => auth()->user()->id,
                 'start_date'      => '2025-12-08',
                 'start_time'      => '18:06',
@@ -644,30 +627,35 @@ class DriverController extends ApiController
                 'end_lat_3'       => null,
                 'end_lng_3'       => null,
                 'air_conditioned' => true,
-                'client_stare_rate' => 4.5,
-                'car'             => [
+                'client_stare_rate'=> 4.5,
+            ];
+
+            $vehicleData = [
+                'car' => [
                     'total_cost_before_discount' => 125.50,
                     'discount'                   => 0,
                     'total_cost'                 => 125.50,
                     'distance'                   => 100.21,
                     'duration'                   => 50,
                 ],
-                'comfort_car'     => [
+                'comfort_car' => [
                     'total_cost_before_discount' => 135.50,
                     'discount'                   => 10,
                     'total_cost'                 => 125.50,
                     'distance'                   => 100.21,
                     'duration'                   => 50,
                 ],
-                'scooter'         => [
+                'scooter' => [
                     'total_cost_before_discount' => 145.50,
                     'discount'                   => 20,
                     'total_cost'                 => 125.50,
                     'distance'                   => 100.21,
                     'duration'                   => 50,
                 ],
-
             ];
+            $response = array_merge($commonData, [
+                $driverType => $vehicleData[$driverType]
+            ]);
 
             return $this->sendResponse($response, null, 200);
         }
