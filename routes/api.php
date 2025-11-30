@@ -79,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 
     Route::get('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
+
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
     Route::post('/create_offer', [DriverController::class, 'create_offer'])->name('create_offer');
     Route::post('/driver_arriving', [DriverController::class, 'driver_arriving'])->name('driver_arriving');
@@ -110,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-address', [ClientController::class, 'add_address']);
     Route::get('/get_all_user_addresses', [ClientController::class, 'get_all_user_addresses']);
     Route::get('/delete_address', [ClientController::class, 'delete_address']);
+
 
 
 });

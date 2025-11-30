@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
+
 class DriverController extends ApiController
 {
     protected $firebaseService;
@@ -606,8 +607,59 @@ class DriverController extends ApiController
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    public function created_trips()
+
+    public function created_trips(Request $request)
     {
+
+        if ($request->query('mock')) {
+            $driverType = auth()->user()->driver_type;
+
+            $commonData = [
+                'user_id'         => auth()->user()->id,
+                'start_date'      => '2025-12-08',
+                'start_time'      => '18:06',
+                'start_lat'       => 29.2154558,
+                'start_lng'       => 31.2154875,
+                'end_lat_1'       => 29.2154558,
+                'end_lng_1'       => 30.3333333,
+                'end_lat_2'       => 29.2154558,
+                'end_lng_2'       => 30.3333333,
+                'end_lat_3'       => null,
+                'end_lng_3'       => null,
+                'air_conditioned' => true,
+                'client_stare_rate'=> 4.5,
+            ];
+
+            $vehicleData = [
+                'car' => [
+                    'total_cost_before_discount' => 125.50,
+                    'discount'                   => 0,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
+                ],
+                'comfort_car' => [
+                    'total_cost_before_discount' => 135.50,
+                    'discount'                   => 10,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
+                ],
+                'scooter' => [
+                    'total_cost_before_discount' => 145.50,
+                    'discount'                   => 20,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
+                ],
+            ];
+            $response = array_merge($commonData, [
+                $driverType => $vehicleData[$driverType]
+            ]);
+
+            return $this->sendResponse($response, null, 200);
+        }
+
         $check_account = $this->check_banned();
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
@@ -765,7 +817,7 @@ class DriverController extends ApiController
             ->whereHas('trip', function ($t) {
                 $t->whereIn('status', ['pending', 'in_progress']);
             })
-            ->orderBy('id', 'desc') // Or 'id' if you prefer
+            ->orderBy('id', 'desc')
             ->first();
         if (! $lastAcceptedOffer) {
             return $this->sendError(null, 'no current trip existed', 400);
@@ -793,6 +845,8 @@ class DriverController extends ApiController
         $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
         return $this->sendResponse($trip, null, 200);
     }
+
+
 
     // public function start_trip(Request $request)
     // {
