@@ -20,6 +20,7 @@ use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\PrivacyAndTermController;
+use App\Http\Controllers\Dashboard\RatingTripSettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Milon\Barcode\DNS2D;
@@ -57,7 +58,7 @@ Route::get('/open-reset', function (Request $request) {
     //App and web links
     $appLink = "myapp://reset-password/{$token}?email={$email}";
     $webLink = url("/reset-password/{$token}?email={$email}");
-    
+
     return view('emails.open-reset', compact('appLink', 'webLink'));
 
 });
@@ -200,8 +201,18 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/archived-Applications', [CareersController::class, 'index_archives'])->name('archived_careers'); //index_archives blade
     Route::get('/career/delete/{id}', [CareersController::class, 'delete'])->name('delete.career');
     Route::get('/career/restore/{id}', [CareersController::class, 'restore'])->name('restore.career');
+    /////////////////////////////////////////////////
+    Route::get('/ratingtripsettings', [RatingTripSettingsController::class, 'index'])->name('ratingtripsettings');
+    Route::get('/ratingtripsettings/create', [RatingTripSettingsController::class, 'create'])->name('create.rating');
+    Route::post('/ratingtripsettings', [RatingTripSettingsController::class, 'store'])->name('store.rating');
+    Route::get('/ratingtripsettings/edit/{id}', [RatingTripSettingsController::class, 'edit'])->name('edit.rating');
+    Route::put('/ratingtripsettings/edit/{id}', [RatingTripSettingsController::class, 'update'])->name('rate-trip-settings.update');
+    Route::delete('/ratingtripsettings/delete/{id}', [RatingTripSettingsController::class, 'destroy'])->name('delete.rating');
 
-    
-}); 
+
+
+
+
+});
 
 

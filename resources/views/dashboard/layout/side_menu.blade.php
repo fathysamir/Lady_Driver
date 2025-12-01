@@ -24,7 +24,7 @@
       <a href="#" class="dropdown-toggle" onclick="toggleSubmenu(event, this)">
         <i class="zmdi zmdi-view-dashboard"></i> <span>Clients</span>
         @if (app('new_clients_count') > 0)
-                    <span  
+                    <span
                        style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_clients_count') }}</span>
                 @endif
     </a>
@@ -61,7 +61,7 @@
         </li>
         <li>
             <a href="{{ url('/admin-dashboard/cities') }}">
-                <i class="zmdi zmdi-view-dashboard"></i> <span>Cities</span> 
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Cities</span>
             </a>
         </li>
         {{-- <li>
@@ -107,6 +107,13 @@
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Settings</span>
             </a>
         </li>
+
+        <li>
+            <a href="{{ url('/admin-dashboard/ratingtripsettings') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Rating Trip Settings</span>
+            </a>
+        </li>
+
         <li>
             <a href="{{ url('/admin-dashboard/reasons-cancelling-trips') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Trip Cancellation Reason</span>
@@ -155,7 +162,7 @@
             <a href="{{ url('/admin-dashboard/careers') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Careers</span>
                 @if (app('new_careers_count') > 0)
-                    <span  
+                    <span
                        style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_careers_count') }}</span>
                 @endif
             </a>
