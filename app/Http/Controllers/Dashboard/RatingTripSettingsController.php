@@ -8,8 +8,11 @@ use App\Models\RateTripSetting;
 
 class RatingTripSettingsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
 {
+    $page = $request->get('page', 1);
+    session(['rating_current_page' => $page]);
+
     $query = RateTripSetting::query();
 
     // Searching
@@ -28,8 +31,9 @@ class RatingTripSettingsController extends Controller
 
     $settings = $query->paginate(10);
 
-    return view('dashboard.rating_trip_settings.index', compact('settings'));
+    return view('dashboard.rating_trip_settings.index', compact('settings', 'page', 'search', 'category', 'star_count'));
 }
+
     public function create()
     {
         return view('dashboard.rating_trip_settings.create');
@@ -45,12 +49,19 @@ class RatingTripSettingsController extends Controller
 
         RateTripSetting::create($request->only('label', 'star_count', 'category'));
 
-        return redirect()->route('ratingtripsettings')->with('success', 'Setting created successfully!');
+        // Get the current page
+        $returnPage = session('rating_current_page', 1);
+
+        return redirect()->route('ratingtripsettings', ['page' => $returnPage])
+                         ->with('success', 'Setting created successfully!');
     }
 
     public function edit($id)
     {
         $setting = RateTripSetting::findOrFail($id);
+
+        session(['rating_return_page' => session('rating_current_page', 1)]);
+
         return view('dashboard.rating_trip_settings.edit', compact('setting'));
     }
 
@@ -66,7 +77,12 @@ class RatingTripSettingsController extends Controller
 
         $setting->update($request->only('label', 'star_count', 'category'));
 
-        return redirect()->route('ratingtripsettings')->with('success', 'Setting updated successfully!');
+        $returnPage = session('rating_return_page', 1);
+
+        session()->forget('rating_return_page');
+
+        return redirect()->route('ratingtripsettings', ['page' => $returnPage])
+                         ->with('success', 'Setting updated successfully!');
     }
 
     public function destroy($id)
@@ -74,6 +90,9 @@ class RatingTripSettingsController extends Controller
         $setting = RateTripSetting::findOrFail($id);
         $setting->delete();
 
-        return redirect()->route('ratingtripsettings')->with('success', 'Setting deleted successfully!');
+        $returnPage = session('rating_current_page', 1);
+
+        return redirect()->route('ratingtripsettings', ['page' => $returnPage])
+                         ->with('success', 'Setting deleted successfully!');
     }
 }
