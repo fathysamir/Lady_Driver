@@ -610,68 +610,22 @@ class DriverController extends ApiController
 
     public function created_trips(Request $request)
     {
-
-        if ($request->query('mock')) {
-            $driverType = auth()->user()->driver_type;
-
-            $commonData = [
-                'user_id'         => auth()->user()->id,
-                'start_date'      => '2025-12-08',
-                'start_time'      => '18:06',
-                'start_lat'       => 29.2154558,
-                'start_lng'       => 31.2154875,
-                'end_lat_1'       => 29.2154558,
-                'end_lng_1'       => 30.3333333,
-                'end_lat_2'       => 29.2154558,
-                'end_lng_2'       => 30.3333333,
-                'end_lat_3'       => null,
-                'end_lng_3'       => null,
-                'air_conditioned' => true,
-                'client_stare_rate'=> 4.5,
-            ];
-
-            $vehicleData = [
-                'car' => [
-                    'total_cost_before_discount' => 125.50,
-                    'discount'                   => 0,
-                    'total_cost'                 => 125.50,
-                    'distance'                   => 100.21,
-                    'duration'                   => 50,
-                ],
-                'comfort_car' => [
-                    'total_cost_before_discount' => 135.50,
-                    'discount'                   => 10,
-                    'total_cost'                 => 125.50,
-                    'distance'                   => 100.21,
-                    'duration'                   => 50,
-                ],
-                'scooter' => [
-                    'total_cost_before_discount' => 145.50,
-                    'discount'                   => 20,
-                    'total_cost'                 => 125.50,
-                    'distance'                   => 100.21,
-                    'duration'                   => 50,
-                ],
-            ];
-            $response = array_merge($commonData, [
-                $driverType => $vehicleData[$driverType]
-            ]);
-
-            return $this->sendResponse($response, null, 200);
-        }
-
         $check_account = $this->check_banned();
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
         }
         if (auth()->user()->driver_type == 'car') {
             $driver_car = Car::where('user_id', auth()->user()->id)->first();
+            if (!$driver_car) {
+                return $this->sendError(null, "No car found for this driver", 400);
+            }
             if ($driver_car->status == 'confirmed') {
                 if (auth()->user()->is_online == '1') {
                     $radius         = 6371;
                     $decimalPlaces  = 2;
                     $tripsWithin3Km = Trip::select('*')
                         ->whereIn('status', ['created', 'scheduled'])->where('type', 'car')->with(['user:id,name', 'finalDestination']);
+
                     if ($driver_car->air_conditioned == '0') {
                         $tripsWithin3Km->where('air_conditioned', '0');
                     }
