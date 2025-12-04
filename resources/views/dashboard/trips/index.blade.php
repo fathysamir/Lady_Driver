@@ -17,7 +17,7 @@
                                   action="{{ route('trips') }}" enctype="multipart/form-data">
                                 @csrf
                                 {{-- Hidden inputs for tab filtering --}}
-                                <input type="hidden" name="trip_type" id="trip_type_input" value="{{ request('trip_type', 'standard') }}">
+                                <input type="hidden" name="type" id="type_input" value="{{ request('type', 'standard') }}">
                                 <input type="hidden" name="time_filter" id="time_filter_input" value="{{ request('time_filter', 'current') }}">
 
                                 <div style="display:flex;">
@@ -47,6 +47,7 @@
                                         <select class="form-control" style="width: 23.5%; margin: 0% 1% 0% 1%;" name="status">
                                             <option value="">Select Status</option>
                                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="scheduled" {{ request('status') == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                                             <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                             <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                                             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
@@ -59,11 +60,11 @@
                                         </select>
                                     </div>
                                     <div style="display: flex; margin-top:10px;">
-                                        <select class="form-control" style="width: 23.5%;margin: 0% 1% 0% 0%;" name="type">
-                                            <option value="">Select Type</option>
-                                            <option value="individual" {{ request('type') == 'individual' ? 'selected' : '' }}>Individual</option>
-                                            <option value="couple" {{ request('type') == 'couple' ? 'selected' : '' }}>Couple</option>
-                                            <option value="group" {{ request('type') == 'group' ? 'selected' : '' }}>Group</option>
+                                        <select class="form-control" style="width: 23.5%;margin: 0% 1% 0% 0%;" name="trip_type">
+                                            <option value="">Select Trip Type</option>
+                                            <option value="individual" {{ request('trip_type') == 'individual' ? 'selected' : '' }}>Individual</option>
+                                            <option value="couple" {{ request('trip_type') == 'couple' ? 'selected' : '' }}>Couple</option>
+                                            <option value="group" {{ request('trip_type') == 'group' ? 'selected' : '' }}>Group</option>
                                         </select>
                                         <select class="form-control" style="width: 23.5%; margin: 0% 1% 0% 1%;" name="mark" id="markSelect">
                                             <option value="">Select Car Mark</option>
@@ -89,83 +90,103 @@
 
                                 {{-- Main Trip Type Tabs --}}
                                 <div class="btn-group mb-3" role="group" style="width: 80%; margin-top: 20px;">
-                                    <button type="button" class="btn btn-light trip-type-btn" onclick="changeTab('standard','all')" data-type="standard" style="width: 33.33%">Standard Trips</button>
-                                    <button type="button" class="btn btn-light trip-type-btn" onclick="changeTab('comfort','all')" data-type="comfort" style="width: 33.33%">Comfort Trips</button>
-                                    <button type="button" class="btn btn-light trip-type-btn" onclick="changeTab('scooter','all')" data-type="scooter" style="width: 33.33%">Scooter Trips</button>
+                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('standard')" data-type="standard" style="width: 33.33%">Standard Trips</button>
+                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('comfort')" data-type="comfort" style="width: 33.33%">Comfort Trips</button>
+                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('scooter')" data-type="scooter" style="width: 33.33%">Scooter Trips</button>
                                 </div>
 
                                 {{-- Sub Tabs for time filtering --}}
-                                <div class="btn-group mb-3" role="group" style="width: 60%;">
-                                    <button type="button" class="btn btn-light time-filter-btn" onclick="changeTimeFilter('scheduled')" data-filter="scheduled" style="width: 33.33%">Scheduled Trips</button>
-                                    <button type="button" class="btn btn-light time-filter-btn" onclick="changeTimeFilter('current')" data-filter="current" style="width: 33.33%">Current Trips</button>
-                                    <button type="button" class="btn btn-light time-filter-btn" onclick="changeTimeFilter('past')" data-filter="past" style="width: 33.33%">Past Trips</button>
-                                    <button type="button" class="btn btn-light time-filter-btn" onclick="changeTimeFilter('all')" data-filter="all" style="width: 33.33%">All Trips</button>
+                                @foreach(['standard', 'comfort', 'scooter'] as $tripType)
+                                <div class="btn-group mb-3 time-filter-bar" role="group" style="width: 60%; display: none;" id="bar-{{ $tripType }}">
+                                    <button type="button" class="btn btn-light time-filter-btn" onclick="showTimeTab('{{ $tripType }}', 'scheduled')" data-filter="scheduled" style="width: 33.33%">Scheduled Trips</button>
+                                    <button type="button" class="btn btn-light time-filter-btn" onclick="showTimeTab('{{ $tripType }}', 'current')" data-filter="current" style="width: 33.33%">Current Trips</button>
+                                    <button type="button" class="btn btn-light time-filter-btn" onclick="showTimeTab('{{ $tripType }}', 'past')" data-filter="past" style="width: 33.33%">Past Trips</button>
                                 </div>
+                                @endforeach
                             </form>
                         </div>
 
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                <tr>
-                                    <th>Trip Code</th>
-                                    <th>Client</th>
-                                    <th>Driver</th>
-                                    <th>Car</th>
-                                    <th>Created at</th>
-                                    <th>Status</th>
-                                    <th>Payment Status</th>
-                                    <th>Action</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @if (!empty($all_trips) && $all_trips->count())
-                                    @foreach ($all_trips as $trip)
-                                        <tr onclick="window.location='{{ url('/admin-dashboard/trip/view/' . $trip->id) }}';" style="cursor: pointer;">
-                                            <td>{!! highlight($trip->code, $search ?? '') !!}</td>
-
-                                    <!-- Client And Driver -->
-                            <td><span class="user-profile"><img
-                                        @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                        class="img-circle" alt="user avatar"></span>
-                                {!! highlight($trip->user->name, $search ?? '') !!}</td>
-
-                            <td><span class="user-profile"><img
-                                        @if (getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                        class="img-circle" alt="user avatar"></span>
-                                {!! highlight($trip->car->owner->name, $search ?? '') !!}</td>
-
-                                       <!-- end of Client and Driver-->
-
-
-
-
-                                            <td>{{ $trip->car->mark->name }} - {{ $trip->car->model->name }} ({{ $trip->car->year }})</td>
-                                            <td>{{ date('Y-m-d h:i a', strtotime($trip->created_at)) }}</td>
-                                            <td>
-                                                @php
-                                                    $statusColors = [
-                                                        'pending' => 'rgb(143, 118, 9)',
-                                                        'in_progress' => 'rgb(52, 40, 223)',
-                                                        'completed' => 'rgb(50, 134, 50)',
-                                                        'cancelled' => 'rgb(255,0,0)'
-                                                    ];
-                                                @endphp
-                                                <span class="badge badge-secondary" style="background-color: {{ $statusColors[$trip->status] ?? 'gray' }}; width:100%;">{{ ucfirst(str_replace('_',' ',$trip->status)) }}</span>
-                                            </td>
-                                            <td>{{ $trip->payment_status }}</td>
-                                            <td>
-                                                <a href="{{ url('/admin-dashboard/trip/view/' . $trip->id) }}" onclick="event.stopPropagation();"><span class="bi bi-eye" style="font-size: 1rem; color: #fff;"></span></a>
-                                            </td>
+                            @foreach(['standard', 'comfort', 'scooter'] as $tripType)
+                                @foreach(['scheduled', 'current', 'past'] as $timeFilter)
+                                <div class="trip-tab" id="tab-{{ $tripType }}-{{ $timeFilter }}" style="display: none;">
+                                    <h5>{{ ucfirst($tripType) }} - {{ ucfirst($timeFilter) }} Trips</h5>
+                                    <table class="table table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th>Trip Code</th>
+                                            <th>Client</th>
+                                            <th>Driver</th>
+                                            <th>Car</th>
+                                            <th>Created at</th>
+                                            <th>Status</th>
+                                            <th>Payment Status</th>
+                                            <th>Action</th>
                                         </tr>
-                                    @endforeach
-                                @else
-                                    <tr>
-                                        <td colspan="8" style="text-align:center;">No trips found.</td>
-                                    </tr>
-                                @endif
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody>
+                                        @php
+                                            $filteredTrips = $all_trips->filter(function($trip) use ($tripType, $timeFilter) {
+                                                $typeMatch = $trip->type === $tripType;
+                                                $timeMatch = false;
+
+                                                if ($timeFilter === 'scheduled') {
+                                                    $timeMatch = in_array($trip->status, ['pending', 'scheduled']);
+                                                } elseif ($timeFilter === 'current') {
+                                                    $timeMatch = $trip->status === 'in_progress';
+                                                } elseif ($timeFilter === 'past') {
+                                                    $timeMatch = in_array($trip->status, ['completed', 'cancelled']);
+                                                }
+
+                                                return $typeMatch && $timeMatch;
+                                            });
+                                        @endphp
+
+                                        @if ($filteredTrips->count())
+                                            @foreach ($filteredTrips as $trip)
+                                                <tr onclick="window.location='{{ url('/admin-dashboard/trip/view/' . $trip->id) }}';" style="cursor: pointer;">
+                                                    <td>{!! highlight($trip->code, $search ?? '') !!}</td>
+
+                                            <td><span class="user-profile"><img
+                                                        @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                        class="img-circle" alt="user avatar"></span>
+                                                {!! highlight($trip->user->name, $search ?? '') !!}</td>
+
+                                            <td><span class="user-profile"><img
+                                                        @if (getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                        class="img-circle" alt="user avatar"></span>
+                                                {!! highlight($trip->car->owner->name, $search ?? '') !!}</td>
+
+                                                    <td>{{ $trip->car->mark->name }} - {{ $trip->car->model->name }} ({{ $trip->car->year }})</td>
+                                                    <td>{{ date('Y-m-d h:i a', strtotime($trip->created_at)) }}</td>
+                                                    <td>
+                                                        @php
+                                                            $statusColors = [
+                                                                'pending' => 'rgb(143, 118, 9)',
+                                                                'scheduled' => 'rgb(255, 165, 0)',
+                                                                'in_progress' => 'rgb(52, 40, 223)',
+                                                                'completed' => 'rgb(50, 134, 50)',
+                                                                'cancelled' => 'rgb(255,0,0)'
+                                                            ];
+                                                        @endphp
+                                                        <span class="badge badge-secondary" style="background-color: {{ $statusColors[$trip->status] ?? 'gray' }}; width:100%;">{{ ucfirst(str_replace('_',' ',$trip->status)) }}</span>
+                                                    </td>
+                                                    <td>{{ $trip->payment_status }}</td>
+                                                    <td>
+                                                        <a href="{{ url('/admin-dashboard/trip/view/' . $trip->id) }}" onclick="event.stopPropagation();"><span class="bi bi-eye" style="font-size: 1rem; color: #fff;"></span></a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="8" style="text-align:center;">No trips found.</td>
+                                            </tr>
+                                        @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+                                @endforeach
+                            @endforeach
 
                             <div style="text-align: center;">
                                 {!! $all_trips->appends(request()->except('page'))->links('pagination::bootstrap-4') !!}
@@ -189,35 +210,50 @@
         });
     });
 
-    function changeTab(tripType, timeFilter) {
-        document.getElementById('trip_type_input').value = tripType;
-        document.getElementById('time_filter_input').value = timeFilter;
-        $('#searchForm').submit();
-    }
+    function showTab(tripType) {
+        const bars = document.querySelectorAll('.time-filter-bar');
+        bars.forEach(bar => bar.style.display = 'none');
 
-    function changeTimeFilter(timeFilter) {
-        document.getElementById('time_filter_input').value = timeFilter;
-        $('#searchForm').submit();
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        const currentTripType = document.getElementById('trip_type_input').value;
-        const currentTimeFilter = document.getElementById('time_filter_input').value;
+        const targetBar = document.getElementById('bar-' + tripType);
+        if (targetBar) targetBar.style.display = 'inline-flex';
 
         document.querySelectorAll('.trip-type-btn').forEach(btn => {
-            if (btn.getAttribute('data-type') === currentTripType) {
+            if (btn.getAttribute('data-type') === tripType) {
                 btn.style.backgroundColor = '#30638a';
                 btn.style.color = 'white';
+            } else {
+                btn.style.backgroundColor = '';
+                btn.style.color = '';
             }
         });
+        showTimeTab(tripType, 'current');
+    }
 
-        document.querySelectorAll('.time-filter-btn').forEach(btn => {
-            if (btn.getAttribute('data-filter') === currentTimeFilter) {
-                btn.style.backgroundColor = '#30638a';
-                btn.style.color = 'white';
-            }
-        });
-    });
+    function showTimeTab(tripType, timeFilter) {
+
+        const tabs = document.querySelectorAll('.trip-tab');
+        tabs.forEach(tab => tab.style.display = 'none');
+
+        const targetTab = document.getElementById('tab-' + tripType + '-' + timeFilter);
+        if (targetTab) targetTab.style.display = 'block';
+
+        const currentBar = document.getElementById('bar-' + tripType);
+        if (currentBar) {
+            currentBar.querySelectorAll('.time-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-filter') === timeFilter) {
+                    btn.style.backgroundColor = '#30638a';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.backgroundColor = '';
+                    btn.style.color = '';
+                }
+            });
+        }
+
+        // Update hidden inputs
+        document.getElementById('type_input').value = tripType;
+        document.getElementById('time_filter_input').value = timeFilter;
+    }
 
     function toggleFilters() {
         const filterOptions = document.getElementById("filterOptions");
@@ -237,6 +273,14 @@
                 modelSelect.style.display = 'block';
             })
             .catch(err => console.error('Error:', err));
+    });
+
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const currentType = document.getElementById('type_input').value || 'standard';
+        const currentTime = document.getElementById('time_filter_input').value || 'current';
+        showTab(currentType);
+        showTimeTab(currentType, currentTime);
     });
 </script>
 @endpush

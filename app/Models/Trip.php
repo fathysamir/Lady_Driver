@@ -50,7 +50,6 @@ class Trip extends Model
         'scheduled',
         'payment_method',
         'seen_count',
-        'trip_type'
     ];
 
     protected $allowedSorts = [
