@@ -17,7 +17,7 @@
                                   action="{{ route('trips') }}" enctype="multipart/form-data">
                                 @csrf
                                 {{-- Hidden inputs for tab filtering --}}
-                                <input type="hidden" name="type" id="type_input" value="{{ request('type', 'standard') }}">
+                                <input type="hidden" name="type" id="type_input" value="{{ request('type', 'car') }}">
                                 <input type="hidden" name="time_filter" id="time_filter_input" value="{{ request('time_filter', 'current') }}">
 
                                 <div style="display:flex;">
@@ -90,13 +90,13 @@
 
                                 {{-- Main Trip Type Tabs --}}
                                 <div class="btn-group mb-3" role="group" style="width: 80%; margin-top: 20px;">
-                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('standard')" data-type="standard" style="width: 33.33%">Standard Trips</button>
-                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('comfort')" data-type="comfort" style="width: 33.33%">Comfort Trips</button>
+                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('car')" data-type="car" style="width: 33.33%">Standard Trips</button>
+                                    <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('comfort_car')" data-type="comfort_car" style="width: 33.33%">Comfort Trips</button>
                                     <button type="button" class="btn btn-light trip-type-btn" onclick="showTab('scooter')" data-type="scooter" style="width: 33.33%">Scooter Trips</button>
                                 </div>
 
                                 {{-- Sub Tabs for time filtering --}}
-                                @foreach(['standard', 'comfort', 'scooter'] as $tripType)
+                                @foreach(['car', 'comfort_car', 'scooter'] as $tripType)
                                 <div class="btn-group mb-3 time-filter-bar" role="group" style="width: 60%; display: none;" id="bar-{{ $tripType }}">
                                     <button type="button" class="btn btn-light time-filter-btn" onclick="showTimeTab('{{ $tripType }}', 'scheduled')" data-filter="scheduled" style="width: 33.33%">Scheduled Trips</button>
                                     <button type="button" class="btn btn-light time-filter-btn" onclick="showTimeTab('{{ $tripType }}', 'current')" data-filter="current" style="width: 33.33%">Current Trips</button>
@@ -107,7 +107,7 @@
                         </div>
 
                         <div class="table-responsive">
-                            @foreach(['standard', 'comfort', 'scooter'] as $tripType)
+                            @foreach(['car', 'comfort_car', 'scooter'] as $tripType)
                                 @foreach(['scheduled', 'current', 'past'] as $timeFilter)
                                 <div class="trip-tab" id="tab-{{ $tripType }}-{{ $timeFilter }}" style="display: none;">
                                     <h5>{{ ucfirst($tripType) }} - {{ ucfirst($timeFilter) }} Trips</h5>
@@ -277,7 +277,7 @@
 
 
     window.addEventListener('DOMContentLoaded', () => {
-        const currentType = document.getElementById('type_input').value || 'standard';
+        const currentType = document.getElementById('type_input').value || 'car';
         const currentTime = document.getElementById('time_filter_input').value || 'current';
         showTab(currentType);
         showTimeTab(currentType, currentTime);
