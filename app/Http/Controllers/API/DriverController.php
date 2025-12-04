@@ -1011,8 +1011,8 @@ class DriverController extends ApiController
         $driverLng = $request->lng;
         $startLat  = $trip->start_lat;
         $startLng  = $trip->start_lng;
-
         $distance = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
+dd($driverLat,$driverLng,$startLat,$startLng,$distance);
 
         if ($distance <= 15) {
 
