@@ -1005,14 +1005,12 @@ class DriverController extends ApiController
         if (! $trip) {
             return $this->sendError(null, 'Trip not found', 404);
         }
-dd($trip);
         // Calculate distance between driver location and trip start point
         $driverLat = $request->lat;
         $driverLng = $request->lng;
         $startLat  = $trip->start_lat;
         $startLng  = $trip->start_lng;
         $distance = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
-dd($driverLat,$driverLng,$startLat,$startLng,$distance);
 
         if ($distance <= 15) {
 
