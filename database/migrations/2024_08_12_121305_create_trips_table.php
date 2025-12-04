@@ -26,11 +26,12 @@ return new class extends Migration
             $table->time('start_time')->nullable(); ///***********///////
             $table->time('end_time')->nullable(); /************** */
             $table->double('total_price', 8, 2)->default(0); /************* */
+            $table->double('delay_cost', 8, 2)->default(0);
             $table->double('discount', 8, 2)->default(0); ////////////
             $table->double('app_rate', 8, 2)->default(0); /************** */
             $table->double('driver_rate', 8, 2)->default(0); /************ */
-            $table->decimal('paid_amount', 8, 2)->nullable(); // amount paid //////////
-            $table->decimal('remaining_amount', 8, 2)->nullable(); /////////////////
+            $table->double('paid_amount', 8, 2)->nullable(); // amount paid //////////
+            $table->double('remaining_amount', 8, 2)->nullable(); /////////////////
             $table->double('distance', 8, 2)->nullable(); ////////////
             $table->integer('duration')->default(0);
             $table->double('start_lat', 10, 6)->nullable(); /********** */

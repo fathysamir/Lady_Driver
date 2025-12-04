@@ -588,12 +588,12 @@ class ClientController extends ApiController
             return $this->sendError(null, $check_account, 400);
         }
         $trip = Trip::where('user_id', auth()->user()->id)->whereIn('status', ['created', 'pending', 'in_progress'])->with(['car' => function ($query) {
-            $query->select('id','user_id','car_mark_id','car_model_id','year','lat','lng','color','car_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
+            $query->select('id', 'user_id', 'car_mark_id', 'car_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
         }, 'scooter' => function ($query) {
-            $query->select('id','user_id','motorcycle_mark_id','motorcycle_model_id','year','lat','lng','color','car_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
+            $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
         }, 'finalDestination' => function ($xx) {
             $xx->select('id', 'trip_id', 'lat', 'lng', 'address') // مكان الأعمدة الصحيح
-               ->orderBy('id');
+                ->orderBy('id');
         }])->first();
 
         if ($trip) {
@@ -630,8 +630,8 @@ class ClientController extends ApiController
             $trip->barcode  = $barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {
-                    $driver_                 = $trip->car->owner;
-                    $trip->car->owner->rate  = Trip::whereHas('car', function ($query) use ($driver_) {
+                    $driver_                = $trip->car->owner;
+                    $trip->car->owner->rate = Trip::whereHas('car', function ($query) use ($driver_) {
                         $query->where('user_id', $driver_->id);
                     })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
                     $trip->car->owner->trips_count = Trip::whereHas('car', function ($query) use ($driver_) {
@@ -639,8 +639,8 @@ class ClientController extends ApiController
                     })->where('status', 'completed')->count();
                     $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
                 } elseif ($trip->type == 'scooter') {
-                    $driver_                     = $trip->scooter->owner;
-                    $trip->scooter->owner->rate  = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                    $driver_                    = $trip->scooter->owner;
+                    $trip->scooter->owner->rate = Trip::whereHas('scooter', function ($query) use ($driver_) {
                         $query->where('user_id', $driver_->id);
                     })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
                     $trip->scooter->owner->trips_count = Trip::whereHas('scooter', function ($query) use ($driver_) {
@@ -711,15 +711,15 @@ class ClientController extends ApiController
                         $offer_result['user']['trips_count'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
                             $query->where('user_id', $driver_->id);
                         })->where('status', 'completed')->count();
-                        $offer_result['scooter']['id']            = $offer->scooter()->first()->id;
-                        $offer_result['scooter']['image']         = getFirstMediaUrl($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
-                        $offer_result['scooter']['year']          = $offer->scooter()->first()->year;
-                        $offer_result['scooter']['scooter_mark_id']   = $offer->scooter()->first()->motorcycle_mark_id;
-                        $offer_result['scooter']['scooter_mark_id']  = $offer->scooter()->first()->motorcycle_model_id;
-                        $offer_result['scooter']['mark']['id']    = $offer->scooter()->first()->mark()->first()->id;
-                        $offer_result['scooter']['mark']['name']  = $offer->scooter()->first()->mark()->first()->name;
-                        $offer_result['scooter']['model']['id']   = $offer->scooter()->first()->model()->first()->id;
-                        $offer_result['scooter']['model']['name'] = $offer->scooter()->first()->model()->first()->name;
+                        $offer_result['scooter']['id']              = $offer->scooter()->first()->id;
+                        $offer_result['scooter']['image']           = getFirstMediaUrl($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
+                        $offer_result['scooter']['year']            = $offer->scooter()->first()->year;
+                        $offer_result['scooter']['scooter_mark_id'] = $offer->scooter()->first()->motorcycle_mark_id;
+                        $offer_result['scooter']['scooter_mark_id'] = $offer->scooter()->first()->motorcycle_model_id;
+                        $offer_result['scooter']['mark']['id']      = $offer->scooter()->first()->mark()->first()->id;
+                        $offer_result['scooter']['mark']['name']    = $offer->scooter()->first()->mark()->first()->name;
+                        $offer_result['scooter']['model']['id']     = $offer->scooter()->first()->model()->first()->id;
+                        $offer_result['scooter']['model']['name']   = $offer->scooter()->first()->model()->first()->name;
                     }
                     $offer_result['created_at'] = $offer->created_at;
                     return $offer_result;
@@ -895,19 +895,20 @@ class ClientController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-        $trip=Trip::findOrFail($request->trip_id);
-        if($trip->user_id == auth()->user()->id){
-            $type='client';
-        }else{
-            $type='driver';
+        $trip = Trip::findOrFail($request->trip_id);
+        if ($trip->user_id == auth()->user()->id) {
+            $type = 'client';
+        } else {
+            $type = 'driver';
         }
-
-        if($trip->status == 'pending'){
-            $status='before';
-        }elseif($trip->status == 'in_progress'){
-            $status='after';
+        if ($trip->driver_arrived != null && $trip->status == 'pending') {
+            $status = 'driver_arrived';
+        } elseif ($trip->status == 'pending') {
+            $status = 'before';
+        } elseif ($trip->status == 'in_progress') {
+            $status = 'after';
         }
-        $reasons = TripCancellingReason::whereIn('type', [$type, 'all'])->where('status',$status)->get();
+        $reasons = TripCancellingReason::whereIn('type', [$type, 'all'])->where('status', $status)->get();
         return $this->sendResponse($reasons, null, 200);
     }
 

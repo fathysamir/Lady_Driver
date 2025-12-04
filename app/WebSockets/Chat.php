@@ -11,6 +11,7 @@ use App\Models\Trip;
 use App\Models\TripCancellingReason;
 use App\Models\TripDestination;
 use App\Models\User;
+use Carbon\Carbon;
 use Clue\React\Redis\Factory;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
@@ -52,6 +53,9 @@ class Chat implements MessageComponentInterface
                     ];
 
                     $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                    if ($payload['event'] === 'driver_arriving') {
+                        $this->driverArrivingBroadcast($payload);
+                    }
                     echo "➡️ Sent to user {$userId}\n";
                 } else {
                     echo "❌ No active WS client for user {$userId}\n";
@@ -63,6 +67,47 @@ class Chat implements MessageComponentInterface
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
+    public function driverArrivingBroadcast($data)
+    {
+        $maxDuration = 300; // seconds
+        $interval    = 60;  // seconds
+        $startTime   = time();
+        $timer       = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($data, $startTime, $maxDuration) {
+            $trip = Trip::findOrFail($data['data']['trip_id']);
+            $trip->refresh();
+            if (in_array($trip->status, ['in_progress', 'cancelled'])) {
+                echo "🛑 Trip {$trip->id} stopped broadcasting (status: {$trip->status})\n";
+                $this->loop->cancelTimer($timer);
+                return;
+            }
+
+            // Calculate waiting time in minutes (1, 2, 3...)
+            $waitingSeconds = time() - $startTime;
+            $waitingMinutes = floor($waitingSeconds / 60);
+
+            if ($waitingSeconds > $maxDuration) {
+                echo "🕓 Trip {$trip->id} broadcast expired after 5 minutes\n";
+                $this->loop->cancelTimer($timer);
+                return;
+            }
+            $extraCost = $waitingMinutes * 5;
+
+            // Dynamic message
+            $message = "Your driver has arrived. Waiting time: {$waitingMinutes} min. Additional cost: {$extraCost} EGP.";
+
+            if ($trip->user->device_token) {
+                // $this->firebaseService->sendNotification($trip->user->device_token,'Lady Driver - Driver Arriving',$message,["screen"=>"Current Trip","ID"=>$trip->id]);
+                // $data=[
+                //     "title"=>"Lady Driver - Driver Arriving",
+                //     "message"=>$message,
+                //     "screen"=>"Current Trip",
+                //     "ID"=>$trip->id
+                // ];
+                // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
+            }
+
+        });
+    }
     public function onOpen(ConnectionInterface $conn)
     {
 
@@ -1750,6 +1795,18 @@ class Chat implements MessageComponentInterface
             $trip->status     = 'in_progress';
             $trip->start_date = date('Y-m-d');
             $trip->start_time = date('H:i:s');
+            if ($trip->driver_arrived) {
+                $arrivedAt = Carbon::parse($trip->driver_arrived);
+                $now       = now();
+
+                $minutesDelay = $arrivedAt->diffInMinutes($now); // فرق بالدقائق
+
+                $delay_cost        = Setting::where('key', 'delay_cost')->where('category', 'Trips')->where('type', 'number')->first()->value;
+                $trip->delay_cost  = $minutesDelay * floatVal($delay_cost);
+                $trip->total_price = $trip->total_price + ($minutesDelay * floatVal($delay_cost));
+            } else {
+                $trip->delay_cost = 0; // لو مفيش وقت للسائق
+            }
             $trip->save();
             $type    = 'started_trip';
             $message = 'trip started now';
@@ -1760,6 +1817,7 @@ class Chat implements MessageComponentInterface
             $trip->save();
             $type    = 'ended_trip';
             $message = 'trip ended now';
+            
         }
         $trip             = Trip::find($data['trip_id']);
         $x['trip_id']     = $trip->id;
@@ -1783,13 +1841,13 @@ class Chat implements MessageComponentInterface
     }
     private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
     {
-        $data                            = json_decode($cancelTripRequest, true);
-        $trip                            = Trip::findOrFail($data['trip_id']);
-        $sss_status=$trip->status;
-        if($trip->status =='pending'){
-            $sss_status='created';
-        }elseif($trip->status =='scheduled'){
-            $sss_status='scheduled';
+        $data       = json_decode($cancelTripRequest, true);
+        $trip       = Trip::findOrFail($data['trip_id']);
+        $sss_status = $trip->status;
+        if ($trip->status == 'pending') {
+            $sss_status = 'created';
+        } elseif ($trip->status == 'scheduled') {
+            $sss_status = 'scheduled';
         }
         $trip->status                    = 'cancelled';
         $trip->cancelled_by_id           = $AuthUserID;
@@ -1863,7 +1921,7 @@ class Chat implements MessageComponentInterface
 
             $owner->wallet -= $value;
             $owner->save();
-            if ($reason->status == 'before') {
+            if (in_array($reason->status, ['before', 'driver_arrived'])) {
                 $type = $trip->type;
                 if ($type == 'car' || $type == 'comfort_car') {
                     $newTrip["car_id"] = null;

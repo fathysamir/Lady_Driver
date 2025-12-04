@@ -55,6 +55,8 @@
                                         <option value="">Select Status</option>
                                         <option value="before"@if (old('status') == 'before') selected @endif>Before Start Trip
                                         </option>
+                                        <option value="driver_arrived"@if (old('status') == 'driver_arrived') selected @endif>Driver Arrived In Start Point
+                                        </option>
                                         <option value="after"@if (old('status') == 'after') selected @endif>After Start Trip
                                         </option>
 

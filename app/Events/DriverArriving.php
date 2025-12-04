@@ -1,7 +1,6 @@
 <?php
 namespace App\Events;
 
-use App\Models\TripChat;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -17,8 +16,8 @@ class DriverArriving implements ShouldBroadcast
 
     public function __construct($driver_arriving, $receiverId)
     {
-        $this->driver_arriving       = $driver_arriving;
-        $this->receiverId = $receiverId;
+        $this->driver_arriving = $driver_arriving;
+        $this->receiverId      = $receiverId;
 
     }
 
@@ -35,7 +34,9 @@ class DriverArriving implements ShouldBroadcast
     {
         return [
             'trip_id'  => $this->driver_arriving['trip_id'],
-            'message'  => $this->driver_arriving['message']
+            'message'  => $this->driver_arriving['message'],
+            'distance' => $this->driver_arriving['distance'],
+            'arrived_at' => $this->driver_arriving['arrived_at'],
         ];
     }
 }
