@@ -51,7 +51,7 @@ return new class extends Migration
             $table->enum('payment_status', ['unpaid', 'partial', 'paid','refunded'])->default('unpaid');
             $table->enum('payment_method', ['cash', 'wallet'])->default('cash');
             $table->enum('student_trip', ['1', '0'])->default('0');
-            $table->enum('type', ['standard', 'comfort', 'scooter'])->default('standard');
+            $table->enum('type', ['car', 'comfort_car','scooter'])->default('car');
             $table->float('driver_stare_rate', 3, 2)->default(0);
             $table->longText('driver_comment')->nullable();
             $table->timestamp('driver_arrived')->nullable();
