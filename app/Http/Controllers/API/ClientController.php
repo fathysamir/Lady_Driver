@@ -8,10 +8,13 @@ use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
+use App\Models\Complaint;
+use App\Models\Suggestion;
 use App\Models\TripCancellingReason;
 use App\Models\TripChat;
 use App\Models\UserAddress;
 use App\Services\FirebaseService;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -818,42 +821,56 @@ class ClientController extends ApiController
         return $this->sendResponse($cancelled_trips, null, 200);
     }
 
-    // public function rate_trip(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'trip_id'    => [
-    //             'required',
-    //             Rule::exists('trips', 'id'),
-    //         ],
-    //         'rating'     => 'required|integer|min:1|max:5',
-    //         'comment'    => 'nullable',
-    //         'complaint'  => 'nullable',
-    //         'suggestion' => 'nullable',
-    //     ]);
-    //     // dd($request->all());
-    //     if ($validator->fails()) {
+    public function rate_trip(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id'    => [
+                'required',
+                Rule::exists('trips', 'id'),
+            ],
+            'rating'     => 'required|integer|min:1|max:5',
+            'comment'    => 'nullable',
+            'complaint'  => 'nullable',
+            'suggestion' => 'nullable',
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
 
-    //         $errors = implode(" / ", $validator->errors()->all());
+            $errors = implode(" / ", $validator->errors()->all());
 
-    //         return $this->sendError(null, $errors, 400);
-    //     }
-    //     $trip = Trip::find($request->trip_id);
-    //     if (auth()->user()->mode == 'client') {
-    //         $trip->client_stare_rate = floatval($request->rating);
-    //         $trip->client_comment    = $request->comment;
-    //     } elseif (auth()->user()->mode == 'driver') {
-    //         $trip->driver_stare_rate = floatval($request->rating);
-    //         $trip->driver_comment    = $request->comment;
-    //     }
-    //     $trip->save();
-    //     if ($request->complaint != null) {
-    //         Complaint::create(['user_id' => auth()->user()->id, 'trip_id' => $trip->id, 'complaint' => $request->complaint]);
-    //     }
-    //     if ($request->suggestion != null) {
-    //         Suggestion::create(['user_id' => auth()->user()->id, 'suggestion' => $request->suggestion]);
-    //     }
-    //     return $this->sendResponse(null, 'trip rating saved successfuly', 200);
-    // }
+            return $this->sendError(null, $errors, 400);
+        }
+        $trip = Trip::find($request->trip_id);
+        if (auth()->user()->mode == 'client') {
+            $trip->client_stare_rate = floatval($request->rating);
+            $trip->client_comment    = $request->comment;
+            if($request->tip){
+                $trip->tip=floatval($request->tip);
+                $client=$trip->user;
+                $client->wallet=$client->wallet-floatval($request->tip);
+                $client->save();
+                if($trip->car){
+                    $driver=$trip->car->owner;
+                }elseif($trip->scooter){
+                    $driver=$trip->scooter->owner;
+                }
+                $driver->wallet=$driver->wallet+floatval($request->tip);
+                $driver->save();
+            }
+        } elseif (auth()->user()->mode == 'driver') {
+            $trip->driver_stare_rate = floatval($request->rating);
+            $trip->driver_comment    = $request->comment;
+        }
+        $trip->save();
+        if ($request->complaint != null) {
+            Complaint::create(['user_id' => auth()->user()->id, 'trip_id' => $trip->id, 'complaint' => $request->complaint]);
+        }
+        if ($request->suggestion != null) {
+            Suggestion::create(['user_id' => auth()->user()->id, 'suggestion' => $request->suggestion]);
+        }
+
+        return $this->sendResponse(null, 'trip rating saved successfully', 200);
+    }
 
     // public function cancel_trip(Request $request)
     // {

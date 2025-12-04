@@ -27,6 +27,7 @@ return new class extends Migration
             $table->time('end_time')->nullable(); /************** */
             $table->double('total_price', 8, 2)->default(0); /************* */
             $table->double('delay_cost', 8, 2)->default(0);
+            $table->double('tip', 8, 2)->default(0);
             $table->double('discount', 8, 2)->default(0); ////////////
             $table->double('app_rate', 8, 2)->default(0); /************** */
             $table->double('driver_rate', 8, 2)->default(0); /************ */
