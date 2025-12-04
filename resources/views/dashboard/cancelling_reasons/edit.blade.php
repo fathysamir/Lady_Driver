@@ -54,9 +54,14 @@
 
                                     <select class="form-control" name="status">
                                         <option value="">Select Status</option>
-                                        <option value="before"@if ($reason->status == 'before') selected @endif>Before Start Trip
+                                        <option value="before"@if ($reason->status == 'before') selected @endif>Before Start
+                                            Trip
                                         </option>
-                                        <option value="after"@if ($reason->status == 'after') selected @endif>After Start Trip
+                                        <option value="driver_arrived"@if ($reason->status == 'driver_arrived') selected @endif>
+                                            Driver Arrived In Start Point
+                                        </option>
+                                        <option value="after"@if ($reason->status == 'after') selected @endif>After Start
+                                            Trip
                                         </option>
 
                                     </select>

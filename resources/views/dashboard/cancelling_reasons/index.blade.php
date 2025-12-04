@@ -49,6 +49,7 @@
                                                 name="status">
                                                 <option value="">Select Status</option>
                                                 <option value="before">Before Start Trip</option>
+                                                <option value="driver_arrived">Driver Arrived In Start Point</option>
                                                 <option value="after">After Start Trip</option>
                                                 
                                                 <!-- Add more options as needed -->
@@ -100,13 +101,20 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $status=[
+                                                "before"=>'Before Trip Start',
+                                                "driver_arrived"=>'Driver Arrived In Start Point',
+                                                "after"=>'After Trip Start'
+                                    ];
+                                        @endphp
                                         @if (!empty($all_reasons) && $all_reasons->count())
                                             @foreach ($all_reasons as $reason)
                                                 <tr onclick="window.location='{{ url('/admin-dashboard/reason-cancelling-trip/edit/' . $reason->id) }}';"
                                                     style="cursor: pointer;">
                                                     <td>{!! highlight($reason->en_reason, $search ?? '') !!}<br> {!! highlight($reason->ar_reason, $search ?? '') !!}</td>
                                                     <td>{{ ucwords($reason->type) }}</td>
-                                                    <td>{{ ucwords($reason->status) }}</td>
+                                                    <td>{{ $status[$reason->status] }}</td>
                                                     <td>{{ ucwords($reason->value_type) }}</td>
                                                     <td>{{ $reason->value }}</td>
                                                     <td>

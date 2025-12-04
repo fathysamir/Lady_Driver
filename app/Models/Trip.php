@@ -24,6 +24,7 @@ class Trip extends Model
         'start_lng',
         'address1',
         'total_price',
+        'delay_cost',
         'discount',
         'app_rate',
         'driver_rate',

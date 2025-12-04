@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('ar_reason');
             $table->string('en_reason');
             $table->enum('type', ['client','driver','all'])->default('client');
-            $table->enum('status', ['before','after'])->default('before');
+            $table->enum('status', ['before','driver_arrived','after'])->default('before');
             $table->enum('value_type', ['fixed', 'ratio'])->default('fixed');
             $table->double('value', 4, 2)->default(0);
             $table->timestamps();
