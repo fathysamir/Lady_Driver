@@ -1838,6 +1838,7 @@ class Chat implements MessageComponentInterface
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
         }
+        
     }
     private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
     {
