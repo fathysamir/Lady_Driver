@@ -3,6 +3,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\Car;
+use App\Models\RateTripSetting;
 use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
@@ -1313,5 +1314,28 @@ class ClientController extends ApiController
             return $this->sendError(null, 'Failed to update trip price.', 500);
 
         }
+    }
+
+    public function get_rate_trip_setting(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|exists:trips,id',
+            'stars'   => 'required|numeric|min:1|max:5',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = implode(' / ', $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+        $trip = Trip::findOrFail($request->trip_id);
+        if (auth()->user()->id == $trip->user_id) {
+            $type = 'client';
+        } else {
+            $type = 'driver';
+        }
+
+        $labels = RateTripSetting::where('star_count', $request->stars)->where('category', $type)->get();
+        return $this->sendResponse($labels, null, 200);
+
     }
 }

@@ -111,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add-address', [ClientController::class, 'add_address']);
     Route::get('/get_all_user_addresses', [ClientController::class, 'get_all_user_addresses']);
     Route::get('/delete_address', [ClientController::class, 'delete_address']);
+    Route::get('/get_rate_trip_setting', [ClientController::class, 'get_rate_trip_setting']);
 
 
 
