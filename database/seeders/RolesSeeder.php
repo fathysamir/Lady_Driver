@@ -17,6 +17,19 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
+        $permissions = [
+            'admins.view','admins.create','admins.edit','admins.delete',
+            'clients.view','clients.edit','clients.delete',
+            'drivers.standard.car.view','drivers.standard.car.edit','drivers.standard.car.delete',
+            'drivers.comfort.car.view','drivers.comfort.car.edit','drivers.comfort.car.delete',
+            'drivers.scooter.view','drivers.scooter.edit','drivers.scooter.delete',
+            'cities.view','cities.create','cities.edit','cities.delete',
+            'cars.marks.models.view','cars.marks.models.create','cars.marks.models.edit','cars.marks.models.delete',
+            'scooters.marks.models.view','scooters.marks.models.create','scooters.marks.models.edit','scooters.marks.models.delete',
+        ];
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
         //create role "Employee" for users
         $roles = [
             'Client',
@@ -33,9 +46,9 @@ class RolesSeeder extends Seeder
         }
         $admin_role = Role::where('name', 'Admin')->first();
 
-        $permissions = Permission::pluck('id', 'id')->all();
+        // $permissions = Permission::pluck('id', 'id')->all();
 
-        $admin_role->syncPermissions($permissions);
+        // $admin_role->syncPermissions($permissions);
         $user1 = User::create([
             'name' => 'Admin1',
             'email' => 'admin1@gmail.com',
