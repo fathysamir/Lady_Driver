@@ -10,7 +10,8 @@
                         <div class="card-body">
                             <div class="card-title">Update Admin</div>
                             <hr>
-                            <form method="post" action="{{ route('update.admin', $admin->id) }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('update.admin', $admin->id) }}"
+                                enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
                                     <label for="inputEmail3">Name</label>
@@ -395,6 +396,39 @@
                                     @endif
                                 </div>
                                 <div class="form-group">
+                                    <label>Role</label>
+                                    <select id="role_id" name="role" class="form-control">
+                                        <option value="" disabled>Please Select Role</option>
+                                        @foreach ($roles as $role)
+                                            <option value="{{ $role->id }}"
+                                                {{ $admin->roles->pluck('id')->contains($role->id) ? 'selected' : '' }}>
+                                                {{ $role->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('role')
+                                        <p class="text-error" style="color:red;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label>Assign Permissions</label>
+                                    <div class="border p-2" style="max-height:250px; overflow-y:auto;"
+                                        id="permissions-box">
+                                        @foreach ($permissions as $permission)
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input perm-checkbox"
+                                                    name="permissions[]" value="{{ $permission->name }}"
+                                                    id="perm{{ $permission->id }}"
+                                                    {{ in_array($permission->name, old('permissions', $userPermissions)) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="perm{{ $permission->id }}">
+                                                    {{ $permission->name }}
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label for="inputPassword3">Password</label>
 
                                     <input type="password" class="form-control" id="inputPassword3" name="password">
@@ -428,8 +462,7 @@
                                 <div class="form-group">
                                     <label for="inputPassword3">Confirm Second Password</label>
 
-                                    <input type="password" class="form-control"
-                                        name="second_password_confirmation">
+                                    <input type="password" class="form-control" name="second_password_confirmation">
                                     @if ($errors->has('second_password_confirmation'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('second_password_confirmation') }}</p>
@@ -479,6 +512,21 @@
             // Allow form submission without warning
             $('form').on('submit', function() {
                 isFormDirty = false;
+            });
+            document.getElementById("role_id").addEventListener("change", function() {
+                const roleId = this.value;
+
+                fetch(`/admin-dashboard/roles/${roleId}/permissions`)
+                    .then(res => res.json())
+                    .then(data => {
+                        // Uncheck all
+                        document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = false);
+
+                        // Auto-check role permissions
+                        data.permissions.forEach(p => {
+                            document.querySelector(`input[value='${p}']`).checked = true;
+                        });
+                    });
             });
         });
     </script>

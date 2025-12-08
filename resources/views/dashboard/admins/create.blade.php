@@ -13,9 +13,9 @@
                             <form method="post" action="{{ route('store.admin') }}" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
-                                    <label for="inputEmail3">Name</label>
+                                    <label for="name">Name</label>
 
-                                    <input type="text" class="form-control" id="inputEmail3" name="name"
+                                    <input type="text" class="form-control" id="name" name="name"
                                         value="{{ old('name') }}">
                                     @if ($errors->has('name'))
                                         <p class="text-error more-info-err" style="color: red;">
@@ -23,9 +23,9 @@
                                     @endif
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputEmail3">Email</label>
+                                    <label for="email">Email</label>
 
-                                    <input type="email" class="form-control" id="inputEmail3" name="email"
+                                    <input type="email" class="form-control" id="email" name="email"
                                         value="{{ old('email') }}">
                                     @if ($errors->has('email'))
                                         <p class="text-error more-info-err" style="color: red;">
@@ -36,7 +36,7 @@
                                 <div class="form-group">
                                     <label>Phone Number</label>
                                     <div class="input-group">
-                                        <div class="input-group-prepend">
+                                        <div class="input-group-prepend" style="margin-right: 5px;">
                                             <select name="country_code" class="form-control">
                                                 <option value="+1">USA (+1)</option>
                                                 <option value="+44">UK (+44)</option>
@@ -219,6 +219,35 @@
                                     @endif
                                 </div>
                                 <div class="form-group">
+                                    <label>Role</label>
+                                    <select id="role_id" name="role" class="form-control">
+                                        <option value="" selected disabled>Please Select Role</option>
+                                        @foreach ($roles as $role)
+                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @if ($errors->has('role'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('role') }}</p>
+                                    @endif
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>Assign Permissions</label>
+                                    <div class="border p-2" style="max-height: 250px; overflow-y: auto;">
+                                        @foreach ($permissions as $permission)
+                                            <div class="form-check" id="permissions-box">
+                                                <input class="form-check-input perm-checkbox" type="checkbox"
+                                                    name="permissions[]" value="{{ $permission->name }}"
+                                                    id="perm{{ $permission->id }}"
+                                                    {{ is_array(old('permissions')) && in_array($permission->name, old('permissions')) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="perm{{ $permission->id }}">
+                                                    {{ $permission->name }}
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label for="inputPassword3">Password</label>
 
                                     <input type="password" class="form-control" id="inputPassword3" name="password">
@@ -229,9 +258,9 @@
 
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputPassword3">Confirm Password</label>
+                                    <label for="ConfirminputPassword3">Confirm Password</label>
 
-                                    <input type="password" class="form-control" id="inputPassword3"
+                                    <input type="password" class="form-control" id="ConfirminputPassword3"
                                         name="password_confirmation">
                                     @if ($errors->has('password_confirmation'))
                                         <p class="text-error more-info-err" style="color: red;">
@@ -240,7 +269,7 @@
 
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputPassword3">Second Password</label>
+                                    <label for="SecondinputPassword3">Second Password</label>
 
                                     <input type="password" class="form-control" name="second_password">
                                     @if ($errors->has('second_password'))
@@ -250,10 +279,9 @@
 
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputPassword3">Confirm Second Password</label>
+                                    <label for="ConfirmSecondInputPassword3">Confirm Second Password</label>
 
-                                    <input type="password" class="form-control"
-                                        name="second_password_confirmation">
+                                    <input type="password" class="form-control" name="second_password_confirmation">
                                     @if ($errors->has('second_password_confirmation'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('second_password_confirmation') }}</p>
@@ -304,6 +332,22 @@
             // Allow form submission without warning
             $('form').on('submit', function() {
                 isFormDirty = false;
+            });
+
+            document.getElementById("role_id").addEventListener("change", function() {
+                const roleId = this.value;
+
+                fetch(`/admin-dashboard/roles/${roleId}/permissions`)
+                    .then(res => res.json())
+                    .then(data => {
+                        // Uncheck all
+                        document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = false);
+
+                        // Auto-check role permissions
+                        data.permissions.forEach(p => {
+                            document.querySelector(`input[value='${p}']`).checked = true;
+                        });
+                    });
             });
         });
     </script>

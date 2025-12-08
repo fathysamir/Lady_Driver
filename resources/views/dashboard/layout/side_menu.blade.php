@@ -14,6 +14,11 @@
             </a>
         </li>
         <li>
+            <a href="{{ url('/admin-dashboard/roles') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Roles</span>
+            </a>
+        </li>
+        <li>
             <a href="{{ url('/admin-dashboard/admins') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Admins</span>
             </a>
