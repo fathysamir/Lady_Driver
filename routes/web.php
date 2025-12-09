@@ -4,6 +4,7 @@ use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\CarController;
+use App\Http\Controllers\Dashboard\CareersController;
 use App\Http\Controllers\Dashboard\CarMarkController;
 use App\Http\Controllers\Dashboard\CarModelController;
 use App\Http\Controllers\Dashboard\ChatController;
@@ -11,19 +12,19 @@ use App\Http\Controllers\Dashboard\CityController;
 use App\Http\Controllers\Dashboard\ClientController;
 use App\Http\Controllers\Dashboard\ComplaintController;
 use App\Http\Controllers\Dashboard\ContactUsController;
-use App\Http\Controllers\Dashboard\CareersController;
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\FeedBackController;
 use App\Http\Controllers\Dashboard\MotorcycleController;
 use App\Http\Controllers\Dashboard\PaymentController;
+use App\Http\Controllers\Dashboard\PrivacyAndTermController;
+use App\Http\Controllers\Dashboard\RatingTripSettingsController;
+use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\UserController;
-use App\Http\Controllers\Dashboard\PrivacyAndTermController;
-use App\Http\Controllers\Dashboard\RatingTripSettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Milon\Barcode\DNS2D;
+use Spatie\Permission\Models\Role;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,8 +63,6 @@ Route::get('/open-reset', function (Request $request) {
     return view('emails.open-reset', compact('appLink', 'webLink'));
 
 });
-
-
 
 Route::get('/live-location/{token}', [LiveLocationController::class, 'viewPage']);
 Route::get('/live/{token}', [LiveLocationController::class, 'viewPage2']);
@@ -194,8 +193,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/terms-conditions', [PrivacyAndTermController::class, 'termsedit'])->name('dashboard.privacy.edit');
     Route::get('/terms-conditions/{lang}', [PrivacyAndTermController::class, 'termsgetByLang'])->name('dashboard.terms.get');
     Route::post('/terms-conditions/update', [PrivacyAndTermController::class, 'termsupdate'])->name('dashboard.terms.update');
-    ///////////////////////////////////////////////
-    Route::any('/careers', [CareersController::class, 'index'])->name('careers'); //index blade
+                                                                                              ///////////////////////////////////////////////
+    Route::any('/careers', [CareersController::class, 'index'])->name('careers');             //index blade
     Route::get('/career/view/{id}', [CareersController::class, 'show'])->name('view.career'); //show blade
     Route::put('/career/view/{id}', [CareersController::class, 'update'])->name('update.career');
     Route::get('/archived-Applications', [CareersController::class, 'index_archives'])->name('archived_careers'); //index_archives blade
@@ -208,11 +207,17 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/ratingtripsettings/edit/{id}', [RatingTripSettingsController::class, 'edit'])->name('edit.rating');
     Route::put('/ratingtripsettings/edit/{id}', [RatingTripSettingsController::class, 'update'])->name('rate-trip-settings.update');
     Route::delete('/ratingtripsettings/delete/{id}', [RatingTripSettingsController::class, 'destroy'])->name('delete.rating');
-
-
-
-
+//////////////////////////////////////////////////
+    Route::any('/roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/roles/store', [RoleController::class, 'store'])->name('roles.store');
+    Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::post('/roles/update/{id}', [RoleController::class, 'update'])->name('roles.update');
+    Route::get('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('roles.delete');
+    Route::get('/roles/{role}/permissions', function (Role $role) {
+        return response()->json([
+            'permissions' => $role->permissions->pluck('name'),
+        ]);
+    });
 
 });
-
-

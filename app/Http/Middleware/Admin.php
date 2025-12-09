@@ -30,7 +30,8 @@ class Admin
         }
         if(!is_null(auth()->user()->roles))
         {
-            if(auth()->user()->roles->first()->name!='Admin')
+            $blockedRoles = ['Client', 'Driver'];
+            if(auth()->user()->roles()->whereIn('name', $blockedRoles)->exists())
             {   
                  Auth::logout();
 

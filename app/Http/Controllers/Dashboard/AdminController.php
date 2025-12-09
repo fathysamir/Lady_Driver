@@ -9,14 +9,16 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
     public function index(Request $request)
     {
-        $all_admins = User::whereHas('roles', function ($query) {
-            $query->where('roles.name', 'Admin');
+        $roles      = Role::whereNotIn('name', ['Client', 'Driver'])->pluck('name')->toArray();
+        $all_admins = User::whereHas('roles', function ($query) use ($roles) {
+            $query->whereIn('roles.name', $roles);
         })->orderBy('id', 'desc');
 
         if ($request->has('search') && $request->search != null) {
@@ -40,7 +42,9 @@ class AdminController extends Controller
 
     public function create()
     {
-        return view('dashboard.admins.create');
+        $roles       = Role::whereNotIn('name', ['Client', 'Driver'])->get();
+        $permissions = Permission::all();
+        return view('dashboard.admins.create', compact('roles', 'permissions'));
     }
 
     public function store(Request $request)
@@ -65,6 +69,11 @@ class AdminController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
+            'role'            => [
+                'required',
+                'integer',
+                Rule::exists('roles', 'id'), // checks the role exists in the roles table
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -83,9 +92,12 @@ class AdminController extends Controller
             'gendor'       => 'other',
             'mode'         => 'admin',
         ]);
-        $role = Role::where('Name', 'Admin')->first();
+        $role = Role::find($request->role);
 
-        $admin->assignRole([$role->id]);
+        $admin->assignRole($role);
+
+        // sync extra permissions (with role permissions included)
+        $admin->syncPermissions($request->permissions ?? []);
         if ($request->file('image')) {
             uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
         }
@@ -95,8 +107,13 @@ class AdminController extends Controller
 
     public function edit($id)
     {
-        $admin = User::findOrFail($id);
-        return view('dashboard.admins.edit', compact('admin'));
+        $admin       = User::findOrFail($id);
+        $roles       = Role::whereNotIn('name', ['Client', 'Driver'])->get();
+        $permissions = Permission::all();
+
+        // get user's current permissions
+        $userPermissions = $admin->getDirectPermissions()->pluck('name')->toArray();
+        return view('dashboard.admins.edit', compact('admin', 'permissions', 'roles', 'userPermissions'));
     }
 
     public function update(Request $request, $id)
@@ -121,6 +138,11 @@ class AdminController extends Controller
                     return $query->where('country_code', $request->country_code)
                         ->whereNull('deleted_at');
                 }),
+            ],
+            'role'            => [
+                'required',
+                'integer',
+                Rule::exists('roles', 'id'), // checks the role exists in the roles table
             ]]);
 
         if ($validator->fails()) {
@@ -139,7 +161,11 @@ class AdminController extends Controller
         if ($request->password != null) {
             $admin->password = Hash::make($request->password);
         }
+        $role = Role::find($request->role);
+        $admin->syncRoles($role);
 
+        // Update permissions (direct permissions)
+        $admin->syncPermissions($request->permissions ?? []);
         if ($request->file('image')) {
             uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
         }
