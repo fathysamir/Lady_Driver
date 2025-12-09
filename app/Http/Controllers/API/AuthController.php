@@ -524,7 +524,7 @@ class AuthController extends ApiController
         }
         Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
         $res['otp'] = $otpCode;
-        $res['username'] = $user->username; 
+        $res['username'] = $user->username;
         return $this->sendResponse($res, 'OTP sent to your email address.', 200);
     }
     public function register(Request $request)
@@ -1370,25 +1370,25 @@ class AuthController extends ApiController
             'position'     => 'required|string|max:191',
             'cv' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:6144',
         ]);
-    
+
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
-    
+
             return $this->sendError(null, $errors, 400);
-        }   
-    
+        }
+
         $career = Careers::create($validator->validated());
-    
+
         if ($request->hasFile('cv')) {
             uploadMedia($request->cv,$career->CvCollection,$career);
 
         }
-    
+
         return $this->sendResponse($career, 'Application received', 200);
     }
-    
 
-    
+
+
     public function save_contact_us(Request $request)
     {
 
@@ -1556,7 +1556,7 @@ class AuthController extends ApiController
         $cities = City::all();
         return $this->sendResponse($cities, null, 200);
     }
-    
+
 
     public function save_student_data(Request $request)
     {
@@ -1565,12 +1565,12 @@ class AuthController extends ApiController
             'graduation_year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
             'id_front_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
-    
+
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
             return $this->sendError(null, $errors, 400);
         }
-    
+
         $student = Student::updateOrCreate(
             ['user_id' => auth()->user()->id],
             [
@@ -1580,7 +1580,7 @@ class AuthController extends ApiController
                 'student_discount_service' => '0',
             ]
         );
-    
+
         if ($request->file('id_front_image')) {
             $image = getFirstMediaUrl($student, $student->IDfrontImageCollection);
             if ($image != null) {
@@ -1590,7 +1590,7 @@ class AuthController extends ApiController
                 uploadMedia($request->id_front_image, $student->IDfrontImageCollection, $student);
             }
         }
-    
+
         $user = auth()->user();
         if (! $user->student_code) {
             do {
@@ -1599,7 +1599,7 @@ class AuthController extends ApiController
             $user->student_code = $barcode;
             $user->save();
         }
-    
+
         return $this->sendResponse($student, 'Success', 200);
     }
 
@@ -1622,6 +1622,10 @@ class AuthController extends ApiController
         $privacy = PrivacyAndTerm::where('type', 'privacy')
             ->where('lang', $lang)
             ->first();
+            $clean = strip_tags($privacy->value);
+            $clean = html_entity_decode($clean, ENT_QUOTES, 'UTF-8');
+            $clean = trim(preg_replace('/\s+/', ' ', $clean));
+
 
         if (! $privacy) {
             return response()->json([
@@ -1633,8 +1637,9 @@ class AuthController extends ApiController
         return response()->json([
             'status' => true,
             'lang'   => $lang,
-            'value'  => $privacy->value,
+            'value'  => $clean,
         ]);
+
     }
 
     public function getTermsAndConditions(Request $request)
@@ -1644,6 +1649,9 @@ class AuthController extends ApiController
         $terms = PrivacyAndTerm::where('type', 'terms')
             ->where('lang', $lang)
             ->first();
+            $clean = strip_tags($terms->value);
+            $clean = html_entity_decode($clean, ENT_QUOTES, 'UTF-8');
+            $clean = trim(preg_replace('/\s+/', ' ', $clean));
 
         if (! $terms) {
             return response()->json([
@@ -1655,7 +1663,7 @@ class AuthController extends ApiController
         return response()->json([
             'status' => true,
             'lang'   => $lang,
-            'value'  => $terms->value,
+            'value'  => $clean,
         ]);
     }
 
