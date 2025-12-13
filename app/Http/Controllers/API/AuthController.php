@@ -1622,10 +1622,6 @@ class AuthController extends ApiController
         $privacy = PrivacyAndTerm::where('type', 'privacy')
             ->where('lang', $lang)
             ->first();
-            $clean = strip_tags($privacy->value);
-            $clean = html_entity_decode($clean, ENT_QUOTES, 'UTF-8');
-            $clean = trim(preg_replace('/\s+/', ' ', $clean));
-
 
         if (! $privacy) {
             return response()->json([
@@ -1637,9 +1633,8 @@ class AuthController extends ApiController
         return response()->json([
             'status' => true,
             'lang'   => $lang,
-            'value'  => $clean,
+            'value'  => $privacy->value,
         ]);
-
     }
 
     public function getTermsAndConditions(Request $request)
@@ -1649,9 +1644,6 @@ class AuthController extends ApiController
         $terms = PrivacyAndTerm::where('type', 'terms')
             ->where('lang', $lang)
             ->first();
-            $clean = strip_tags($terms->value);
-            $clean = html_entity_decode($clean, ENT_QUOTES, 'UTF-8');
-            $clean = trim(preg_replace('/\s+/', ' ', $clean));
 
         if (! $terms) {
             return response()->json([
@@ -1663,7 +1655,7 @@ class AuthController extends ApiController
         return response()->json([
             'status' => true,
             'lang'   => $lang,
-            'value'  => $clean,
+            'value'  => $terms->value,
         ]);
     }
 
