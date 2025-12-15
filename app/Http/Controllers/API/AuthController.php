@@ -473,7 +473,7 @@ class AuthController extends ApiController
                             ->whereNull('deleted_at')->where('is_verified', '1');
                     }),
             ],
-            'image'        => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'birth_date'   => [
                 'required',
                 'date',
