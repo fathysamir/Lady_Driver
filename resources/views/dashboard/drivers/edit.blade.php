@@ -51,7 +51,14 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Update Driver</div>
+                            @php
+                                $arr = [
+                                    'car' => 'Standard',
+                                    'comfort_car' => 'Comfort',
+                                    'scooter' => 'Scooter',
+                                ];
+                            @endphp
+                            <div class="card-title">Update Driver - {{ $arr[$user->driver_type] }}Account</div>
                             <hr>
                             <form method="post" action="{{ route('update.driver', ['id' => $user->id] + $queryString) }}"
                                 enctype="multipart/form-data">
