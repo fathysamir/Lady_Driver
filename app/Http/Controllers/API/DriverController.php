@@ -891,7 +891,7 @@ class DriverController extends ApiController
             $car             = Car::where('user_id', auth()->user()->id)->first();
             $completed_trips = Trip::where('car_id', $car->id)->where('status', 'completed')->with(['car' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user'])->get()->map(function ($trip) {
+            }, 'user','finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;
@@ -901,7 +901,7 @@ class DriverController extends ApiController
             $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
             $completed_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'completed')->with(['scooter' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user'])->get()->map(function ($trip) {
+            }, 'user','finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;

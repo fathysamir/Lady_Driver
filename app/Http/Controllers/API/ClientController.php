@@ -789,7 +789,9 @@ class ClientController extends ApiController
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
-        }])->get()->map(function ($trip) {
+        },
+             'finalDestination'
+        ])->get()->map(function ($trip) {
             if (in_array($trip->type, ['car', 'comfort_car'])) {
                 $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
             } elseif ($trip->type == 'scooter') {
@@ -808,7 +810,7 @@ class ClientController extends ApiController
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
-        }, 'cancelled_by', 'cancelling_reason'])->get()->map(function ($trip) {
+        }, 'cancelled_by', 'cancelling_reason','finalDestination'])->get()->map(function ($trip) {
             if (in_array($trip->type, ['car', 'comfort_car'])) {
                 $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
             } elseif ($trip->type == 'scooter') {
