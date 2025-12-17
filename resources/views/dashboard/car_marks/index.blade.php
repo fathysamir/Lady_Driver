@@ -14,8 +14,10 @@
                         <div class="card-body">
                             <div style="display: flex;">
                                 <h5 class="card-title" style="width: 55%;">Car Marks</h5>
-                                <a class="btn btn-light px-5" style="margin-bottom:1%; "
-                                    href="{{ route('add.car.mark') }}">create</a>
+                                @can('cars.marks.models.create')
+                                    <a class="btn btn-light px-5" style="margin-bottom:1%; "
+                                        href="{{ route('add.car.mark') }}">create</a>
+                                @endcan
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
                                     action="{{ route('car-marks') }}" enctype="multipart/form-data">
@@ -64,19 +66,20 @@
                                                     <td>
 
 
-
-                                                        <a href="{{ url('/admin-dashboard/car-mark/edit/' . $mark->id) }}"
-                                                            style="margin-right: 1rem;">
-                                                            <span class="bi bi-pen"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
-                                                        <a
-                                                            href="{{ url('/admin-dashboard/car-mark/delete/' . $mark->id) }}">
-                                                            <span class="bi bi-trash"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
+                                                        @can('cars.marks.models.edit')
+                                                            <a href="{{ url('/admin-dashboard/car-mark/edit/' . $mark->id) }}"
+                                                                style="margin-right: 1rem;">
+                                                                <span class="bi bi-pen"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
+                                                        @can('cars.marks.models.delete')
+                                                            <a
+                                                                href="{{ url('/admin-dashboard/car-mark/delete/' . $mark->id) }}">
+                                                                <span class="bi bi-trash"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
 
 
                                                     </td>

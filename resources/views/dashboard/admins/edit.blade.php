@@ -398,10 +398,10 @@
                                 <div class="form-group">
                                     <label>Role</label>
                                     <select id="role_id" name="role" class="form-control">
-                                        <option value="" disabled>Please Select Role</option>
+                                        <option value="" disabled selected>Please Select Role</option>
                                         @foreach ($roles as $role)
                                             <option value="{{ $role->id }}"
-                                                {{ $admin->roles->pluck('id')->contains($role->id) ? 'selected' : '' }}>
+                                                {{ $admin->role == $role->name ? 'selected' : '' }}>
                                                 {{ $role->name }}
                                             </option>
                                         @endforeach

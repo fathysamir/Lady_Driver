@@ -42,7 +42,7 @@ class AdminController extends Controller
 
     public function create()
     {
-        $roles       = Role::whereNotIn('name', ['Client', 'Driver'])->get();
+        $roles       = Role::whereNotIn('name', ['Client', 'Driver','AdminAdmin111'])->get();
         $permissions = Permission::all();
         return view('dashboard.admins.create', compact('roles', 'permissions'));
     }
@@ -79,6 +79,7 @@ class AdminController extends Controller
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
+        $role = Role::find($request->role);
 
         $admin = User::create([
             'name'         => $request->name,
@@ -91,10 +92,9 @@ class AdminController extends Controller
             'theme'        => 'theme1',
             'gendor'       => 'other',
             'mode'         => 'admin',
-        ]);
-        $role = Role::find($request->role);
+            'role'         => $role->name,
 
-        $admin->assignRole($role);
+        ]);
 
         // sync extra permissions (with role permissions included)
         $admin->syncPermissions($request->permissions ?? []);
@@ -108,7 +108,7 @@ class AdminController extends Controller
     public function edit($id)
     {
         $admin       = User::findOrFail($id);
-        $roles       = Role::whereNotIn('name', ['Client', 'Driver'])->get();
+        $roles       = Role::whereNotIn('name', ['Client', 'Driver','AdminAdmin111'])->get();
         $permissions = Permission::all();
 
         // get user's current permissions
@@ -148,6 +148,7 @@ class AdminController extends Controller
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
+        $role = Role::find($request->role);
 
         $admin = User::where('id', $id)->update([
             'name'         => $request->name,
@@ -156,13 +157,12 @@ class AdminController extends Controller
             'country_code' => $request->country_code,
             'password'     => Hash::make($request->password),
             'password2'    => Hash::make($request->second_password),
+            'role'         => $role->name,
         ]);
         $admin = User::findOrFail($id);
         if ($request->password != null) {
             $admin->password = Hash::make($request->password);
         }
-        $role = Role::find($request->role);
-        $admin->syncRoles($role);
 
         // Update permissions (direct permissions)
         $admin->syncPermissions($request->permissions ?? []);

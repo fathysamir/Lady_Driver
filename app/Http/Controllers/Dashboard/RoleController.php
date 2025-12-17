@@ -13,7 +13,7 @@ class RoleController extends ApiController
      */
     public function index(Request $request)
     {
-        $roles = Role::with('permissions')->whereNotIn('name', ['Client', 'Driver']);
+        $roles = Role::with('permissions')->whereNotIn('name', ['Client', 'Driver','AdminAdmin111']);
         if ($request->has('search') && $request->search != null) {
             $roles->where('name', 'LIKE', '%' . $request->search . '%');
         }
