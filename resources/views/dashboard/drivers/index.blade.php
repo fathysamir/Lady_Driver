@@ -243,14 +243,14 @@
                                                             ];
                                                         @endphp
 
-                                                        @can($edit_per[$type])
+                                                        @can($edit_per[$type??'cars'])
                                                             <a href="{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}"
                                                                 style="margin-right: 1rem;">
                                                                 <span class="bi bi-pen"
                                                                     style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
-                                                        @can($delete_per[$type])
+                                                        @can($delete_per[$type??'cars'])
                                                             <a
                                                                 onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
                                                                 <span class="bi bi-trash"
