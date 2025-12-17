@@ -198,7 +198,7 @@
                                                         @endif
                                                     </td>
 
-                                                    <td>{{ $user->created_at->format('d.M.Y') }}</td>
+                                                    <td>{{ $user->created_at->format('d.M.Y h:i a') }}</td>
                                                     <td>
 
 

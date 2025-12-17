@@ -17,7 +17,7 @@ class RolesSeeder extends Seeder
     public function run()
     {
         $permissions = [
-            'roles.view','roles.create','roles.edit','roles.delete',
+
             'admins.view', 'admins.create', 'admins.edit', 'admins.delete',
             'clients.view', 'clients.edit', 'clients.delete',
             'drivers.standard.car.view', 'drivers.standard.car.edit', 'drivers.standard.car.delete',
@@ -41,15 +41,15 @@ class RolesSeeder extends Seeder
             'Client',
             'Driver',
             'Super Admin',
-            'Admin',
+            'AdminAdmin111',
         ];
 
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
         $super_admin_role = Role::where('name', 'Super Admin')->first();
-        $admin_role       = Role::where('name', 'Admin')->first();
-        $permissions      = Permission::pluck('id', 'id')->all();
+        $admin_role       = Role::where('name', 'AdminAdmin111')->first();
+        $permissions      = Permission::all();
 
         $super_admin_role->syncPermissions($permissions);
         $user1 = User::create([
@@ -61,6 +61,7 @@ class RolesSeeder extends Seeder
             'theme'     => 'theme1',
             'gendor'    => 'other',
             'mode'      => 'admin',
+            'role'      => 'Super Admin',
         ]);
         $user2 = User::create([
             'name'      => 'Admin',
@@ -71,9 +72,11 @@ class RolesSeeder extends Seeder
             'theme'     => 'theme1',
             'gendor'    => 'other',
             'mode'      => 'admin',
+            'role'      => 'Admin',
+
         ]);
 
-        $user1->assignRole([$super_admin_role->id]);
+        $user1->assignRole([$admin_role->id]);
         $user2->assignRole([$admin_role->id]);
 
     }

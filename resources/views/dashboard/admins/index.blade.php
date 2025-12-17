@@ -147,9 +147,9 @@
                                                     <td>{!! highlight($admin->email, $search ?? '') !!}</td>
 
                                                     <td>{!! highlight($admin->country_code . $admin->phone, $search ?? '') !!}</td>
-                                                    <td>{{ $admin->roles->first()->name }}</td>
+                                                    <td>{{ $admin->role }}</td>
 
-                                                    <td>{{ $admin->created_at->format('d.M.Y') }}</td>
+                                                    <td>{{ $admin->created_at->format('d.M.Y h:i a') }}</td>
 
                                                     <td>
 

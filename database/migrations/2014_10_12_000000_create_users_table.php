@@ -42,6 +42,7 @@ return new class extends Migration
             $table->enum('level', ['0', '1', '2', '3', '4', '5'])->default('0');
             $table->string('student_code')->nullable();
             $table->enum('driver_type', ['car', 'comfort_car', 'scooter'])->nullable();
+            $table->string('role')->default('Client');
 
             $table->rememberToken();
             $table->timestamps();

@@ -1740,21 +1740,35 @@ class Chat implements MessageComponentInterface
                     break;
             }
             if ($trip->status == 'created') {
-                $trip->status = 'pending';
+                $trip->status  = 'pending';
+                $offer->status = 'accepted';
+            } elseif ($trip->status == 'scheduled') {
+                $offer->status = 'scheduled';
             }
             $trip->total_price = $offer->offer;
             $trip->app_rate    = $application_commission == 'On' ? round(((($offer->offer + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
             $trip->driver_rate = $trip->total_price - ($application_commission == 'On' ? round(((($offer->offer + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00);
 
             $trip->save();
-            if ($trip->status == 'created') {
-                $offer->status = 'accepted';
-            } elseif ($trip->status == 'scheduled') {
-                $offer->status = 'scheduled';
-            }
-
             $offer->save();
             Offer::where('id', '!=', $data['offer_id'])->where('trip_id', $trip->id)->update(['status' => 'expired']);
+            $otherOffers = Offer::where('id', '!=', $data['offer_id'])->where('trip_id', $trip->id)->get();
+            foreach ($otherOffers as $exp_offer) {
+                $client = $this->getClientByUserId($exp_offer->user_id);
+                if ($client) {
+                    $x['offer_id'] = $offer->id;
+                    $x['trip_id']  = $trip->id;
+                    $data2         = [
+                        'type'    => 'canceled_offer',
+                        'data'    => $x,
+                        'message' => 'Sorry, the customer has chosen another offer.Have a pleasant trip.',
+                    ];
+                    $res = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    $client->send($res);
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res, $exp_offer->user_id);
+                }
+            }
             if ($offer->user->device_token) {
                 // $this->firebaseService->sendNotification($offer->user->device_token,'Lady Driver - Accept Offer',"Your offer for trip No. (" . $trip->code . ") has been approved.",["screen"=>"Current Trip","ID"=>$trip->id]);
                 // $data=[
@@ -1817,7 +1831,7 @@ class Chat implements MessageComponentInterface
             $trip->save();
             $type    = 'ended_trip';
             $message = 'trip ended now';
-            
+
         }
         $trip             = Trip::find($data['trip_id']);
         $x['trip_id']     = $trip->id;
@@ -1838,7 +1852,7 @@ class Chat implements MessageComponentInterface
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
         }
-        
+
     }
     private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
     {
@@ -2260,6 +2274,7 @@ class Chat implements MessageComponentInterface
         }
 
     }
+
     private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
     {
         $data     = json_decode($trackCarRequest, true);
