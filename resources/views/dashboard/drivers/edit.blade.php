@@ -58,7 +58,7 @@
                                     'scooter' => 'Scooter',
                                 ];
                             @endphp
-                            <div class="card-title">Update Driver - {{ $arr[$user->driver_type] }}Account</div>
+                            <div class="card-title">Update Driver - {{ $arr[$user->driver_type] }} Account</div>
                             <hr>
                             <form method="post" action="{{ route('update.driver', ['id' => $user->id] + $queryString) }}"
                                 enctype="multipart/form-data">
