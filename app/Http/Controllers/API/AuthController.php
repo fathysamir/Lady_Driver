@@ -294,7 +294,7 @@ class AuthController extends ApiController
             'driver_type'     => $driver_type,
             'level'           => '1',
         ]);
-        $role = Role::where('name', 'Client')->first();
+        $role = Role::where('name', 'Driver')->first();
 
         $user->assignRole([$role->id]);
         if ($request->file('image')) {
