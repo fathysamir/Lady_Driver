@@ -1,51 +1,157 @@
 @extends('dashboard.layout.app')
 @section('title', 'Dashboard - edit client')
 @section('content')
-    <style>
-        .user-status {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-left: -4%;
-            margin-bottom: 4.65%;
-        }
- .circle-wrapper {
-            display: flex;
-            justify-content: center;
-            /* horizontal center */
-            align-items: center;
+<style>
+    .user-status {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-left: -4%;
+        margin-bottom: 4.65%;
+    }
 
-        }
+    .circle-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-        .circle-label {
-            width: 40px;
-            height: 40px;
-            border: 2px solid rgb(255, 230, 0);
-            border-radius: 50%;
-            color: rgb(255, 255, 255);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 18px;
-        }
+    .circle-label {
+        width: 40px;
+        height: 40px;
+        border: 2px solid rgb(255, 230, 0);
+        border-radius: 50%;
+        color: rgb(255, 255, 255);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
 
-        .filled {
-            color: gold;
-        }
+    .filled {
+        color: gold;
+    }
 
-        .online {
-            background-color: green;
-        }
+    .online {
+        background-color: green;
+    }
 
-        .offline {
-            background-color: gray;
-        }
-    </style>
+    .offline {
+        background-color: gray;
+    }
+
+    .user-avatar {
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .user-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .avatar-preview {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .avatar-preview.show {
+        display: flex;
+        opacity: 1;
+    }
+
+    .preview-container {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .avatar-preview img {
+        max-width: 90vw;
+        max-height: 90vh;
+        border-radius: 8px;
+        cursor: grab;
+        transition: transform 0.1s ease;
+        transform-origin: center center;
+        user-select: none;
+    }
+
+    .avatar-preview img:active {
+        cursor: grabbing;
+    }
+
+    .preview-controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 10000;
+    }
+
+    .control-btn {
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .control-btn:hover {
+        background: white;
+        transform: scale(1.1);
+    }
+
+    .close-btn {
+        background: rgba(255, 59, 48, 0.9) !important;
+        color: white !important;
+    }
+
+    .close-btn:hover {
+        background: rgb(255, 59, 48) !important;
+    }
+
+    .zoom-indicator {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        color: #333;
+        font-weight: bold;
+        pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+</style>
+
     <div class="content-wrapper">
         <div class="container-fluid">
-
             <div class="row mt-3">
                 <div class="col-lg-12">
                     <div class="card">
@@ -57,19 +163,21 @@
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
+
                                 <div class="form-group"style="text-align: center;">
                                     <div>
                                         <img style="border-radius: 50%;width:200px;height:200px;"
                                             @if ($user->image != null) src="{{ $user->image }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                            class="img-circle" alt="user avatar">
+                                            class="img-circle user-avatar" alt="user avatar">
 
                                         <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
 
                                     </div>
+
                                     <div class="star-rating" style="margin-bottom: -5px;">
                                         <?php
                                         $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-                                        
+
                                         // Loop to generate stars based on the client evaluation score
                                         for ($i = 1; $i <= 5; $i++) {
                                             $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -89,6 +197,7 @@
                                             {{ $errors->first('email') }}</p>
                                     @endif
                                 </div>
+
                                 @php
                                     // Extract country code and phone number
 
@@ -97,6 +206,7 @@
                                     //dd($user,$matches,$country_code,$phone);
 
                                 @endphp
+
                                 <div class="form-group">
                                     <label>Phone Number</label>
                                     <div class="input-group">
@@ -240,8 +350,8 @@
                                                     Guinea (+224)</option>
                                                 <option value="+592" {{ $country_code == '+592' ? 'selected' : '' }}>
                                                     Guyana (+592)</option>
-                                                <option value="+509"{{ $country_code == '+509' ? 'selected' : '' }}>Haiti
-                                                    (+509)</option>
+                                                    <option value="+509"{{ $country_code == '+509' ? 'selected' : '' }}>Haiti
+                                                        (+509)</option>
                                                 <option value="+504"{{ $country_code == '+504' ? 'selected' : '' }}>
                                                     Honduras (+504)</option>
                                                 <option value="+36"{{ $country_code == '+36' ? 'selected' : '' }}>
@@ -452,6 +562,7 @@
                                             {{ $errors->first('phone') }}</p>
                                     @endif
                                 </div>
+
                                 <div class="form-group">
                                     <label>City</label>
                                     <select class="form-control" name="city">
@@ -466,7 +577,6 @@
 
                                 </div>
 
-
                                 <div class="form-group">
                                     <label>Birth Date</label>
                                     <input type="date" class="form-control date" name="birth_date"
@@ -478,12 +588,13 @@
                                     <h4 style="margin-right: 10px;">Activities</h4>
                                     <hr style="flex: 1; margin: 0;">
                                 </div>
+
                                 <div class="form-group" style="display: flex;align-items: center;">
                                     <label>Rate : </label>
                                     <div class="star-rating" style="margin-bottom: 10px;">
                                         <?php
                                         $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-                                        
+
                                         // Loop to generate stars based on the client evaluation score
                                         for ($i = 1; $i <= 5; $i++) {
                                             $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -492,12 +603,15 @@
                                         ?>
                                     </div>
                                 </div>
+
                                 <div class="form-group">
                                     <label>Trips Count : {{ $user->trips_count }}</label>
                                 </div>
+
                                 <div class="form-group">
                                     <label>Wallet : {{ round($user->wallet, 2) }}</label>
                                 </div>
+
                                 <div class="form-group">
                                     <label>Status</label>
 
@@ -522,10 +636,31 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Avatar Preview Popup -->
+            <div class="avatar-preview">
+                <div class="preview-container">
+                    <div class="preview-controls">
+                        <button type="button" class="btn btn-light px-3 zoom-in-btn" title="Zoom In">+</button>
+                        <button type="button" class="btn btn-light px-3 zoom-out-btn" title="Zoom Out">-</button>
+                        <button type="button" class="btn btn-light px-3 close-btn" title="Close">✕</button>
+                    </div>
+
+                    <img @if ($user->image != null)
+                            src="{{ $user->image }}"
+                         @else
+                            src="{{ asset('dashboard/user_avatar.png') }}"
+                         @endif
+                         alt="Avatar Preview">
+                    <div class="zoom-indicator">100%</div>
+                </div>
+            </div>
+
             <div class="overlay toggle-menu"></div>
         </div>
     </div>
 @endsection
+
 @push('scripts')
     {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
@@ -559,6 +694,120 @@
                 dateFormat: "Y-m-d", // Format: YYYY-MM-DD
             });
 
+            const userAvatar = document.querySelector('.user-avatar');
+            const avatarPreview = document.querySelector('.avatar-preview');
+            const previewImg = avatarPreview.querySelector('img');
+            const zoomInBtn = avatarPreview.querySelector('.zoom-in-btn');
+            const zoomOutBtn = avatarPreview.querySelector('.zoom-out-btn');
+            const closeBtn = avatarPreview.querySelector('.close-btn');
+            const zoomIndicator = avatarPreview.querySelector('.zoom-indicator');
+
+            let scale = 1;
+            let posX = 0;
+            let posY = 0;
+            let isDragging = false;
+            let startX, startY;
+
+            function updateTransform() {
+                previewImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+                zoomIndicator.textContent = `${Math.round(scale * 100)}%`;
+            }
+
+            function resetPosition() {
+                posX = 0;
+                posY = 0;
+            }
+
+            function openPreview() {
+                avatarPreview.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closePreview() {
+                avatarPreview.classList.remove('show');
+                document.body.style.overflow = '';
+                scale = 1;
+                resetPosition();
+                updateTransform();
+            }
+
+            userAvatar.addEventListener('click', function(e) {
+                e.preventDefault();
+                openPreview();
+            });
+
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closePreview();
+            });
+
+            zoomInBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                scale += 0.2;
+                if (scale > 5) scale = 5;
+                updateTransform();
+            });
+
+            zoomOutBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                scale -= 0.2;
+                if (scale < 1) {
+                    scale = 1;
+                    resetPosition();
+                }
+                updateTransform();
+            });
+
+            previewImg.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                scale += e.deltaY < 0 ? 0.1 : -0.1;
+                if (scale < 1) {
+                    scale = 1;
+                    resetPosition();
+                } else if (scale > 5) {
+                    scale = 5;
+                }
+                updateTransform();
+            });
+
+            previewImg.addEventListener('mousedown', function(e) {
+                if (scale <= 1) return;
+                isDragging = true;
+                startX = e.clientX - posX;
+                startY = e.clientY - posY;
+                previewImg.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging || scale <= 1) return;
+                posX = e.clientX - startX;
+                posY = e.clientY - startY;
+                updateTransform();
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    previewImg.style.cursor = 'grab';
+                }
+            });
+
+            previewImg.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
+
+            avatarPreview.addEventListener('click', function(e) {
+                if (e.target === avatarPreview) {
+                    closePreview();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && avatarPreview.classList.contains('show')) {
+                    closePreview();
+                }
+            });
         });
     </script>
 @endpush
