@@ -75,8 +75,10 @@
                         <div class="card-body">
                             <div style="display: flex;">
                                 <h5 class="card-title" style="width: 46%;">Admins</h5>
-                                <a class="btn btn-light px-5" style="margin-bottom:1%; "
-                                    href="{{ route('add.admin') }}">create New Admin</a>
+                                @can('admins.create')
+                                    <a class="btn btn-light px-5" style="margin-bottom:1%; "
+                                        href="{{ route('add.admin') }}">create New Admin</a>
+                                @endcan
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
                                     action="{{ route('admins') }}" enctype="multipart/form-data">
@@ -153,23 +155,23 @@
 
                                                     <td>
 
-
-
-                                                        <a href="{{ url('/admin-dashboard/admin/edit/' . $admin->id) }}"
-                                                            style="margin-right: 1rem;">
-                                                            <span class="bi bi-pen"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
+                                                        @can('admins.edit')
+                                                            <a href="{{ url('/admin-dashboard/admin/edit/' . $admin->id) }}"
+                                                                style="margin-right: 1rem;">
+                                                                <span class="bi bi-pen"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
                                                         {{-- <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
                                             <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                         </a> --}}
-                                                        <a
-                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/admin/delete/' . $admin->id) }}","{{ $admin->name }}","{{ getFirstMediaUrl($admin, $admin->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
-                                                            <span class="bi bi-trash"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
+                                                        @can('admins.delete')
+                                                            <a
+                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/admin/delete/' . $admin->id) }}","{{ $admin->name }}","{{ getFirstMediaUrl($admin, $admin->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                                <span class="bi bi-trash"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
                                                     </td>
                                                 </tr>
                                             @endforeach

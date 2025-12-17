@@ -22,8 +22,10 @@
                                         <h5 class="card-title" style="width: 60%;">Trip Cancellation Reasons</h5>
 
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-                                            <a class="btn btn-light px-5" style="margin-bottom:1%; "
-                                                href="{{ route('add.reason') }}">create</a>
+                                            @can('cancellation.reasons.create')
+                                                <a class="btn btn-light px-5" style="margin-bottom:1%; "
+                                                    href="{{ route('add.reason') }}">create</a>
+                                            @endcan
                                             <button class="btn btn-light px-5" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
                                             <input type="text" class="form-control" placeholder="Enter keywords"
@@ -51,7 +53,7 @@
                                                 <option value="before">Before Start Trip</option>
                                                 <option value="driver_arrived">Driver Arrived In Start Point</option>
                                                 <option value="after">After Start Trip</option>
-                                                
+
                                                 <!-- Add more options as needed -->
                                             </select>
                                             <select class="form-control" style="width: 33%; margin: 0% 0% 0% 1;"
@@ -102,11 +104,11 @@
                                     </thead>
                                     <tbody>
                                         @php
-                                            $status=[
-                                                "before"=>'Before Trip Start',
-                                                "driver_arrived"=>'Driver Arrived In Start Point',
-                                                "after"=>'After Trip Start'
-                                    ];
+                                            $status = [
+                                                'before' => 'Before Trip Start',
+                                                'driver_arrived' => 'Driver Arrived In Start Point',
+                                                'after' => 'After Trip Start',
+                                            ];
                                         @endphp
                                         @if (!empty($all_reasons) && $all_reasons->count())
                                             @foreach ($all_reasons as $reason)
@@ -120,20 +122,20 @@
                                                     <td>
 
 
-
-                                                        <a href="{{ url('/admin-dashboard/reason-cancelling-trip/edit/' . $reason->id) }}"
-                                                            style="margin-right: 1rem;">
-                                                            <span class="bi bi-pen"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
-                                                        <a
-                                                            href="{{ url('/admin-dashboard/reason-cancelling-trip/delete/' . $reason->id) }}">
-                                                            <span class="bi bi-trash"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
-
+                                                        @can('cancellation.reasons.edit')
+                                                            <a href="{{ url('/admin-dashboard/reason-cancelling-trip/edit/' . $reason->id) }}"
+                                                                style="margin-right: 1rem;">
+                                                                <span class="bi bi-pen"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
+                                                        @can('cancellation.reasons.delete')
+                                                            <a
+                                                                href="{{ url('/admin-dashboard/reason-cancelling-trip/delete/' . $reason->id) }}">
+                                                                <span class="bi bi-trash"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
 
                                                     </td>
                                                 </tr>

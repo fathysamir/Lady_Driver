@@ -92,13 +92,17 @@
                                             </td>
                                             <td>{{ $career->created_at->format('Y-m-d h:i A') }}</td>
                                             <td>
+                                                @can('careers.edit')
                                                 <a href="{{ route('view.career', ['id'=>$career->id]+request()->query()) }}" style="margin-right:1rem;">
                                                     <span class="bi bi-eye" style="font-size:1rem;color:white;"></span>
                                                 </a>
+                                                @endcan
+                                                @can('careers.delete')
                                                 <a href="javascript:void(0);"
                                                    onclick="event.stopPropagation(); showConfirmationPopup('{{ route('delete.career',$career->id) }}','{{ $career->first_name }} {{ $career->last_name }}','{{ asset('dashboard/user_avatar.png') }}');">
                                                     <span class="bi bi-trash" style="font-size:1rem;color:white;"></span>
                                                 </a>
+                                                @endcan
                                             </td>
                                         </tr>
                                         @endforeach

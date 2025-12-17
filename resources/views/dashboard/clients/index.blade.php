@@ -81,14 +81,15 @@
                                     @csrf
                                     <div style="display:flex;">
 
-                                    <h5 class="card-title" style="width: 55%;">
-                                   {{ request()->query('type') === 'students' ? 'Students' : 'Clients' }} - {{ $count }}
-                                    </h5>
+                                        <h5 class="card-title" style="width: 55%;">
+                                            {{ request()->query('type') === 'students' ? 'Students' : 'Clients' }} -
+                                            {{ $count }}
+                                        </h5>
 
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-                                        <a class="btn btn-light px-3" type="button"
-                                        href="{{ route('archived_clients', ['type' => $type]) }}"
-                                        style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
+                                            <a class="btn btn-light px-3" type="button"
+                                                href="{{ route('archived_clients', ['type' => $type]) }}"
+                                                style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
 
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
@@ -118,7 +119,7 @@
                                                     Blocked</option>
                                                 <!-- Add more options as needed -->
                                             </select>
-                                    
+
                                         </div>
 
 
@@ -202,22 +203,23 @@
                                                     <td>
 
 
-
-                                                        <a href="{{ route('edit.client', ['id' => $user->id] + request()->query()) }}"
-                                                            style="margin-right: 1rem;">
-                                                            <span class="bi bi-pen"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
+                                                        @can('clients.edit')
+                                                            <a href="{{ route('edit.client', ['id' => $user->id] + request()->query()) }}"
+                                                                style="margin-right: 1rem;">
+                                                                <span class="bi bi-pen"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
                                                         {{-- <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
                                     <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                   </a> --}}
-                                                        <a
-                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/client/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
-                                                            <span class="bi bi-trash"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
+                                                        @can('clients.delete')
+                                                            <a
+                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/client/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                                <span class="bi bi-trash"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
                                                     </td>
                                                 </tr>
                                             @endforeach

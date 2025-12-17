@@ -37,16 +37,18 @@
                                     <label>Massage</label>
                                     <textarea disabled class="form-control" rows="5">{{ $contact_us->message }}</textarea>
                                 </div>
-                                <div class="form-group">
-                                    <label>Reply</label>
-                                    <textarea name="reply" class="form-control" rows="5" placeholder="Reply On Message">{{ $contact_us->reply }}</textarea>
-                                </div>
+                                @can('contact.us.reply')
+                                    <div class="form-group">
+                                        <label>Reply</label>
+                                        <textarea name="reply" class="form-control" rows="5" placeholder="Reply On Message">{{ $contact_us->reply }}</textarea>
+                                    </div>
 
 
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-light px-5"><i class="icon-lock"></i>
-                                        Save</button>
-                                </div>
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-light px-5"><i class="icon-lock"></i>
+                                            Save</button>
+                                    </div>
+                                @endcan
                             </form>
                         </div>
                     </div>

@@ -75,8 +75,10 @@
                         <div class="card-body">
                             <div style="display: flex;">
                                 <h5 class="card-title" style="width: 55%;">Cities</h5>
-                                <a class="btn btn-light px-5" style="margin-bottom:1%; "
-                                    href="{{ route('add.city') }}">create</a>
+                                @can('cities.create')
+                                    <a class="btn btn-light px-5" style="margin-bottom:1%; "
+                                        href="{{ route('add.city') }}">create</a>
+                                @endcan
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
                                     action="{{ route('cities') }}" enctype="multipart/form-data">
@@ -89,7 +91,7 @@
 
                             </div>
 
-                             @if (session('error'))
+                            @if (session('error'))
                                 <div id="errorAlert" class="alert alert-danger"
                                     style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:brown;border-radius: 20px; color:beige;">
                                     {{ session('error') }}
@@ -132,23 +134,21 @@
 
                                                     <td>
 
-
-
-                                                        <a href="{{ route('edit.city', ['id' => $city->id] + request()->query()) }}"
-                                                            style="margin-right: 1rem;">
-                                                            <span class="bi bi-pen"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
-                                                        {{-- <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
-                                    <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                  </a> --}}
-                                                        <a
-                                                            onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
-                                                            <span class="bi bi-trash"
-                                                                style="font-size: 1rem; color: rgb(255,255,255);"></span>
-                                                        </a>
-
+                                                        @can('cities.edit')
+                                                            <a href="{{ route('edit.city', ['id' => $city->id] + request()->query()) }}"
+                                                                style="margin-right: 1rem;">
+                                                                <span class="bi bi-pen"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
+                                                       
+                                                        @can('cities.delete')
+                                                            <a
+                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
+                                                                <span class="bi bi-trash"
+                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            </a>
+                                                        @endcan
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -162,7 +162,6 @@
                                 <div style="text-align: center;">
                                     {!! $cities->appends([
                                             'search' => request('search'),
-                                           
                                         ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
@@ -186,7 +185,7 @@
                 </div>
                 <div class="modal-body" style="color:black;">
                     <div class="form-group">
-                        
+
                         <div style="width: 100%;  display: flex;justify-content: center;">
                             <h5 class="logo-text"style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
 
@@ -210,7 +209,7 @@
         function showConfirmationPopup(deleteUrl, name) {
 
             document.getElementById('deletedNameInput').textContent = name;
-           
+
             const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
             myModal.show();
             // Set the delete URL in a data attribute to access it in the deleteUser function
