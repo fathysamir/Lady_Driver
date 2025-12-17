@@ -20,13 +20,13 @@
                 </a>
             </li>
         @endif
-        {{-- @can('admins.view') --}}
+        @can('admins.view')
             <li>
                 <a href="{{ url('/admin-dashboard/admins') }}">
                     <i class="zmdi zmdi-view-dashboard"></i> <span>Admins</span>
                 </a>
             </li>
-        {{-- @endcan --}}
+        @endcan
         <!-- Clients -->
 
         @can('clients.view')
