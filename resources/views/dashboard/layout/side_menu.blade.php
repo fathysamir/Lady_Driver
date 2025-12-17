@@ -13,22 +13,22 @@
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Dashboard</span>
             </a>
         </li>
-            @if(auth()->user()->role=='Super Admin')
+        @if (auth()->user()->role == 'Super Admin')
             <li>
                 <a href="{{ url('/admin-dashboard/roles') }}">
                     <i class="zmdi zmdi-view-dashboard"></i> <span>Roles</span>
                 </a>
             </li>
-         @endif
-       
+        @endif
+        @can('admins.view')
             <li>
                 <a href="{{ url('/admin-dashboard/admins') }}">
                     <i class="zmdi zmdi-view-dashboard"></i> <span>Admins</span>
                 </a>
             </li>
-       
+        @endcan
         <!-- Clients -->
-        
+
         @can('clients.view')
             <li class="sidebar-item">
                 <a href="#" class="dropdown-toggle" onclick="toggleSubmenu(event, this)">
@@ -90,12 +90,12 @@
             </li>
         @endcanany
         {{-- @can() --}}
-            <li>
-                <a href="{{ url('/admin-dashboard/cities') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Cities</span>
-                </a>
-            </li>
-            {{-- <li>
+        <li>
+            <a href="{{ url('/admin-dashboard/cities') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Cities</span>
+            </a>
+        </li>
+        {{-- <li>
             <a href="{{ url('/admin-dashboard/users') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>
                 @if (app('new_clients_count') > 0)
@@ -104,101 +104,101 @@
                 @endif
             </a>
         </li> --}}
-            <li>
-                <a href="{{ url('/admin-dashboard/car-marks') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Car Marks & Models</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/motorcycles') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Motorcycle Marks & Models</span>
-                </a>
-            </li>
-            {{-- <li>
+        <li>
+            <a href="{{ url('/admin-dashboard/car-marks') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Car Marks & Models</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/motorcycles') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Motorcycle Marks & Models</span>
+            </a>
+        </li>
+        {{-- <li>
             <a href="{{ url('/admin-dashboard/car-models') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Car Models</span>
             </a>
         </li> --}}
-            <li>
-                <a href="{{ url('/admin-dashboard/cars') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Drivers Cars</span>
-                    @if (app('new_cars_count') > 0)
-                        <span
-                            style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_cars_count') }}</span>
-                    @endif
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/trips') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Trips</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/settings') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Settings</span>
-                </a>
-            </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/cars') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Drivers Cars</span>
+                @if (app('new_cars_count') > 0)
+                    <span
+                        style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_cars_count') }}</span>
+                @endif
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/trips') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Trips</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/settings') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Settings</span>
+            </a>
+        </li>
 
-            <li>
-                <a href="{{ url('/admin-dashboard/ratingtripsettings') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Rating Trip Settings</span>
-                </a>
-            </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/ratingtripsettings') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Rating Trip Settings</span>
+            </a>
+        </li>
 
-            <li>
-                <a href="{{ url('/admin-dashboard/reasons-cancelling-trips') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Trip Cancellation Reason</span>
-                </a>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="dropdown-toggle" onclick="toggleSubmenu(event, this)">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Chats</span>
-                </a>
-                <ul class="sidebar-submenu" style="display: none; padding-left: 40px;">
-                    <li><a href="{{ route('send_message_view') }}">Send Message</a></li>
-                    <li><a href="#">Occasion messages</a></li>
-                    <li><a href="#">All Chats</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/contact_us') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Contact Us</span>
-                    @if (app('new_contact_us_count') > 0)
-                        <span
-                            style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_contact_us_count') }}</span>
-                    @endif
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/about_us/view') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>About Us</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/feed_back') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Feed Back</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/privacy-policy') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Privacy Policy</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/terms-conditions') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Terms Conditions</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('/admin-dashboard/careers') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Careers</span>
-                    @if (app('new_careers_count') > 0)
-                        <span
-                            style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_careers_count') }}</span>
-                    @endif
-                </a>
-            </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/reasons-cancelling-trips') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Trip Cancellation Reason</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="#" class="dropdown-toggle" onclick="toggleSubmenu(event, this)">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Chats</span>
+            </a>
+            <ul class="sidebar-submenu" style="display: none; padding-left: 40px;">
+                <li><a href="{{ route('send_message_view') }}">Send Message</a></li>
+                <li><a href="#">Occasion messages</a></li>
+                <li><a href="#">All Chats</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/contact_us') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Contact Us</span>
+                @if (app('new_contact_us_count') > 0)
+                    <span
+                        style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_contact_us_count') }}</span>
+                @endif
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/about_us/view') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>About Us</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/feed_back') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Feed Back</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/privacy-policy') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Privacy Policy</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/terms-conditions') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Terms Conditions</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/admin-dashboard/careers') }}">
+                <i class="zmdi zmdi-view-dashboard"></i> <span>Careers</span>
+                @if (app('new_careers_count') > 0)
+                    <span
+                        style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_careers_count') }}</span>
+                @endif
+            </a>
+        </li>
 
-        </ul>
+    </ul>
 
-    </div>
+</div>
