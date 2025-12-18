@@ -40,6 +40,7 @@ class Trip extends Model
         'status',
         'cancelled_by_id',
         'trip_cancelling_reason_id',
+        'trip_cancelling_reason_text',
         'payment_status',
         'student_trip',
         'air_conditioned',
