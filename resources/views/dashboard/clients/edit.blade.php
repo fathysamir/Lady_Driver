@@ -96,12 +96,12 @@
     }
 
     .preview-controls {
-        position: absolute;
+        position: fixed;
         top: 20px;
         right: 20px;
         display: flex;
         gap: 10px;
-        z-index: 10000;
+        z-index: 10001;
     }
 
     .control-btn {
@@ -135,7 +135,7 @@
     }
 
     .zoom-indicator {
-        position: absolute;
+        position: fixed;
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
@@ -147,6 +147,7 @@
         font-weight: bold;
         pointer-events: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 10001;
     }
 </style>
 
