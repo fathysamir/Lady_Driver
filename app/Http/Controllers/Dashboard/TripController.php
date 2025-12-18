@@ -17,12 +17,15 @@ use App\Models\Car;
 use App\Models\CarMark;
 use App\Models\Trip;
 use App\Models\CarModel;
+use App\Models\MotorcycleMark;
+use App\Models\MotorcycleModel;
+use App\Models\Scooter;
 use Image;
 use Str;
 use File;
 
 class TripController extends Controller
-{//done
+{
     public function index(Request $request)
     {
         $all_trips = Trip::orderBy('id', 'desc')
@@ -44,21 +47,28 @@ class TripController extends Controller
             }
         }
 
-        //search
+        // Search
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $all_trips->where(function ($query) use ($search) {
+            $all_trips->where(function ($query) use ($search, $request) {
                 $query->where('code', 'LIKE', '%' . $search . '%')
                     ->orWhereHas('user', function ($q) use ($search) {
                         $q->where('name', 'LIKE', '%' . $search . '%');
-                    })
-                    ->orWhereHas('car.owner', function ($q) use ($search) {
+                    });
+
+                // Search depending on type
+                if ($request->type === 'scooter') {
+                    $query->orWhereHas('scooter.owner', function ($q) use ($search) {
                         $q->where('name', 'LIKE', '%' . $search . '%');
                     });
+                } else {
+                    $query->orWhereHas('car.owner', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', '%' . $search . '%');
+                    });
+                }
             });
         }
-
 
         // Client filter
         if ($request->filled('user')) {
@@ -80,30 +90,48 @@ class TripController extends Controller
             $all_trips->where('status', $request->status);
         }
 
-        // Air conditioned
-        if ($request->filled('air_conditioned')) {
+        // Air conditioned (only for cars)
+        if ($request->filled('air_conditioned') && $request->type !== 'scooter') {
             $all_trips->where('air_conditioned', '1');
         }
 
         // Driver filter
         if ($request->filled('driver')) {
-            $all_trips->whereHas('car', function ($query) use ($request) {
-                $query->where('user_id', $request->driver);
-            });
+            if ($request->type === 'scooter') {
+                $all_trips->whereHas('scooter', function ($query) use ($request) {
+                    $query->where('user_id', $request->driver);
+                });
+            } else {
+                $all_trips->whereHas('car', function ($query) use ($request) {
+                    $query->where('user_id', $request->driver);
+                });
+            }
         }
 
-        // Car mark
+        // Mark filter (car or motorcycle)
         if ($request->filled('mark')) {
-            $all_trips->whereHas('car', function ($query) use ($request) {
-                $query->where('car_mark_id', $request->mark);
-            });
+            if ($request->type === 'scooter') {
+                $all_trips->whereHas('scooter', function ($query) use ($request) {
+                    $query->where('motorcycle_mark_id', $request->mark);
+                });
+            } else {
+                $all_trips->whereHas('car', function ($query) use ($request) {
+                    $query->where('car_mark_id', $request->mark);
+                });
+            }
         }
 
-        // Car model
+        // Model filter (car or motorcycle)
         if ($request->filled('model')) {
-            $all_trips->whereHas('car', function ($query) use ($request) {
-                $query->where('car_model_id', $request->model);
-            });
+            if ($request->type === 'scooter') {
+                $all_trips->whereHas('scooter', function ($query) use ($request) {
+                    $query->where('motorcycle_model_id', $request->model);
+                });
+            } else {
+                $all_trips->whereHas('car', function ($query) use ($request) {
+                    $query->where('car_model_id', $request->model);
+                });
+            }
         }
 
         $all_trips = $all_trips->paginate(12)->withQueryString();
@@ -117,19 +145,44 @@ class TripController extends Controller
         })->get();
 
         $car_marks = CarMark::all();
+        $motorcycle_marks = MotorcycleMark::all();
         $search = $request->search;
 
-        return view('dashboard.trips.index', compact('all_trips', 'drivers', 'users', 'car_marks', 'search'));
+        return view('dashboard.trips.index', compact('all_trips', 'drivers', 'users', 'car_marks', 'motorcycle_marks', 'search'));
     }
 
     public function view($id)
     {
         $trip = Trip::where('id', $id)->first();
         $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-        $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
-        $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+
+        // Handle both car and scooter
+        if ($trip->type === 'scooter' && $trip->scooter) {
+            $trip->scooter->image = getFirstMediaUrl($trip->scooter, $trip->scooter->avatarCollection);
+            $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+        } else if ($trip->car) {
+            $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
+            $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+        }
+
         return view('dashboard.trips.view', compact('trip'));
     }
 
 
+    public function getMotorcycleModels(Request $request)
+    {
+        $models = MotorcycleModel::where('motorcycle_mark_id', $request->markId)->get();
+        return response()->json($models);
+    }
+    public function getScooterLocation($id)
+{
+    $scooter = Scooter::find($id);
+    if ($scooter) {
+        return response()->json([
+            'lat' => $scooter->lat,
+            'lng' => $scooter->lng
+        ]);
+    }
+    return response()->json(['error' => 'Scooter not found'], 404);
+}
 }

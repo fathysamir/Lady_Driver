@@ -158,6 +158,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     //////////////////////////////////////////
     Route::any('/trips', [TripController::class, 'index'])->name('trips');
     Route::get('/trip/view/{id}', [TripController::class, 'view'])->name('view.trip');
+    Route::get('/getMotorcycleModels', [TripController::class, 'getMotorcycleModels'])->name('getMotorcycleModels');
+    Route::get('/scooter-location/{id}', [TripController::class, 'getScooterLocation']);
     //////////////////////////////////////////
     Route::any('/settings', [SettingController::class, 'index'])->name('settings');
     Route::get('/setting/edit/{id}', [SettingController::class, 'edit'])->name('edit.setting');

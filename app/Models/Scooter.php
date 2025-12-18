@@ -10,7 +10,7 @@ class Scooter extends Model
 {
     use HasFactory,SoftDeletes;
     protected $table = 'scooters';
-    
+
     public $avatarCollection = 'image';
     public $PlateImageCollection = 'plate_image';
     public $LicenseFrontImageCollection = 'license_front_image';
@@ -31,7 +31,7 @@ class Scooter extends Model
     ];
 
     protected $allowedSorts = [
-       
+
         'created_at',
         'updated_at'
     ];
@@ -42,15 +42,19 @@ class Scooter extends Model
     {
         return $this->hasMany(Trip::class,'scooter_id');
     }
-    public function owner(){
-        return $this->belongsTo(User::class,'user_id','id')->withTrashed();
-    }
-    public function mark(){
-        return $this->belongsTo(MotorcycleMark::class,'motorcycle_mark_id','id')->withTrashed();
-    }
-    public function model(){
-        return $this->belongsTo(MotorcycleModel::class,'motorcycle_model_id','id')->withTrashed();
-    }
-   
-    
+    public function motorcycleMark()
+{
+    return $this->belongsTo(MotorcycleMark::class, 'motorcycle_mark_id');
+}
+
+public function motorcycleModel()
+{
+    return $this->belongsTo(MotorcycleModel::class, 'motorcycle_model_id');
+}
+
+public function owner()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
+
 }

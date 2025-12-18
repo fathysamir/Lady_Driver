@@ -100,23 +100,18 @@
                                             </select>
                                             <select class="form-control" style="width: 23.5%; margin: 0% 1% 0% 1%;"
                                                 name="mark" id="markSelect">
-                                                <option value="">Select Car Mark</option>
-                                                @foreach ($car_marks as $mark)
-                                                    <option value="{{ $mark->id }}"
-                                                        {{ request('mark') == $mark->id ? 'selected' : '' }}>
-                                                        {{ $mark->en_name }} - {{ $mark->ar_name }}</option>
-                                                @endforeach
+                                                <option value="">Select Vehicle Mark</option>
                                             </select>
                                             <select class="form-control"
                                                 style="width: 23.5%; margin: 0% 1% 0% 1%; display:none;" name="model"
                                                 id="modelSelect">
-                                                <option value="">Select Car Model</option>
+                                                <option value="">Select Vehicle Model</option>
                                             </select>
                                             <div class="form-group" style="width: 23.5%; margin: 0% 0% 0% 1%;">
                                                 <input type="date" name="created_date" class="form-control"
                                                     style="width:100%;" value="{{ request('created_date') }}">
                                             </div>
-                                            <div class="form-group py-2" style="width: 23.5%; margin: 0%;">
+                                            <div class="form-group py-2" style="width: 23.5%; margin: 0%;" id="airConditionedCheckbox">
                                                 <div class="icheck-material-white">
                                                     <input type="checkbox" name="air_conditioned" id="user-checkbox2"
                                                         {{ request('air_conditioned') ? 'checked' : '' }} />
@@ -177,7 +172,7 @@
                                                         <th>Trip Code</th>
                                                         <th>Client</th>
                                                         <th>Driver</th>
-                                                        <th>Car</th>
+                                                        <th>Vehicle</th>
                                                         <th>Created at</th>
                                                         <th>Status</th>
                                                         <th>Payment Status</th>
@@ -222,14 +217,36 @@
                                                                             class="img-circle" alt="user avatar"></span>
                                                                     {!! highlight($trip->user->name, $search ?? '') !!}</td>
 
-                                                                <td><span class="user-profile"><img
-                                                                            @if (getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                                                            class="img-circle" alt="user avatar"></span>
-                                                                    {!! highlight($trip->car->owner->name, $search ?? '') !!}</td>
+                                                                @if ($tripType === 'scooter')
+                                                                    <td><span class="user-profile"><img
+                                                                                @if ($trip->scooter && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                                                class="img-circle" alt="user avatar"></span>
+                                                                        {!! $trip->scooter ? highlight($trip->scooter->owner->name, $search ?? '') : 'N/A' !!}</td>
 
-                                                                <td>{{ $trip->car->mark->name }} -
-                                                                    {{ $trip->car->model->name }} ({{ $trip->car->year }})
-                                                                </td>
+                                                                    <td>
+                                                                        @if ($trip->scooter)
+                                                                            {{ $trip->scooter->motorcycleMark->en_name ?? 'N/A' }} -
+                                                                            {{ $trip->scooter->motorcycleModel->en_name ?? 'N/A' }} ({{ $trip->scooter->year }})
+                                                                        @else
+                                                                            N/A
+                                                                        @endif
+                                                                    </td>
+                                                                @else
+                                                                    <td><span class="user-profile"><img
+                                                                                @if ($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                                                class="img-circle" alt="user avatar"></span>
+                                                                        {!! $trip->car ? highlight($trip->car->owner->name, $search ?? '') : 'N/A' !!}</td>
+
+                                                                    <td>
+                                                                        @if ($trip->car)
+                                                                            {{ $trip->car->mark->name }} -
+                                                                            {{ $trip->car->model->name }} ({{ $trip->car->year }})
+                                                                        @else
+                                                                            N/A
+                                                                        @endif
+                                                                    </td>
+                                                                @endif
+
                                                                 <td>{{ date('Y-m-d h:i a', strtotime($trip->created_at)) }}
                                                                 </td>
                                                                 <td>
@@ -304,11 +321,22 @@
                     btn.style.color = '';
                 }
             });
+
+            // Update mark dropdown based on vehicle type
+            updateMarkDropdown(tripType);
+
+            // Show/hide air conditioned checkbox
+            const airConditionedCheckbox = document.getElementById('airConditionedCheckbox');
+            if (tripType === 'scooter') {
+                airConditionedCheckbox.style.display = 'none';
+            } else {
+                airConditionedCheckbox.style.display = 'block';
+            }
+
             showTimeTab(tripType, 'current');
         }
 
         function showTimeTab(tripType, timeFilter) {
-
             const tabs = document.querySelectorAll('.trip-tab');
             tabs.forEach(tab => tab.style.display = 'none');
 
@@ -338,13 +366,42 @@
             filterOptions.style.display = (filterOptions.style.display === "none") ? "block" : "none";
         }
 
+        function updateMarkDropdown(tripType) {
+            const markSelect = document.getElementById('markSelect');
+            const modelSelect = document.getElementById('modelSelect');
+            const currentMark = '{{ request("mark") }}';
+
+            // Clear both dropdowns
+            markSelect.innerHTML = '<option value="">Select Vehicle Mark</option>';
+            modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
+            modelSelect.style.display = 'none';
+
+            // Populate marks based on vehicle type
+            if (tripType === 'scooter') {
+                @foreach ($motorcycle_marks as $mark)
+                    markSelect.innerHTML += `<option value="{{ $mark->id }}" ${currentMark == '{{ $mark->id }}' ? 'selected' : ''}>{{ $mark->en_name }} - {{ $mark->ar_name }}</option>`;
+                @endforeach
+            } else {
+                @foreach ($car_marks as $mark)
+                    markSelect.innerHTML += `<option value="{{ $mark->id }}" ${currentMark == '{{ $mark->id }}' ? 'selected' : ''}>{{ $mark->en_name }} - {{ $mark->ar_name }}</option>`;
+                @endforeach
+            }
+        }
+
         document.getElementById('markSelect').addEventListener('change', function() {
             const markId = this.value;
             const modelSelect = document.getElementById('modelSelect');
-            fetch('/admin-dashboard/getModels?markId=' + markId)
+            const currentType = document.getElementById('type_input').value;
+
+            // Determine the correct endpoint based on vehicle type
+            const endpoint = currentType === 'scooter'
+                ? '/admin-dashboard/getMotorcycleModels?markId=' + markId
+                : '/admin-dashboard/getModels?markId=' + markId;
+
+            fetch(endpoint)
                 .then(response => response.json())
                 .then(data => {
-                    modelSelect.innerHTML = '<option value="">Select Car Model</option>';
+                    modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
                     data.forEach(model => {
                         modelSelect.innerHTML +=
                             `<option value="${model.id}">${model.en_name} - ${model.ar_name}</option>`;
@@ -353,7 +410,6 @@
                 })
                 .catch(err => console.error('Error:', err));
         });
-
 
         window.addEventListener('DOMContentLoaded', () => {
             const currentType = document.getElementById('type_input').value || 'car';
