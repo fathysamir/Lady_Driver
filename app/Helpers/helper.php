@@ -237,7 +237,7 @@ function uploadImage($request_file, $registration_id = null)
     $image            = $invitation_code2 . '' . $invitation_code . '' . time() . '.' . $request_file->extension();
 
     $request_file->move(public_path('images/'), $image);
-    $path = ('/images/') . $image;
+    $path = '/images/' . $image;
     if (! $registration_id) {
         do {
             $re_id = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 5);
