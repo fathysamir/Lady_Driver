@@ -1864,9 +1864,14 @@ class Chat implements MessageComponentInterface
         } elseif ($trip->status == 'scheduled') {
             $sss_status = 'scheduled';
         }
-        $trip->status                    = 'cancelled';
-        $trip->cancelled_by_id           = $AuthUserID;
-        $trip->trip_cancelling_reason_id = $data['reason_id'];
+        $create_new_trip = false;
+        if ($trip->status == 'pending' && $trip->status == 'scheduled') {
+            $create_new_trip = true;
+        }
+        $trip->status                      = 'cancelled';
+        $trip->cancelled_by_id             = $AuthUserID;
+        $trip->trip_cancelling_reason_id   = $data['reason_id'];
+        $trip->trip_cancelling_reason_text = $data['reason_text'];
         $trip->save();
         $canceled_trip['trip_id'] = $trip->id;
         $data2                    = [
@@ -1874,7 +1879,16 @@ class Chat implements MessageComponentInterface
             'data' => $canceled_trip,
             // 'message'=>'Trip canceled successfully'
         ];
-        $reason = TripCancellingReason::findOrFail($trip->trip_cancelling_reason_id);
+        if ($data['reason_id']) {
+            $reason = TripCancellingReason::findOrFail($trip->trip_cancelling_reason_id);
+        } else {
+            $arr = [
+                'car'         => 'Car Trips',
+                'comfort_car' => 'Comfort Trips',
+                'scooter'     => 'Scooter Trips',
+            ];
+            $cancelling_cost = floatval(Setting::where('key', 'cancelling_cost')->where('category', $arr[$trip->type])->where('type', 'number')->first()->value);
+        }
         if ($trip->user_id == $AuthUserID) {
             $data2['message'] = 'The trip canceled successfully.';
             $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -1884,11 +1898,16 @@ class Chat implements MessageComponentInterface
                 $date_time = date('Y-m-d h:i:s a');
                 echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
             }
-            if ($reason->value_type == 'ratio') {
-                $value = round(($reason->value * $trip->total_price) / 100);
+            if ($reason != null) {
+                if ($reason->value_type == 'ratio') {
+                    $value = round(($reason->value * $trip->total_price) / 100);
+                } else {
+                    $value = $reason->value;
+                }
             } else {
-                $value = $reason->value;
+                $value = $cancelling_cost;
             }
+
             $trip->user->wallet = $trip->user->wallet - $value;
             $data2['message']   = 'The trip was cancelled by client.';
             $message            = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -1923,10 +1942,14 @@ class Chat implements MessageComponentInterface
                 $date_time = date('Y-m-d h:i:s a');
                 echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
             }
-            if ($reason->value_type == 'ratio') {
-                $value = round(($reason->value * $trip->total_price) / 100);
+            if ($reason != null) {
+                if ($reason->value_type == 'ratio') {
+                    $value = round(($reason->value * $trip->total_price) / 100);
+                } else {
+                    $value = $reason->value;
+                }
             } else {
-                $value = $reason->value;
+                $value = $cancelling_cost;
             }
             if ($trip->car) {
                 $owner = $trip->car->owner;
@@ -1936,7 +1959,7 @@ class Chat implements MessageComponentInterface
 
             $owner->wallet -= $value;
             $owner->save();
-            if (in_array($reason->status, ['before', 'driver_arrived'])) {
+            if ($create_new_trip == true) {
                 $type = $trip->type;
                 if ($type == 'car' || $type == 'comfort_car') {
                     $newTrip["car_id"] = null;
