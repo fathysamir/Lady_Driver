@@ -66,6 +66,9 @@
         .user-profile:hover .avatar-preview {
             display: block;
         }
+        .table-responsive {
+        overflow-x: hidden !important;
+       }
     </style>
     <div class="content-wrapper">
         <div class="container-fluid">
@@ -134,7 +137,7 @@
                                         <button type="button" class="btn btn-light "
                                             onclick="showTab('{{ $city->name }}')">{{ $city->name }}</button>
                                         @endforeach
-                                        
+
                                     </div> --}}
                                 </form>
                                 {{-- <a  class="btn btn-light px-5" style="margin-bottom:1%; " href="{{route('add.user')}}">create</a> --}}
@@ -164,13 +167,13 @@
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}" 
-                                          @else 
+                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                          @else
                                               src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
                                                             <div class="avatar-preview">
-                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}" 
-                                              @else 
+                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                              @else
                                                   src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                     alt="Avatar Preview">
                                                             </div>

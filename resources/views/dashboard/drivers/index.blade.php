@@ -1,74 +1,77 @@
 @extends('dashboard.layout.app')
 @section('title', 'Dashboard - drivers')
 @section('content')
-    <style>
-        .pagination {
-            display: inline-flex;
-        }
+<style>
+    .pagination {
+        display: inline-flex;
+    }
 
-        .user-status {
-            position: absolute;
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-left: -1%;
-            margin-bottom: 8%;
-        }
+    .user-status {
+        position: absolute;
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-left: -1%;
+        margin-bottom: 8%;
+    }
 
-        .online {
-            background-color: green;
-        }
+    .online {
+        background-color: green;
+    }
 
-        .offline {
-            background-color: gray;
-        }
+    .offline {
+        background-color: gray;
+    }
 
-        .filled {
+    .filled {
             color: gold;
         }
 
-        /* Popup styles */
-        .user-profile {
-            position: relative;
-        }
+    /* Popup styles */
+    .user-profile {
+        position: relative;
+    }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            position: relative;
-        }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        position: relative;
+    }
 
-        .avatar-preview {
-            display: none;
-            position: fixed;
-            justify-content: center;
-            /* Center horizontally */
-            align-items: center;
-            top: 50%;
-            left: 50%;
-            height: 600px;
-            width: 800px;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+    .avatar-preview {
+        display: none;
+        position: fixed;
+        justify-content: center;
+        /* Center horizontally */
+        align-items: center;
+        top: 50%;
+        left: 50%;
+        height: 600px;
+        width: 800px;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
-        .avatar-preview img {
+    .avatar-preview img {
 
-            width: 100%;
-            height: 100%;
-            border-radius: 5px;
-        }
+        width: 100%;
+        height: 100%;
+        border-radius: 5px;
+    }
 
-        .user-profile:hover .avatar-preview {
-            display: block;
-        }
-    </style>
+    .user-profile:hover .avatar-preview {
+        display: block;
+    }
+    .table-responsive {
+    overflow-x: hidden !important;
+}
+</style>
     <div class="content-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -176,13 +179,13 @@
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}" 
-                                          @else 
+                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                          @else
                                               src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
                                                             <div class="avatar-preview">
-                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}" 
-                                              @else 
+                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                              @else
                                                   src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                     alt="Avatar Preview">
                                                             </div>
