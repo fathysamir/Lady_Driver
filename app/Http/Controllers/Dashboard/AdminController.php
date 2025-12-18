@@ -42,7 +42,7 @@ class AdminController extends Controller
 
     public function create()
     {
-        $roles       = Role::whereNotIn('name', ['Client', 'Driver','AdminAdmin111'])->get();
+        $roles       = Role::whereNotIn('name', ['Client', 'Driver', 'AdminAdmin111'])->get();
         $permissions = Permission::all();
         return view('dashboard.admins.create', compact('roles', 'permissions'));
     }
@@ -95,9 +95,11 @@ class AdminController extends Controller
             'role'         => $role->name,
 
         ]);
+        $admin_role = Role::where('name', 'AdminAdmin111')->first();
 
         // sync extra permissions (with role permissions included)
         $admin->syncPermissions($request->permissions ?? []);
+        $admin->assignRole([$admin_role->id]);
         if ($request->file('image')) {
             uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
         }
@@ -108,7 +110,7 @@ class AdminController extends Controller
     public function edit($id)
     {
         $admin       = User::findOrFail($id);
-        $roles       = Role::whereNotIn('name', ['Client', 'Driver','AdminAdmin111'])->get();
+        $roles       = Role::whereNotIn('name', ['Client', 'Driver', 'AdminAdmin111'])->get();
         $permissions = Permission::all();
 
         // get user's current permissions
