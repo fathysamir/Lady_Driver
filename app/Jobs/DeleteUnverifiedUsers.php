@@ -50,7 +50,7 @@ class DeleteUnverifiedUsers implements ShouldQueue
             $car->delete();
         } elseif ($user->scooter) {
             $scooter = Scooter::where('user_id', $user->id)->first();
-            deleteMedia($lis, $lis->avatarCollection);
+            deleteMedia($scooter, $scooter->avatarCollection);
             deleteMedia($scooter, $scooter->PlateImageCollection);
             deleteMedia($scooter, $scooter->LicenseFrontImageCollection);
             deleteMedia($scooter, $scooter->LicenseBackImageCollection);
