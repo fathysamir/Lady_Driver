@@ -88,14 +88,18 @@ function getFirstMedia($model, $collection_name)
 
 function deleteMedia($model, $collection_name = null)
 {
-    $med  = DB::table('media')->where('attachmentable_type', get_class($model))->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->first();
-    $path = public_path($med->path);
+    $med = DB::table('media')->where('attachmentable_type', get_class($model))->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->first();
+    if ($med) {
+        $path = public_path($med->path);
 
-    // Delete if not in used list and file exists
-    if (File::exists($path)) {
-        File::delete($path);
+        // Delete if not in used list and file exists
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $med->delete();
+    } else {
+        return true;
     }
-    return $med->delete();
 
 }
 
