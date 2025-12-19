@@ -52,7 +52,8 @@ class User extends Authenticatable
         'level',
         'driver_type',
         'is_verified',
-        'role'
+        'role',
+        'otp_expires_at'
     ];
 
     /**
@@ -63,7 +64,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'deleted_at'
+        'deleted_at',
+        'otp_expires_at'
     ];
     /**
      * The attributes that should be cast.
@@ -73,6 +75,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
+        'otp_expires_at' => 'datetime'
     ];
     protected $appends = [
         'image',

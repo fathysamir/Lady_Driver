@@ -394,6 +394,7 @@ class AuthController extends ApiController
             'passport_id'     => $request->passport_ID,
             'driver_type'     => $driver_type,
             'level'           => '1',
+            'otp_expires_at'  => now()->addHour(),
         ]);
         $role = Role::where('name', 'Driver')->first();
 
@@ -614,6 +615,7 @@ class AuthController extends ApiController
             'birth_date'      => $request->birth_date,
             'age'             => $age,
             'driver_type'     => null,
+            'otp_expires_at'  => now()->addHour(),
         ]);
         $role = Role::where('name', 'Client')->first();
 
@@ -1118,8 +1120,11 @@ class AuthController extends ApiController
             ->first();
 
         if (! $user) {
-            return $this->sendError(null, 'Invalid or expired OTP', 401);
+            return $this->sendError(null, 'Invalid OTP', 401);
 
+        }
+        if ($user->otp_expires_at < now()) {
+            return $this->sendError(null, 'Expired OTP', 401);
         }
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
@@ -1175,7 +1180,8 @@ class AuthController extends ApiController
         if (! $user) {
             return $this->sendError(null, 'There is no account with this email', 401);
         }
-        $user->OTP = $otpCode;
+        $user->OTP            = $otpCode;
+        $user->otp_expires_at = now()->addHour();
         $user->save();
         Mail::to($request->email)->send(new SendOTP($otpCode, $user->name));
         return $this->sendResponse(null, 'OTP sent to your email address.', 200);
