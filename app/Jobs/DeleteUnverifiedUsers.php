@@ -30,7 +30,7 @@ class DeleteUnverifiedUsers implements ShouldQueue
      */
     public function handle(): void
     {
-        $user = User::where('is_verified', 0)
+        $user = User::where('is_verified', '0')
             ->where('created_at', '<=', Carbon::now()->subHour())
             ->first();
         Student::where('user_id', $user->id)->delete();
