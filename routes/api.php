@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +18,14 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
+Route::get('/test-test', function () {
+    $users = User::where('mode', 'client')->where('status', 'pending')->where('is_verified', '0')->get();
+    foreach ($users as $user) {
+        deleteMedia($user, $user->avatarCollection);
+        $user->delete();
+    }
+    return true;
+});
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -112,7 +120,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get_all_user_addresses', [ClientController::class, 'get_all_user_addresses']);
     Route::get('/delete_address', [ClientController::class, 'delete_address']);
     Route::get('/get_rate_trip_setting', [ClientController::class, 'get_rate_trip_setting']);
-
-
 
 });

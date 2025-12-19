@@ -43,7 +43,7 @@ return new class extends Migration
             $table->string('student_code')->nullable();
             $table->enum('driver_type', ['car', 'comfort_car', 'scooter'])->nullable();
             $table->string('role')->default('Client');
-
+            $table->timestamp('otp_expires_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
