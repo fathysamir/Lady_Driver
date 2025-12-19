@@ -1,11 +1,10 @@
 <?php
-use App\Models\User;
 use App\Models\Trip;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Milon\Barcode\DNS2D;
-
 
 function uploadMedia($request_file, $collection_name, $model)
 {
@@ -89,8 +88,14 @@ function getFirstMedia($model, $collection_name)
 
 function deleteMedia($model, $collection_name = null)
 {
+    $med  = DB::table('media')->where('attachmentable_type', get_class($model))->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->first();
+    $path = public_path($med->path);
 
-    return DB::table('media')->where('attachmentable_type', get_class($model))->where('attachmentable_id', $model->id)->where('collection_name', $collection_name)->delete();
+    // Delete if not in used list and file exists
+    if (File::exists($path)) {
+        File::delete($path);
+    }
+    return $med->delete();
 
 }
 
@@ -128,7 +133,7 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
     if ($data['status'] == 'OK') {
 
         $element  = $data['rows'][0]['elements'][0];
-        $distance = $element['distance']['value'] ?? 0; // meters
+        $distance = $element['distance']['value'] ?? 0;                                             // meters
         $duration = $element['duration_in_traffic']['value'] ?? $element['duration']['value'] ?? 0; // seconds
 
         $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
@@ -267,7 +272,7 @@ function deleteUnusedRegistrationImages($registration_id, $used_paths = [])
         $path = public_path($image->path);
 
         // Delete if not in used list and file exists
-        if (!in_array($image->path, $used_paths) && File::exists($path)) {
+        if (! in_array($image->path, $used_paths) && File::exists($path)) {
             File::delete($path);
         }
     }
@@ -277,19 +282,17 @@ function deleteUnusedRegistrationImages($registration_id, $used_paths = [])
         ->delete();
 }
 
-
-
 function username_Generation($name)
 {
     $base = Str::slug($name, '');
 
-    if (!$base) {
+    if (! $base) {
         $base = 'user';
     }
 
     do {
         if (Str::contains($base, '_')) {
-            $suffix = rand(100, 9999); 
+            $suffix = rand(100, 9999);
         } else {
             $suffix = '_' . rand(100, 9999);
         }
@@ -299,4 +302,3 @@ function username_Generation($name)
 
     return $username;
 }
-
