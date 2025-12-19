@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 // Route::get('/test-test', function () {
-//     $users = User::where('mode', 'driver')->where('status', 'pending')->where('is_verified', '0')->get();
+//     $users = User::whereIn('mode', ['driver','client'])->where('is_verified', '0')->get();
 //     foreach ($users as $user) {
 //         deleteMedia($user, $user->avatarCollection);
 //         deleteMedia($user, $user->IDfrontImageCollection);
