@@ -4,7 +4,7 @@
     <style>
         .pagination {
             display: inline-flex;
-        }
+                }
 
         .user-status {
             position: absolute;
@@ -12,7 +12,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            margin-left: -1%;
+            margin-left: -25%;
             margin-bottom: 8%;
         }
 
@@ -66,9 +66,7 @@
         .user-profile:hover .avatar-preview {
             display: block;
         }
-        .table-responsive {
-        overflow-x: hidden !important;
-       }
+
     </style>
     <div class="content-wrapper">
         <div class="container-fluid">
@@ -171,6 +169,8 @@
                                           @else
                                               src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
+                                                                <span
+                                                                class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
                                                                 <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
                                               @else
@@ -178,9 +178,6 @@
                                                                     alt="Avatar Preview">
                                                             </div>
                                                         </span>
-
-                                                        <span
-                                                            class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
 
                                                         {!! highlight($user->name, $search ?? '') !!}
                                                     </td>
