@@ -17,7 +17,7 @@ class DriverController extends Controller
 { //done
     public function index(Request $request)
     {
-        $all_users = User::where('mode', 'driver');
+        $all_users = User::where('mode', 'driver')->where('is_verified','1');
         if ($request->type == 'cars') {
             $all_users->where('driver_type', 'car');
             // $all_users->whereHas('car', function ($q) {
