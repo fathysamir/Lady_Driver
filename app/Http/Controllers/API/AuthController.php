@@ -399,24 +399,20 @@ class AuthController extends ApiController
         $role = Role::where('name', 'Driver')->first();
 
         $user->assignRole([$role->id]);
-        if ($request->file('image')) {
-            //uploadMedia($request->image, $user->avatarCollection, $user);
+
+        // Upload user images
+        if ($request->image) {
             uploadMediaByURL($request->image, $user->avatarCollection, $user);
         }
-        if ($request->file('ID_front_image')) {
-            //uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+        if ($request->ID_front_image) {
             uploadMediaByURL($request->ID_front_image, $user->IDfrontImageCollection, $user);
-
         }
-        if ($request->file('ID_back_image')) {
-            // uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+        if ($request->ID_back_image) {
             uploadMediaByURL($request->ID_back_image, $user->IDbackImageCollection, $user);
-
         }
-        if ($request->file('passport_image')) {
-            // uploadMedia($request->passport_image, $user->passportImageCollection, $user);
-            uploadMediaByURL($request->passport_image, $user->passportImageCollection, $user);
 
+        if ($request->passport_image) {
+            uploadMediaByURL($request->passport_image, $user->passportImageCollection, $user);
         }
 
         $license = DriverLicense::create(['user_id' => $user->id,
