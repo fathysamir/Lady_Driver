@@ -14,6 +14,7 @@
         border-radius: 50%;
         margin-left: -25%;
         margin-bottom: 8%;
+
     }
 
     .online {
