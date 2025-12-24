@@ -16,7 +16,7 @@ class ClientController extends Controller
    
     public function index(Request $request)
 {
-    $query = User::where('mode', 'client')->with('city:id,name');
+    $query = User::where('mode', 'client')->where('is_verified','1')->with('city:id,name');
 
     $type = $request->query('type');
 
