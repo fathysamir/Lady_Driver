@@ -141,7 +141,7 @@
                                                                     style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
-                                                       
+
                                                         @can('cities.delete')
                                                             <a
                                                                 onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
@@ -179,7 +179,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
                         delete this City?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -193,7 +193,7 @@
                     </div>
                     <button
                         onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancele</button>
+                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
                     <button
                         onclick="deleteCity()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
                             class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>

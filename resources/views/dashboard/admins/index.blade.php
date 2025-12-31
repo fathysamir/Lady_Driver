@@ -12,7 +12,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            margin-left: -1%;
+            margin-left: -25%;
             margin-bottom: 8%;
         }
 
@@ -73,20 +73,23 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div style="display: flex;">
-                                <h5 class="card-title" style="width: 46%;">Admins</h5>
-                                @can('admins.create')
-                                    <a class="btn btn-light px-5" style="margin-bottom:1%; "
-                                        href="{{ route('add.admin') }}">create New Admin</a>
-                                @endcan
-                                <form id="searchForm" class="search-bar"
-                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
-                                    action="{{ route('admins') }}" enctype="multipart/form-data">
-                                    @csrf
-                                    <input type="text" class="form-control" placeholder="Enter keywords" name="search">
-                                    <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
-                                </form>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1%;">
+                                <h5 class="card-title" style="margin: 0;">Admins</h5>
 
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    @can('admins.create')
+                                        <a class="btn btn-light px-5" style="white-space: nowrap;"
+                                            href="{{ route('add.admin') }}">Create New Admin</a>
+                                    @endcan
+
+                                    <form id="searchForm" class="search-bar" style="display: flex; margin: 0;"
+                                        method="post" action="{{ route('admins') }}" enctype="multipart/form-data">
+                                        @csrf
+                                        <input type="text" class="form-control" placeholder="Enter keywords" name="search">
+                                        <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
+                                    </form>
+                                </div>
+                            </div>
 
 
                             </div>
@@ -129,20 +132,21 @@
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if (getFirstMediaUrl($admin, $admin->avatarCollection) != null) src="{{ getFirstMediaUrl($admin, $admin->avatarCollection) }}" 
-                                          @else 
+                                                            <img @if (getFirstMediaUrl($admin, $admin->avatarCollection) != null) src="{{ getFirstMediaUrl($admin, $admin->avatarCollection) }}"
+                                          @else
                                               src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
+                                                                <span
+                                                            class="user-status {{ $admin->is_online ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
-                                                                <img @if (getFirstMediaUrl($admin, $admin->avatarCollection) != null) src="{{ getFirstMediaUrl($admin, $admin->avatarCollection) }}" 
-                                              @else 
+                                                                <img @if (getFirstMediaUrl($admin, $admin->avatarCollection) != null) src="{{ getFirstMediaUrl($admin, $admin->avatarCollection) }}"
+                                              @else
                                                   src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                     alt="Avatar Preview">
                                                             </div>
                                                         </span>
 
-                                                        <span
-                                                            class="user-status {{ $admin->is_online ? 'online' : 'offline' }}"></span>
+
 
                                                         {!! highlight($admin->name, $search ?? '') !!}
                                                     </td>
@@ -202,7 +206,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
                         delete this admin?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -219,7 +223,7 @@
                     </div>
                     <button
                         onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancele</button>
+                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
                     <button
                         onclick="deleteUser()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
                             class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>

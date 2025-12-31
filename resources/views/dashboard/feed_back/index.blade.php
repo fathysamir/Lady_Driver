@@ -13,7 +13,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div style="display: flex;">
-                                <h5 class="card-title" style="width: 89%;">Feed Back</h5>
+                                <h5 class="card-title" style="width: 89%;">FeedBack</h5>
                             </div>
 
 

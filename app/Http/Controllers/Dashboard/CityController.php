@@ -47,4 +47,11 @@ class CityController extends Controller
         return redirect()->route('cities', $queryParams)->with('success', 'City updated successfully!');
 
     }
+    public function delete($id, Request $request)
+    {
+        City::where('id', $id)->delete();
+        $queryParams = $request->except(['_token', '_method']);
+        return redirect()->route('cities', $queryParams)->with('success', 'City deleted successfully!');
+
+    }
 }

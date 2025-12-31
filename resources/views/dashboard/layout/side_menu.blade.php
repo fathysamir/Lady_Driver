@@ -199,7 +199,7 @@
         @can('feedbacks.view')
             <li>
                 <a href="{{ url('/admin-dashboard/feed_back') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>Feed Back</span>
+                    <i class="zmdi zmdi-view-dashboard"></i> <span>FeedBack</span>
                 </a>
             </li>
         @endcan

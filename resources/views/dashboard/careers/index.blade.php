@@ -22,7 +22,7 @@
                                 <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                     <a class="btn btn-light px-3" href="{{ route('archived_careers') }}" style="margin:0% 0% 1% 1%; width: 190px;">Deleted Applications</a>
                                     <button class="btn btn-light px-3" type="button" onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
-                                    <input type="text" class="form-control" placeholder="Enter keywords" name="search" style="width: 350px;" value="{{ request('search') }}">
+                                    <input type="text" class="form-control" placeholder="Enter keywords" name="search" style="display:flex;" value="{{ request('search') }}">
                                     <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                 </div>
                             </div>
@@ -133,7 +133,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
                         delete this Application?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

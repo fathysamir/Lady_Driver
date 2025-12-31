@@ -625,10 +625,16 @@
                                         @endif
                                     </div>
                                     <div class="form-group"style="display: flex;">
-                                        <label>Front Image : </label> <img width="300"
+                                        <label>Driver License Images : </label>
+                                        <img width="300"
                                             style="margin: 0px 10px 0px 10px; border-radius:10px;"
                                             src="{{ $user->driving_license->front_image }}"class="zoomable-image">
+                                            <img width="300"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->driving_license->back_image }}"class="zoomable-image">
+
                                     </div>
+
                                 @else
                                     <div class="form-group"style="display: flex;">
                                         <label>No data was entered for the driver's license</label>

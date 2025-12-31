@@ -12,6 +12,7 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     }
 
+
     .image-preview {
         display: none;
         position: fixed;

@@ -144,7 +144,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" style="color:black;">Are you sure you want to restore this application?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

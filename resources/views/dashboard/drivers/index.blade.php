@@ -91,7 +91,7 @@
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
                                             <input type="text" class="form-control" placeholder="Enter keywords"
-                                                name="search"style="width: 300px;" value="{{ request('search') }}">
+                                                name="search" style="display:flex;" value="{{ request('search') }}">
                                             <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                         </div>
 
@@ -273,6 +273,7 @@
                                             'status' => request('status'),
                                             'city' => request('city'),
                                             'level' => request('level'),
+                                            'type' => request('type'),
                                         ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
@@ -290,7 +291,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
                         delete this driver?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -307,7 +308,7 @@
                     </div>
                     <button
                         onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancele</button>
+                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
                     <button
                         onclick="deleteUser()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
                             class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>

@@ -9,6 +9,7 @@ use App\Models\ScheduledDashboardMessage;
 use Illuminate\Support\Facades\DB;
 use App\Models\DashboardMessage;
 use Illuminate\Support\Facades\File;
+
 class ChatController extends ApiController
 {
     public function send_message_view(){
@@ -117,6 +118,27 @@ class ChatController extends ApiController
                                 ]);
                     }
                 }
+            }elseif($request->receivers_type=='all_users'){
+                $users=User::where('status','confirmed')->whereIn('mode', ['client', 'driver'])->get();
+                foreach($users as $user){
+                    $message=DashboardMessage::create(['receiver_id'=>$user->id,'message'=>$request->message]);
+                    if($imagePath != null){
+                         DB::table('media')->insert([
+                                    'attachmentable_type' => get_class($message),
+                                    'attachmentable_id' => $message->id,
+                                    'collection_name' => $message->imageCollection,
+                                    'Path' => $imagePath
+                                ]);
+                    }
+                    if($videoPath != null){
+                         DB::table('media')->insert([
+                                    'attachmentable_type' => get_class($message),
+                                    'attachmentable_id' => $message->id,
+                                    'collection_name' => $message->videoCollection,
+                                    'Path' => $videoPath
+                                ]);
+                    }
+                }
             }
         }else{
              if($request->users){
@@ -126,18 +148,25 @@ class ChatController extends ApiController
                 ScheduledDashboardMessage::create(['receivers'=>'clients','message'=>$request->message,'sending_date'=>$request->date,'image_path'=>$imagePath,'video_path'=>$videoPath]);
              }elseif($request->receivers_type=='drivers'){
                 ScheduledDashboardMessage::create(['receivers'=>'drivers','message'=>$request->message,'sending_date'=>$request->date,'image_path'=>$imagePath,'video_path'=>$videoPath]);
+             }elseif($request->receivers_type=='all_users'){
+                ScheduledDashboardMessage::create(['receivers'=>'all_users','message'=>$request->message,'sending_date'=>$request->date,'image_path'=>$imagePath,'video_path'=>$videoPath]);
              }
         }
         return redirect('/admin-dashboard/chats/send-message')->with('success', 'Message Sent Successfully.');
     }
 
     public function get_users(Request $request){
-        if($request->mode=='users'){
-            $users=User::where('status','confirmed')->role('Client')->get(['id', 'name']);
-        }else{
-            $users=User::where('mode',$request->mode)->where('status','confirmed')->get(['id', 'name']);
+        if($request->mode == 'all'){
+            // Fetch both clients and drivers for "all users"
+            $users = User::where('status','confirmed')
+                        ->whereIn('mode', ['client', 'driver'])
+                        ->get(['id', 'name']);
+        } else {
+            // Fetch specific mode (client or driver)
+            $users = User::where('mode', $request->mode)
+                        ->where('status','confirmed')
+                        ->get(['id', 'name']);
         }
         return $this->sendResponse($users, null, 200);
-
     }
 }

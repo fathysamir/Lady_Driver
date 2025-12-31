@@ -73,20 +73,20 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div style="display: flex;">
-                                <h5 class="card-title" style="width: 55%;">Roles</h5>
-                                <a class="btn btn-light px-5" style="margin-bottom:1%; "
-                                    href="{{ route('roles.create') }}">Create</a>
-                                <form id="searchForm" class="search-bar"
-                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
-                                    action="{{ route('roles.index') }}" enctype="multipart/form-data">
-                                    @csrf
-                                    <input type="text" class="form-control" placeholder="Enter keywords" name="search">
-                                    <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
-                                </form>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1%;">
+                                <h5 class="card-title" style="margin: 0;">Roles</h5>
 
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <a class="btn btn-light px-5" style="white-space: nowrap;"
+                                        href="{{ route('roles.create') }}">Create</a>
 
-
+                                    <form id="searchForm" class="search-bar" style="display: flex; margin: 0;"
+                                        method="post" action="{{ route('roles.index') }}" enctype="multipart/form-data">
+                                        @csrf
+                                        <input type="text" class="form-control" placeholder="Enter keywords" name="search" value="{{ request('search') }}">
+                                        <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
+                                    </form>
+                                </div>
                             </div>
 
                              @if (session('error'))
@@ -107,7 +107,7 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                           
+
                                             <th scope="col">Name</th>
 
                                             <th scope="col">Action</th>
@@ -115,13 +115,13 @@
                                     </thead>
                                     <tbody>
                                         @if (!empty($roles) && $roles->count())
-                                            
+
                                             @foreach ($roles as $role)
                                                 <tr onclick="window.location='{{ route('roles.edit', ['id' => $role->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
-                                                   
+
                                                     <td>
-                                                        {!! highlight($role->name, $search ?? '') !!}
+                                                        {!! highlight($role->name, request('search') ?? '') !!}
                                                     </td>
 
 
@@ -160,7 +160,7 @@
                                 <div style="text-align: center;">
                                     {!! $roles->appends([
                                             'search' => request('search'),
-                                           
+
                                         ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
@@ -178,13 +178,13 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
                         delete this Role?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" style="color:black;">
                     <div class="form-group">
-                        
+
                         <div style="width: 100%;  display: flex;justify-content: center;">
                             <h5 class="logo-text"style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
 
@@ -192,7 +192,7 @@
                     </div>
                     <button
                         onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancele</button>
+                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
                     <button
                         onclick="deleteCity()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
                             class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>
@@ -208,7 +208,7 @@
         function showConfirmationPopup(deleteUrl, name) {
 
             document.getElementById('deletedNameInput').textContent = name;
-           
+
             const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
             myModal.show();
             // Set the delete URL in a data attribute to access it in the deleteUser function

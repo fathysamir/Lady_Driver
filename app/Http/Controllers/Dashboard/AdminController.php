@@ -25,7 +25,8 @@ class AdminController extends Controller
             $all_admins->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%');
+                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('role', 'LIKE', '%' . $request->search . '%');
             });
         }
         $all_admins = $all_admins->paginate(12);

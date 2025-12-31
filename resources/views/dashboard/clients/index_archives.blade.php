@@ -8,7 +8,7 @@
             display: inline-flex;
         }
 
-     
+
 
 
         /* Popup styles */
@@ -69,7 +69,7 @@
                                     <h5 class="card-title" style="width: 80%;">{{ $title }} - {{ $count }}</h5>
 
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-                                            
+
                                             <input type="text" class="form-control" placeholder="Enter keywords"
                                                 name="search"style="width: 300px;" value="{{ request('search') }}">
                                             <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
@@ -78,7 +78,7 @@
                                     </div>
 
 
-                                    
+
                                 </form>
                                 {{-- <a  class="btn btn-light px-5" style="margin-bottom:1%; " href="{{route('add.user')}}">create</a> --}}
                             </div>
@@ -107,27 +107,27 @@
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}" 
-                                          @else 
+                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                          @else
                                               src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
                                                             <div class="avatar-preview">
-                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}" 
-                                              @else 
+                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                              @else
                                                   src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                     alt="Avatar Preview">
                                                             </div>
                                                         </span>
 
-                                                       
+
 
                                                         {!! highlight($user->name, $search ?? '') !!}
                                                     </td>
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
 
                                                     <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
-                                                   
-                                                   
+
+
                                                         <td>
                                                             @if ($user->status == 'banned')
                                                                 <span class="badge badge-secondary"
@@ -140,13 +140,13 @@
                                                                     style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
                                                             @endif
                                                         </td>
-                                                  
+
                                                     <td>{{ $user->created_at->format('d.M.Y')  }}</td>
                                                     <td>
 
 
 
-                                                        
+
 
                                                         {{-- <a href="{{url('/admin-dashboard/user/delete/'.$user->id)}}">
                                     <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
@@ -187,9 +187,9 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
                         restore this client?</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                        <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                 </div>
                 <div class="modal-body" style="color:black;">
                     <div class="form-group">
@@ -204,7 +204,7 @@
                     </div>
                     <button
                         onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancele</button>
+                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
                     <button
                         onclick="deleteUser()"style="background-color: rgb(193, 183, 41); color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
                             class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Restore</button>

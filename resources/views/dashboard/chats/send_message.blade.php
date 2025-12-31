@@ -86,7 +86,7 @@
                                 </div>
                                 <div class="form-group d-none">
                                     <label id="label"></label>
-                                   
+
                                     <select class="form-control" name="users[]" id="users" multiple>
 
                                     </select>
@@ -167,9 +167,9 @@
         $(document).ready(function() {
             $('#users').select2({
                 placeholder: "Select users",
-
                 allowClear: true
             });
+
             // When receivers_type selection changes
             $('#receivers_type').change(function() {
                 const selectedOption = $(this).val();
@@ -195,7 +195,7 @@
                         break;
                     case 'all_users':
                         label.text('Select Users');
-                        fetchUsers('users');
+                        fetchUsers('all'); // Send 'all' as the mode parameter
                         break;
                 }
 
@@ -205,36 +205,45 @@
 
             // Function to fetch users via AJAX
             function fetchUsers(mode = null) {
-                $.ajax({
-                    url: '/admin-dashboard/chats/get-users', // Update with your actual endpoint
-                    method: 'GET',
-                    data: {
+                console.log('Fetching users with mode:', mode); // Debug log
 
-                        mode: mode
-                    },
+                $.ajax({
+                    url: '/admin-dashboard/chats/get-users',
+                    method: 'GET',
+                    data: mode ? { mode: mode } : {}, // Only send mode if it exists
                     success: function(response) {
+                        console.log('Server response:', response); // Debug log
                         const usersSelect = $('#users');
                         usersSelect.empty();
 
-                        // Add default option
-                       
-
-                        // Add user options
-                        response.data.forEach(function(user) {
+                        // Check if data exists and has items
+                        if (response.data && response.data.length > 0) {
+                            // Add user options
+                            response.data.forEach(function(user) {
+                                usersSelect.append($('<option>', {
+                                    value: user.id,
+                                    text: user.name
+                                }));
+                            });
+                            console.log('Added', response.data.length, 'users to dropdown');
+                        } else {
+                            // Show message if no users found
                             usersSelect.append($('<option>', {
-                                value: user.id,
-                                text: user.name
+                                value: '',
+                                text: 'No users found',
+                                disabled: true
                             }));
-                        });
+                            console.log('No users returned from server');
+                        }
                     },
                     error: function(xhr) {
-                        console.error('Error fetching users:', xhr.responseText);
-                        alert('Failed to load users. Please try again.');
+                        console.error('Error fetching users:', xhr);
+                        console.error('Status:', xhr.status);
+                        console.error('Response:', xhr.responseText);
+                        alert('Failed to load users. Please check the console for details.');
                     }
                 });
             }
-
-
         });
     </script>
     <script>
@@ -263,5 +272,11 @@
                 isFormDirty = false;
             });
         });
+    </script>
+    <script>
+        setTimeout(function() {
+            $('#errorAlert').fadeOut();
+            $('#successAlert').fadeOut();
+        }, 4000);
     </script>
 @endpush
