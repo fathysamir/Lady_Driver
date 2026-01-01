@@ -17,7 +17,7 @@ class DriverController extends Controller
 { //done
     public function index(Request $request)
     {
-        $all_users = User::where('mode', 'driver')->where('is_verified','1');
+        $all_users = User::where('mode', 'driver')->where('is_verified', '1');
         if ($request->type == 'cars') {
             $all_users->where('driver_type', 'car');
             // $all_users->whereHas('car', function ($q) {
@@ -120,6 +120,7 @@ class DriverController extends Controller
         $user->image           = getFirstMediaUrl($user, $user->avatarCollection);
         $user->IDfrontImage    = getFirstMediaUrl($user, $user->IDfrontImageCollection);
         $user->IDbackImage     = getFirstMediaUrl($user, $user->IDbackImageCollection);
+        $user->PassportImage   = getFirstMediaUrl($user, $user->passportImageCollection);
         $user->rate            = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
         $user->trips_count     = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
         $user->driving_license = DriverLicense::where('user_id', $user->id)->first();

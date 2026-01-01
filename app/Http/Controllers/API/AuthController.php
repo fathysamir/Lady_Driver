@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Rules\ValidPublicImage;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
@@ -181,16 +182,7 @@ class AuthController extends ApiController
                     }),
             ],
             'image'                       => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $fullPath = public_path($value);
-
-                    if (! file_exists($fullPath)) {
-                        $fail('Image file does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
             'birth_date'                  => [
                 'required',
@@ -203,39 +195,15 @@ class AuthController extends ApiController
             'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
 
             'ID_front_image'              => [
-                'required_with:national_ID',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('ID front image does not exist.');
-                    }
-                },
+                'required_with:national_ID', new ValidPublicImage('national_ID')
             ],
             'ID_back_image'               => [
-                'required_with:national_ID',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('ID back image does not exist.');
-                    }
-                },
+                'required_with:national_ID', new ValidPublicImage('national_ID')
             ],
 
             'passport_ID'                 => 'nullable|required_without:national_ID',
             'passport_image'              => [
-                'required_with:passport_ID',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('Passport image does not exist.');
-                    }
-                },
+                'required_with:passport_ID', new ValidPublicImage('passport_ID')
             ],
             'driving_license_number'      => 'required|string|max:50',
             'license_expire_date'         => [
@@ -245,26 +213,10 @@ class AuthController extends ApiController
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
             'license_front_image'         => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('License front image does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
             'license_back_image'          => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('License back image does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
             'vehicle_type'                => ['required', Rule::in(['car', 'scooter'])],
             'car_mark_id'                 => [
@@ -293,27 +245,11 @@ class AuthController extends ApiController
             'year'                        => 'required|integer|min:1990|max:' . date('Y'),
             'plate_num'                   => 'required|string|max:255',
             'vehicle_image'               => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('Vehicle image does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
 
             'plate_image'                 => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('Plate image does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
             'vehicle_license_expire_date' => [
                 'required',
@@ -322,26 +258,10 @@ class AuthController extends ApiController
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
             'vehicle_license_front_image' => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('Vehicle license front image does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
             'vehicle_license_back_image'  => [
-                'required',
-                'string',
-                'regex:/\.(jpg|jpeg|png|gif)$/i',
-                function ($attr, $value, $fail) {
-                    $path = public_path($value);
-                    if (! File::exists($path)) {
-                        $fail('Vehicle license back image does not exist.');
-                    }
-                },
+                'required', new ValidPublicImage
             ],
             'registration_id'             => 'required',
         ]);
@@ -484,7 +404,7 @@ class AuthController extends ApiController
             uploadMediaByURL($request->vehicle_license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
             uploadMediaByURL($request->vehicle_license_front_image, $scooter->LicenseBackImageCollection, $scooter);
         }
-        Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
+        // Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
         $used_paths = [];
 
         if (isset($request->image)) {

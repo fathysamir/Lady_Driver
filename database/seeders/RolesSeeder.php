@@ -63,21 +63,21 @@ class RolesSeeder extends Seeder
             'mode'      => 'admin',
             'role'      => 'Super Admin',
         ]);
-        $user2 = User::create([
-            'name'      => 'Admin',
-            'email'     => 'admin@ladydriver.app',
-            'status'    => 'confirmed',
-            'password'  => Hash::make('123456789'),
-            'password2' => Hash::make('123456789'),
-            'theme'     => 'theme1',
-            'gendor'    => 'other',
-            'mode'      => 'admin',
-            'role'      => 'Admin',
+        // $user2 = User::create([
+        //     'name'      => 'Admin',
+        //     'email'     => 'admin@ladydriver.app',
+        //     'status'    => 'confirmed',
+        //     'password'  => Hash::make('123456789'),
+        //     'password2' => Hash::make('123456789'),
+        //     'theme'     => 'theme1',
+        //     'gendor'    => 'other',
+        //     'mode'      => 'admin',
+        //     'role'      => 'Admin',
 
-        ]);
-
+        // ]);
+        $user1->syncPermissions($permissions);
         $user1->assignRole([$admin_role->id]);
-        $user2->assignRole([$admin_role->id]);
+        // $user2->assignRole([$admin_role->id]);
 
     }
 }
