@@ -18,11 +18,13 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    public $avatarCollection        = 'avatar-image';
-    public $IDfrontImageCollection  = 'id-front-image';
-    public $IDbackImageCollection   = 'id-back-image';
-    public $passportImageCollection = 'passport-image';
-    protected $fillable             = [
+    public $avatarCollection                  = 'avatar-image';
+    public $IDfrontImageCollection            = 'id-front-image';
+    public $IDbackImageCollection             = 'id-back-image';
+    public $passportImageCollection           = 'passport-image';
+    public $medicalExaminationImageCollection = 'medical_examination-image';
+
+    protected $fillable = [
         'name',
         'username',
         'email',
@@ -53,7 +55,10 @@ class User extends Authenticatable
         'driver_type',
         'is_verified',
         'role',
-        'otp_expires_at'
+        'otp_expires_at',
+        'medical_examination_date',
+        'passport_expire_date',
+        'national_id_expire_date'
     ];
 
     /**
@@ -65,7 +70,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'deleted_at',
-        'otp_expires_at'
+        'otp_expires_at',
     ];
     /**
      * The attributes that should be cast.
@@ -75,7 +80,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
-        'otp_expires_at' => 'datetime'
+        'otp_expires_at'    => 'datetime',
     ];
     protected $appends = [
         'image',
@@ -117,6 +122,5 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class);
     }
-   
-  
+
 }

@@ -4,9 +4,6 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
-use App\Models\Car;
-use App\Models\DriverLicense;
-use App\Models\Scooter;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -94,6 +91,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/save_student_data', [AuthController::class, 'save_student_data'])->name('save_student_data');
     Route::post('/check_barcode', [ClientController::class, 'check_barcode'])->name('check_barcode');
     Route::post('/pay250Pound', [AuthController::class, 'pay250Pound'])->name('pay250Pound');
+    Route::post('/update_national_ID_data', [AuthController::class, 'update_national_ID_data'])->name('update_national_ID_data');
+    Route::post('/update_passport_data', [AuthController::class, 'update_passport_data'])->name('update_passport_data');
 
     Route::get('/change_student_discount_service', [AuthController::class, 'change_student_discount_service'])->name('change_student_discount_service');
 
@@ -106,6 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/scooter', [DriverController::class, 'scooter'])->name('scooter');
     Route::post('/add_driving_license', [DriverController::class, 'add_driving_license'])->name('add_driving_license');
     Route::post('/add_car_inspection', [DriverController::class, 'add_car_inspection'])->name('add_car_inspection');
+    Route::post('/add_medical_examination', [DriverController::class, 'add_medical_examination'])->name('add_medical_examination');
 
     Route::get('/driving_license', [DriverController::class, 'driving_license'])->name('driving_license');
     Route::get('/profile/{id}', [AuthController::class, 'profile'])->name('profile');

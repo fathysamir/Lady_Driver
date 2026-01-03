@@ -176,6 +176,30 @@
                                         style="margin: 0px 10px 0px 10px; border-radius:10px;width:30%;"
                                         src="{{ $car->license_back_image }}" class="zoomable-image">
                                 </div>
+                                
+                                <div class="form-group"style="display: flex;">
+                                    <label>Inspection Image : </label>
+                                    @if ($car->CarInspectionImage)
+                                        <img width="400"height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $car->CarInspectionImage }}"class="zoomable-image">
+                                    @else
+                                        <label style="color: #ff7272"> There is no inspection.</label>
+                                    @endif
+
+                                </div>
+                                @if ($car->car_inspection_date)
+                                    <div class="form-group"style="display: flex;">
+
+                                        <label>
+                                            Car Inspection Date :
+                                            <span style="color: #56ec60">
+                                                {{ \Carbon\Carbon::parse($car->car_inspection_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
                                 <div class="form-group">
                                     <label>Status</label>
 

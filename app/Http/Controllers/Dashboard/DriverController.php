@@ -121,7 +121,7 @@ class DriverController extends Controller
         $user->IDfrontImage    = getFirstMediaUrl($user, $user->IDfrontImageCollection);
         $user->IDbackImage     = getFirstMediaUrl($user, $user->IDbackImageCollection);
         $user->PassportImage   = getFirstMediaUrl($user, $user->passportImageCollection);
-        $user->rate            = round(Trip::where('user_id', $id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate')) ?? 0.00;
+        $user->medicalExaminationImage   = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
         $user->trips_count     = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
         $user->driving_license = DriverLicense::where('user_id', $user->id)->first();
         $user->car             = Car::where('user_id', $user->id)->first();
@@ -131,7 +131,7 @@ class DriverController extends Controller
         }
         $user->rate = round(Trip::whereHas('car', function ($query) use ($user) {
             $query->where('user_id', $user->id);
-        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate')) ?? 0.00;
+        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate')) ?? 5.00;
         $user->trips_count = Trip::whereHas('car', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->whereIn('status', ['pending', 'in_progress', 'completed'])->count();

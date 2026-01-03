@@ -597,6 +597,18 @@
                                     <input type="number" class="form-control" name="national_id"
                                         placeholder="National ID"value="{{ old('national_id', $user->national_id) }}">
                                 </div>
+                                @if ($user->national_id_expire_date)
+                                    <div class="form-group"style="display: flex;">
+                                        <label>
+                                            National ID Expiration Date :
+                                            <span
+                                                style="color: {{ \Carbon\Carbon::parse($user->national_id_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($user->national_id_expire_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
                                 <div class="form-group"style="display: flex;">
                                     <label>Id Images : </label>
                                     @if ($user->IDfrontImage)
@@ -615,6 +627,19 @@
                                     <input type="text" class="form-control" name="passport_id"
                                         placeholder="Passport ID"value="{{ old('passport_id', $user->passport_id) }}">
                                 </div>
+
+                                @if ($user->passport_expire_date)
+                                    <div class="form-group"style="display: flex;">
+                                        <label>
+                                            National ID Expiration Date :
+                                            <span
+                                                style="color: {{ \Carbon\Carbon::parse($user->passport_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($user->passport_expire_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
                                 <div class="form-group"style="display: flex;">
                                     <label>Passport Image : </label>
                                     @if ($user->PassportImage)
@@ -622,10 +647,34 @@
                                             style="margin: 0px 10px 0px 10px; border-radius:10px;"
                                             src="{{ $user->PassportImage }}"class="zoomable-image">
                                     @else
-                                        <label style="color: #ff7272">There is no passport.</label>
+                                        <label style="color: #ff7272"> There is no passport.</label>
                                     @endif
 
                                 </div>
+                                <div class="form-group"style="display: flex;">
+                                    <label>Medical Examination Image : </label>
+                                    @if ($user->medicalExaminationImage)
+                                        <img width="400"height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->medicalExaminationImage }}"class="zoomable-image">
+                                    @else
+                                        <label style="color: #ff7272"> There is no medical examination.</label>
+                                    @endif
+
+                                </div>
+                                @if ($user->medical_examination_date)
+                                    <div class="form-group"style="display: flex;">
+
+                                        <label>
+                                            Medical Examination Date :
+                                            <span style="color: #56ec60">
+                                                {{ \Carbon\Carbon::parse($user->medical_examination_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
+
                                 <div class="form-group">
                                     <label>Address : {{ $user->address }}</label>
                                 </div>
@@ -664,7 +713,7 @@
                                                 href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">hear</a></label>
                                     </div>
                                 @elseif($user->scooter)
-                                <div class="form-group">
+                                    <div class="form-group">
                                         <label>Car : you can show scooter from <a style="color: blue"
                                                 href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">hear</a></label>
                                     </div>

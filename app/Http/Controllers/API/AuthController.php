@@ -21,6 +21,7 @@ use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
 use App\Models\User;
+use App\Rules\ValidPublicImage;
 use App\Services\FawryService;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
@@ -31,7 +32,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use App\Rules\ValidPublicImage;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
@@ -182,7 +182,7 @@ class AuthController extends ApiController
                     }),
             ],
             'image'                       => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
             'birth_date'                  => [
                 'required',
@@ -195,15 +195,15 @@ class AuthController extends ApiController
             'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
 
             'ID_front_image'              => [
-                'required_with:national_ID', new ValidPublicImage('national_ID')
+                'required_with:national_ID', new ValidPublicImage('national_ID'),
             ],
             'ID_back_image'               => [
-                'required_with:national_ID', new ValidPublicImage('national_ID')
+                'required_with:national_ID', new ValidPublicImage('national_ID'),
             ],
 
             'passport_ID'                 => 'nullable|required_without:national_ID',
             'passport_image'              => [
-                'required_with:passport_ID', new ValidPublicImage('passport_ID')
+                'required_with:passport_ID', new ValidPublicImage('passport_ID'),
             ],
             'driving_license_number'      => 'required|string|max:50',
             'license_expire_date'         => [
@@ -213,10 +213,10 @@ class AuthController extends ApiController
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
             'license_front_image'         => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
             'license_back_image'          => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
             'vehicle_type'                => ['required', Rule::in(['car', 'scooter'])],
             'car_mark_id'                 => [
@@ -245,11 +245,11 @@ class AuthController extends ApiController
             'year'                        => 'required|integer|min:1990|max:' . date('Y'),
             'plate_num'                   => 'required|string|max:255',
             'vehicle_image'               => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
 
             'plate_image'                 => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
             'vehicle_license_expire_date' => [
                 'required',
@@ -258,10 +258,10 @@ class AuthController extends ApiController
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
             'vehicle_license_front_image' => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
             'vehicle_license_back_image'  => [
-                'required', new ValidPublicImage
+                'required', new ValidPublicImage,
             ],
             'registration_id'             => 'required',
         ]);
@@ -1122,6 +1122,7 @@ class AuthController extends ApiController
         $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
         $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
         $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
+        $user->PassportImage = getFirstMediaUrl($user, $user->passportImageCollection);
         if ($user->mode == 'client') {
             $user->rate = Trip::where('user_id', $user->id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
         } elseif ($user->mode == 'driver') {
@@ -1238,6 +1239,82 @@ class AuthController extends ApiController
 
     }
 
+    public function update_national_ID_data(Request $request)
+    {
+        $rules = [
+            'ID_front_image'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_back_image'           => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'national_ID'             => 'required|digits:14',
+            'national_ID_expire_date' => 'required|date_format:Y-m-d|after:today',
+
+        ];
+        $validator = Validator::make($request->all(), $rules);
+
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+        $user                       = auth()->user();
+        $user->national_id          = $request->national_ID;
+        $user->national_id_expire_date = $request->national_ID_expire_date;
+        $user->save();
+        if ($request->file('ID_front_image')) {
+            $image2 = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+            if ($image2 != null) {
+                deleteMedia($user, $user->IDfrontImageCollection);
+            }
+            uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+
+        }
+        if ($request->file('ID_back_image')) {
+            $image3 = getFirstMediaUrl($user, $user->IDbackImageCollection);
+            if ($image3 != null) {
+                deleteMedia($user, $user->IDbackImageCollection);
+            }
+            uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+        }
+        $user                = auth()->user();
+        $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+        $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
+        return $this->sendResponse($user, 'Account Updated Successfully', 200);
+
+    }
+    public function update_passport_data(Request $request)
+    {
+        $rules = [
+            'passport'             => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'passport_num'         => 'required|string|max:50',
+            'passport_expire_date' => 'required|date_format:Y-m-d|after:today',
+        ];
+        $validator = Validator::make($request->all(), $rules);
+
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+        $user                       = auth()->user();
+        $user->passport_id          = $request->passport_num;
+        $user->passport_expire_date = $request->passport_expire_date;
+        $user->save();
+        if ($request->file('passport')) {
+            $image4 = getFirstMediaUrl($user, $user->passportImageCollection);
+            if ($image4 != null) {
+                deleteMedia($user, $user->passportImageCollection);
+            }
+            uploadMedia($request->passport, $user->passportImageCollection, $user);
+
+        }
+        $user                = auth()->user();
+        $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->passportImage = getFirstMediaUrl($user, $user->passportImageCollection);
+        return $this->sendResponse($user, 'Account Updated Successfully', 200);
+
+    }
     public function forgotPassword(Request $request)
     {
         // Check email format with custom regex

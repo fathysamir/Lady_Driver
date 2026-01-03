@@ -44,6 +44,10 @@ return new class extends Migration
             $table->enum('driver_type', ['car', 'comfort_car', 'scooter'])->nullable();
             $table->string('role')->default('Client');
             $table->timestamp('otp_expires_at')->nullable();
+            $table->date('medical_examination_date')->nullable();
+            $table->date('passport_expire_date')->nullable();
+            $table->date('national_id_expire_date')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
