@@ -21,6 +21,7 @@ use App\Http\Controllers\Dashboard\RatingTripSettingsController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
+use App\Http\Controllers\Dashboard\ScooterController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -155,6 +156,10 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/car/delete/{id}', [CarController::class, 'delete'])->name('delete.car');
     Route::get('/getModels', [CarController::class, 'getModels'])->name('getModels');
     Route::get('/car-location/{id}', [CarController::class, 'getLocation']);
+    ///////////////////////////////////////////
+    Route::get('/scooter/edit/{id}', [ScooterController::class, 'edit'])->name('edit.scooter');
+    Route::get('scooter/getModels', [ScooterController::class, 'getModels'])->name('scooter.getModels');
+    Route::get('/scooter-location/{id}', [ScooterController::class, 'getLocation']);
     //////////////////////////////////////////
     Route::any('/trips', [TripController::class, 'index'])->name('trips');
     Route::get('/trip/view/{id}', [TripController::class, 'view'])->name('view.trip');

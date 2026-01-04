@@ -1,27 +1,19 @@
 <?php
-
 namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use App\Models\Car;
 use App\Models\CarMark;
 use App\Models\CarModel;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 use Image;
-use Str;
-use File;
 
 class CarController extends Controller
-{//done
+{ //done
     public function index(Request $request)
     {
         $all_cars = Car::orderBy('id', 'desc');
@@ -55,11 +47,11 @@ class CarController extends Controller
         }
 
         $all_cars = $all_cars->paginate(12);
-        $users = User::whereHas('roles', function ($query) {
+        $users    = User::whereHas('roles', function ($query) {
             $query->where('roles.name', 'Client');
         })->where('mode', 'driver')->get();
         $car_marks = CarMark::all();
-        $search = $request->search;
+        $search    = $request->search;
         return view('dashboard.cars.index', compact('all_cars', 'users', 'car_marks', 'search'));
 
     }
@@ -88,9 +80,7 @@ class CarController extends Controller
     //             'phone_number' => ['nullable', 'unique:users,phone', 'numeric'],
     //             'role'=>['required',Rule::in(Role::pluck('id'))]
 
-
     //         ]);
-
 
     //         if ($validator->fails()) {
     //             return Redirect::back()->withInput()->withErrors($validator);
@@ -118,14 +108,14 @@ class CarController extends Controller
 
     // }
 
-
     public function edit($id)
     {
-        $car = Car::where('id', $id)->first();
-        $car->image = getFirstMediaUrl($car, $car->avatarCollection);
-        $car->plate_image = getFirstMediaUrl($car, $car->PlateImageCollection);
+        $car                      = Car::where('id', $id)->first();
+        $car->image               = getFirstMediaUrl($car, $car->avatarCollection);
+        $car->plate_image         = getFirstMediaUrl($car, $car->PlateImageCollection);
         $car->license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
-        $car->license_back_image = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
+        $car->license_back_image  = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
+        $car->CarInspectionImage  = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
         return view('dashboard.cars.edit', compact('car'));
     }
 
@@ -139,13 +129,10 @@ class CarController extends Controller
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
-        Car::where('id', $id)->update([ 'status' => $request->status]);
+        Car::where('id', $id)->update(['status' => $request->status]);
         return redirect('/admin-dashboard/cars');
 
     }
-
-
-
 
     public function delete($id)
     {

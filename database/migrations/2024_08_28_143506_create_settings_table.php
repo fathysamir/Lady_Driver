@@ -19,6 +19,7 @@ return new class extends Migration
             $table->longtext('value')->nullable();
             $table->string('unit')->nullable();
             $table->string('category')->default('Default');
+            $table->integer('level')->nullable();
             $table->timestamps();
         });
     }

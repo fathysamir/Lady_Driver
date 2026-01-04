@@ -29,11 +29,11 @@ class Car extends Model
         'lng',
         'air_conditioned',
         'status',
+        'car_inspection_date',
         'passenger_type',
         'license_expire_date',
         'animals',
         'is_comfort',
-        'car_inspection_date'
     ];
 
     protected $allowedSorts = [

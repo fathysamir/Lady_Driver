@@ -1,157 +1,157 @@
 @extends('dashboard.layout.app')
 @section('title', 'Dashboard - edit driver')
 @section('content')
-<style>
-    .user-status {
-        display: inline-block;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        margin-left: -4%;
-        margin-bottom: 4.65%;
-    }
+    <style>
+        .user-status {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-left: -4%;
+            margin-bottom: 4.65%;
+        }
 
-    .circle-wrapper {
-        display: flex;
-        justify-content: center;
-        /* horizontal center */
-        align-items: center;
+        .circle-wrapper {
+            display: flex;
+            justify-content: center;
+            /* horizontal center */
+            align-items: center;
 
-    }
+        }
 
-    .circle-label {
-        width: 40px;
-        height: 40px;
-        border: 2px solid rgb(255, 230, 0);
-        border-radius: 50%;
-        color: rgb(255, 255, 255);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: bold;
-        font-size: 18px;
-    }
+        .circle-label {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgb(255, 230, 0);
+            border-radius: 50%;
+            color: rgb(255, 255, 255);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
 
-    .online {
-        background-color: green;
-    }
+        .online {
+            background-color: green;
+        }
 
-    .filled {
-        color: gold;
-    }
+        .filled {
+            color: gold;
+        }
 
-    .offline {
-        background-color: gray;
-    }
+        .offline {
+            background-color: gray;
+        }
 
-    .zoomable-image {
-        cursor: pointer;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+        .zoomable-image {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-    .zoomable-image:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    }
+        .zoomable-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
 
-    .image-preview {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.95);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
+        .image-preview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
 
-    .image-preview.show {
-        display: flex;
-        opacity: 1;
-    }
+        .image-preview.show {
+            display: flex;
+            opacity: 1;
+        }
 
-    .preview-container {
-        position: relative;
-        max-width: 90vw;
-        max-height: 90vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+        .preview-container {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .image-preview img {
-        max-width: 90vw;
-        max-height: 90vh;
-        border-radius: 8px;
-        cursor: grab;
-        transition: transform 0.1s ease;
-        transform-origin: center center;
-        user-select: none;
-    }
+        .image-preview img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            cursor: grab;
+            transition: transform 0.1s ease;
+            transform-origin: center center;
+            user-select: none;
+        }
 
-    .image-preview img:active {
-        cursor: grabbing;
-    }
+        .image-preview img:active {
+            cursor: grabbing;
+        }
 
-    .preview-controls {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        display: flex;
-        gap: 10px;
-        z-index: 10001;
-    }
+        .preview-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10001;
+        }
 
-    .control-btn {
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        color: #333;
-        font-weight: bold;
-    }
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: #333;
+            font-weight: bold;
+        }
 
-    .control-btn:hover {
-        background: white;
-        transform: scale(1.1);
-    }
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
 
-    .close-btn {
-        background: rgba(255, 59, 48, 0.9) !important;
-        color: white !important;
-    }
+        .close-btn {
+            background: rgba(255, 59, 48, 0.9) !important;
+            color: white !important;
+        }
 
-    .close-btn:hover {
-        background: rgb(255, 59, 48) !important;
-    }
+        .close-btn:hover {
+            background: rgb(255, 59, 48) !important;
+        }
 
-    .zoom-indicator {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(255, 255, 255, 0.9);
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-size: 16px;
-        color: #333;
-        font-weight: bold;
-        pointer-events: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 10001;
-    }
-</style>
+        .zoom-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10001;
+        }
+    </style>
     <div class="content-wrapper">
         <div class="container-fluid">
 
@@ -185,7 +185,7 @@
                                     <div class="star-rating" style="margin-bottom: -5px;">
                                         <?php
                                         $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-
+                                        
                                         // Loop to generate stars based on the client evaluation score
                                         for ($i = 1; $i <= 5; $i++) {
                                             $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -597,14 +597,84 @@
                                     <input type="number" class="form-control" name="national_id"
                                         placeholder="National ID"value="{{ old('national_id', $user->national_id) }}">
                                 </div>
+                                @if ($user->national_id_expire_date)
+                                    <div class="form-group"style="display: flex;">
+                                        <label>
+                                            National ID Expiration Date :
+                                            <span
+                                                style="color: {{ \Carbon\Carbon::parse($user->national_id_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($user->national_id_expire_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
                                 <div class="form-group"style="display: flex;">
                                     <label>Id Images : </label>
-                                    <img width="400"height="250" style="margin: 0px 10px 0px 10px; border-radius:10px;"
-                                        src="{{ $user->IDfrontImage }}"class="zoomable-image">
-                                    <img width="400" height="250"
-                                        style="margin: 0px 10px 0px 10px; border-radius:10px;"
-                                        src="{{ $user->IDbackImage }}"class="zoomable-image">>
+                                    @if ($user->IDfrontImage)
+                                        <img width="400"height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->IDfrontImage }}"class="zoomable-image">
+                                        <img width="400" height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->IDbackImage }}"class="zoomable-image">
+                                    @else
+                                        <label style="color: #ff7272">There is no National ID.</label>
+                                    @endif
                                 </div>
+                                <div class="form-group">
+                                    <label>Passport ID</label>
+                                    <input type="text" class="form-control" name="passport_id"
+                                        placeholder="Passport ID"value="{{ old('passport_id', $user->passport_id) }}">
+                                </div>
+
+                                @if ($user->passport_expire_date)
+                                    <div class="form-group"style="display: flex;">
+                                        <label>
+                                            National ID Expiration Date :
+                                            <span
+                                                style="color: {{ \Carbon\Carbon::parse($user->passport_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($user->passport_expire_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
+                                <div class="form-group"style="display: flex;">
+                                    <label>Passport Image : </label>
+                                    @if ($user->PassportImage)
+                                        <img width="400"height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->PassportImage }}"class="zoomable-image">
+                                    @else
+                                        <label style="color: #ff7272"> There is no passport.</label>
+                                    @endif
+
+                                </div>
+                                <div class="form-group"style="display: flex;">
+                                    <label>Medical Examination Image : </label>
+                                    @if ($user->medicalExaminationImage)
+                                        <img width="400"height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->medicalExaminationImage }}"class="zoomable-image">
+                                    @else
+                                        <label style="color: #ff7272"> There is no medical examination.</label>
+                                    @endif
+
+                                </div>
+                                @if ($user->medical_examination_date)
+                                    <div class="form-group"style="display: flex;">
+
+                                        <label>
+                                            Medical Examination Date :
+                                            <span style="color: #56ec60">
+                                                {{ \Carbon\Carbon::parse($user->medical_examination_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
+
                                 <div class="form-group">
                                     <label>Address : {{ $user->address }}</label>
                                 </div>
@@ -626,15 +696,12 @@
                                     </div>
                                     <div class="form-group"style="display: flex;">
                                         <label>Driver License Images : </label>
-                                        <img width="300"
-                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                        <img width="300" style="margin: 0px 10px 0px 10px; border-radius:10px;"
                                             src="{{ $user->driving_license->front_image }}"class="zoomable-image">
-                                            <img width="300"
-                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                        <img width="300" style="margin: 0px 10px 0px 10px; border-radius:10px;"
                                             src="{{ $user->driving_license->back_image }}"class="zoomable-image">
 
                                     </div>
-
                                 @else
                                     <div class="form-group"style="display: flex;">
                                         <label>No data was entered for the driver's license</label>
@@ -644,6 +711,11 @@
                                     <div class="form-group">
                                         <label>Car : you can show car from <a style="color: blue"
                                                 href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">hear</a></label>
+                                    </div>
+                                @elseif($user->scooter)
+                                    <div class="form-group">
+                                        <label>Car : you can show scooter from <a style="color: blue"
+                                                href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">hear</a></label>
                                     </div>
                                 @else
                                     <div class="form-group"style="display: flex;">
@@ -673,7 +745,7 @@
                                     <div class="star-rating" style="margin-bottom: 10px;">
                                         <?php
                                         $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-
+                                        
                                         // Loop to generate stars based on the client evaluation score
                                         for ($i = 1; $i <= 5; $i++) {
                                             $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -715,8 +787,8 @@
             <div class="overlay toggle-menu"></div>
         </div>
     </div>
-     <!-- Image Preview Popup -->
-     <div class="image-preview">
+    <!-- Image Preview Popup -->
+    <div class="image-preview">
         <div class="preview-container">
             <div class="preview-controls">
                 <button type="button" class="btn btn-light px-3 zoom-in-btn" title="Zoom In">+</button>
@@ -731,7 +803,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE"></script>
     <script>
         function initMap() {
             var userLocation = {
@@ -747,8 +819,7 @@
                 map: map
             });
         }
-    </script>
-    <script>
+
         // Call initMap after Google Maps API is loaded
         google.maps.event.addDomListener(window, 'load', initMap);
     </script>

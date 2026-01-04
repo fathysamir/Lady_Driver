@@ -187,7 +187,10 @@
 
 
                                                     <td>
-                                                        @if ($user->status == 'banned')
+                                                        @if ($user->status == 'pending')
+                                                            <span class="badge badge-secondary"
+                                                                style="background-color: rgba(255, 208, 0, 0.862);width:100%;">Pending</span>
+                                                        @elseif ($user->status == 'banned')
                                                             <span class="badge badge-secondary"
                                                                 style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>
                                                         @elseif($user->status == 'confirmed')

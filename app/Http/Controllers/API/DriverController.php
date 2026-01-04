@@ -17,7 +17,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-
 class DriverController extends ApiController
 {
     protected $firebaseService;
@@ -179,32 +178,32 @@ class DriverController extends ApiController
         //     return $this->sendError(null, $check_account, 400);
         // }
         $validator = Validator::make($request->all(), [
-            'car_id'              => [
-                'required',
-                Rule::exists('cars', 'id'),
-            ],
-            'car_mark_id'         => [
-                'required',
-                Rule::exists('car_marks', 'id'),
-            ],
-            'car_model_id'        => [
-                'required',
-                Rule::exists('car_models', 'id'),
-            ],
+            // 'car_id'              => [
+            //     'required',
+            //     Rule::exists('cars', 'id'),
+            // ],
+            // 'car_mark_id'         => [
+            //     'required',
+            //     Rule::exists('car_marks', 'id'),
+            // ],
+            // 'car_model_id'        => [
+            //     'required',
+            //     Rule::exists('car_models', 'id'),
+            // ],
             'color'               => 'required|string|max:255',
-            'year'                => 'required|integer|min:1900|max:' . date('Y'),
-            'car_plate'           => 'required|string|max:255',
+            // 'year'                => 'required|integer|min:1900|max:' . date('Y'),
+            // 'car_plate'           => 'required|string|max:255',
             'air_conditioned'     => 'nullable|boolean',
             'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            // 'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'inspection_image'    => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'lat'                 => 'nullable',
-            'lng'                 => 'nullable',
+            // 'inspection_image'    => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            // 'lat'                 => 'nullable',
+            // 'lng'                 => 'nullable',
             'license_expire_date' => 'required|date',
             'passenger_type'      => 'required|in:female,male_female',
-            'car_inspection_date' => 'nullable|date',
+            // 'car_inspection_date' => 'nullable|date',
 
         ]);
         // dd($request->all());
@@ -216,17 +215,17 @@ class DriverController extends ApiController
         }
 
         Car::where('id', $request->car_id)->update([
-            'car_mark_id'         => $request->car_mark_id,
-            'car_model_id'        => $request->car_model_id,
+            // 'car_mark_id'         => $request->car_mark_id,
+            // 'car_model_id'        => $request->car_model_id,
             'color'               => $request->color,
-            'year'                => $request->year,
-            'car_plate'           => $request->car_plate,
-            'lat'                 => floatval($request->lat),
-            'lng'                 => floatval($request->lng),
+            // 'year'                => $request->year,
+            // 'car_plate'           => $request->car_plate,
+            // 'lat'                 => floatval($request->lat),
+            // 'lng'                 => floatval($request->lng),
             'status'              => 'pending',
             'passenger_type'      => $request->passenger_type,
             'license_expire_date' => $request->license_expire_date,
-            'car_inspection_date' => $request->car_inspection_date,
+            // 'car_inspection_date' => $request->car_inspection_date,
         ]);
         $car = Car::find($request->car_id);
 
@@ -241,13 +240,13 @@ class DriverController extends ApiController
             $car->animals = '0';
         }
 
-        $comfort_year = Setting::where('key', 'comfort_car_start_from_year')->where('category', 'General')->where('type', 'number')->first()->value;
+        // $comfort_year = Setting::where('key', 'comfort_car_start_from_year')->where('category', 'General')->where('type', 'number')->first()->value;
 
-        if (intval($request->year) >= intval($comfort_year)) {
-            $car->is_comfort = '1';
-        } else {
-            $car->is_comfort = '0';
-        }
+        // if (intval($request->year) >= intval($comfort_year)) {
+        //     $car->is_comfort = '1';
+        // } else {
+        //     $car->is_comfort = '0';
+        // }
         $car->save();
 
         if ($request->file('image')) {
@@ -260,15 +259,15 @@ class DriverController extends ApiController
             }
         }
 
-        if ($request->file('plate_image')) {
-            $plate_image = getFirstMediaUrl($car, $car->PlateImageCollection);
-            if ($plate_image != null) {
-                deleteMedia($car, $car->PlateImageCollection);
-                uploadMedia($request->plate_image, $car->PlateImageCollection, $car);
-            } else {
-                uploadMedia($request->plate_image, $car->PlateImageCollection, $car);
-            }
-        }
+        // if ($request->file('plate_image')) {
+        //     $plate_image = getFirstMediaUrl($car, $car->PlateImageCollection);
+        //     if ($plate_image != null) {
+        //         deleteMedia($car, $car->PlateImageCollection);
+        //         uploadMedia($request->plate_image, $car->PlateImageCollection, $car);
+        //     } else {
+        //         uploadMedia($request->plate_image, $car->PlateImageCollection, $car);
+        //     }
+        // }
 
         if ($request->file('license_front_image')) {
             $license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
@@ -290,15 +289,15 @@ class DriverController extends ApiController
             }
         }
 
-        if ($request->file('inspection_image')) {
-            $inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
-            if ($inspection_image != null) {
-                deleteMedia($car, $car->CarInspectionImageCollection);
-                uploadMedia($request->inspection_image, $car->CarInspectionImageCollection, $car);
-            } else {
-                uploadMedia($request->inspection_image, $car->CarInspectionImageCollection, $car);
-            }
-        }
+        // if ($request->file('inspection_image')) {
+        //     $inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
+        //     if ($inspection_image != null) {
+        //         deleteMedia($car, $car->CarInspectionImageCollection);
+        //         uploadMedia($request->inspection_image, $car->CarInspectionImageCollection, $car);
+        //     } else {
+        //         uploadMedia($request->inspection_image, $car->CarInspectionImageCollection, $car);
+        //     }
+        // }
 
         $car                      = Car::find($request->car_id);
         $car->image               = getFirstMediaUrl($car, $car->avatarCollection);
@@ -307,6 +306,9 @@ class DriverController extends ApiController
         $car->license_back_image  = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
         $car->inspection_image    = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
 
+        $driver=auth()->user();
+        $driver->status='pending';
+        $driver->save();
         return $this->sendResponse($car, 'Car Updated Successfully.', 200);
     }
 
@@ -518,6 +520,7 @@ class DriverController extends ApiController
             'license_number'      => 'required',
             'license_expire_date' => 'required|date',
             'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
 
         ]);
         // dd($request->all());
@@ -535,7 +538,7 @@ class DriverController extends ApiController
                 'expire_date'                               => $request->license_expire_date]);
 
             uploadMedia($request->license_front_image, $license->LicenseFrontImageCollection, $license);
-            //uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
+            uploadMedia($request->license_back_image, $license->LicenseBackImageCollection, $license);
 
         } else {
             $existed_driving_license->update(['license_num' => $request->license_number,
@@ -548,13 +551,13 @@ class DriverController extends ApiController
                 uploadMedia($request->license_front_image, $existed_driving_license->LicenseFrontImageCollection, $existed_driving_license);
             }
 
-            // if ($request->file('license_back_image')) {
-            //     $license_back_image = getFirstMediaUrl($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
-            //     if ($license_back_image != null) {
-            //         deleteMedia($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
-            //     }
-            //     uploadMedia($request->license_back_image, $existed_driving_license->LicenseBackImageCollection, $existed_driving_license);
-            // }
+            if ($request->file('license_back_image')) {
+                $license_back_image = getFirstMediaUrl($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
+                if ($license_back_image != null) {
+                    deleteMedia($existed_driving_license, $existed_driving_license->LicenseBackImageCollection);
+                }
+                uploadMedia($request->license_back_image, $existed_driving_license->LicenseBackImageCollection, $existed_driving_license);
+            }
 
         }
         $driving_license                      = DriverLicense::where('user_id', auth()->user()->id)->first();
@@ -569,6 +572,12 @@ class DriverController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'Car_inspection_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'inspection_date'      => [
+                'required',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
+            ],
+
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -580,6 +589,8 @@ class DriverController extends ApiController
         $car = Car::where('user_id', auth()->user()->id)->first();
 
         if ($request->file('Car_inspection_image') && $car) {
+            $car->car_inspection_date = date('Y-m-d', strtotime($request->inspection_date));
+            $car->save();
             $Car_inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
             if ($Car_inspection_image != null) {
                 deleteMedia($car, $car->CarInspectionImageCollection);
@@ -592,7 +603,41 @@ class DriverController extends ApiController
         return $this->sendResponse(null, 'Car Inspection saved Successfully', 200);
 
     }
+    public function medical_examination(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'medical_examination_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'medical_examination_date'  => [
+                'required',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
+            ],
 
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+        $user = auth()->user();
+
+        if ($request->file('medical_examination_image')) {
+            $user->medical_examination_date = date('Y-m-d', strtotime($request->medical_examination_date));
+            $user->save();
+            $medical_examination_image = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
+            if ($medical_examination_image != null) {
+                deleteMedia($user, $user->medicalExaminationImageCollection);
+            }
+            uploadMedia($request->medical_examination_image, $user->medicalExaminationImageCollection, $user);
+        } else {
+            return $this->sendError(null, 'Make sure the medical examination is uploaded', 400);
+
+        }
+        return $this->sendResponse(null, 'Medical Examination saved Successfully', 200);
+
+    }
     public function driving_license()
     {
         $driving_license = DriverLicense::where('user_id', auth()->user()->id)->first();
@@ -616,7 +661,7 @@ class DriverController extends ApiController
         }
         if (auth()->user()->driver_type == 'car') {
             $driver_car = Car::where('user_id', auth()->user()->id)->first();
-            if (!$driver_car) {
+            if (! $driver_car) {
                 return $this->sendError(null, "No car found for this driver", 400);
             }
             if ($driver_car->status == 'confirmed') {
@@ -800,8 +845,6 @@ class DriverController extends ApiController
         return $this->sendResponse($trip, null, 200);
     }
 
-
-
     // public function start_trip(Request $request)
     // {
     //     $check_account = $this->check_banned();
@@ -891,7 +934,7 @@ class DriverController extends ApiController
             $car             = Car::where('user_id', auth()->user()->id)->first();
             $completed_trips = Trip::where('car_id', $car->id)->where('status', 'completed')->with(['car' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user','finalDestination'])->get()->map(function ($trip) {
+            }, 'user', 'finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;
@@ -901,7 +944,7 @@ class DriverController extends ApiController
             $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
             $completed_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'completed')->with(['scooter' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user','finalDestination'])->get()->map(function ($trip) {
+            }, 'user', 'finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 return $trip;
@@ -964,7 +1007,7 @@ class DriverController extends ApiController
         $driverLng = $request->lng;
         $startLat  = $trip->start_lat;
         $startLng  = $trip->start_lng;
-        $distance = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
+        $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
 
         if ($distance <= 15) {
 
