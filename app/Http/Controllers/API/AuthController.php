@@ -1256,9 +1256,11 @@ class AuthController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
-        $user                       = auth()->user();
-        $user->national_id          = $request->national_ID;
+        $user                          = auth()->user();
+        $user->national_id             = $request->national_ID;
         $user->national_id_expire_date = $request->national_ID_expire_date;
+        $user->status                  = 'pending';
+
         $user->save();
         if ($request->file('ID_front_image')) {
             $image2 = getFirstMediaUrl($user, $user->IDfrontImageCollection);
@@ -1300,6 +1302,7 @@ class AuthController extends ApiController
         $user                       = auth()->user();
         $user->passport_id          = $request->passport_num;
         $user->passport_expire_date = $request->passport_expire_date;
+        $user->status               = 'pending';
         $user->save();
         if ($request->file('passport')) {
             $image4 = getFirstMediaUrl($user, $user->passportImageCollection);

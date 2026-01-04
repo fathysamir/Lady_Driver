@@ -95,8 +95,10 @@ function deleteMedia($model, $collection_name = null)
         ->first();
 
     if ($med) {
-        $path = public_path($med->path);
-
+        $path = public_path(ltrim($med->path, '/'));
+        if (file_exists($path)) {
+            unlink($path);
+        }
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -119,7 +121,7 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
 
     //$api_key = 'AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0';
     $api_key = 'AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE';
-    
+
     switch (strtolower($vehicleType)) {
         case 'scooter':
         case 'motorbike':

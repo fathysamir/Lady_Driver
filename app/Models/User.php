@@ -23,6 +23,7 @@ class User extends Authenticatable
     public $IDbackImageCollection             = 'id-back-image';
     public $passportImageCollection           = 'passport-image';
     public $medicalExaminationImageCollection = 'medical_examination-image';
+    public $criminalRecordImageCollection ='criminal_record_image';
 
     protected $fillable = [
         'name',
@@ -58,7 +59,8 @@ class User extends Authenticatable
         'otp_expires_at',
         'medical_examination_date',
         'passport_expire_date',
-        'national_id_expire_date'
+        'national_id_expire_date',
+        'criminal_record_date'
     ];
 
     /**

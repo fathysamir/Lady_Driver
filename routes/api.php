@@ -5,9 +5,6 @@ use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\API\ProfileController;
-use App\Models\Car;
-use App\Models\DriverLicense;
-use App\Models\Scooter;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -110,6 +107,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add_driving_license', [DriverController::class, 'add_driving_license'])->name('add_driving_license');
     Route::post('/add_car_inspection', [DriverController::class, 'add_car_inspection'])->name('add_car_inspection');
     Route::post('/add_medical_examination', [DriverController::class, 'add_medical_examination'])->name('add_medical_examination');
+    Route::post('/add_car_license', [DriverController::class, 'add_car_license'])->name('add_car_license');
+    Route::post('/add_scooter_license', [DriverController::class, 'add_scooter_license'])->name('add_scooter_license');
 
     Route::get('/driving_license', [DriverController::class, 'driving_license'])->name('driving_license');
     Route::get('/profile/{id}', [AuthController::class, 'profile'])->name('profile');

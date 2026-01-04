@@ -196,21 +196,12 @@ class DriverController extends ApiController
             'air_conditioned'     => 'nullable|boolean',
             'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             // 'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            // 'inspection_image'    => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            // 'lat'                 => 'nullable',
-            // 'lng'                 => 'nullable',
-            'license_expire_date' => 'required|date',
             'passenger_type'      => 'required|in:female,male_female',
-            // 'car_inspection_date' => 'nullable|date',
 
         ]);
         // dd($request->all());
         if ($validator->fails()) {
-
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
 
@@ -220,12 +211,8 @@ class DriverController extends ApiController
             'color'               => $request->color,
             // 'year'                => $request->year,
             // 'car_plate'           => $request->car_plate,
-            // 'lat'                 => floatval($request->lat),
-            // 'lng'                 => floatval($request->lng),
             'status'              => 'pending',
             'passenger_type'      => $request->passenger_type,
-            'license_expire_date' => $request->license_expire_date,
-            // 'car_inspection_date' => $request->car_inspection_date,
         ]);
         $car = Car::find($request->car_id);
 
@@ -269,26 +256,6 @@ class DriverController extends ApiController
         //     }
         // }
 
-        if ($request->file('license_front_image')) {
-            $license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
-            if ($license_front_image != null) {
-                deleteMedia($car, $car->LicenseFrontImageCollection);
-                uploadMedia($request->license_front_image, $car->LicenseFrontImageCollection, $car);
-            } else {
-                uploadMedia($request->license_front_image, $car->LicenseFrontImageCollection, $car);
-            }
-        }
-
-        if ($request->file('license_back_image')) {
-            $license_back_image = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
-            if ($license_back_image != null) {
-                deleteMedia($car, $car->LicenseBackImageCollection);
-                uploadMedia($request->license_back_image, $car->LicenseBackImageCollection, $car);
-            } else {
-                uploadMedia($request->license_back_image, $car->LicenseBackImageCollection, $car);
-            }
-        }
-
         // if ($request->file('inspection_image')) {
         //     $inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
         //     if ($inspection_image != null) {
@@ -306,8 +273,8 @@ class DriverController extends ApiController
         $car->license_back_image  = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
         $car->inspection_image    = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
 
-        $driver=auth()->user();
-        $driver->status='pending';
+        $driver         = auth()->user();
+        $driver->status = 'pending';
         $driver->save();
         return $this->sendResponse($car, 'Car Updated Successfully.', 200);
     }
@@ -512,6 +479,106 @@ class DriverController extends ApiController
 
         return $this->sendResponse($scooter, null, 200);
     }
+    public function add_car_license(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'car_id'              => 'required|exists:cars,id',
+
+            'license_expire_date' => [
+                'required',
+                'date_format:Y-m-d',
+                'after_or_equal:today',
+            ],
+        ]);
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+
+        $car = Car::findOrFail($request->car_id);
+
+        $car->update([
+            'status'              => 'pending',
+            'license_expire_date' => $request->license_expire_date,
+        ]);
+
+        if ($request->file('license_front_image')) {
+            $license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
+            if ($license_front_image != null) {
+                deleteMedia($car, $car->LicenseFrontImageCollection);
+            }
+            uploadMedia($request->license_front_image, $car->LicenseFrontImageCollection, $car);
+        }
+
+        if ($request->file('license_back_image')) {
+            $license_back_image = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
+            if ($license_back_image != null) {
+                deleteMedia($car, $car->LicenseBackImageCollection);
+            }
+            uploadMedia($request->license_back_image, $car->LicenseBackImageCollection, $car);
+        }
+        $car = Car::findOrFail($request->car_id);
+
+        $car->license_front_image = getFirstMediaUrl($car, $car->LicenseFrontImageCollection);
+        $car->license_back_image  = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
+
+        $driver         = auth()->user();
+        $driver->status = 'pending';
+        $driver->save();
+        return $this->sendResponse($car, 'Car Updated Successfully.', 200);
+    }
+    public function add_scooter_license(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'scooter_id'              => 'required|exists:scooters,id',
+
+            'license_expire_date' => [
+                'required',
+                'date_format:Y-m-d',
+                'after_or_equal:today',
+            ],
+        ]);
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+
+        $scooter = Scooter::findOrFail($request->scooter_id);
+
+        $scooter->update([
+            'status'              => 'pending',
+            'license_expire_date' => $request->license_expire_date,
+        ]);
+
+        if ($request->file('license_front_image')) {
+            $license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+            if ($license_front_image != null) {
+                deleteMedia($scooter, $scooter->LicenseFrontImageCollection);
+            }
+            uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
+        }
+
+        if ($request->file('license_back_image')) {
+            $license_back_image = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+            if ($license_back_image != null) {
+                deleteMedia($scooter, $scooter->LicenseBackImageCollection);
+            }
+            uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
+        }
+        $scooter = Scooter::findOrFail($request->scooter_id);
+
+        $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+        $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+
+        $driver         = auth()->user();
+        $driver->status = 'pending';
+        $driver->save();
+        return $this->sendResponse($scooter, 'Car Updated Successfully.', 200);
+    }
 
     public function add_driving_license(Request $request)
     {
@@ -520,7 +587,7 @@ class DriverController extends ApiController
             'license_number'      => 'required',
             'license_expire_date' => 'required|date',
             'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'license_back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'license_back_image'  => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
 
         ]);
         // dd($request->all());
@@ -532,6 +599,8 @@ class DriverController extends ApiController
         }
         $existed_driving_license = DriverLicense::where('user_id', auth()->user()->id)->first();
         $user                    = auth()->user();
+        $user->status            = 'pending';
+        $user->save();
         if (! $existed_driving_license) {
             $license = DriverLicense::create(['user_id' => auth()->user()->id,
                 'license_num'                               => $request->license_number,
@@ -590,12 +659,17 @@ class DriverController extends ApiController
 
         if ($request->file('Car_inspection_image') && $car) {
             $car->car_inspection_date = date('Y-m-d', strtotime($request->inspection_date));
-            $car->save();
+
             $Car_inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
             if ($Car_inspection_image != null) {
                 deleteMedia($car, $car->CarInspectionImageCollection);
             }
             uploadMedia($request->Car_inspection_image, $car->CarInspectionImageCollection, $car);
+            $car->status = 'pending';
+            $car->save();
+            $user         = auth()->user();
+            $user->status = 'pending';
+            $user->save();
         } else {
             return $this->sendError(null, 'Make sure the car is registered and the inspection is uploaded', 400);
 
@@ -631,11 +705,49 @@ class DriverController extends ApiController
                 deleteMedia($user, $user->medicalExaminationImageCollection);
             }
             uploadMedia($request->medical_examination_image, $user->medicalExaminationImageCollection, $user);
+            $user->status = 'pending';
+            $user->save();
         } else {
             return $this->sendError(null, 'Make sure the medical examination is uploaded', 400);
 
         }
         return $this->sendResponse(null, 'Medical Examination saved Successfully', 200);
+
+    }
+
+    public function criminal_record(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'criminal_record_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'criminal_record_date'  => [
+                'required',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
+            ],
+
+        ]);
+        // dd($request->all());
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
+        $user = auth()->user();
+
+        if ($request->file('criminal_record_image')) {
+            $user->criminal_record_date = date('Y-m-d', strtotime($request->criminal_record_date));
+            $user->save();
+            $criminal_record_image = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
+            if ($criminal_record_image != null) {
+                deleteMedia($user, $user->criminalRecordImageCollection);
+            }
+            uploadMedia($request->criminal_record_image, $user->criminalRecordImageCollection, $user);
+            $user->status = 'pending';
+            $user->save();
+        } else {
+            return $this->sendError(null, 'Make sure the criminal record is uploaded', 400);
+
+        }
+        return $this->sendResponse(null, 'criminal record saved successfully', 200);
 
     }
     public function driving_license()
