@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
+use App\Http\Controllers\API\ProfileController;
 use App\Models\Car;
 use App\Models\DriverLicense;
 use App\Models\Scooter;
@@ -149,5 +150,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get_all_user_addresses', [ClientController::class, 'get_all_user_addresses']);
     Route::get('/delete_address', [ClientController::class, 'delete_address']);
     Route::get('/get_rate_trip_setting', [ClientController::class, 'get_rate_trip_setting']);
+
+    Route::put('/edit-name', [ProfileController::class, 'updateName']);
+    Route::put('/edit-phone', [ProfileController::class, 'updatePhone']);
+    Route::put('/edit-email', [ProfileController::class, 'updateEmail']);
+    Route::put('/edit-birth-date', [ProfileController::class, 'updateBirthDate']);
 
 });
