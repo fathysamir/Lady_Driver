@@ -803,7 +803,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE"></script>
     <script>
         function initMap() {
             var userLocation = {
