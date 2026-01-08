@@ -178,10 +178,10 @@ class DriverController extends ApiController
         //     return $this->sendError(null, $check_account, 400);
         // }
         $validator = Validator::make($request->all(), [
-            // 'car_id'              => [
-            //     'required',
-            //     Rule::exists('cars', 'id'),
-            // ],
+            'car_id'          => [
+                'required',
+                Rule::exists('cars', 'id'),
+            ],
             // 'car_mark_id'         => [
             //     'required',
             //     Rule::exists('car_marks', 'id'),
@@ -190,13 +190,13 @@ class DriverController extends ApiController
             //     'required',
             //     Rule::exists('car_models', 'id'),
             // ],
-            'color'               => 'required|string|max:255',
+            'color'           => 'required|string|max:255',
             // 'year'                => 'required|integer|min:1900|max:' . date('Y'),
             // 'car_plate'           => 'required|string|max:255',
-            'air_conditioned'     => 'nullable|boolean',
-            'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'air_conditioned' => 'nullable|boolean',
+            'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             // 'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'passenger_type'      => 'required|in:female,male_female',
+            'passenger_type'  => 'required|in:female,male_female',
 
         ]);
         // dd($request->all());
@@ -208,11 +208,11 @@ class DriverController extends ApiController
         Car::where('id', $request->car_id)->update([
             // 'car_mark_id'         => $request->car_mark_id,
             // 'car_model_id'        => $request->car_model_id,
-            'color'               => $request->color,
+            'color'          => $request->color,
             // 'year'                => $request->year,
             // 'car_plate'           => $request->car_plate,
-            'status'              => 'pending',
-            'passenger_type'      => $request->passenger_type,
+            'status'         => 'pending',
+            'passenger_type' => $request->passenger_type,
         ]);
         $car = Car::find($request->car_id);
 
@@ -371,29 +371,23 @@ class DriverController extends ApiController
         //     return $this->sendError(null, $check_account, 400);
         // }
         $validator = Validator::make($request->all(), [
-            'scooter_id'          => [
+            'scooter_id' => [
                 'required',
                 Rule::exists('cars', 'id'),
             ],
-            'scooter_mark_id'     => [
-                'required',
-                Rule::exists('motorcycle_marks', 'id'),
-            ],
-            'scooter_model_id'    => [
-                'required',
-                Rule::exists('motorcycle_models', 'id'),
-            ],
-            'color'               => 'required|string|max:255',
-            'year'                => 'required|integer|min:1900|max:' . date('Y'),
-            'scooter_plate'       => 'required|string|max:255',
-            'image'               => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'lat'                 => 'nullable',
-            'lng'                 => 'nullable',
-            'license_expire_date' => 'required|date',
-
+            // 'scooter_mark_id'     => [
+            //     'required',
+            //     Rule::exists('motorcycle_marks', 'id'),
+            // ],
+            // 'scooter_model_id'    => [
+            //     'required',
+            //     Rule::exists('motorcycle_models', 'id'),
+            // ],
+            'color'      => 'required|string|max:255',
+            // 'year'                => 'required|integer|min:1900|max:' . date('Y'),
+            // 'scooter_plate'       => 'required|string|max:255',
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            // 'plate_image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -404,57 +398,25 @@ class DriverController extends ApiController
         }
 
         Car::where('id', $request->scooter_id)->update([
-            'motorcycle_mark_id'  => $request->scooter_mark_id,
-            'motorcycle_model_id' => $request->scooter_model_id,
-            'color'               => $request->color,
-            'year'                => $request->year,
-            'scooter_plate'       => $request->scooter_plate,
-            'lat'                 => floatval($request->lat),
-            'lng'                 => floatval($request->lng),
-            'status'              => 'pending',
-            'license_expire_date' => $request->license_expire_date,
+            // 'motorcycle_mark_id'  => $request->scooter_mark_id,
+            // 'motorcycle_model_id' => $request->scooter_model_id,
+            'color'  => $request->color,
+            // 'year'                => $request->year,
+            // 'scooter_plate'       => $request->scooter_plate,
+            // 'lat'                 => floatval($request->lat),
+            // 'lng'                 => floatval($request->lng),
+            'status' => 'pending',
+
         ]);
         $scooter = Car::find($request->scooter_id);
         if ($request->file('image')) {
             $image = getFirstMediaUrl($scooter, $scooter->avatarCollection);
             if ($image != null) {
                 deleteMedia($scooter, $scooter->avatarCollection);
-                uploadMedia($request->image, $scooter->avatarCollection, $scooter);
-            } else {
-                uploadMedia($request->image, $scooter->avatarCollection, $scooter);
             }
-        }
+            uploadMedia($request->image, $scooter->avatarCollection, $scooter);
 
-        if ($request->file('plate_image')) {
-            $plate_image = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
-            if ($plate_image != null) {
-                deleteMedia($scooter, $scooter->PlateImageCollection);
-                uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
-            } else {
-                uploadMedia($request->plate_image, $scooter->PlateImageCollection, $scooter);
-            }
         }
-
-        if ($request->file('license_front_image')) {
-            $license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
-            if ($license_front_image != null) {
-                deleteMedia($scooter, $scooter->LicenseFrontImageCollection);
-                uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
-            } else {
-                uploadMedia($request->license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
-            }
-        }
-
-        if ($request->file('license_back_image')) {
-            $license_back_image = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
-            if ($license_back_image != null) {
-                deleteMedia($scooter, $scooter->LicenseBackImageCollection);
-                uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
-            } else {
-                uploadMedia($request->license_back_image, $scooter->LicenseBackImageCollection, $scooter);
-            }
-        }
-
         $scooter                      = Scooter::find($request->scooter_id);
         $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
         $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
@@ -534,7 +496,7 @@ class DriverController extends ApiController
         $validator = Validator::make($request->all(), [
             'license_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'license_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'scooter_id'              => 'required|exists:scooters,id',
+            'scooter_id'          => 'required|exists:scooters,id',
 
             'license_expire_date' => [
                 'required',
@@ -772,7 +734,8 @@ class DriverController extends ApiController
             return $this->sendError(null, $check_account, 400);
         }
         if (auth()->user()->driver_type == 'car') {
-            $driver_car = Car::where('user_id', auth()->user()->id)->first();
+            $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
+            $driver_car             = Car::where('user_id', auth()->user()->id)->first();
             if (! $driver_car) {
                 return $this->sendError(null, "No car found for this driver", 400);
             }
@@ -796,7 +759,7 @@ class DriverController extends ApiController
                     }
                     $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
                         ->having('client_location_away', '<=', 3) // Filter cars within 3 km
-                        ->get()->map(function ($trip) use ($driver_car) {
+                        ->get()->map(function ($trip) use ($driver_car, $application_commission) {
                         $response = calculate_distance($driver_car->lat, $driver_car->lng, $trip->start_lat, $trip->start_lng);
                         $distance = $response['distance_in_km'];
                         $duration = $response['duration_in_M'];
@@ -806,6 +769,11 @@ class DriverController extends ApiController
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                             $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
+                            $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', auth()->user()->level)->first()->value);
+                            $application_rate               = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+                            $trip->application_rate         = $application_rate;
+                            $trip->driver__rate             = $trip->total_price - $application_rate;
+
                             return $trip;
                         }
                     })->filter()       // Remove null values after mapping
@@ -822,6 +790,7 @@ class DriverController extends ApiController
         } elseif (auth()->user()->driver_type == 'comfort_car') {
             $driver_car = Car::where('user_id', auth()->user()->id)->first();
             if ($driver_car->status == 'confirmed') {
+                $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
                 if (auth()->user()->is_online == '1') {
                     $radius         = 6371;
                     $decimalPlaces  = 2;
@@ -838,7 +807,7 @@ class DriverController extends ApiController
                     }
                     $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_car->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_car->lng) ) + sin( radians($driver_car->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
                         ->having('client_location_away', '<=', 3) // Filter cars within 3 km
-                        ->get()->map(function ($trip) use ($driver_car) {
+                        ->get()->map(function ($trip) use ($driver_car, $application_commission) {
                         $response = calculate_distance($driver_car->lat, $driver_car->lng, $trip->start_lat, $trip->start_lng);
                         $distance = $response['distance_in_km'];
                         $duration = $response['duration_in_M'];
@@ -848,6 +817,10 @@ class DriverController extends ApiController
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                             $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
+                            $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', auth()->user()->level)->first()->value);
+                            $application_rate               = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+                            $trip->application_rate         = $application_rate;
+                            $trip->driver__rate             = $trip->total_price - $application_rate;
                             return $trip;
                         }
                     })->filter()       // Remove null values after mapping
@@ -862,7 +835,8 @@ class DriverController extends ApiController
                 return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
             }
         } elseif (auth()->user()->driver_type == 'scooter') {
-            $driver_scooter = Scooter::where('user_id', auth()->user()->id)->first();
+            $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
+            $driver_scooter         = Scooter::where('user_id', auth()->user()->id)->first();
             if ($driver_scooter->status == 'confirmed') {
                 if (auth()->user()->is_online == '1') {
                     $radius         = 6371;
@@ -874,7 +848,7 @@ class DriverController extends ApiController
 
                     $tripsWithin3Km = $tripsWithin3Km->selectRaw("ROUND(( $radius * acos( cos( radians($driver_scooter->lat) ) * cos( radians( start_lat ) ) * cos( radians( start_lng ) - radians($driver_scooter->lng) ) + sin( radians($driver_scooter->lat) ) * sin( radians( start_lat ) ) ) ), $decimalPlaces) AS client_location_away")
                         ->having('client_location_away', '<=', 3) // Filter cars within 3 km
-                        ->get()->map(function ($trip) use ($driver_scooter) {
+                        ->get()->map(function ($trip) use ($driver_scooter, $application_commission) {
                         $response = calculate_distance($driver_scooter->lat, $driver_scooter->lng, $trip->start_lat, $trip->start_lng);
                         $distance = $response['distance_in_km'];
                         $duration = $response['duration_in_M'];
@@ -884,6 +858,10 @@ class DriverController extends ApiController
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                             $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
+                            $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', auth()->user()->level)->first()->value);
+                            $application_rate               = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
+                            $trip->application_rate         = $application_rate;
+                            $trip->driver__rate             = $trip->total_price - $application_rate;
                             return $trip;
                         }
                     })->filter()       // Remove null values after mapping
