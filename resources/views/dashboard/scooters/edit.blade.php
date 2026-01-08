@@ -144,11 +144,14 @@
                                     <label>Scooter Color : {{ $scooter->color }}</label>
                                 </div>
                                 <div class="form-group">
-                                    <label>License Expire Date : {{ $scooter->license_expire_date }} </label>
-                                    @if ($scooter->license_expire_date < date('Y-m-d'))
+                                    <label>License Expire Date : <span
+                                                style="color: {{ \Carbon\Carbon::parse($scooter->license_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($scooter->license_expire_date)->format('d M Y') }}
+                                            </span> </label>
+                                    {{-- @if ($scooter->license_expire_date < date('Y-m-d'))
                                         <span class="badge badge-secondary"
                                             style="background-color:rgb(255,0,0);width:10%; margin-left:1%;">Expired</span>
-                                    @endif
+                                    @endif --}}
                                 </div>
                                 <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
                                 <div class="form-group" style="display: flex; align-items: center;">
@@ -214,7 +217,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE"></script>
     
     <script>
         var map, marker, previousLocation;
@@ -228,12 +231,12 @@
             previousLocation = userLocation; // Store the initial location
 
             map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 12,
+                zoom: 18,
                 center: userLocation
             });
 
             // Create a custom overlay for the car icon
-            marker = new RotatingMarker(userLocation, map, '{{ asset('dashboard/Travel-car-topview.svg.png') }}');
+            marker = new RotatingMarker(userLocation, map, '{{ asset('dashboard/scooter_top_view_312787-removebg-preview.png') }}');
 
             // Start updating the car's location every 3 seconds
             setInterval(updateScooterLocation, 3000);

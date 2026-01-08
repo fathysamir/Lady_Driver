@@ -631,7 +631,7 @@
                                 @if ($user->passport_expire_date)
                                     <div class="form-group"style="display: flex;">
                                         <label>
-                                            National ID Expiration Date :
+                                            Passport Expiration Date :
                                             <span
                                                 style="color: {{ \Carbon\Carbon::parse($user->passport_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
                                                 {{ \Carbon\Carbon::parse($user->passport_expire_date)->format('d M Y') }}
@@ -674,6 +674,30 @@
 
                                     </div>
                                 @endif
+                                <div class="form-group"style="display: flex;">
+                                    <label>Criminal Record Image : </label>
+                                    @if ($user->criminalRecordImage)
+                                        <img width="400"height="250"
+                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
+                                            src="{{ $user->criminalRecordImage }}"class="zoomable-image">
+                                    @else
+                                        <label style="color: #ff7272"> There is no criminal record.</label>
+                                    @endif
+
+                                </div>
+                                @if ($user->criminal_record_date)
+                                    <div class="form-group"style="display: flex;">
+
+                                        <label>
+                                            Criminal Record Date :
+                                            <span style="color: #56ec60">
+                                                {{ \Carbon\Carbon::parse($user->criminal_record_date)->format('d M Y') }}
+                                            </span>
+                                        </label>
+
+                                    </div>
+                                @endif
+                                
 
                                 <div class="form-group">
                                     <label>Address : {{ $user->address }}</label>
@@ -688,11 +712,15 @@
                                         <label>License Number : {{ $user->driving_license->license_num }}</label>
                                     </div>
                                     <div class="form-group">
-                                        <label>Expire Date : {{ $user->driving_license->expire_date }}</label>
-                                        @if ($user->driving_license->expire_date < date('Y-m-d'))
+                                        <label>Expire Date : <span
+                                                style="color: {{ \Carbon\Carbon::parse($user->driving_license->expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($user->driving_license->expire_date)->format('d M Y') }}
+                                            </span></label>
+                                        
+                                        {{-- @if ($user->driving_license->expire_date < date('Y-m-d'))
                                             <span class="badge badge-secondary"
-                                                style="background-color:rgb(255,0,0);width:10%; margin-left:1%;">Expired</span>
-                                        @endif
+                                                style="background-color:#ff7272;width:10%; margin-left:1%;">Expired</span>
+                                        @endif --}}
                                     </div>
                                     <div class="form-group"style="display: flex;">
                                         <label>Driver License Images : </label>

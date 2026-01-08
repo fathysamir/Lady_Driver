@@ -40,7 +40,7 @@ class ScooterController extends Controller
         $scooter->plate_image = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
         $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
         $scooter->license_back_image = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
-        return view('dashboard.scooter.edit', compact('scooter'));
+        return view('dashboard.scooters.edit', compact('scooter'));
     }
 
     // public function update(Request $request, $id)

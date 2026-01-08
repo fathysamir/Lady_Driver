@@ -390,7 +390,7 @@ class AuthController extends ApiController
             } else {
                 $code = 'SCT-000000001';
             }
-            $scooter = Scooter::create(['user_id' => auth()->user()->id,
+            $scooter = Scooter::create(['user_id' => $user->id,
                 'motorcycle_mark_id'                  => $request->scooter_mark_id,
                 'code'                                => $code,
                 'motorcycle_model_id'                 => $request->scooter_model_id,
@@ -404,7 +404,7 @@ class AuthController extends ApiController
             uploadMediaByURL($request->vehicle_license_front_image, $scooter->LicenseFrontImageCollection, $scooter);
             uploadMediaByURL($request->vehicle_license_front_image, $scooter->LicenseBackImageCollection, $scooter);
         }
-        // Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
+        Mail::to($request->email)->send(new SendOTP($otpCode, $request->name));
         $used_paths = [];
 
         if (isset($request->image)) {

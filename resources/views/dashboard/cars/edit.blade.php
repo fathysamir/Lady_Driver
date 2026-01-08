@@ -144,11 +144,14 @@
                                     <label>Car Color : {{ $car->color }}</label>
                                 </div>
                                 <div class="form-group">
-                                    <label>License Expire Date : {{ $car->license_expire_date }} </label>
-                                    @if ($car->license_expire_date < date('Y-m-d'))
+                                    <label>License Expire Date : <span
+                                                style="color: {{ \Carbon\Carbon::parse($car->license_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                                                {{ \Carbon\Carbon::parse($car->license_expire_date)->format('d M Y') }}
+                                            </span> </label>
+                                    {{-- @if ($car->license_expire_date < date('Y-m-d'))
                                         <span class="badge badge-secondary"
                                             style="background-color:rgb(255,0,0);width:10%; margin-left:1%;">Expired</span>
-                                    @endif
+                                    @endif --}}
                                 </div>
                                 <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
                                 <div class="form-group" style="display: flex; align-items: center;">

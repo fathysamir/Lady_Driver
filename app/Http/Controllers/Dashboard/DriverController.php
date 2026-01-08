@@ -117,14 +117,15 @@ class DriverController extends Controller
         $user       = User::where('id', $id)->first();
         $user->seen = '1';
         $user->save();
-        $user->image           = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->IDfrontImage    = getFirstMediaUrl($user, $user->IDfrontImageCollection);
-        $user->IDbackImage     = getFirstMediaUrl($user, $user->IDbackImageCollection);
-        $user->PassportImage   = getFirstMediaUrl($user, $user->passportImageCollection);
-        $user->medicalExaminationImage   = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
-        $user->trips_count     = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
-        $user->driving_license = DriverLicense::where('user_id', $user->id)->first();
-        $user->car             = Car::where('user_id', $user->id)->first();
+        $user->image                   = getFirstMediaUrl($user, $user->avatarCollection);
+        $user->IDfrontImage            = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+        $user->IDbackImage             = getFirstMediaUrl($user, $user->IDbackImageCollection);
+        $user->PassportImage           = getFirstMediaUrl($user, $user->passportImageCollection);
+        $user->medicalExaminationImage = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
+        $user->criminalRecordImage     = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
+        $user->trips_count             = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
+        $user->driving_license         = DriverLicense::where('user_id', $user->id)->first();
+        $user->car                     = Car::where('user_id', $user->id)->first();
         if ($user->driving_license) {
             $user->driving_license->front_image = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseFrontImageCollection);
             $user->driving_license->back_image  = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseBackImageCollection);
