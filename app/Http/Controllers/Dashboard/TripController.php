@@ -164,7 +164,8 @@ class TripController extends Controller
             $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
             $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
         }
-
+        $destinations=$trip->finalDestination;
+dd($destinations);
         return view('dashboard.trips.view', compact('trip'));
     }
 
