@@ -73,7 +73,7 @@
                                         </label>
                                     </div>
                                     <div class="form-group">
-                                        <label>Created at : {{ date('Y/m/d h:i a', strtotime($trip->created_at)) }}</label>
+                                        <label>Created at : {{ date('d M.Y h:i a', strtotime($trip->created_at)) }}</label>
                                     </div>
                                     <div class="form-group">
                                         <label>Type : {{ ucfirst(str_replace('_', ' ', $trip->type)) }}</label>
@@ -88,11 +88,31 @@
                                 </div>
                                 <div style="width:50% ;">
                                     <div class="form-group">
-                                        <label>From : {{ $trip->address1 }}</label>
+                                        <label class="fw-bold text-success">
+                                            <i class="fa fa-map-marker-alt"></i>
+                                            From :
+                                        </label>
+                                        <div class="border rounded p-2 bg-light">
+                                            {{ $trip->address1 }}
+                                        </div>
                                     </div>
+
                                     <div class="form-group">
-                                        <label>To : {{ $trip->address2 }}</label>
+                                        <label class="fw-bold text-danger">
+                                            <i class="fa fa-flag-checkered"></i>
+                                            To :
+                                        </label>
+
+                                        <div class="border rounded p-2 bg-light">
+                                            @foreach ($trip->finalDestination as $i => $dest)
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <span class="badge bg-danger me-2">{{ $i + 1 }}</span>
+                                                    <span>{{ $dest->address }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
+
                                     <div class="form-group">
                                         <label>Start At : {{ $trip->start_date }}
                                             {{ date('h:i a', strtotime($trip->start_time)) }}</label>
@@ -259,179 +279,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE&libraries=places">
     </script>
-
-    {{-- <script>
-  var map, directionsService, directionsRenderer, marker, previousLocation;
-
-  function initMap() {
-    var carLocation = { lat: {{ $trip->car->lat }}, lng: {{ $trip->car->lng }} };
-      previousLocation = carLocation;
-      // Initialize the map centered at the start location
-      map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 12,
-          center: { lat: {{ $trip->start_lat }}, lng: {{ $trip->start_lng }} }
-      });
-
-      // Initialize Directions Service and Renderer
-      directionsService = new google.maps.DirectionsService();
-      directionsRenderer = new google.maps.DirectionsRenderer({
-          map: map,
-          suppressMarkers: true, // Suppress default markers if you want custom ones
-          polylineOptions: {
-              strokeColor: '#0000FF', // Blue color for the path
-              strokeOpacity: 1.0,
-              strokeWeight: 4
-          }
-      });
-
-      // Calculate and display the route
-      calculateRoute();
-      marker = new RotatingMarker(carLocation, map, '{{ asset("dashboard/Travel-car-topview.svg.png") }}');
-
-      // Start updating the car's location every 3 seconds
-      setInterval(updateCarLocation, 20000);
-  }
-
-  function calculateRoute() {
-      var startLocation = new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }});
-      var endLocation = new google.maps.LatLng({{ $trip->end_lat }}, {{ $trip->end_lng }});
-
-      var request = {
-          origin: startLocation,
-          destination: endLocation,
-          travelMode: google.maps.TravelMode.DRIVING // Change travel mode if needed
-      };
-
-      directionsService.route(request, function(result, status) {
-          if (status == google.maps.DirectionsStatus.OK) {
-              directionsRenderer.setDirections(result);
-              // Optionally, place custom markers at the start and end points
-              placeMarkers(startLocation, endLocation);
-          } else {
-              console.error('Directions request failed due to ' + status);
-          }
-      });
-  }
-
-  function placeMarkers(start, end) {
-      // Custom markers for start and end locations (optional)
-      new google.maps.Marker({
-          position: start,
-          map: map,
-          title: 'Start Location'
-      });
-
-      new google.maps.Marker({
-          position: end,
-          map: map,
-          title: 'End Location'
-      });
-  }
-  function updateCarLocation() {
-      // Fetch the updated car location using AJAX
-      fetch('/admin-dashboard/car-location/{{ $trip->car->id }}')
-        .then(response => response.json())
-        .then(data => {
-            var newLocation = { lat: data.lat, lng: data.lng };
-
-            // Check if the new location is different from the previous location
-
-            if (newLocation.lat === previousLocation.lat && newLocation.lng === previousLocation.lng) {
-                // If locations are the same, do nothing
-
-                console.log('Location is unchanged. No update needed.');
-                return;
-            }
-
-            // Calculate the bearing (rotation angle)
-            var rotationAngle = calculateBearing(previousLocation, newLocation);
-
-            // Move the marker to the new location and rotate it
-            marker.setPosition(newLocation);
-            marker.setRotation(rotationAngle);
-
-            // Update previous location to the new location
-            previousLocation = newLocation;
-
-            // Optionally, center the map on the new location
-            map.setCenter(newLocation);
-        })
-        .catch(error => console.error('Error fetching car location:', error));
-  }
-
-  // Function to calculate the bearing (angle) between two locations
-  function calculateBearing(start, end) {
-      var startLat = degreesToRadians(start.lat);
-      var startLng = degreesToRadians(start.lng);
-      var endLat = degreesToRadians(end.lat);
-      var endLng = degreesToRadians(end.lng);
-
-      var dLng = endLng - startLng;
-
-      var y = Math.sin(dLng) * Math.cos(endLat);
-      var x = Math.cos(startLat) * Math.sin(endLat) - Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
-      var bearing = Math.atan2(y, x);
-
-      return radiansToDegrees(bearing); // Convert from radians to degrees
-  }
-
-  // Custom RotatingMarker class to handle rotation and position update
-  function RotatingMarker(position, map, imageUrl) {
-      this.position = position;
-      this.rotation = 250;
-
-      // Create the marker div
-      this.div = document.createElement('div');
-      this.div.style.position = 'absolute';
-      this.div.style.width = '40px';
-      this.div.style.height = '35px';
-      this.div.style.backgroundImage = `url(${imageUrl})`;
-      this.div.style.backgroundSize = 'contain';
-      this.div.style.backgroundRepeat = 'no-repeat';
-
-      // Append the marker div to the map
-      this.setMap(map);
-  }
-
-  RotatingMarker.prototype = new google.maps.OverlayView();
-
-  RotatingMarker.prototype.onAdd = function() {
-      this.getPanes().overlayLayer.appendChild(this.div);
-  };
-
-  RotatingMarker.prototype.draw = function() {
-      var overlayProjection = this.getProjection();
-      var position = overlayProjection.fromLatLngToDivPixel(this.position);
-
-      // Position the div
-      this.div.style.left = (position.x - 25) + 'px'; // Center the icon
-      this.div.style.top = (position.y - 25) + 'px';
-
-      // Apply the rotation
-      this.div.style.transform = `rotate(${this.rotation}deg)`;
-  };
-
-  RotatingMarker.prototype.setPosition = function(position) {
-      this.position = position;
-      this.draw();
-  };
-
-  RotatingMarker.prototype.setRotation = function(rotation) {
-      this.rotation = rotation;
-      this.draw();
-  };
-
-  // Helper functions to convert between degrees and radians
-  function degreesToRadians(degrees) {
-      return degrees * (Math.PI / 180);
-  }
-
-  function radiansToDegrees(radians) {
-      return radians * (180 / Math.PI);
-  }
-  // Initialize the map on page load
-  window.onload = initMap;
-</script> --}}
 
     <script>
         var map, directionsService, segmentRenderer1, segmentRenderer2, marker, previousLocation, distanceLabel;
