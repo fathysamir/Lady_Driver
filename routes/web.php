@@ -159,7 +159,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     ///////////////////////////////////////////
     Route::get('/scooter/edit/{id}', [ScooterController::class, 'edit'])->name('edit.scooter');
     Route::get('scooter/getModels', [ScooterController::class, 'getModels'])->name('scooter.getModels');
-    Route::get('/scooter-location/{id}', [ScooterController::class, 'getLocation']);
+    Route::get('scooter/scooter-location/{id}', [ScooterController::class, 'getLocation']);
     //////////////////////////////////////////
     Route::any('/trips', [TripController::class, 'index'])->name('trips');
     Route::get('/trip/view/{id}', [TripController::class, 'view'])->name('view.trip');

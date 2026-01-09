@@ -4,17 +4,17 @@
     <style>
         .star-rating {
             color: #FFf;
-                        /* Default star color */
+            /* Default star color */
         }
 
         .star {
             font-size: 24px;
-                   /* Adjust the size of the stars */
+            /* Adjust the size of the stars */
         }
 
         .filled {
             color: gold;
-               /* Filled star color */
+            /* Filled star color */
         }
 
         .car-link:hover {
@@ -36,7 +36,8 @@
                             <div class="form-group" style="display: flex">
                                 <div style="width:50%">
                                     <div class="form-group">
-                                        <label>Client : <a href="{{ url('/admin-dashboard/user/edit/' . $trip->user->id) }}">
+                                        <label>Client : <a
+                                                href="{{ url('/admin-dashboard/user/edit/' . $trip->user->id) }}">
                                                 <span class="user-profile"><img
                                                         @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                         class="img-circle" alt="user avatar"
@@ -46,25 +47,24 @@
                                     <div class="form-group">
                                         <label>Driver :
                                             @if ($trip->type === 'scooter' && $trip->scooter)
-                                                <a href="{{ url('/admin-dashboard/user/edit/' . $trip->scooter->owner->id) }}">
+                                                <a
+                                                    href="{{ url('/admin-dashboard/user/edit/' . $trip->scooter->owner->id) }}">
                                                     <span class="user-profile"><img
-                                                        @if (getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) != null)
-                                                            src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) }}"
+                                                            @if (getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) }}"
                                                         @else
-                                                            src="{{ asset('dashboard/user_avatar.png') }}"
-                                                        @endif
-                                                        class="img-circle" alt="user avatar" style="width: 22px;height: 22px;"></span>
+                                                            src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                            class="img-circle" alt="user avatar"
+                                                            style="width: 22px;height: 22px;"></span>
                                                     {{ ucwords($trip->scooter->owner->name) }}
                                                 </a>
                                             @elseif ($trip->car)
                                                 <a href="{{ url('/admin-dashboard/user/edit/' . $trip->car->owner->id) }}">
                                                     <span class="user-profile"><img
-                                                        @if (getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null)
-                                                            src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}"
+                                                            @if (getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}"
                                                         @else
-                                                            src="{{ asset('dashboard/user_avatar.png') }}"
-                                                        @endif
-                                                        class="img-circle" alt="user avatar" style="width: 22px;height: 22px;"></span>
+                                                            src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                            class="img-circle" alt="user avatar"
+                                                            style="width: 22px;height: 22px;"></span>
                                                     {{ ucwords($trip->car->owner->name) }}
                                                 </a>
                                             @else
@@ -110,7 +110,7 @@
                                                     style="background-color:rgb(50, 134, 50);">Completed</span>
                                             @elseif($trip->status == 'in_progress')
                                                 <span class="badge badge-secondary"
-                                                style="background-color:rgb(52, 40, 223);">In Progress</span>
+                                                    style="background-color:rgb(52, 40, 223);">In Progress</span>
                                             @else
                                                 <span class="badge badge-secondary"
                                                     style="background-color:rgb(255,0,0);">Cancelled</span>
@@ -128,36 +128,36 @@
                                 @if ($trip->type === 'scooter' && $trip->scooter)
                                     <div>
                                         <img style="border-radius: 2%;width:60%;"
-                                            @if ($trip->scooter->image != null)
-                                                src="{{ $trip->scooter->image }}"
+                                            @if ($trip->scooter->image != null) src="{{ $trip->scooter->image }}"
                                             @else
-                                                src="{{ asset('dashboard/scooter_avatar.png') }}"
-                                            @endif
+                                                src="{{ asset('dashboard/scooter_avatar.png') }}" @endif
                                             class="img-circle" alt="scooter image">
                                     </div>
                                     <div style="width: 50%;margin-left:25%">
-                                        <a href="{{ url('/admin-dashboard/scooter/edit/' . $trip->scooter->id) }}" style="text-align:center;">
+                                        <a href="{{ url('/admin-dashboard/scooter/edit/' . $trip->scooter->id) }}"
+                                            style="text-align:center;">
                                             <h3 style="margin-top:10px;" class="car-link">
-                                                {{ $trip->scooter->motorcycleMark->en_name ?? 'N/A' }} - {{ $trip->scooter->motorcycleMark->ar_name ?? 'N/A' }}
+                                                {{ $trip->scooter->motorcycleMark->en_name ?? 'N/A' }} -
+                                                {{ $trip->scooter->motorcycleMark->ar_name ?? 'N/A' }}
                                             </h3>
                                             <h3 style="margin-top:10px;" class="car-link">
-                                                {{ $trip->scooter->motorcycleModel->en_name ?? 'N/A' }} - {{ $trip->scooter->motorcycleModel->ar_name ?? 'N/A' }} ({{ $trip->scooter->year }})
+                                                {{ $trip->scooter->motorcycleModel->en_name ?? 'N/A' }} -
+                                                {{ $trip->scooter->motorcycleModel->ar_name ?? 'N/A' }}
+                                                ({{ $trip->scooter->year }})
                                             </h3>
                                         </a>
                                     </div>
                                 @elseif ($trip->car)
                                     <div>
                                         <img style="border-radius: 2%;width:60%;"
-                                            @if ($trip->car->image != null)
-                                                src="{{ $trip->car->image }}"
+                                            @if ($trip->car->image != null) src="{{ $trip->car->image }}"
                                             @else
-                                                src="{{ asset('dashboard/car_avatar.png') }}"
-                                            @endif
+                                                src="{{ asset('dashboard/car_avatar.png') }}" @endif
                                             class="img-circle" alt="car image">
                                     </div>
                                     <div style="width: 50%;margin-left:25%">
                                         <a
-                                        href="{{ url('/admin-dashboard/car/edit/' . $trip->car->id) }}"style="text-align:center;">
+                                            href="{{ url('/admin-dashboard/car/edit/' . $trip->car->id) }}"style="text-align:center;">
                                             <h3 style="margin-top:10px;"class="car-link">{{ $trip->car->mark->en_name }} -
                                                 {{ $trip->car->mark->ar_name }}</h3>
                                             <h3 style="margin-top:10px;"class="car-link">{{ $trip->car->model->en_name }} -
@@ -201,7 +201,8 @@
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label>Cancelled Reason : <span style="text-transform: none;">{{ $trip->cancellation_reason ?? 'N/A' }}</span></label>
+                                    <label>Cancelled Reason : <span
+                                            style="text-transform: none;">{{ $trip->cancellation_reason ?? 'N/A' }}</span></label>
                                 </div>
                             @endif
 
@@ -214,7 +215,7 @@
                                 <div class="star-rating" style="margin-bottom: 10px;">
                                     <?php
                                     $clientEvaluation = $trip->client_stare_rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-
+                                    
                                     // Loop to generate stars based on the client evaluation score
                                     for ($i = 1; $i <= 5; $i++) {
                                         $starClass = $i <= $clientEvaluation ? 'filled' : 'empty';
@@ -232,8 +233,8 @@
                                 <div class="star-rating" style="margin-bottom: 10px;">
                                     <?php
                                     $driverEvaluation = $trip->driver_stare_rate;
-
-                                     // Loop to generate stars based on the client evaluation score
+                                    
+                                    // Loop to generate stars based on the client evaluation score
                                     for ($i = 1; $i <= 5; $i++) {
                                         $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
                                         echo '<span class="star ' . $starClass2 . '">&#9733;</span>';
@@ -259,7 +260,7 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE&libraries=places">
     </script>
 
-      {{-- <script>
+    {{-- <script>
   var map, directionsService, directionsRenderer, marker, previousLocation;
 
   function initMap() {
@@ -434,6 +435,11 @@
 
     <script>
         var map, directionsService, segmentRenderer1, segmentRenderer2, marker, previousLocation, distanceLabel;
+        var tripDestinations = @json(
+            $destinations->map(function ($d) {
+                return ['lat' => $d->lat, 'lng' => $d->lng, 'address' => $d->address];
+            }));
+        var routeRenderers = [];
 
         function initMap() {
             @php
@@ -457,18 +463,19 @@
                 }
             });
 
-                        // Initialize Directions Service and Renderer
+            // Initialize Directions Service and Renderer
             directionsService = new google.maps.DirectionsService();
 
 
-                        // Calculate and display the route
+            // Calculate and display the route
             calculateRoute();
+
             var startLocation = new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }});
-            var endLocation = new google.maps.LatLng({{ $trip->end_lat }}, {{ $trip->end_lng }});
-            placeMarkers(startLocation, endLocation);
+            placeMarkers(startLocation, tripDestinations);
 
             if ("{{ $trip->status }}" === "in_progress" || "{{ $trip->status }}" === "pending") {
-                var vehicleIcon = "{{ $trip->type === 'scooter' ? asset('dashboard/scooter-icon.png') : asset('dashboard/Travel-car-topview.svg.png') }}";
+                var vehicleIcon =
+                    "{{ $trip->type === 'scooter' ? asset('dashboard/scooter-icon.png') : asset('dashboard/Travel-car-topview.svg.png') }}";
                 marker = new RotatingMarker(vehicleLocation, map, vehicleIcon);
 
                 // Start updating the car's location every 3 seconds
@@ -481,87 +488,101 @@
         }
 
         function calculateRoute() {
+
             var startLocation = new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }});
+            var vehicleLocation = new google.maps.LatLng(previousLocation.lat, previousLocation.lng);
 
-            @php
-                $vehicleType = $trip->type === 'scooter' ? 'scooter' : 'car';
-                $vehicle = $vehicleType === 'scooter' ? $trip->scooter : $trip->car;
-                $vehicleLat = $vehicle ? $vehicle->lat : $trip->start_lat;
-                $vehicleLng = $vehicle ? $vehicle->lng : $trip->start_lng;
-            @endphp
-
-            var vehicleLocation = new google.maps.LatLng({{ $vehicleLat }}, {{ $vehicleLng }});
-            var endLocation = new google.maps.LatLng({{ $trip->end_lat }}, {{ $trip->end_lng }});
             var tripStatus = "{{ $trip->status }}";
 
+            // آخر Destination هو النهاية
+            var finalDest = tripDestinations[tripDestinations.length - 1];
+
+            var finalLocation = new google.maps.LatLng(finalDest.lat, finalDest.lng);
+
+            var waypoints = tripDestinations.slice(0, -1).map(d => ({
+                location: new google.maps.LatLng(d.lat, d.lng),
+                stopover: true
+            }));
+
+            routeRenderers.forEach(r => r.setMap(null));
+            routeRenderers = [];
+
             if (tripStatus === "in_progress") {
-                // Segment 1: Start to Car (Green)
-                drawRoute(startLocation, carLocation, '#00FF00'); // Green for start to car
-                // Segment 2: Car to End (Blue)
-                drawRoute(carLocation, endLocation, '#0000FF'); // Blue for car to end
+                drawRoute(startLocation, vehicleLocation, '#00FF00', waypoints);
+                drawRoute(vehicleLocation, finalLocation, '#0000FF', waypoints);
             } else if (tripStatus === "completed") {
-                // Completed: All Green from Start to End
-                drawRoute(startLocation, endLocation, '#00FF00'); // Green for completed
+                drawRoute(startLocation, finalLocation, '#00FF00', waypoints);
             } else if (tripStatus === "pending") {
-                // Pending: All Blue from Start to End
-                drawRoute(startLocation, endLocation, '#0000FF'); // Blue for pending
+                drawRoute(startLocation, finalLocation, '#0000FF', waypoints);
             } else if (tripStatus === "cancelled") {
-                // Cancelled: All Red from Start to End
-                drawRoute(startLocation, endLocation, '#FF0000'); // Red for cancelled
+                drawRoute(startLocation, finalLocation, '#FF0000', waypoints);
             }
         }
 
-        function placeMarkers(start, end) {
-       // Custom markers for start and end locations (optional)
+
+        function placeMarkers(startLocation, destinations) {
+
+            // Start marker
             new google.maps.Marker({
-                position: start,
+                position: startLocation,
                 map: map,
-                title: 'Start Location'
+                label: "S",
+                icon: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+                title: "Start Point"
             });
 
-            new google.maps.Marker({
-                position: end,
-                map: map,
-                title: 'End Location'
+            // Destination markers
+            destinations.forEach((dest, index) => {
+
+                new google.maps.Marker({
+                    position: new google.maps.LatLng(dest.lat, dest.lng),
+                    map: map,
+                    label: (index + 1).toString(),
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                    title: dest.address
+                });
+
             });
         }
-// Helper function to draw a specific route segment with a specified color
-        function drawRoute(origin, destination, color) {
-            var request = {
+
+
+        function drawRoute(origin, destination, color, waypoints = []) {
+
+            directionsService.route({
                 origin: origin,
                 destination: destination,
+                waypoints: waypoints,
+                optimizeWaypoints: false,
                 travelMode: google.maps.TravelMode.DRIVING
-            };
+            }, function(result, status) {
 
-            directionsService.route(request, function(result, status) {
-                if (status == google.maps.DirectionsStatus.OK) {
-                    var directionsRenderer = new google.maps.DirectionsRenderer({
+                if (status === "OK") {
+
+                    var renderer = new google.maps.DirectionsRenderer({
                         map: map,
                         suppressMarkers: true,
                         polylineOptions: {
-                            strokeColor: color, // Use the passed color
-                            strokeOpacity: 1.0,
+                            strokeColor: color,
                             strokeWeight: 4
                         }
                     });
-                    directionsRenderer.setDirections(result);
+
+                    renderer.setDirections(result);
+                    routeRenderers.push(renderer);
+
                     var path = result.routes[0].overview_path;
                     var midpoint = path[Math.floor(path.length / 2)];
-                    if (distanceLabel) {
-                        distanceLabel.setPosition(midpoint);
-                    }
-                } else {
-                    console.error('Directions request failed due to ' + status);
+                    if (distanceLabel) distanceLabel.setPosition(midpoint);
                 }
             });
         }
 
         function updateVehicleLocation() {
             var vehicleType = "{{ $trip->type }}";
-            var vehicleId = "{{ $trip->type === 'scooter' ? ($trip->scooter->id ?? 0) : ($trip->car->id ?? 0) }}";
-            var endpoint = vehicleType === 'scooter'
-                ? '/admin-dashboard/scooter-location/' + vehicleId
-                : '/admin-dashboard/car-location/' + vehicleId;
+            var vehicleId = "{{ $trip->type === 'scooter' ? $trip->scooter->id ?? 0 : $trip->car->id ?? 0 }}";
+            var endpoint = vehicleType === 'scooter' ?
+                '/admin-dashboard/scooter-location/' + vehicleId :
+                '/admin-dashboard/car-location/' + vehicleId;
 
             fetch(endpoint)
                 .then(response => response.json())
@@ -571,8 +592,8 @@
                         lng: data.lng
                     };
 
-                   // Check if the new location is different from the previous location
-                   if (newLocation.lat === previousLocation.lat && newLocation.lng === previousLocation.lng) {
+                    // Check if the new location is different from the previous location
+                    if (newLocation.lat === previousLocation.lat && newLocation.lng === previousLocation.lng) {
                         console.log('Location is unchanged. No update needed.');
                         return;
                     }
@@ -627,7 +648,7 @@
             this.div.style.backgroundRepeat = 'no-repeat';
 
             // Append the marker div to the map
-                    this.setMap(map);
+            this.setMap(map);
         }
 
         RotatingMarker.prototype = new google.maps.OverlayView();
@@ -671,7 +692,7 @@
             distanceLabel = new google.maps.InfoWindow({
                 content: `<div  style="color:#000;  border-radius: 5px; font-weight: bold;">${distanceText}</div>`,
                 position: map
-            .getCenter(), // Default to map center; can be updated later to the midpoint of the route
+                    .getCenter(), // Default to map center; can be updated later to the midpoint of the route
                 pixelOffset: new google.maps.Size(0, -10)
             });
 
