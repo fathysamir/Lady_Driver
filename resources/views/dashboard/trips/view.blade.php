@@ -95,7 +95,7 @@
                                         <label>Start At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->start_date)) }}
                                             {{ date('h:i a', strtotime($trip->start_time)) }}</span></label>
                                     </div>
-                                    <div class="form-group"style="margin-bottom: 0.75rem;">
+                                    <div class="form-group"style="margin-bottom: 0rem;">
                                         <label>End At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->end_date)) }}
                                             {{ date('h:i a', strtotime($trip->end_time)) }}</span></label>
                                     </div>
@@ -126,7 +126,7 @@
                                             @endforeach
                                         </div>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0rem;">
                                         <label>Trip Status : @if ($trip->status == 'pending')
                                                 <span class="badge badge-secondary"
                                                     style="background-color:rgb(143, 118, 9);">Pending</span>
