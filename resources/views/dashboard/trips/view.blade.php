@@ -40,7 +40,7 @@
                             <hr>
 
                             <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
-                            <div class="form-group" style="display: flex">
+                            <div class="form-group" style="display: flex;margin-bottom: 0rem;">
                                 <div style="width:50%">
                                     <div class="form-group">
                                         <label>Client : <a
