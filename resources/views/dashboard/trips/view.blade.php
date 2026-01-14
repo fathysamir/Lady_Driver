@@ -88,7 +88,7 @@
                                         </label>
                                     </div>
                                     <div class="form-group">
-                                        <label>Driver Arrived at : <span style="color: #ad04b3">{{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}</span>
+                                        <label>Driver Arrived at : <span style="color: #09593b">{{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}</span>
                                             </label>
                                     </div>
                                     <div class="form-group">
