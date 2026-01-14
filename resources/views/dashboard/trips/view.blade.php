@@ -36,7 +36,7 @@
                                 $type['scooter'] = 'Scooter Trip';
 
                             @endphp
-                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }})</div>
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) <i class="fa fa-snowflake"></i></div>
                             <hr>
 
                             <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
