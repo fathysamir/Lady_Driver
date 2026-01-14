@@ -101,7 +101,7 @@
                                     </div>
                                 </div>
                                 <div style="width:50% ;">
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label class="fw-bold text-success">
                                             <i class="fa fa-map-marker-alt"></i>
                                             From :
@@ -111,7 +111,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label class="fw-bold text-danger">
                                             <i class="fa fa-flag-checkered"></i>
                                             To :
@@ -126,13 +126,6 @@
                                             @endforeach
                                         </div>
                                     </div>
-                                    @if ($trip->type === 'car')
-                                        <div class="form-group">
-                                            <label>Air Conditioned Status : {!! $trip->air_conditioned
-                                                ? '<span class="badge badge-secondary" style="background-color:rgb(28, 161, 34);">Air conditioned</span>'
-                                                : '<span class="badge badge-secondary" style="background-color:rgb(255,0,0);">Not air conditioned</span>' !!}</label>
-                                        </div>
-                                    @endif
                                     <div class="form-group">
                                         <label>Trip Status : @if ($trip->status == 'pending')
                                                 <span class="badge badge-secondary"
@@ -152,6 +145,14 @@
                                             @endif
                                         </label>
                                     </div>
+                                    @if ($trip->type === 'car')
+                                        <div class="form-group">
+                                            <label>Air Conditioned Status : {!! $trip->air_conditioned
+                                                ? '<span class="badge badge-secondary" style="background-color:rgb(28, 161, 34);">Air conditioned</span>'
+                                                : '<span class="badge badge-secondary" style="background-color:rgb(255,0,0);">Not air conditioned</span>' !!}</label>
+                                        </div>
+                                    @endif
+                                    
 
 
                                 </div>
