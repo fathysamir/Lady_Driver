@@ -36,7 +36,10 @@
                                 $type['scooter'] = 'Scooter Trip';
 
                             @endphp
-                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }})  @if ($trip->type === 'car' && $trip->air_conditioned=='1')<i class="fa fa-snowflake" style="color: rgb(0, 213, 255);"></i> @endif</div>
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if ($trip->type === 'car' && $trip->air_conditioned == '1')
+                                    <i class="fa fa-snowflake" style="color: rgb(0, 213, 255);"></i>
+                                @endif
+                            </div>
                             <hr>
 
                             <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
@@ -49,7 +52,11 @@
                                                         @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                         class="img-circle" alt="user avatar"
                                                         style="width: 22px;height: 22px;"></span>
-                                                {{ ucwords($trip->user->name) }}</a> @if($trip->student_trip=='1') (<span style="color:rgb(255, 215, 16)">Student</span>) @endif</label>
+                                                {{ ucwords($trip->user->name) }}</a>
+                                            @if ($trip->student_trip == '1')
+                                                (<span style="color:rgb(255, 215, 16)">Student</span>)
+                                            @endif
+                                        </label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>Driver :
@@ -80,7 +87,8 @@
                                         </label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0.75rem;">
-                                        <label>Created at : <span style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->created_at)) }}</span>
+                                        <label>Created at : <span
+                                                style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->created_at)) }}</span>
                                             @if ($trip->scheduled == '1')
                                                 <span class="badge badge-secondary"
                                                     style="background-color:rgb(28, 161, 34);">Scheduled</span>
@@ -88,16 +96,19 @@
                                         </label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0.75rem;">
-                                        <label>Driver Arrived at : <span style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}</span>
-                                            </label>
+                                        <label>Driver Arrived at : <span
+                                                style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}</span>
+                                        </label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0.75rem;">
-                                        <label>Start At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->start_date)) }}
-                                            {{ date('h:i a', strtotime($trip->start_time)) }}</span></label>
+                                        <label>Start At : <span
+                                                style="color: #95c408">{{ date('d M.Y', strtotime($trip->start_date)) }}
+                                                {{ date('h:i a', strtotime($trip->start_time)) }}</span></label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0rem;">
-                                        <label>End At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->end_date)) }}
-                                            {{ date('h:i a', strtotime($trip->end_time)) }}</span></label>
+                                        <label>End At : <span
+                                                style="color: #95c408">{{ date('d M.Y', strtotime($trip->end_date)) }}
+                                                {{ date('h:i a', strtotime($trip->end_time)) }}</span></label>
                                     </div>
                                 </div>
                                 <div style="width:50% ;">
@@ -210,10 +221,19 @@
                                 <label>Distance : {{ $trip->distance }} KM</label>
                             </div>
                             <div class="form-group">
-                                <label>Driver ratio : {{ $trip->driver_rate }} LE</label>
+                                <label>Driver commission : {{ $trip->driver_rate }} LE</label>
                             </div>
                             <div class="form-group">
-                                <label>Application ratio : {{ $trip->app_rate }} LE</label>
+                                <label>Application commission : {{ $trip->app_rate }} LE</label>
+                            </div>
+                            <div class="form-group">
+                                <label>Delay Cost : {{ $trip->delay_cost }} LE</label>
+                            </div>
+                            <div class="form-group">
+                                <label>Tip : {{ $trip->tip }} LE</label>
+                            </div>
+                            <div class="form-group">
+                                <label>Discount : {{ $trip->discount }} LE</label>
                             </div>
                             <div class="form-group">
                                 <label>Total Price : {{ $trip->total_price }} LE</label>
