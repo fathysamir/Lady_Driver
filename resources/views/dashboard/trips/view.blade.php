@@ -80,7 +80,7 @@
                                         </label>
                                     </div>
                                     <div class="form-group">
-                                        <label>Created at : {{ date('d M.Y h:i a', strtotime($trip->created_at)) }}
+                                        <label>Created at : <span style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->created_at)) }}</span>
                                             @if ($trip->scheduled == '1')
                                                 <span class="badge badge-secondary"
                                                     style="background-color:rgb(28, 161, 34);">Scheduled</span>
@@ -92,12 +92,12 @@
                                             </label>
                                     </div>
                                     <div class="form-group">
-                                        <label>Start At : {{ date('d M.Y', strtotime($trip->start_date)) }}
-                                            {{ date('h:i a', strtotime($trip->start_time)) }}</label>
+                                        <label>Start At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->start_date)) }}
+                                            {{ date('h:i a', strtotime($trip->start_time)) }}</span></label>
                                     </div>
                                     <div class="form-group">
-                                        <label>End At : {{ date('d M.Y', strtotime($trip->end_date)) }}
-                                            {{ date('h:i a', strtotime($trip->end_time)) }}</label>
+                                        <label>End At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->end_date)) }}
+                                            {{ date('h:i a', strtotime($trip->end_time)) }}</span></label>
                                     </div>
                                 </div>
                                 <div style="width:50% ;">
