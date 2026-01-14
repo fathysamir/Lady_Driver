@@ -49,7 +49,7 @@
                                                         @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                         class="img-circle" alt="user avatar"
                                                         style="width: 22px;height: 22px;"></span>
-                                                {{ ucwords($trip->user->name) }}</a></label>
+                                                {{ ucwords($trip->user->name) }}</a> @if($trip->student_trip=='1') (<span style="color:rgb(255, 215, 16)">Student</span>) @endif</label>
                                     </div>
                                     <div class="form-group">
                                         <label>Driver :
