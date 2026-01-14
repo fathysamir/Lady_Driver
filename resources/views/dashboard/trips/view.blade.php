@@ -42,7 +42,7 @@
                             <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
                             <div class="form-group" style="display: flex;margin-bottom: 0rem;">
                                 <div style="width:50%">
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>Client : <a
                                                 href="{{ url('/admin-dashboard/user/edit/' . $trip->user->id) }}">
                                                 <span class="user-profile"><img
@@ -51,7 +51,7 @@
                                                         style="width: 22px;height: 22px;"></span>
                                                 {{ ucwords($trip->user->name) }}</a> @if($trip->student_trip=='1') (<span style="color:rgb(255, 215, 16)">Student</span>) @endif</label>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>Driver :
                                             @if ($trip->type === 'scooter' && $trip->scooter)
                                                 <a
@@ -79,7 +79,7 @@
                                             @endif
                                         </label>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>Created at : <span style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->created_at)) }}</span>
                                             @if ($trip->scheduled == '1')
                                                 <span class="badge badge-secondary"
@@ -87,15 +87,15 @@
                                             @endif
                                         </label>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>Driver Arrived at : <span style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}</span>
                                             </label>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>Start At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->start_date)) }}
                                             {{ date('h:i a', strtotime($trip->start_time)) }}</span></label>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group"style="margin-bottom: 0.75rem;">
                                         <label>End At : <span style="color: #95c408">{{ date('d M.Y', strtotime($trip->end_date)) }}
                                             {{ date('h:i a', strtotime($trip->end_time)) }}</span></label>
                                     </div>
