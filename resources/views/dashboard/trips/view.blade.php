@@ -204,6 +204,9 @@
                                 <label>Payment Status : {{ $trip->payment_status }}</label>
                             </div>
                             <div class="form-group">
+                                <label>Payment Method : {{ ucwords($trip->payment_method) }}</label>
+                            </div>
+                            <div class="form-group">
                                 <label>Distance : {{ $trip->distance }} KM</label>
                             </div>
                             <div class="form-group">
