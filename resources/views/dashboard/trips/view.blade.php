@@ -30,7 +30,13 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Trip Code : {{ $trip->code }}</div>
+                            @php
+                                $type['car'] = 'Standard Trip';
+                                $type['comfort_car'] = 'Comfort Trip';
+                                $type['scooter'] = 'Scooter Trip';
+
+                            @endphp
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }})</div>
                             <hr>
 
                             <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
@@ -86,6 +92,25 @@
                                                 : '<span class="badge badge-secondary" style="background-color:rgb(255,0,0);">Not air conditioned</span>' !!}</label>
                                         </div>
                                     @endif
+                                    <div class="form-group">
+                                        <label>Trip Status : @if ($trip->status == 'pending')
+                                                <span class="badge badge-secondary"
+                                                    style="background-color:rgb(143, 118, 9);">Pending</span>
+                                            @elseif($trip->status == 'scheduled')
+                                                <span class="badge badge-secondary"
+                                                    style="background-color:rgb(112, 137, 4);">Scheduled</span>
+                                            @elseif($trip->status == 'completed')
+                                                <span class="badge badge-secondary"
+                                                    style="background-color:rgb(50, 134, 50);">Completed</span>
+                                            @elseif($trip->status == 'in_progress')
+                                                <span class="badge badge-secondary"
+                                                    style="background-color:rgb(52, 40, 223);">In Progress</span>
+                                            @else
+                                                <span class="badge badge-secondary"
+                                                    style="background-color:rgb(255,0,0);">Cancelled</span>
+                                            @endif
+                                        </label>
+                                    </div>
                                 </div>
                                 <div style="width:50% ;">
                                     <div class="form-group">
@@ -115,29 +140,14 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Start At : {{ $trip->start_date }}
+                                        <label>Start At : {{ date('d M.Y', strtotime($trip->start_date)) }}
                                             {{ date('h:i a', strtotime($trip->start_time)) }}</label>
                                     </div>
                                     <div class="form-group">
-                                        <label>End At : {{ $trip->end_date }}
+                                        <label>End At : {{ date('d M.Y', strtotime($trip->end_date)) }}
                                             {{ date('h:i a', strtotime($trip->end_time)) }}</label>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Trip Status : @if ($trip->status == 'pending')
-                                                <span class="badge badge-secondary"
-                                                    style="background-color:rgb(143, 118, 9);">Pending</span>
-                                            @elseif($trip->status == 'completed')
-                                                <span class="badge badge-secondary"
-                                                    style="background-color:rgb(50, 134, 50);">Completed</span>
-                                            @elseif($trip->status == 'in_progress')
-                                                <span class="badge badge-secondary"
-                                                    style="background-color:rgb(52, 40, 223);">In Progress</span>
-                                            @else
-                                                <span class="badge badge-secondary"
-                                                    style="background-color:rgb(255,0,0);">Cancelled</span>
-                                            @endif
-                                        </label>
-                                    </div>
+
                                 </div>
                             </div>
 
