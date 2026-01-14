@@ -36,7 +36,7 @@
                                 $type['scooter'] = 'Scooter Trip';
 
                             @endphp
-                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) <i class="fa fa-snowflake"></i></div>
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }})  @if ($trip->type === 'car' && $trip->air_conditioned=='1')<i class="fa fa-snowflake" style="color: rgb(0, 213, 255);"></i> @endif</div>
                             <hr>
 
                             <div id="map" style="height: 800px; margin: 20px 0px 20px 0px;"></div>
@@ -145,15 +145,6 @@
                                             @endif
                                         </label>
                                     </div>
-                                    @if ($trip->type === 'car')
-                                        <div class="form-group">
-                                            <label>Air Conditioned Status : {!! $trip->air_conditioned
-                                                ? '<span class="badge badge-secondary" style="background-color:rgb(28, 161, 34);">Air conditioned</span>'
-                                                : '<span class="badge badge-secondary" style="background-color:rgb(255,0,0);">Not air conditioned</span>' !!}</label>
-                                        </div>
-                                    @endif
-                                    
-
 
                                 </div>
                             </div>
