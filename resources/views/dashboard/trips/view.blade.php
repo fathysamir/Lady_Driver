@@ -212,14 +212,10 @@
                                 <hr style="flex: 1; margin: 0;">
                             </div>
                             <div class="form-group">
-                                <label>Payment Status : {{ $trip->payment_status }}</label>
-                            </div>
-                            <div class="form-group">
-                                <label>Payment Method : {{ ucwords($trip->payment_method) }}</label>
-                            </div>
-                            <div class="form-group">
                                 <label>Distance : {{ $trip->distance }} KM</label>
                             </div>
+
+
                             <div class="form-group">
                                 <label>Driver commission : {{ $trip->driver_rate }} LE</label>
                             </div>
@@ -238,7 +234,12 @@
                             <div class="form-group">
                                 <label>Total Price : {{ $trip->total_price }} LE</label>
                             </div>
-
+                            <div class="form-group">
+                                <label>Payment Status : {{ $trip->payment_status }}</label>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Method : {{ ucwords($trip->payment_method) }}</label>
+                            </div>
                             @if ($trip->cancelled_by_id != null)
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <h4 style="margin-right: 10px;">Cancellation</h4>
