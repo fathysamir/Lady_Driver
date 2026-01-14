@@ -80,11 +80,9 @@
                                         </label>
                                     </div>
                                     <div class="form-group">
-                                        <label>Created at : {{ date('d M.Y h:i a', strtotime($trip->created_at)) }}</label>
+                                        <label>Created at : {{ date('d M.Y h:i a', strtotime($trip->created_at)) }} @if($trip->scheduled=='1') <span class="badge badge-secondary" style="background-color:rgb(28, 161, 34);">Scheduled</span>  @endif</label>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Type : {{ ucfirst(str_replace('_', ' ', $trip->type)) }}</label>
-                                    </div>
+                                    
                                     @if ($trip->type !== 'scooter')
                                         <div class="form-group">
                                             <label>Air Conditioned Status : {!! $trip->air_conditioned
