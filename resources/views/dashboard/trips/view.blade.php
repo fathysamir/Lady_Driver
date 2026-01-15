@@ -36,7 +36,7 @@
                                 $type['scooter'] = 'Scooter Trip';
 
                             @endphp
-                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if ($trip->type === 'car' && $trip->air_conditioned == '1')
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if (($trip->type === 'car' && $trip->air_conditioned == '1') || $trip->type === 'comfort_car') 
                                     <i class="fa fa-snowflake" style="color: rgb(0, 213, 255);"></i>
                                 @endif
                             </div>
@@ -254,8 +254,14 @@
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label>Cancelled Reason : <span
-                                            style="text-transform: none;">{{ $trip->cancellation_reason ?? 'N/A' }}</span></label>
+                                    <label>Cancelled Reason : @if ($trip->trip_cancelling_reason_id)
+                                            <span
+                                                style="text-transform: none;">{{ $trip->cancelling_reason->reason ?? 'N/A' }}</span>
+                                        @else
+                                            <span
+                                                style="text-transform: none;">{{ $trip->trip_cancelling_reason_text ?? 'N/A' }}</span>
+                                        @endif
+                                    </label>
                                 </div>
                             @endif
 
