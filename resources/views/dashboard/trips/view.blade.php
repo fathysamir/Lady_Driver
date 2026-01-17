@@ -321,141 +321,93 @@
     </script>
 
     <script>
-        var map, directionsService, segmentRenderer1, segmentRenderer2, marker, previousLocation, distanceLabel;
+        var map,
+            directionsService,
+            routeRenderer,
+            marker,
+            previousLocation,
+            travelledPath = [],
+            travelledPolyline,
+            distanceLabel;
+
         var tripDestinations = @json(
-            $destinations->map(function ($d) {
-                return ['lat' => $d->lat, 'lng' => $d->lng, 'address' => $d->address];
-            }));
-        var routeRenderers = [];
+            $destinations->map(fn($d) => [
+                    'lat' => $d->lat,
+                    'lng' => $d->lng,
+                    'address' => $d->address,
+                ]));
 
         function initMap() {
+
             @php
-                $vehicleType = $trip->type === 'scooter' ? 'scooter' : 'car';
-                $vehicle = $vehicleType === 'scooter' ? $trip->scooter : $trip->car;
+                $vehicle = $trip->type === 'scooter' ? $trip->scooter : $trip->car;
                 $vehicleLat = $vehicle ? $vehicle->lat : $trip->start_lat;
                 $vehicleLng = $vehicle ? $vehicle->lng : $trip->start_lng;
             @endphp
 
-            var vehicleLocation = {
+            previousLocation = {
                 lat: {{ $vehicleLat }},
                 lng: {{ $vehicleLng }}
             };
-            previousLocation = vehicleLocation;
 
             map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 12,
-                center: {
-                    lat: {{ $trip->start_lat }},
-                    lng: {{ $trip->start_lng }}
+                zoom: 13,
+                center: previousLocation
+            });
+
+            directionsService = new google.maps.DirectionsService();
+
+            routeRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: '#0000FF',
+                    strokeWeight: 4
                 }
             });
 
-            // Initialize Directions Service and Renderer
-            directionsService = new google.maps.DirectionsService();
-
-
-            // Calculate and display the route
-            calculateRoute();
-
-            var startLocation = new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }});
-            placeMarkers(startLocation, tripDestinations);
+            placeMarkers();
 
             if ("{{ $trip->status }}" === "in_progress" || "{{ $trip->status }}" === "pending") {
-                var vehicleIcon =
-                    "{{ $trip->type === 'scooter' ? asset('dashboard/scooter-icon.png') : asset('dashboard/Travel-car-topview.svg.png') }}";
-                marker = new RotatingMarker(vehicleLocation, map, vehicleIcon);
+                marker = new RotatingMarker(
+                    previousLocation,
+                    map,
+                    "{{ $trip->type === 'scooter'
+                        ? asset('dashboard/scooter-icon.png')
+                        : asset('dashboard/Travel-car-topview.svg.png') }}"
+                );
 
-                // Start updating the car's location every 3 seconds
+                travelledPath.push(new google.maps.LatLng(previousLocation.lat, previousLocation.lng));
+
                 setInterval(updateVehicleLocation, 3000);
             }
 
             if ("{{ $trip->status }}" !== "cancelled") {
-                addDistanceLabel(map, '{{ $trip->distance }} km');
+                addDistanceLabel('{{ $trip->distance }} km');
             }
+
+            drawRemainingRoute(previousLocation);
         }
 
-        function calculateRoute() {
+        /* ===================== ROUTES ===================== */
 
-            var startLocation = new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }});
-            var vehicleLocation = new google.maps.LatLng(previousLocation.lat, previousLocation.lng);
+        function drawRemainingRoute(vehicleLocation) {
 
-            var tripStatus = "{{ $trip->status }}";
-
-            // آخر Destination هو النهاية
             var finalDest = tripDestinations[tripDestinations.length - 1];
-
-            var finalLocation = new google.maps.LatLng(finalDest.lat, finalDest.lng);
 
             var waypoints = tripDestinations.slice(0, -1).map(d => ({
                 location: new google.maps.LatLng(d.lat, d.lng),
                 stopover: true
             }));
 
-            routeRenderers.forEach(r => r.setMap(null));
-            routeRenderers = [];
-
-            if (tripStatus === "in_progress") {
-                drawRoute(startLocation, vehicleLocation, '#00FF00', waypoints);
-                drawRoute(vehicleLocation, finalLocation, '#0000FF', waypoints);
-            } else if (tripStatus === "completed") {
-                drawRoute(startLocation, finalLocation, '#00FF00', waypoints);
-            } else if (tripStatus === "pending") {
-                drawRoute(startLocation, finalLocation, '#0000FF', waypoints);
-            } else if (tripStatus === "cancelled") {
-                drawRoute(startLocation, finalLocation, '#FF0000', waypoints);
-            }
-        }
-
-
-        function placeMarkers(startLocation, destinations) {
-
-            // Start marker
-            new google.maps.Marker({
-                position: startLocation,
-                map: map,
-                label: "S",
-                icon: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-                title: "Start Point"
-            });
-
-            // Destination markers
-            destinations.forEach((dest, index) => {
-
-                new google.maps.Marker({
-                    position: new google.maps.LatLng(dest.lat, dest.lng),
-                    map: map,
-                    label: (index + 1).toString(),
-                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                    title: dest.address
-                });
-
-            });
-        }
-
-
-        function drawRoute(origin, destination, color, waypoints = []) {
-
             directionsService.route({
-                origin: origin,
-                destination: destination,
+                origin: vehicleLocation,
+                destination: new google.maps.LatLng(finalDest.lat, finalDest.lng),
                 waypoints: waypoints,
-                optimizeWaypoints: false,
                 travelMode: google.maps.TravelMode.DRIVING
             }, function(result, status) {
-
                 if (status === "OK") {
-
-                    var renderer = new google.maps.DirectionsRenderer({
-                        map: map,
-                        suppressMarkers: true,
-                        polylineOptions: {
-                            strokeColor: color,
-                            strokeWeight: 4
-                        }
-                    });
-
-                    renderer.setDirections(result);
-                    routeRenderers.push(renderer);
+                    routeRenderer.setDirections(result);
 
                     var path = result.routes[0].overview_path;
                     var midpoint = path[Math.floor(path.length / 2)];
@@ -464,77 +416,90 @@
             });
         }
 
+        /* ===================== MARKERS ===================== */
+
+        function placeMarkers() {
+
+            new google.maps.Marker({
+                position: new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }}),
+                map: map,
+                label: "S",
+                icon: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
+            });
+
+            tripDestinations.forEach((dest, i) => {
+                new google.maps.Marker({
+                    position: new google.maps.LatLng(dest.lat, dest.lng),
+                    map: map,
+                    label: (i + 1).toString(),
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                    title: dest.address
+                });
+            });
+        }
+
+        /* ===================== LIVE UPDATE ===================== */
+
         function updateVehicleLocation() {
-            var vehicleType = "{{ $trip->type }}";
-            var vehicleId = "{{ $trip->type === 'scooter' ? $trip->scooter->id ?? 0 : $trip->car->id ?? 0 }}";
-            var endpoint = vehicleType === 'scooter' ?
-                '/admin-dashboard/scooter-location/' + vehicleId :
-                '/admin-dashboard/car-location/' + vehicleId;
+
+            var endpoint =
+                "{{ $trip->type === 'scooter'
+                    ? '/admin-dashboard/scooter-location/' . ($trip->scooter->id ?? 0)
+                    : '/admin-dashboard/car-location/' . ($trip->car->id ?? 0) }}";
 
             fetch(endpoint)
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
+
                     var newLocation = {
                         lat: data.lat,
                         lng: data.lng
                     };
 
-                    // Check if the new location is different from the previous location
-                    if (newLocation.lat === previousLocation.lat && newLocation.lng === previousLocation.lng) {
-                        console.log('Location is unchanged. No update needed.');
-                        return;
+                    if (
+                        newLocation.lat === previousLocation.lat &&
+                        newLocation.lng === previousLocation.lng
+                    ) return;
+
+                    var rotation = calculateBearing(previousLocation, newLocation);
+
+                    marker.setPosition(newLocation);
+                    marker.setRotation(rotation);
+
+                    travelledPath.push(new google.maps.LatLng(newLocation.lat, newLocation.lng));
+
+                    if (!travelledPolyline) {
+                        travelledPolyline = new google.maps.Polyline({
+                            path: travelledPath,
+                            strokeColor: '#00FF00',
+                            strokeOpacity: 1,
+                            strokeWeight: 4,
+                            map: map
+                        });
+                    } else {
+                        travelledPolyline.setPath(travelledPath);
                     }
 
-                    // Calculate the bearing (rotation angle)
-                    var rotationAngle = calculateBearing(previousLocation, newLocation);
-
-                    // Move the marker to the new location and rotate it
-                    marker.setPosition(newLocation);
-                    marker.setRotation(rotationAngle);
-
-                    // Update previous location to the new location
                     previousLocation = newLocation;
+                    map.panTo(newLocation);
 
-                    // Optionally, center the map on the new location
-                    map.setCenter(newLocation);
-
-                    // Recalculate and update the route segments for in-progress trips
-                    calculateRoute();
-                })
-                .catch(error => console.error('Error fetching car location:', error));
+                    drawRemainingRoute(newLocation);
+                });
         }
 
-        // Function to calculate the bearing (angle) between two locations
-        function calculateBearing(start, end) {
-            var startLat = degreesToRadians(start.lat);
-            var startLng = degreesToRadians(start.lng);
-            var endLat = degreesToRadians(end.lat);
-            var endLng = degreesToRadians(end.lng);
+        /* ===================== ROTATING MARKER ===================== */
 
-            var dLng = endLng - startLng;
-
-            var y = Math.sin(dLng) * Math.cos(endLat);
-            var x = Math.cos(startLat) * Math.sin(endLat) - Math.sin(startLat) * Math.cos(endLat) * Math.cos(dLng);
-            var bearing = Math.atan2(y, x);
-
-            return radiansToDegrees(bearing); // Convert from radians to degrees
-        }
-
-        // Custom RotatingMarker class to handle rotation and position update
-        function RotatingMarker(position, map, imageUrl) {
+        function RotatingMarker(position, map, image) {
             this.position = position;
-            this.rotation = 250;
+            this.rotation = 0;
 
-            // Create the marker div
             this.div = document.createElement('div');
-            this.div.style.position = 'absolute';
             this.div.style.width = '50px';
-            this.div.style.height = '38px';
-            this.div.style.backgroundImage = `url(${imageUrl})`;
+            this.div.style.height = '40px';
+            this.div.style.backgroundImage = `url(${image})`;
             this.div.style.backgroundSize = 'contain';
             this.div.style.backgroundRepeat = 'no-repeat';
 
-            // Append the marker div to the map
             this.setMap(map);
         }
 
@@ -545,47 +510,43 @@
         };
 
         RotatingMarker.prototype.draw = function() {
-            var overlayProjection = this.getProjection();
-            var position = overlayProjection.fromLatLngToDivPixel(this.position);
-
-            // Position the div
-            this.div.style.left = (position.x - 25) + 'px'; // Center the icon
-            this.div.style.top = (position.y - 25) + 'px';
-
-            // Apply the rotation
+            var p = this.getProjection().fromLatLngToDivPixel(this.position);
+            this.div.style.left = (p.x - 25) + 'px';
+            this.div.style.top = (p.y - 20) + 'px';
             this.div.style.transform = `rotate(${this.rotation}deg)`;
         };
 
-        RotatingMarker.prototype.setPosition = function(position) {
-            this.position = position;
+        RotatingMarker.prototype.setPosition = function(pos) {
+            this.position = pos;
             this.draw();
         };
 
-        RotatingMarker.prototype.setRotation = function(rotation) {
-            this.rotation = rotation;
+        RotatingMarker.prototype.setRotation = function(rot) {
+            this.rotation = rot;
             this.draw();
         };
 
-        // Helper functions to convert between degrees and radians
-        function degreesToRadians(degrees) {
-            return degrees * (Math.PI / 180);
+        /* ===================== HELPERS ===================== */
+
+        function calculateBearing(start, end) {
+            var y = Math.sin((end.lng - start.lng) * Math.PI / 180) *
+                Math.cos(end.lat * Math.PI / 180);
+            var x = Math.cos(start.lat * Math.PI / 180) *
+                Math.sin(end.lat * Math.PI / 180) -
+                Math.sin(start.lat * Math.PI / 180) *
+                Math.cos(end.lat * Math.PI / 180) *
+                Math.cos((end.lng - start.lng) * Math.PI / 180);
+
+            return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
         }
 
-        function radiansToDegrees(radians) {
-            return radians * (180 / Math.PI);
-        }
-
-        function addDistanceLabel(map, distanceText) {
+        function addDistanceLabel(text) {
             distanceLabel = new google.maps.InfoWindow({
-                content: `<div  style="color:#000;  border-radius: 5px; font-weight: bold;">${distanceText}</div>`,
-                position: map
-                    .getCenter(), // Default to map center; can be updated later to the midpoint of the route
-                pixelOffset: new google.maps.Size(0, -10)
+                content: `<strong>${text}</strong>`
             });
-
             distanceLabel.open(map);
         }
-        // Initialize the map on page load
+
         window.onload = initMap;
     </script>
 @endpush
