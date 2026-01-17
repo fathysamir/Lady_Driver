@@ -397,10 +397,10 @@
             routeRenderers = [];
 
             if (tripStatus === "in_progress") {
-                drawRoute(startLocation, vehicleLocation, '#99c680', waypoints);
+                drawRoute(startLocation, vehicleLocation, '#fc01f8', waypoints);
                 drawRoute(vehicleLocation, finalLocation, '#0000FF', waypoints);
             } else if (tripStatus === "completed") {
-                drawRoute(startLocation, finalLocation, '#99c680', waypoints);
+                drawRoute(startLocation, finalLocation, '#fc01f8', waypoints);
             } else if (tripStatus === "pending") {
                 drawRoute(startLocation, finalLocation, '#0000FF', waypoints);
             } else if (tripStatus === "cancelled") {
