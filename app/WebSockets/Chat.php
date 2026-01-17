@@ -559,7 +559,7 @@ class Chat implements MessageComponentInterface
                             $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
                         });
-
+dd($eligibleScooters);
                     $eligibleDriverIds = [];
 
                     foreach ($eligibleScooters as $scooter) {
