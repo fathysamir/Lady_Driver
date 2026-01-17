@@ -397,8 +397,8 @@
             routeRenderers = [];
 
             if (tripStatus === "in_progress") {
-                drawRoute(startLocation, vehicleLocation, '#fc01f8', waypoints);
                 drawRoute(vehicleLocation, finalLocation, '#0000FF', waypoints);
+                 drawRoute(startLocation, vehicleLocation, '#fc01f8', waypoints);
             } else if (tripStatus === "completed") {
                 drawRoute(startLocation, finalLocation, '#fc01f8', waypoints);
             } else if (tripStatus === "pending") {
