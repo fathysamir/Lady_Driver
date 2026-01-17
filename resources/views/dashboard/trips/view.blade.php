@@ -331,11 +331,13 @@
             distanceLabel;
 
         var tripDestinations = @json(
-            $destinations->map(fn($d) => [
-                    'lat' => $d->lat,
-                    'lng' => $d->lng,
-                    'address' => $d->address,
-                ]));
+            $destinations->map(function ($d) {
+                    return [
+                        'lat' => (float) $d->lat,
+                        'lng' => (float) $d->lng,
+                        'address' => $d->address,
+                    ];
+                })->values());
 
         function initMap() {
 
