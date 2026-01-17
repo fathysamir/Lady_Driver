@@ -1094,7 +1094,7 @@ class Chat implements MessageComponentInterface
         $duration                                 = $response['duration_in_M'];
         $driver_                                  = $offer->user()->first();
         $offer_result['id']                       = $offer->id;
-        $offer_result['user_id']                  = $offer->user()->first()->id;
+        $offer_result['user_id']                  = $driver_->id;
         $offer_result['trip_id']                  = $trip->id;
         $offer_result['client_location_distance'] = $distance;
         $offer_result['client_location_duration'] = $duration;
@@ -1130,10 +1130,10 @@ class Chat implements MessageComponentInterface
             $offer_result['scooter']['year']             = $offer->scooter()->first()->year;
             $offer_result['scooter']['scooter_mark_id']  = $offer->scooter()->first()->motorcycle_mark_id;
             $offer_result['scooter']['scooter_model_id'] = $offer->scooter()->first()->motorcycle_model_id;
-            $offer_result['scooter']['mark']['id']       = $offer->scooter()->first()->mark()->first()->id;
-            $offer_result['scooter']['mark']['name']     = $offer->scooter()->first()->mark()->first()->name;
-            $offer_result['scooter']['model']['id']      = $offer->scooter()->first()->model()->first()->id;
-            $offer_result['scooter']['model']['name']    = $offer->scooter()->first()->model()->first()->name;
+            $offer_result['scooter']['mark']['id']       = $offer->scooter()->first()->motorcycleMark()->first()->id;
+            $offer_result['scooter']['mark']['name']     = $offer->scooter()->first()->motorcycleMark()->first()->name;
+            $offer_result['scooter']['model']['id']      = $offer->scooter()->first()->motorcycleModel()->first()->id;
+            $offer_result['scooter']['model']['name']    = $offer->scooter()->first()->motorcycleModel()->first()->name;
         }
         $offer_result['created_at'] = $offer->created_at;
 
