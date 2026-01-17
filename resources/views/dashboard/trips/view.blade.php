@@ -367,7 +367,7 @@
 
             if ("{{ $trip->status }}" === "in_progress" || "{{ $trip->status }}" === "pending") {
                 var vehicleIcon =
-                    "{{ $trip->type === 'scooter' ? asset('dashboard/scooter-icon.png') : asset('dashboard/Travel-car-topview.svg.png') }}";
+                    "{{ $trip->type === 'scooter' ? asset('dashboard/scooter_top_view_312787-removebg-preview.png') : asset('dashboard/Travel-car-topview.svg.png') }}";
                 marker = new RotatingMarker(vehicleLocation, map, vehicleIcon);
 
                 // Start updating the car's location every 3 seconds
