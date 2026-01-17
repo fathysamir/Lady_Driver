@@ -332,12 +332,8 @@
 
         var tripDestinations = @json(
             $destinations->map(function ($d) {
-                    return [
-                        'lat' => (float) $d->lat,
-                        'lng' => (float) $d->lng,
-                        'address' => $d->address,
-                    ];
-                })->values());
+                return ['lat' => $d->lat, 'lng' => $d->lng, 'address' => $d->address];
+            }));
 
         function initMap() {
 
