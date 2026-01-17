@@ -36,7 +36,7 @@
                                 $type['scooter'] = 'Scooter Trip';
 
                             @endphp
-                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if (($trip->type === 'car' && $trip->air_conditioned == '1') || $trip->type === 'comfort_car') 
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if (($trip->type === 'car' && $trip->air_conditioned == '1') || $trip->type === 'comfort_car')
                                     <i class="fa fa-snowflake" style="color: rgb(0, 213, 255);"></i>
                                 @endif
                             </div>
@@ -225,14 +225,15 @@
                             <div class="form-group">
                                 <label>Delay Cost : {{ $trip->delay_cost }} LE</label>
                             </div>
-                            <div class="form-group">
-                                <label>Tip : {{ $trip->tip }} LE</label>
-                            </div>
+
                             <div class="form-group">
                                 <label>Discount : {{ $trip->discount }} LE</label>
                             </div>
                             <div class="form-group">
                                 <label>Total Price : {{ $trip->total_price }} LE</label>
+                            </div>
+                            <div class="form-group">
+                                <label>Tip : {{ $trip->tip }} LE</label>
                             </div>
                             <div class="form-group">
                                 <label>Payment Status : {{ $trip->payment_status }}</label>

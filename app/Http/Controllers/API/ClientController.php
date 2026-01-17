@@ -3,20 +3,21 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\Car;
+use App\Models\Complaint;
 use App\Models\RateTripSetting;
 use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
-use App\Models\Trip;
-use App\Models\Complaint;
 use App\Models\Suggestion;
+use App\Models\Trip;
 use App\Models\TripCancellingReason;
 use App\Models\TripChat;
 use App\Models\UserAddress;
 use App\Services\FirebaseService;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends ApiController
 {
@@ -71,13 +72,13 @@ class ClientController extends ApiController
         foreach ($points as $i => $point) {
             [$lat, $lng] = $point;
             if ($lat && $lng) {
-                $calc = calculate_distance($prevLat, $prevLng, $lat, $lng);
-                $distance += $calc['distance_in_km'];
-                $duration += $calc['duration_in_M'];
-                $response["end_lat_" . ($i + 1)] = $lat;
-                $response["end_lng_" . ($i + 1)] = $lng;
-                $prevLat                         = $lat;
-                $prevLng                         = $lng;
+                $calc                             = calculate_distance($prevLat, $prevLng, $lat, $lng);
+                $distance                        += $calc['distance_in_km'];
+                $duration                        += $calc['duration_in_M'];
+                $response["end_lat_" . ($i + 1)]  = $lat;
+                $response["end_lng_" . ($i + 1)]  = $lng;
+                $prevLat                          = $lat;
+                $prevLng                          = $lng;
             } else {
                 $response["end_lat_" . ($i + 1)] = null;
                 $response["end_lng_" . ($i + 1)] = null;
@@ -153,8 +154,8 @@ class ClientController extends ApiController
 
         $discount = 0;
         if ($student && $studentTripsCount < 3) {
-            $discount = $cost * ($studentDiscount / 100);
-            $cost -= $discount;
+            $discount  = $cost * ($studentDiscount / 100);
+            $cost     -= $discount;
         }
 
         if ($cost < $lessCost) {
@@ -629,9 +630,9 @@ class ClientController extends ApiController
                 $prevLat = $destination->lat;
                 $prevLng = $destination->lng;
             }
-            $trip->duration = $totalDuration;
-            $barcode_image  = url(barcodeImage($trip->id));
-            $trip->barcode  = $barcode_image;
+            $trip->duration  = $totalDuration;
+            $barcode_image   = url(barcodeImage($trip->id));
+            $trip->barcode   = $barcode_image;
             if ($trip->status == 'pending' || $trip->status == 'in_progress') {
                 if (in_array($trip->type, ['car', 'comfort_car'])) {
                     $driver_                = $trip->car->owner;
@@ -790,7 +791,7 @@ class ClientController extends ApiController
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
         },
-             'finalDestination'
+            'finalDestination',
         ])->get()->map(function ($trip) {
             if (in_array($trip->type, ['car', 'comfort_car'])) {
                 $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
@@ -810,7 +811,7 @@ class ClientController extends ApiController
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
-        }, 'cancelled_by', 'cancelling_reason','finalDestination'])->get()->map(function ($trip) {
+        }, 'cancelled_by', 'cancelling_reason', 'finalDestination'])->get()->map(function ($trip) {
             if (in_array($trip->type, ['car', 'comfort_car'])) {
                 $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
             } elseif ($trip->type == 'scooter') {
@@ -846,17 +847,17 @@ class ClientController extends ApiController
         if (auth()->user()->mode == 'client') {
             $trip->client_stare_rate = floatval($request->rating);
             $trip->client_comment    = $request->comment;
-            if($request->tip){
-                $trip->tip=floatval($request->tip);
-                $client=$trip->user;
-                $client->wallet=$client->wallet-floatval($request->tip);
+            if ($request->tip) {
+                $trip->tip      = floatval($request->tip);
+                $client         = $trip->user;
+                $client->wallet = $client->wallet - floatval($request->tip);
                 $client->save();
-                if($trip->car){
-                    $driver=$trip->car->owner;
-                }elseif($trip->scooter){
-                    $driver=$trip->scooter->owner;
+                if ($trip->car) {
+                    $driver = $trip->car->owner;
+                } elseif ($trip->scooter) {
+                    $driver = $trip->scooter->owner;
                 }
-                $driver->wallet=$driver->wallet+floatval($request->tip);
+                $driver->wallet = $driver->wallet + floatval($request->tip);
                 $driver->save();
             }
         } elseif (auth()->user()->mode == 'driver') {
@@ -1323,8 +1324,12 @@ class ClientController extends ApiController
 
         }
         try {
-            $trip->total_price = $request->price;
-            $trip->save();
+            if ($trip->total_price != $request->price) {
+                DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
+                $trip->total_price = $request->price;
+                $trip->save();
+
+            }
 
             return $this->sendResponse(null, 'Trip price updated successfully.', 200);
 

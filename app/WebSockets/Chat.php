@@ -13,6 +13,7 @@ use App\Models\TripDestination;
 use App\Models\User;
 use Carbon\Carbon;
 use Clue\React\Redis\Factory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -434,6 +435,7 @@ class Chat implements MessageComponentInterface
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
                             if ($client) {
+                                DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
@@ -509,6 +511,7 @@ class Chat implements MessageComponentInterface
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
                             if ($client) {
+                                DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
@@ -576,6 +579,7 @@ class Chat implements MessageComponentInterface
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
                             if ($client) {
+                                DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
@@ -759,7 +763,15 @@ class Chat implements MessageComponentInterface
                     if (count($eligibleDriverIds) > 0) {
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
-                            if ($client) {
+                            $exists = DB::table('drivers_trips')
+                                ->where('driver_id', $eligibleDriverId)
+                                ->where('trip_id', $trip->id)
+                                ->exists();
+                            if (! $exists && $client) {
+                                DB::table('drivers_trips')->insert([
+                                    'driver_id' => $eligibleDriverId,
+                                    'trip_id'   => $trip->id,
+                                ]);
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -834,7 +846,15 @@ class Chat implements MessageComponentInterface
                     if (count($eligibleDriverIds) > 0) {
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
-                            if ($client) {
+                            $exists = DB::table('drivers_trips')
+                                ->where('driver_id', $eligibleDriverId)
+                                ->where('trip_id', $trip->id)
+                                ->exists();
+                            if (! $exists && $client) {
+                                DB::table('drivers_trips')->insert([
+                                    'driver_id' => $eligibleDriverId,
+                                    'trip_id'   => $trip->id,
+                                ]);
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -901,7 +921,15 @@ class Chat implements MessageComponentInterface
                     if (count($eligibleDriverIds) > 0) {
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
-                            if ($client) {
+                            $exists = DB::table('drivers_trips')
+                                ->where('driver_id', $eligibleDriverId)
+                                ->where('trip_id', $trip->id)
+                                ->exists();
+                            if (! $exists && $client) {
+                                DB::table('drivers_trips')->insert([
+                                    'driver_id' => $eligibleDriverId,
+                                    'trip_id'   => $trip->id,
+                                ]);
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -931,7 +959,7 @@ class Chat implements MessageComponentInterface
             }
         });
     }
-    
+
     private function expire_trip_notify($trip)
     {
         $expired_trip['trip_id'] = $trip->id;
@@ -941,125 +969,16 @@ class Chat implements MessageComponentInterface
             'message' => 'Trip expired successfully',
         ];
         $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        switch ($trip->type) {
-            case 'car':
-                $decimalPlaces = 2;
-                $userIds       = Car::where('status', 'confirmed')->where('is_comfort', '0')
-
-                    ->whereHas('owner', function ($query) {
-                        $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
-                    })
-                    ->where(function ($query) use ($trip) {
-                        if ($trip->air_conditioned == '1') {
-                            $query->where('air_conditioned', '1');
-                        }
-                        if ($trip->animals == '1') {
-                            $query->where('animals', '1');
-                        }
-                        if ($trip->user->gendor == 'Male') {
-                            $query->where('passenger_type', 'male_female');
-                        }
-                    })
-                    ->select('*')
-                    ->selectRaw(
-                        "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                    )
-                    ->having('distance', '<=', 4)
-                    ->get()
-                    ->pluck('user_id') // Extract user_ids as an array
-                    ->toArray();
-                foreach ($userIds as $userID) {
-                    $client = $this->getClientByUserId($userID);
-                    if ($client) {
-                        $client->send($message);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-                    }
-                }
-
-                break;
-
-            case 'comfort_car':
-                $decimalPlaces = 2;
-                $userIds       = Car::where('status', 'confirmed')->where('is_comfort', '1')
-
-                    ->whereHas('owner', function ($query) {
-                        $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
-                    })
-                    ->where(function ($query) use ($trip) {
-
-                        if ($trip->animals == '1') {
-                            $query->where('animals', '1');
-                        }
-                        if ($trip->user->gendor == 'Male') {
-                            $query->where('passenger_type', 'male_female');
-                        }
-                    })
-                    ->select('*')
-                    ->selectRaw(
-                        "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                    )
-                    ->having('distance', '<=', 4)
-                    ->get()
-                    ->pluck('user_id') // Extract user_ids as an array
-                    ->toArray();
-                foreach ($userIds as $userID) {
-                    $client = $this->getClientByUserId($userID);
-                    if ($client) {
-                        $client->send($message);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-                    }
-                }
-
-                break;
-
-            case 'scooter':
-                $decimalPlaces = 2;
-                $userIds       = Scooter::where('status', 'confirmed')
-
-                    ->whereHas('owner', function ($query) {
-                        $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
-                    })
-
-                    ->select('*')
-                    ->selectRaw(
-                        "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                    )
-                    ->having('distance', '<=', 4)
-                    ->get()
-                    ->pluck('user_id') // Extract user_ids as an array
-                    ->toArray();
-                foreach ($userIds as $userID) {
-                    $client = $this->getClientByUserId($userID);
-                    if ($client) {
-                        $client->send($message);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-                    }
-                }
-
-                break;
-
-            default:
-
-                break;
+        $records = DB::table('drivers_trips')->where('trip_id', $trip->id)->get();
+        foreach ($records as $record) {
+            $client = $this->getClientByUserId($record->driver_id);
+            if ($client) {
+                $client->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $record->driver_id);
+            }
         }
+        DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
     }
 
     private function expire_trip(ConnectionInterface $from, $AuthUserID, $expireTripRequest)
@@ -1079,125 +998,16 @@ class Chat implements MessageComponentInterface
         $date_time = date('Y-m-d h:i:s a');
 
         echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $AuthUserID);
-        switch ($trip->type) {
-            case 'car':
-                $decimalPlaces = 2;
-                $userIds       = Car::where('status', 'confirmed')->where('is_comfort', '0')
-
-                    ->whereHas('owner', function ($query) {
-                        $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
-                    })
-                    ->where(function ($query) use ($trip) {
-                        if ($trip->air_conditioned == '1') {
-                            $query->where('air_conditioned', '1');
-                        }
-                        if ($trip->animals == '1') {
-                            $query->where('animals', '1');
-                        }
-                        if ($trip->user->gendor == 'Male') {
-                            $query->where('passenger_type', 'male_female');
-                        }
-                    })
-                    ->select('*')
-                    ->selectRaw(
-                        "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                    )
-                    ->having('distance', '<=', 4)
-                    ->get()
-                    ->pluck('user_id') // Extract user_ids as an array
-                    ->toArray();
-                foreach ($userIds as $userID) {
-                    $client = $this->getClientByUserId($userID);
-                    if ($client) {
-                        $client->send($message);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-                    }
-                }
-
-                break;
-
-            case 'comfort_car':
-                $decimalPlaces = 2;
-                $userIds       = Car::where('status', 'confirmed')->where('is_comfort', '1')
-
-                    ->whereHas('owner', function ($query) {
-                        $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
-                    })
-                    ->where(function ($query) use ($trip) {
-
-                        if ($trip->animals == '1') {
-                            $query->where('animals', '1');
-                        }
-                        if ($trip->user->gendor == 'Male') {
-                            $query->where('passenger_type', 'male_female');
-                        }
-                    })
-                    ->select('*')
-                    ->selectRaw(
-                        "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                    )
-                    ->having('distance', '<=', 4)
-                    ->get()
-                    ->pluck('user_id') // Extract user_ids as an array
-                    ->toArray();
-                foreach ($userIds as $userID) {
-                    $client = $this->getClientByUserId($userID);
-                    if ($client) {
-                        $client->send($message);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-                    }
-                }
-
-                break;
-
-            case 'scooter':
-                $decimalPlaces = 2;
-                $userIds       = Scooter::where('status', 'confirmed')
-
-                    ->whereHas('owner', function ($query) {
-                        $query->where('is_online', '1')
-                            ->where('status', 'confirmed');
-                    })
-
-                    ->select('*')
-                    ->selectRaw(
-                        "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                        [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                    )
-                    ->having('distance', '<=', 4)
-                    ->get()
-                    ->pluck('user_id') // Extract user_ids as an array
-                    ->toArray();
-                foreach ($userIds as $userID) {
-                    $client = $this->getClientByUserId($userID);
-                    if ($client) {
-                        $client->send($message);
-                        $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $userID);
-                    }
-                }
-
-                break;
-
-            default:
-
-                break;
+        $records = DB::table('drivers_trips')->where('trip_id', $trip->id)->get();
+        foreach ($records as $record) {
+            $client = $this->getClientByUserId($record->driver_id);
+            if ($client) {
+                $client->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of expired trip "%s" sent to user %d' . "\n", $date_time, $message, $record->driver_id);
+            }
         }
+        DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
 
     }
 
@@ -1468,6 +1278,7 @@ class Chat implements MessageComponentInterface
                 $date_time = date('Y-m-d h:i:s a');
                 echo sprintf('[ %s ] Message of accept offer "%s" sent to user %d' . "\n", $date_time, $res, $offer->user_id);
             }
+            DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
 
         }
 
@@ -1793,6 +1604,10 @@ class Chat implements MessageComponentInterface
                             foreach ($eligibleDriverIds as $eligibleDriverId) {
                                 $client = $this->getClientByUserId($eligibleDriverId);
                                 if ($client) {
+                                    DB::table('drivers_trips')->insert([
+                                        'driver_id' => $eligibleDriverId,
+                                        'trip_id'   => $n_trip->id,
+                                    ]);
                                     $driver                               = User::findOrFail($eligibleDriverId);
                                     $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
@@ -1868,6 +1683,10 @@ class Chat implements MessageComponentInterface
                             foreach ($eligibleDriverIds as $eligibleDriverId) {
                                 $client = $this->getClientByUserId($eligibleDriverId);
                                 if ($client) {
+                                    DB::table('drivers_trips')->insert([
+                                        'driver_id' => $eligibleDriverId,
+                                        'trip_id'   => $n_trip->id,
+                                    ]);
                                     $driver                               = User::findOrFail($eligibleDriverId);
                                     $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
@@ -1935,6 +1754,10 @@ class Chat implements MessageComponentInterface
                             foreach ($eligibleDriverIds as $eligibleDriverId) {
                                 $client = $this->getClientByUserId($eligibleDriverId);
                                 if ($client) {
+                                    DB::table('drivers_trips')->insert([
+                                        'driver_id' => $eligibleDriverId,
+                                        'trip_id'   => $n_trip->id,
+                                    ]);
                                     $driver                               = User::findOrFail($eligibleDriverId);
                                     $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
