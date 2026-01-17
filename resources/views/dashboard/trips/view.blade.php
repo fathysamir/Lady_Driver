@@ -376,6 +376,24 @@
             }
         }
 
+        function findNearestIndex(point, destinations) {
+            let minDist = Infinity;
+            let index = 0;
+
+            destinations.forEach((d, i) => {
+                let dist = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(point.lat, point.lng),
+                    new google.maps.LatLng(d.lat, d.lng)
+                );
+                if (dist < minDist) {
+                    minDist = dist;
+                    index = i;
+                }
+            });
+
+            return index;
+        }
+
         function calculateRoute() {
 
             var startLocation = new google.maps.LatLng({{ $trip->start_lat }}, {{ $trip->start_lng }});
@@ -397,8 +415,38 @@
             routeRenderers = [];
 
             if (tripStatus === "in_progress") {
-                drawRoute(vehicleLocation, finalLocation, '#0000FF', waypoints);
-                 drawRoute(startLocation, vehicleLocation, '#fc01f8', waypoints);
+
+                const currentIndex = findNearestIndex(previousLocation, tripDestinations);
+
+                const passedWaypoints = tripDestinations
+                    .slice(0, currentIndex)
+                    .map(d => ({
+                        location: new google.maps.LatLng(d.lat, d.lng),
+                        stopover: true
+                    }));
+
+                const remainingWaypoints = tripDestinations
+                    .slice(currentIndex + 1, -1)
+                    .map(d => ({
+                        location: new google.maps.LatLng(d.lat, d.lng),
+                        stopover: true
+                    }));
+
+                // PASSED ROUTE (Pink)
+                drawRoute(
+                    startLocation,
+                    new google.maps.LatLng(previousLocation.lat, previousLocation.lng),
+                    '#fc01f8',
+                    passedWaypoints
+                );
+
+                // REMAINING ROUTE (Blue)
+                drawRoute(
+                    new google.maps.LatLng(previousLocation.lat, previousLocation.lng),
+                    finalLocation,
+                    '#0000FF',
+                    remainingWaypoints
+                );
             } else if (tripStatus === "completed") {
                 drawRoute(startLocation, finalLocation, '#fc01f8', waypoints);
             } else if (tripStatus === "pending") {
