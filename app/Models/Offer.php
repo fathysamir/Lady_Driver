@@ -36,7 +36,7 @@ class Offer extends Model
         return $this->belongsTo(Car::class,'car_id','id')->withTrashed();
     }
     public function scooter(){
-        return $this->belongsTo(Car::class,'scooter_id','id')->withTrashed();
+        return $this->belongsTo(Scooter::class,'scooter_id','id')->withTrashed();
     }
     public function trip(){
         return $this->belongsTo(Trip::class,'trip_id','id')->withTrashed();
