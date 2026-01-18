@@ -93,7 +93,7 @@
                                                         @endif
                                                     </td>
 
-
+                                                    <td>{{ ucwords($FAQ->type) }}</td>
 
 
 
