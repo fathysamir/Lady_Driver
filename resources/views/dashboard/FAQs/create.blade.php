@@ -25,8 +25,44 @@
                                     @endif
                                     
                                 </div>
-                                
-                                
+                                <div class="form-group">
+                                    <label>Answer</label>
+                                    <textarea class="form-control" name="answer">{{ old('answer') }}</textarea>
+                                    
+                                    @if ($errors->has('answer'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('question') }}</p>
+                                    @endif
+                                    
+                                </div>
+                                <div class="form-group">
+                                    <label>Category</label>
+
+                                    <select class="form-control" name="category">
+                                        <option value="">Select Category</option>
+                                        <option value="client"@if (old('category') == 'client') selected @endif>Client
+                                        </option>
+                                        <option value="driver"@if (old('category') == 'driver') selected @endif>Driver
+                                        </option>
+                                        
+
+                                    </select>
+                                    @if ($errors->has('category'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('category') }}</p>
+                                    @endif
+                                </div>
+                                <div class="form-row">
+                                        <div class="form-group col-md-12">
+                                            <div class="custom-control custom-switch mt-2">
+                                                <input type="checkbox" class="custom-control-input"
+                                                    id="is_active" name="is_active">
+                                                <label class="custom-control-label" for="is_active">
+                                                    Activation
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                
 

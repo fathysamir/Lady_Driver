@@ -40,7 +40,7 @@ class FAQController extends Controller
     }
     public function store(Request $request)
     {
-        $FAQ = FAQ::create(['question' => $request->question, 'answer' => $request->answer, 'type' => $request->type]);
+        $FAQ = FAQ::create(['question' => $request->question, 'answer' => $request->answer, 'type' => $request->category]);
         if ($request->is_active) {
             $FAQ->is_active = '1';
         } else {
@@ -53,7 +53,7 @@ class FAQController extends Controller
     }
     public function update(Request $request, $id)
     {
-        FAQ::where('id', $id)->update(['question' => $request->question, 'answer' => $request->answer, 'type' => $request->type]);
+        FAQ::where('id', $id)->update(['question' => $request->question, 'answer' => $request->answer, 'type' => $request->category]);
         $FAQ = FAQ::findOrFail($id);
         if ($request->is_active) {
             $FAQ->is_active = '1';
