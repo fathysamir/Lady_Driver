@@ -1,5 +1,5 @@
 @extends('dashboard.layout.app')
-@section('title', 'Dashboard - create city')
+@section('title', 'Dashboard - create FAQ')
 @section('content')
     <div class="content-wrapper">
         <div class="container-fluid">
@@ -8,20 +8,20 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Create New City</div>
+                            <div class="card-title">Create New FAQ</div>
                             <hr>
-                            <form method="post" action="{{ route('create.city',$queryString) }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('create.FAQ',$queryString) }}" enctype="multipart/form-data">
                                 @csrf
                                
                                 <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
                                 <div class="form-group">
-                                    <label>Name</label>
-                                    <input type="text" name="name" class="form-control"
-                                        placeholder="Enter Name"value="{{ old('name') }}">
+                                    <label>Question</label>
+                                    <textarea class="form-control" name="question">{{ old('question') }}</textarea>
+
                                     
-                                    @if ($errors->has('name'))
+                                    @if ($errors->has('question'))
                                         <p class="text-error more-info-err" style="color: red;">
-                                            {{ $errors->first('name') }}</p>
+                                            {{ $errors->first('question') }}</p>
                                     @endif
                                     
                                 </div>
