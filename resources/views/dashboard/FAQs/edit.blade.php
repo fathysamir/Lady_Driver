@@ -40,9 +40,9 @@
 
                                     <select class="form-control" name="category">
                                         <option value="">Select Category</option>
-                                        <option value="client"@if ($reason->type == 'client') selected @endif>Client
+                                        <option value="client"@if ($FAQ->type == 'client') selected @endif>Client
                                         </option>
-                                        <option value="driver"@if ($reason->type == 'driver') selected @endif>Driver
+                                        <option value="driver"@if ($FAQ->type == 'driver') selected @endif>Driver
                                         </option>
 
 
