@@ -75,9 +75,7 @@
                                                             </span>
 
                                                             <a href="javascript:void(0)" class="read-more"
-                                                                onclick="event.stopPropagation(); toggleText(this);">
-                                                                Read more
-                                                            </a>
+                                                                onclick="event.stopPropagation(); toggleText(this);">Read more</a>
                                                         @endif
                                                     </td>
                                                     <td>
@@ -91,9 +89,7 @@
                                                             </span>
 
                                                             <a href="javascript:void(0)" class="read-more"
-                                                                onclick="event.stopPropagation(); toggleText(this);">
-                                                                Read more
-                                                            </a>
+                                                                onclick="event.stopPropagation(); toggleText(this);">Read more</a>
                                                         @endif
                                                     </td>
 
