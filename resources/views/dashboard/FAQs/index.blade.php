@@ -63,17 +63,20 @@
                                             @foreach ($FAQs as $FAQ)
                                                 <tr onclick="window.location='{{ route('edit.FAQ', ['id' => $FAQ->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
-                                                    <td>{{ $counter++ }}<div class="form-row">
-                                    <div class="form-group col-md-12">
-                                        <div class="custom-control custom-switch mt-2">
-                                            <input type="checkbox" disabled class="custom-control-input" id="is_active"
-                                                name="is_active"{{ $FAQ->is_active=='1' ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="is_active">
-                                                
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div></td>
+                                                    <td>
+                                                        <div class="form-row">
+                                                            <div class="form-group col-md-12">
+                                                                <div class="custom-control custom-switch mt-2">
+                                                                    <input type="checkbox" disabled
+                                                                        class="custom-control-input" id="is_active"
+                                                                        name="is_active"{{ $FAQ->is_active == '1' ? 'checked' : '' }}>
+                                                                    <label class="custom-control-label" for="is_active">
+                                                                        {{ $counter++ }}
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
                                                     <td>
                                                         <span class="short-text">
                                                             {!! highlight(\Illuminate\Support\Str::limit($FAQ->question, 50), $search ?? '') !!}
@@ -85,7 +88,8 @@
                                                             </span>
 
                                                             <a href="javascript:void(0)" class="read-more"
-                                                                onclick="event.stopPropagation(); toggleText(this);">Read more</a>
+                                                                onclick="event.stopPropagation(); toggleText(this);">Read
+                                                                more</a>
                                                         @endif
                                                     </td>
                                                     <td>
@@ -99,7 +103,8 @@
                                                             </span>
 
                                                             <a href="javascript:void(0)" class="read-more"
-                                                                onclick="event.stopPropagation(); toggleText(this);">Read more</a>
+                                                                onclick="event.stopPropagation(); toggleText(this);">Read
+                                                                more</a>
                                                         @endif
                                                     </td>
 
