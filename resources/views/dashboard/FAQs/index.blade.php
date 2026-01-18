@@ -125,7 +125,7 @@
                                     </tbody>
                                 </table>
                                 <div style="text-align: center;">
-                                    {!! $cities->appends([
+                                    {!! $FAQs->appends([
                                             'search' => request('search'),
                                         ])->links('pagination::bootstrap-4') !!}
                                 </div>
