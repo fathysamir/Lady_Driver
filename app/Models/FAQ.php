@@ -13,6 +13,7 @@ class FAQ extends Model
     protected $fillable = [
         'question',
         'answer',
+        'type',
         'is_active'
     ];
 

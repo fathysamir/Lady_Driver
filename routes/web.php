@@ -23,6 +23,7 @@ use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\TripController;
 use App\Http\Controllers\Dashboard\ScooterController;
 use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Controllers\Dashboard\FAQController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
@@ -226,5 +227,12 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
             'permissions' => $role->permissions->pluck('name'),
         ]);
     });
+/////////////////////////////////////////////////
+ Route::any('/FAQs', [FAQController::class, 'index'])->name('FAQs');
+    Route::get('/FAQs/create', [FAQController::class, 'create'])->name('add.FAQ');
+    Route::post('/FAQs/store', [FAQController::class, 'store'])->name('create.FAQ');
+    Route::get('/FAQs/edit/{id}', [FAQController::class, 'edit'])->name('edit.FAQ');
+    Route::post('/FAQs/update/{id}', [FAQController::class, 'update'])->name('update.FAQ');
+    Route::get('/FAQs/delete/{id}', [FAQController::class, 'delete'])->name('delete.FAQ');
 
 });

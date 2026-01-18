@@ -97,6 +97,13 @@
                 </a>
             </li>
         @endcan
+        @can('FAQs.view')
+            <li>
+                <a href="{{ url('/admin-dashboard/FAQs') }}">
+                    <i class="zmdi zmdi-view-dashboard"></i> <span>FAQs</span>
+                </a>
+            </li>
+        @endcan
         {{-- <li>
             <a href="{{ url('/admin-dashboard/users') }}">
                 <i class="zmdi zmdi-view-dashboard"></i> <span>Users</span>

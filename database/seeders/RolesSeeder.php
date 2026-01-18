@@ -24,6 +24,7 @@ class RolesSeeder extends Seeder
             'drivers.comfort.car.view', 'drivers.comfort.car.edit', 'drivers.comfort.car.delete',
             'drivers.scooter.view', 'drivers.scooter.edit', 'drivers.scooter.delete',
             'cities.view', 'cities.create', 'cities.edit', 'cities.delete',
+            'FAQs.view', 'FAQs.create', 'FAQs.edit', 'FAQs.delete',
             'cars.marks.models.view', 'cars.marks.models.create', 'cars.marks.models.edit', 'cars.marks.models.delete',
             'scooters.marks.models.view', 'scooters.marks.models.create', 'scooters.marks.models.edit', 'scooters.marks.models.delete',
             'trips.standard.view', 'trips.comfort.view', 'trips.scooter.view',
@@ -52,17 +53,17 @@ class RolesSeeder extends Seeder
         $permissions      = Permission::all();
 
         $super_admin_role->syncPermissions($permissions);
-        $user1 = User::create([
-            'name'      => 'Admin1',
-            'email'     => 'super.admin@ladydriver.app',
-            'status'    => 'confirmed',
-            'password'  => Hash::make('123456789'),
-            'password2' => Hash::make('123456789'),
-            'theme'     => 'theme1',
-            'gendor'    => 'other',
-            'mode'      => 'admin',
-            'role'      => 'Super Admin',
-        ]);
+        // $user1 = User::create([
+        //     'name'      => 'Admin1',
+        //     'email'     => 'super.admin@ladydriver.app',
+        //     'status'    => 'confirmed',
+        //     'password'  => Hash::make('123456789'),
+        //     'password2' => Hash::make('123456789'),
+        //     'theme'     => 'theme1',
+        //     'gendor'    => 'other',
+        //     'mode'      => 'admin',
+        //     'role'      => 'Super Admin',
+        // ]);
         // $user2 = User::create([
         //     'name'      => 'Admin',
         //     'email'     => 'admin@ladydriver.app',
@@ -75,8 +76,8 @@ class RolesSeeder extends Seeder
         //     'role'      => 'Admin',
 
         // ]);
-        $user1->syncPermissions($permissions);
-        $user1->assignRole([$admin_role->id]);
+        // $user1->syncPermissions($permissions);
+        // $user1->assignRole([$admin_role->id]);
         // $user2->assignRole([$admin_role->id]);
 
     }

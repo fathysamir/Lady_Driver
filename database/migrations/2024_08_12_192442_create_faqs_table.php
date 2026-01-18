@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->longText('question');
             $table->longText('answer');
-           
+           $table->enum('type', ['client', 'driver'])->default('client');
             $table->enum('is_active', ['0', '1'])->default('1');
             $table->timestamps();
             $table->softDeletes();
