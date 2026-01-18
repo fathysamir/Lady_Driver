@@ -1,5 +1,5 @@
 @extends('dashboard.layout.app')
-@section('title', 'Dashboard - update city')
+@section('title', 'Dashboard - update FAQ')
 @section('content')
     <div class="content-wrapper">
         <div class="container-fluid">
@@ -8,22 +8,60 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Update City</div>
+                            <div class="card-title">Update FAQ</div>
                             <hr>
-                            <form method="post" action="{{ route('update.city',['id' => $city->id] +$queryString) }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('update.FAQ',['id' => $FAQ->id] +$queryString) }}" enctype="multipart/form-data">
                                 @csrf
                                
                                 <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
                                 <div class="form-group">
-                                    <label>Name</label>
-                                    <input type="text" name="name" class="form-control"
-                                        placeholder="Enter Name"value="{{ old('name',$city->name) }}">
-                                    
-                                    @if ($errors->has('name'))
+                                    <label>Question</label>
+                                    <textarea class="form-control" name="question">{{ old('question',$FAQ->question) }}</textarea>
+
+
+                                    @if ($errors->has('question'))
                                         <p class="text-error more-info-err" style="color: red;">
-                                            {{ $errors->first('name') }}</p>
+                                            {{ $errors->first('question') }}</p>
                                     @endif
-                                    
+
+                                </div>
+                                <div class="form-group">
+                                    <label>Answer</label>
+                                    <textarea class="form-control" name="answer">{{ old('answer',$FAQ->answer) }}</textarea>
+
+                                    @if ($errors->has('answer'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('question') }}</p>
+                                    @endif
+
+                                </div>
+                                <div class="form-group">
+                                    <label>Category</label>
+
+                                    <select class="form-control" name="category">
+                                        <option value="">Select Category</option>
+                                        <option value="client"@if ($reason->type == 'client') selected @endif>Client
+                                        </option>
+                                        <option value="driver"@if ($reason->type == 'driver') selected @endif>Driver
+                                        </option>
+
+
+                                    </select>
+                                    @if ($errors->has('category'))
+                                        <p class="text-error more-info-err" style="color: red;">
+                                            {{ $errors->first('category') }}</p>
+                                    @endif
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-12">
+                                        <div class="custom-control custom-switch mt-2">
+                                            <input type="checkbox" class="custom-control-input" id="is_active"
+                                                name="is_active"{{ $FAQ->is_active=='1' ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="is_active">
+                                                Activation
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 

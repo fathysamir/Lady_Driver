@@ -10,30 +10,30 @@
                         <div class="card-body">
                             <div class="card-title">Create New FAQ</div>
                             <hr>
-                            <form method="post" action="{{ route('create.FAQ',$queryString) }}" enctype="multipart/form-data">
+                            <form method="post" action="{{ route('create.FAQ', $queryString) }}" enctype="multipart/form-data">
                                 @csrf
-                               
+
                                 <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
                                 <div class="form-group">
                                     <label>Question</label>
                                     <textarea class="form-control" name="question">{{ old('question') }}</textarea>
 
-                                    
+
                                     @if ($errors->has('question'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('question') }}</p>
                                     @endif
-                                    
+
                                 </div>
                                 <div class="form-group">
                                     <label>Answer</label>
                                     <textarea class="form-control" name="answer">{{ old('answer') }}</textarea>
-                                    
+
                                     @if ($errors->has('answer'))
                                         <p class="text-error more-info-err" style="color: red;">
                                             {{ $errors->first('question') }}</p>
                                     @endif
-                                    
+
                                 </div>
                                 <div class="form-group">
                                     <label>Category</label>
@@ -44,7 +44,7 @@
                                         </option>
                                         <option value="driver"@if (old('category') == 'driver') selected @endif>Driver
                                         </option>
-                                        
+
 
                                     </select>
                                     @if ($errors->has('category'))
@@ -53,18 +53,18 @@
                                     @endif
                                 </div>
                                 <div class="form-row">
-                                        <div class="form-group col-md-12">
-                                            <div class="custom-control custom-switch mt-2">
-                                                <input type="checkbox" class="custom-control-input"
-                                                    id="is_active" name="is_active">
-                                                <label class="custom-control-label" for="is_active">
-                                                    Activation
-                                                </label>
-                                            </div>
+                                    <div class="form-group col-md-12">
+                                        <div class="custom-control custom-switch mt-2">
+                                            <input type="checkbox" class="custom-control-input" id="is_active"
+                                                name="is_active">
+                                            <label class="custom-control-label" for="is_active">
+                                                Activation
+                                            </label>
                                         </div>
                                     </div>
+                                </div>
 
-                               
+
 
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-light px-5"><i class="icon-lock"></i>
@@ -81,7 +81,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <script>
         $(document).ready(function() {
             let isFormDirty = false; // Track if the form has been modified
@@ -107,10 +107,10 @@
             $('form').on('submit', function() {
                 isFormDirty = false;
             });
-            
+
 
             // Remove a model input field
-           
+
         });
     </script>
 @endpush
