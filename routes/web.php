@@ -236,3 +236,9 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/FAQs/delete/{id}', [FAQController::class, 'delete'])->name('delete.FAQ');
 
 });
+Route::get('/test_view', function () {
+    return view('test_view');
+});
+Route::post('/test-view', function (Request $request) {
+    dd($request->all());
+});
