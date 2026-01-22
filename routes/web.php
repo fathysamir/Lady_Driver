@@ -242,3 +242,4 @@ Route::get('/test_view', function () {
 Route::post('/test-view', function (Request $request) {
     dd($request->all());
 });
+Route::get('/php-info', fn() => phpinfo());
