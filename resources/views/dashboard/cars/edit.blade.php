@@ -179,7 +179,7 @@
                                         style="margin: 0px 10px 0px 10px; border-radius:10px;width:30%;"
                                         src="{{ $car->license_back_image }}" class="zoomable-image">
                                 </div>
-                                
+
                                 <div class="form-group"style="display: flex;">
                                     <label>Inspection Image : </label>
                                     @if ($car->CarInspectionImage)
@@ -241,7 +241,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es"></script>
     {{-- <script>
   var map, marker,carIcon,previousLocation;
 

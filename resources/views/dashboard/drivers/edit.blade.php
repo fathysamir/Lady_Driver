@@ -185,7 +185,7 @@
                                     <div class="star-rating" style="margin-bottom: -5px;">
                                         <?php
                                         $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-                                        
+
                                         // Loop to generate stars based on the client evaluation score
                                         for ($i = 1; $i <= 5; $i++) {
                                             $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -697,7 +697,7 @@
 
                                     </div>
                                 @endif
-                                
+
 
                                 <div class="form-group">
                                     <label>Address : {{ $user->address }}</label>
@@ -716,7 +716,7 @@
                                                 style="color: {{ \Carbon\Carbon::parse($user->driving_license->expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
                                                 {{ \Carbon\Carbon::parse($user->driving_license->expire_date)->format('d M Y') }}
                                             </span></label>
-                                        
+
                                         {{-- @if ($user->driving_license->expire_date < date('Y-m-d'))
                                             <span class="badge badge-secondary"
                                                 style="background-color:#ff7272;width:10%; margin-left:1%;">Expired</span>
@@ -773,7 +773,7 @@
                                     <div class="star-rating" style="margin-bottom: 10px;">
                                         <?php
                                         $driverEvaluation = $user->rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-                                        
+
                                         // Loop to generate stars based on the client evaluation score
                                         for ($i = 1; $i <= 5; $i++) {
                                             $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -831,7 +831,7 @@
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es"></script>
     <script>
         function initMap() {
             var userLocation = {

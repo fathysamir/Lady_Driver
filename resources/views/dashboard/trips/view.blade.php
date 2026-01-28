@@ -275,7 +275,7 @@
                                 <div class="star-rating" style="margin-bottom: 10px;">
                                     <?php
                                     $clientEvaluation = $trip->client_stare_rate; // Assuming $trip->client_evaluation holds the evaluation score (1 to 5)
-                                    
+
                                     // Loop to generate stars based on the client evaluation score
                                     for ($i = 1; $i <= 5; $i++) {
                                         $starClass = $i <= $clientEvaluation ? 'filled' : 'empty';
@@ -293,7 +293,7 @@
                                 <div class="star-rating" style="margin-bottom: 10px;">
                                     <?php
                                     $driverEvaluation = $trip->driver_stare_rate;
-                                    
+
                                     // Loop to generate stars based on the client evaluation score
                                     for ($i = 1; $i <= 5; $i++) {
                                         $starClass2 = $i <= $driverEvaluation ? 'filled' : 'empty';
@@ -319,9 +319,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {{-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE&libraries=places"></script>--}}
     <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXsZZzdgnddljlDCbtlOFJumsoktvSOBE&libraries=geometry">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es&libraries=geometry">
 </script>
-   
+
 
     <script>
         var travelledPath = [];
