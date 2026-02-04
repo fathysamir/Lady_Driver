@@ -768,6 +768,7 @@ class DriverController extends ApiController
                             $trip->client_location_duration = $duration;
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                             $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
+                            $trip->user->trips_count        = Trip::where('user_id', $trip->user_id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                             $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', auth()->user()->level)->first()->value);
                             $application_rate               = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -816,6 +817,7 @@ class DriverController extends ApiController
                             $trip->client_location_duration = $duration;
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                             $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
+                            $trip->user->trips_count        = Trip::where('user_id', $trip->user_id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                             $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', auth()->user()->level)->first()->value);
                             $application_rate               = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -857,6 +859,7 @@ class DriverController extends ApiController
                             $trip->client_location_duration = $duration;
                             $trip->user->image              = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                             $trip->user->rate               = Trip::where('user_id', $trip->user_id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
+                            $trip->user->trips_count        = Trip::where('user_id', $trip->user_id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
                             $trip->current_offer            = Offer::where('user_id', auth()->user()->id)->where('trip_id', $trip->id)->where('status', 'pending')->first();
                             $app_ratio                      = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', auth()->user()->level)->first()->value);
                             $application_rate               = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
