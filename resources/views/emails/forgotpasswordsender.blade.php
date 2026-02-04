@@ -21,7 +21,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Reset Password</title>
-   
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -125,7 +125,7 @@
                 padding-right: 15px;
             }
 
-           
+
         }
     </style>
 </head>
@@ -144,9 +144,7 @@
             <div class="otp-title">Hello {{ $name }},<br>This is link for reset password : <a href="{{ $resetUrl }}">👉🏻 Here</a> <br> use it before it gets bored 😉
             </div>
             <div class="otp-body">
-
-                Thank you for choosing LADY DRIVER. Use the following OTP to complete your registration. OTP is valid
-                for 5 minutes. Do not share this code with others, including LADY DRIVER team.
+                If you did not request a password reset, please ignore this email or contact support if you have questions.
             </div>
         </div>
     </div>
