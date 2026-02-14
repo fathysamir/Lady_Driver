@@ -3,6 +3,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\ApiController;
 use App\Models\Car;
+use App\Models\User;
 use App\Models\CarMark;
 use App\Models\CarModel;
 use App\Models\DriverLicense;
@@ -373,7 +374,7 @@ class DriverController extends ApiController
         $validator = Validator::make($request->all(), [
             'scooter_id' => [
                 'required',
-                Rule::exists('cars', 'id'),
+                Rule::exists('scooters', 'id'),
             ],
             // 'scooter_mark_id'     => [
             //     'required',
@@ -398,8 +399,8 @@ class DriverController extends ApiController
         }
 
         Car::where('id', $request->scooter_id)->update([
-            // 'motorcycle_mark_id'  => $request->scooter_mark_id,
-            // 'motorcycle_model_id' => $request->scooter_model_id,
+            //'scooter_mark_id'  => $request->scooter_mark_id,
+          //  'scooter_model_id' => $request->scooter_model_id,
             'color'  => $request->color,
             // 'year'                => $request->year,
             // 'scooter_plate'       => $request->scooter_plate,
@@ -453,6 +454,7 @@ class DriverController extends ApiController
                 'date_format:Y-m-d',
                 'after_or_equal:today',
             ],
+            'car_plate_number' => 'required|string|max:100',
         ]);
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
@@ -487,9 +489,17 @@ class DriverController extends ApiController
         $car->license_back_image  = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
 
         $driver         = auth()->user();
+
+        Car::updateOrCreate(
+            ['user_id' => $driver->id],
+            [
+                'car_plate' => $request->car_plate_number,
+            ]
+        );
+
         $driver->status = 'pending';
         $driver->save();
-        return $this->sendResponse($car, 'Car Updated Successfully.', 200);
+        return $this->sendResponse($car->fresh(), 'Car Updated Successfully.', 200);
     }
     public function add_scooter_license(Request $request)
     {
@@ -503,6 +513,8 @@ class DriverController extends ApiController
                 'date_format:Y-m-d',
                 'after_or_equal:today',
             ],
+            'scooter_plate_number' => 'required|string|max:100',
+
         ]);
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
@@ -537,9 +549,15 @@ class DriverController extends ApiController
         $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
 
         $driver         = auth()->user();
+        Scooter::updateOrCreate(
+            ['user_id' => $driver->id], //condition to check if a record exists for the user
+            [
+                'scooter_plate' => $request->scooter_plate_number, //value to update or create
+            ]
+        );
         $driver->status = 'pending';
         $driver->save();
-        return $this->sendResponse($scooter, 'Car Updated Successfully.', 200);
+        return $this->sendResponse($scooter->fresh(), 'Scooter Updated Successfully.', 200);
     }
 
     public function add_driving_license(Request $request)
@@ -636,8 +654,11 @@ class DriverController extends ApiController
             return $this->sendError(null, 'Make sure the car is registered and the inspection is uploaded', 400);
 
         }
-        return $this->sendResponse(null, 'Car Inspection saved Successfully', 200);
-
+        return $this->sendResponse([
+            'inspection_date'       => $car->car_inspection_date,
+            'Car_inspection_image' => getFirstMediaUrl($car, $car->CarInspectionImageCollection),
+            'status'               => $car->status,
+        ], 'Car inspection saved successfully', 200);
     }
     public function medical_examination(Request $request)
     {
@@ -661,7 +682,6 @@ class DriverController extends ApiController
 
         if ($request->file('medical_examination_image')) {
             $user->medical_examination_date = date('Y-m-d', strtotime($request->medical_examination_date));
-            $user->save();
             $medical_examination_image = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
             if ($medical_examination_image != null) {
                 deleteMedia($user, $user->medicalExaminationImageCollection);
@@ -673,7 +693,12 @@ class DriverController extends ApiController
             return $this->sendError(null, 'Make sure the medical examination is uploaded', 400);
 
         }
-        return $this->sendResponse(null, 'Medical Examination saved Successfully', 200);
+        return $this->sendResponse([
+            'medical_examination_date'  => $user->medical_examination_date,
+            'medical_examination_image' => getFirstMediaUrl($user, $user->medicalExaminationImageCollection),
+            'status'                    => $user->status,
+        ], 'Medical examination saved successfully', 200);
+
 
     }
 
@@ -709,7 +734,11 @@ class DriverController extends ApiController
             return $this->sendError(null, 'Make sure the criminal record is uploaded', 400);
 
         }
-        return $this->sendResponse(null, 'criminal record saved successfully', 200);
+        return $this->sendResponse([
+            'criminal_record_date'  => $user->criminal_record_date,
+            'criminal_record_image' => getFirstMediaUrl($user, $user->criminalRecordImageCollection),
+            'status'                => $user->status,
+        ], 'Criminal record saved successfully', 200);
 
     }
     public function driving_license()
