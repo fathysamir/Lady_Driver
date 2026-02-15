@@ -738,7 +738,7 @@ class DriverController extends ApiController
             'criminal_record_date'  => $user->criminal_record_date,
             'criminal_record_image' => getFirstMediaUrl($user, $user->criminalRecordImageCollection),
             'status'                => $user->status,
-        ], 'Criminal record saved successfully', 200);
+        ], 'Criminal record saved successfully!!', 200);
 
     }
     public function driving_license()
