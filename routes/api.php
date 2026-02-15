@@ -109,6 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add_medical_examination', [DriverController::class, 'add_medical_examination'])->name('add_medical_examination');
     Route::post('/add_car_license', [DriverController::class, 'add_car_license'])->name('add_car_license');
     Route::post('/add_scooter_license', [DriverController::class, 'add_scooter_license'])->name('add_scooter_license');
+    Route::post('/criminal_record', [DriverController::class, 'criminal_record'])->name('criminal_record'); //
 
     Route::get('/driving_license', [DriverController::class, 'driving_license'])->name('driving_license');
     Route::get('/profile/{id}', [AuthController::class, 'profile'])->name('profile');
