@@ -11,7 +11,8 @@ class CityController extends Controller
     {
         $cities = City::orderBy('id', 'desc');
         if ($request->has('search') && $request->search != null) {
-            $cities->where('name', 'LIKE', '%' . $request->search . '%');
+            $cities->where('name_ar', 'LIKE', '%' . $request->search . '%')
+                   ->orWhere('name_en', 'LIKE', '%' . $request->search . '%');
         }
         $cities = $cities->paginate(10);
         $search = $request->search;
@@ -35,15 +36,21 @@ class CityController extends Controller
     }
     public function store(Request $request)
     {
-        City::create(['name'=> $request->name]);
-        $queryParams = $request->except(['_token', '_method', 'name']);
+        City::create([
+            'name_ar' => $request->name_ar,
+            'name_en' => $request->name_en,
+        ]);
+        $queryParams = $request->except(['_token', '_method', 'name_ar', 'name_en']);
         return redirect()->route('cities', $queryParams)->with('success', 'City created successfully!');
 
     }
     public function update(Request $request, $id)
     {
-        City::where('id', $id)->update(['name'=> $request->name]);
-        $queryParams = $request->except(['_token', '_method', 'name']);
+        City::where('id', $id)->update([
+            'name_ar' => $request->name_ar,
+            'name_en' => $request->name_en,
+        ]);
+        $queryParams = $request->except(['_token', '_method', 'name_ar', 'name_en']);
         return redirect()->route('cities', $queryParams)->with('success', 'City updated successfully!');
 
     }

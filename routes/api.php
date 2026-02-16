@@ -5,6 +5,7 @@ use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\API\ProfileController;
+//use App\Http\Controllers\API\UltramsgController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,8 @@ use Illuminate\Support\Facades\Route;
 //     }
 //     return true;
 // });
+//Route::post('/send-otp', [UltramsgController::class, 'sendWhatsappOtp']);
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -106,7 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/scooter', [DriverController::class, 'scooter'])->name('scooter');
     Route::post('/add_driving_license', [DriverController::class, 'add_driving_license'])->name('add_driving_license');
     Route::post('/add_car_inspection', [DriverController::class, 'add_car_inspection'])->name('add_car_inspection');
-    Route::post('/add_medical_examination', [DriverController::class, 'add_medical_examination'])->name('add_medical_examination');
+    Route::post('/add_medical_examination', [DriverController::class, 'medical_examination'])->name('add_medical_examination');
     Route::post('/add_car_license', [DriverController::class, 'add_car_license'])->name('add_car_license');
     Route::post('/add_scooter_license', [DriverController::class, 'add_scooter_license'])->name('add_scooter_license');
     Route::post('/criminal_record', [DriverController::class, 'criminal_record'])->name('criminal_record'); //
@@ -158,5 +161,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/edit-phone', [ProfileController::class, 'updatePhone']);
     Route::put('/edit-email', [ProfileController::class, 'updateEmail']);
     Route::put('/edit-birth-date', [ProfileController::class, 'updateBirthDate']);
-
 });

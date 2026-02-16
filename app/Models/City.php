@@ -11,11 +11,12 @@ class City extends Model
     use HasFactory,SoftDeletes;
     protected $table = 'cities';
     protected $fillable = [
-        'name'
+        'name_ar',
+        'name_en'
     ];
 
     protected $allowedSorts = [
-       
+
         'created_at',
         'updated_at'
     ];
@@ -23,5 +24,5 @@ class City extends Model
     protected $hidden = ['deleted_at'];
 
 
-    
+
 }

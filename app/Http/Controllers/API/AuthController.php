@@ -38,6 +38,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+//use App\Rules\ValidPhone;
+
 
 //  "DA:D5:25:D7:5C:32:1D:61:A4:2F:72:E4:E4:63:BF:7F:C9:9D:29:57:BB:8E:83:B8:51:62:9E:A2:31:B8:81:C5"
 
@@ -175,6 +177,7 @@ class AuthController extends ApiController
             'country_code'                => 'required|string|max:10',
             'phone'                       => [
                 'required',
+            //    new ValidPhone($request->country_code),
                 Rule::unique('users')
                     ->where(function ($query) use ($request) {
                         return $query->where('country_code', $request->country_code)
@@ -485,6 +488,7 @@ class AuthController extends ApiController
             'country_code' => 'required|string|max:10',
             'phone'        => [
                 'required',
+      //          new ValidPhone($request->country_code),
                 Rule::unique('users')
                     ->where(function ($query) use ($request) {
                         return $query->where('country_code', $request->country_code)
@@ -1654,7 +1658,8 @@ class AuthController extends ApiController
 
     public function cities()
     {
-        $cities = City::all();
+        $cities = City::select('id','name_ar','name_en')->get();
+
         return $this->sendResponse($cities, null, 200);
     }
 

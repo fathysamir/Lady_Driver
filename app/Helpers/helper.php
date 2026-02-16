@@ -120,7 +120,7 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
 {
 
     //$api_key = 'AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0';
-    $api_key = 'AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es';
+    $api_key = 'AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es'; // New Key
 
     switch (strtolower($vehicleType)) {
         case 'scooter':
