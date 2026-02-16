@@ -1658,7 +1658,7 @@ class AuthController extends ApiController
 
     public function cities()
     {
-        $cities = City::select('id','name_ar','name_en')->get();
+        $cities = City::select('id','name')->get();
 
         return $this->sendResponse($cities, null, 200);
     }
