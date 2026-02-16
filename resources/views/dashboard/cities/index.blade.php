@@ -80,7 +80,7 @@
                                         href="{{ route('add.city') }}">create</a>
                                 @endcan
                                 <form id="searchForm" class="search-bar"
-                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;" method="post"
+                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
                                     action="{{ route('cities') }}" enctype="multipart/form-data">
                                     @csrf
                                     <input type="text" class="form-control" placeholder="Enter keywords" name="search">
@@ -110,8 +110,8 @@
                                     <thead>
                                         <tr>
                                             <th scope="col">#</th>
-                                            <th scope="col">Name (AR)</th>
-                                            <th scope="col">Name (EN)</th>
+                                            <th scope="col">Name</th>
+
                                             <th scope="col">Action</th>
                                         </tr>
                                     </thead>
@@ -125,11 +125,12 @@
                                                     style="cursor: pointer;">
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
-                                                        {!! highlight($city->name_ar, $search ?? '') !!}
+                                                        {!! highlight($city->name, $search ?? '') !!}
                                                     </td>
-                                                    <td>
-                                                        {!! highlight($city->name_en, $search ?? '') !!}
-                                                    </td>
+
+
+
+
 
                                                     <td>
 
@@ -143,7 +144,7 @@
 
                                                         @can('cities.delete')
                                                             <a
-                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name_ar }} - {{ $city->name_en }}")'>
+                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
                                                                 <span class="bi bi-trash"
                                                                     style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
@@ -153,7 +154,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="4">There are no Cities.</td>
+                                                <td>There are no Cities.</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -211,6 +212,7 @@
 
             const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
             myModal.show();
+            // Set the delete URL in a data attribute to access it in the deleteUser function
             document.getElementById('confirmationPopup').setAttribute('data-delete-url', deleteUrl);
         }
 
@@ -236,9 +238,10 @@
         });
     </script>
     <script>
+        // Set a timeout to hide the error or success message after 5 seconds
         setTimeout(function() {
             $('#errorAlert').fadeOut();
             $('#successAlert').fadeOut();
-        }, 4000);
+        }, 4000); // 5000 milliseconds = 5 seconds
     </script>
 @endpush

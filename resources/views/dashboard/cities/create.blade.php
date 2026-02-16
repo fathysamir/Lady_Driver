@@ -15,25 +15,13 @@
 
                                 <input type="hidden" name="page" value="{{ request()->input('page', 1) }}">
                                 <div class="form-group">
-                                    <label>Name (AR)</label>
-                                    <input type="text" name="name_ar" class="form-control"
-                                        placeholder="أدخل الاسم بالعربي" value="{{ old('name_ar') }}">
+                                    <label>Name</label>
+                                    <input type="text" name="name" class="form-control"
+                                        placeholder="Enter Name"value="{{ old('name') }}">
 
-                                    @if ($errors->has('name_ar'))
+                                    @if ($errors->has('name'))
                                         <p class="text-error more-info-err" style="color: red;">
-                                            {{ $errors->first('name_ar') }}</p>
-                                    @endif
-
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Name (EN)</label>
-                                    <input type="text" name="name_en" class="form-control"
-                                        placeholder="Enter Name in English" value="{{ old('name_en') }}">
-
-                                    @if ($errors->has('name_en'))
-                                        <p class="text-error more-info-err" style="color: red;">
-                                            {{ $errors->first('name_en') }}</p>
+                                            {{ $errors->first('name') }}</p>
                                     @endif
 
                                 </div>
