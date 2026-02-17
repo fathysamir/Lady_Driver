@@ -163,6 +163,7 @@ class AuthController extends ApiController
 
     public function driver_register(Request $request)
     {
+      //  App::setLocale($request->header('Accept-Language') ?? 'en');
         $validator = Validator::make($request->all(), [
             'name'                        => 'required|string|max:255',
             'email'                       => [
@@ -1454,6 +1455,10 @@ class AuthController extends ApiController
         // Check if the old password matches the user's current password
         if (! Hash::check($request->old_password, auth()->user()->password)) {
             return $this->sendError(null, 'The old password is incorrect.', 400);
+
+        }
+        if (Hash::check($request->password, auth()->user()->password)) {
+            return $this->sendError(null, 'The new password is sama as the old one.', 400);
 
         }
 
