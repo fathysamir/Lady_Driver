@@ -1368,7 +1368,10 @@ class AuthController extends ApiController
             ]
         );
 
-        $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
+     //  $resetUrl = url('/open-reset?token=' . $token . '&email=' . $userEmail);
+       $resetUrl = "ladydrive://reset-password?token={$token}&email=" . urlencode($userEmail);
+
+
         Mail::to($userEmail)->send(new ForgotPasswordMail($userName, $resetUrl));
 
         return response()->json([
