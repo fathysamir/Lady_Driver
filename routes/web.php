@@ -59,10 +59,7 @@ Route::get('/open-reset', function (Request $request) {
     $email = $request->query('email');
 
     //App and web links
-   // $appLink ="myapp://reset-password?token={$token}&email={$email}";
-   $appLink = "Ladydrive://reset-password?token=" . urlencode($token)
-          . "&email=" . urlencode($email);
-
+    $appLink ="myapp://reset-password?token={$token}&email={$email}";
     $webLink = url("/reset-password/{$token}?email={$email}");
 
     return view('emails.open-reset', compact('appLink', 'webLink'));
