@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendOTP;
+use Illuminate\Support\Facades\DB;
+
+
 
 class ProfileController extends Controller
 {
@@ -71,20 +76,66 @@ class ProfileController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    if ($request->email === auth()->user()->email) {
+        return response()->json([
+            'success' => false,
+            'message' => 'New email must be different from your current email',
+        ], 422);
+    }
+
+        $user = auth()->user();
+        $otpCode = rand(100000, 999999);
+
+        $user->OTP            = $otpCode;
+        $user->otp_expires_at = now()->addMinutes(10);
+        $user->pending_email  = $request->email;
+        $user->save();
+
+        Mail::to($request->email)->send(new SendOTP($otpCode, $user->name));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent to the new email address.',
+            'otp'     => $otpCode, //Testing Will be reomved
+        ], 200);
+    }
+
+    public function verifyEmailOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 400);
         }
 
-        auth()->user()->update([
-            'email' => $request->email
+        $user = auth()->user()->fresh();
+
+        if ((string)$user->OTP !== (string)$request->otp) {
+            return response()->json(['success' => false, 'message' => 'Invalid OTP'], 401);
+        }
+
+        if ($user->otp_expires_at < now()) {
+            return response()->json(['success' => false, 'message' => 'Expired OTP'], 401);
+        }
+
+        DB::table('users')->where('id', $user->id)->update([
+            'email'          => $user->pending_email,
+            'pending_email'  => null,
+            'OTP'            => null,
+            'otp_expires_at' => null,
+            'is_verified'    => 1,
         ]);
 
         return response()->json([
-            'message' => 'Email updated successfully'
-        ]);
+            'success' => true,
+            'message' => 'Email updated successfully',
+            'email'   => $user->pending_email,
+        ], 200);
     }
-
     public function updateBirthDate(Request $request)
     {
         $validator = Validator::make($request->all(), [

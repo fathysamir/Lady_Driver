@@ -160,5 +160,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/edit-name', [ProfileController::class, 'updateName']);
     Route::put('/edit-phone', [ProfileController::class, 'updatePhone']);
     Route::put('/edit-email', [ProfileController::class, 'updateEmail']);
+    Route::post('/verify-email-otp', [ProfileController::class, 'verifyEmailOtp']);
     Route::put('/edit-birth-date', [ProfileController::class, 'updateBirthDate']);
 });
