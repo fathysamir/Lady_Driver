@@ -1666,9 +1666,16 @@ class AuthController extends ApiController
 
     public function cities()
     {
-        $cities = City::select('id','name')->get();
+        $cities = City::select('id', 'name', 'name_ar')->get()
+    ->map(function ($city) {
+        return [
+            'id'      => $city->id,
+            'name_en' => $city->name,
+            'name_ar' => $city->name_ar,
+        ];
+    });
 
-        return $this->sendResponse($cities, null, 200);
+return $this->sendResponse($cities, null, 200);
     }
 
     public function save_student_data(Request $request)
