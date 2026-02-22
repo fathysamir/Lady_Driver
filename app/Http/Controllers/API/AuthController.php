@@ -1123,7 +1123,7 @@ class AuthController extends ApiController
 
     public function profile($id)
     {
-        $user                = User::where('id', $id)->with('city:id,name')->first();
+        $user                = User::where('id', $id)->with('city:id,name,name_ar')->first();
         $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
         $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
         $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
