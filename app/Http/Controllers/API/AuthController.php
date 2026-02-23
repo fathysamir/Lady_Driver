@@ -1247,10 +1247,10 @@ class AuthController extends ApiController
     public function update_national_ID_data(Request $request)
     {
         $rules = [
-            'ID_front_image'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_back_image'           => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'national_ID'             => 'required|digits:14',
-            'national_ID_expire_date' => 'required|date_format:Y-m-d|after:today',
+            'ID_front_image'          => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'ID_back_image'           => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'national_ID'             => 'sometimes|digits:14',
+            'national_ID_expire_date' => 'sometimes|date_format:Y-m-d|after:today',
 
         ];
         $validator = Validator::make($request->all(), $rules);
@@ -1264,7 +1264,9 @@ class AuthController extends ApiController
         $user                          = auth()->user();
         $user->national_id             = $request->national_ID;
         $user->national_id_expire_date = $request->national_ID_expire_date;
-        $user->status                  = 'pending';
+        if ($request->hasAny(['ID_front_image', 'ID_back_image'])) {
+            $user->status = 'pending';
+        }
 
         $user->save();
         if ($request->file('ID_front_image')) {
