@@ -620,12 +620,6 @@ class Chat implements MessageComponentInterface
         // Save a reference so we can cancel it later
         $timer = $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $newTrip, $type, $startTime, $maxDuration) {
             // Stop broadcasting if too old or trip already taken
-            $trip->refresh();
-            if (in_array($trip->status, ['pending', 'cancelled', 'accepted', 'completed', 'expired'])) {
-            echo "🛑 Trip {$trip->id} stopped broadcasting (status: {$trip->status})\n";
-            $this->loop->cancelTimer($timer);
-             return;
-            }
             $x                = rand(1, 4);
             $trip->seen_count = $trip->seen_count + $x;
             $trip->save();
@@ -652,7 +646,7 @@ class Chat implements MessageComponentInterface
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $trip->user_id);
             $trip->refresh();
-            if ($trip->status == 'pending'|| $trip->status == 'cancelled') {
+            if ($trip->status == 'pending') {
                 echo "🛑 Trip {$trip->id} stopped broadcasting (status: {$trip->status})\n";
                 $this->loop->cancelTimer($timer);
                 return;
