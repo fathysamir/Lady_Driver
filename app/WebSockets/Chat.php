@@ -792,6 +792,11 @@ class Chat implements MessageComponentInterface
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
                                 $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $trip->refresh();
+                              if (in_array($trip->status, ['expired', 'cancelled', 'accepted', 'pending', 'completed'])) {
+                               $this->loop->cancelTimer($timer);
+                                 return;
+                                }
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -875,6 +880,11 @@ class Chat implements MessageComponentInterface
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
                                 $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $trip->refresh();
+                             if (in_array($trip->status, ['expired', 'cancelled', 'accepted', 'pending', 'completed'])) {
+                             $this->loop->cancelTimer($timer);
+                              return;
+                               }
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -950,6 +960,11 @@ class Chat implements MessageComponentInterface
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
                                 $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $trip->refresh();
+                                if (in_array($trip->status, ['expired', 'cancelled', 'accepted', 'pending', 'completed'])) {
+                                    $this->loop->cancelTimer($timer);
+                                    return;
+                                }
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
