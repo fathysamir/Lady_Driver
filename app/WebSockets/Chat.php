@@ -1956,7 +1956,7 @@ class Chat implements MessageComponentInterface
                 case 'barcode_verification_request':
                     $this->check_barcode($from, $AuthUserID, $requestData);
                     break;
-                case 'set_availability';
+                case 'set_availability':
                         $user = User::findOrFail($AuthUserID);
                         $user->is_online = $data['data']['is_online'];
                         $user->save();
