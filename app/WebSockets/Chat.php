@@ -1956,6 +1956,17 @@ class Chat implements MessageComponentInterface
                 case 'barcode_verification_request':
                     $this->check_barcode($from, $AuthUserID, $requestData);
                     break;
+                case 'set_availability';
+                        $user = User::findOrFail($AuthUserID);
+                        $user->is_online = $data['data']['is_online'];
+                        $user->save();
+                        $from->send(json_encode([
+                            'type' => 'online_status_updated',
+                            'data' => ['is_online' => $user->is_online]
+                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] Driver %d is now %s' . "\n", $date_time, $AuthUserID, $user->is_online == '1' ? 'ONLINE' : 'OFFLINE');
+                        break;
                 case 'ping':
                     $from->send(json_encode(['type' => 'pong']));
                     $date_time = date('Y-m-d h:i:s a');
