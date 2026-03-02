@@ -1185,6 +1185,7 @@ class Chat implements MessageComponentInterface
         $offer->status = 'expired';
         $offer->save();
         $canceled_offer['offer_id'] = $offer->id;
+        $canceled_offer['trip_id']  = $offer->trip_id;
         $data2                      = [
             'type'    => 'canceled_offer',
             'data'    => $canceled_offer,
