@@ -631,12 +631,9 @@ class Chat implements MessageComponentInterface
               ->where('trip_id', $trip->id)
               ->count();
 
-            $fakeCount = min($realSeenCount * 2, 10);
-
-          $totalCount = min($realSeenCount + $fakeCount, 10);
-
-         $trip->seen_count = $totalCount;
-        $trip->save();
+            $totalCount = min($realSeenCount * 2, 10);
+           $trip->seen_count = $totalCount;
+           $trip->save();
             $newTrip_client                        = [];
             $newTrip_client['id']                  = $trip->id;
             $newTrip_client['seen_count']['count'] = $trip->seen_count;
