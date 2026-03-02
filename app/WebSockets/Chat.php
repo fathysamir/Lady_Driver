@@ -626,9 +626,17 @@ class Chat implements MessageComponentInterface
                 $this->loop->cancelTimer($timer);
                 return;
             }
-            $x                = rand(1, 4);
-            $trip->seen_count = $trip->seen_count + $x;
-            $trip->save();
+
+            $realSeenCount = DB::table('drivers_trips')
+              ->where('trip_id', $trip->id)
+              ->count();
+
+            $fakeCount = min($realSeenCount * 2, 10);
+
+          $totalCount = min($realSeenCount + $fakeCount, 10);
+
+         $trip->seen_count = $totalCount;
+        $trip->save();
             $newTrip_client                        = [];
             $newTrip_client['id']                  = $trip->id;
             $newTrip_client['seen_count']['count'] = $trip->seen_count;
