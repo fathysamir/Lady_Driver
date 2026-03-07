@@ -1184,6 +1184,7 @@ class Chat implements MessageComponentInterface
         $offer         = Offer::findOrFail($data['offer_id']);
         $offer->status = 'expired';
         $offer->save();
+
         $canceled_offer['offer_id'] = $offer->id;
         $canceled_offer['trip_id']  = $offer->trip_id;
         $data2                      = [
@@ -1191,20 +1192,25 @@ class Chat implements MessageComponentInterface
             'data'    => $canceled_offer,
             'message' => 'Offer canceled successfully',
         ];
-        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $from->send($message);
+        $message   = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $date_time = date('Y-m-d h:i:s a');
-        echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $AuthUserID);
-        $driver = $this->getClientByUserId($offer->user_id);
-        if ($driver) {
-            $driver->send($message);
-            $date_time = date('Y-m-d h:i:s a');
-            echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->user_id);
+
+        $from->send($message);
+        echo sprintf('[ %s ] canceled_offer sent to canceller %d' . "\n", $date_time, $AuthUserID);
+
+        if ($offer->user_id != $AuthUserID) {
+            $driver = $this->getClientByUserId($offer->user_id);
+            if ($driver) {
+                $driver->send($message);
+                echo sprintf('[ %s ] canceled_offer sent to driver %d' . "\n", $date_time, $offer->user_id);
+            }
+        }
+
+        if ($offer->trip->user_id != $AuthUserID) {
             $client = $this->getClientByUserId($offer->trip->user_id);
             if ($client) {
                 $client->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->trip->user_id);
+                echo sprintf('[ %s ] canceled_offer sent to trip user %d' . "\n", $date_time, $offer->trip->user_id);
             }
         }
     }
