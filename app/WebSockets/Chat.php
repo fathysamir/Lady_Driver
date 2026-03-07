@@ -486,11 +486,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($car) use ($trip) {
+                        ->get();
+                     /*   ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
@@ -554,11 +554,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($scooter) use ($trip) {
+                        ->get();
+                     /*   ->filter(function ($scooter) use ($trip) {
                             $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
                     $eligibleDriverIds = [];
 
                     foreach ($eligibleScooters as $scooter) {
@@ -748,11 +748,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($car) use ($trip) {
+                        ->get();
+                    /*    ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
@@ -837,11 +837,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($car) use ($trip) {
+                        ->get();
+                     /*   ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
@@ -917,11 +917,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($scooter) use ($trip) {
+                        ->get();
+                      /*  ->filter(function ($scooter) use ($trip) {
                             $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
@@ -1616,11 +1616,11 @@ class Chat implements MessageComponentInterface
                                 [$n_trip->start_lat, $n_trip->start_lng, $n_trip->start_lat, $decimalPlaces]
                             )
                             ->having('distance', '<=', 3)
-                            ->get()
-                            ->filter(function ($car) use ($n_trip) {
+                            ->get();
+                          /*  ->filter(function ($car) use ($n_trip) {
                                 $response = calculate_distance($car->lat, $car->lng, $n_trip->start_lat, $n_trip->start_lng);
                                 return $response['distance_in_km'] <= 3;
-                            });
+                            });*/
 
                         $eligibleDriverIds = [];
 
@@ -1696,11 +1696,11 @@ class Chat implements MessageComponentInterface
                                 [$n_trip->start_lat, $n_trip->start_lng, $n_trip->start_lat, $decimalPlaces]
                             )
                             ->having('distance', '<=', 3)
-                            ->get()
-                            ->filter(function ($car) use ($n_trip) {
+                            ->get();
+                          /*  ->filter(function ($car) use ($n_trip) {
                                 $response = calculate_distance($car->lat, $car->lng, $n_trip->start_lat, $n_trip->start_lng);
                                 return $response['distance_in_km'] <= 3;
-                            });
+                            });*/
 
                         $eligibleDriverIds = [];
 
@@ -1767,11 +1767,11 @@ class Chat implements MessageComponentInterface
                                 [$n_trip->start_lat, $n_trip->start_lng, $n_trip->start_lat, $decimalPlaces]
                             )
                             ->having('distance', '<=', 3)
-                            ->get()
-                            ->filter(function ($scooter) use ($n_trip) {
+                            ->get();
+                           /* ->filter(function ($scooter) use ($n_trip) {
                                 $response = calculate_distance($scooter->lat, $scooter->lng, $n_trip->start_lat, $n_trip->start_lng);
                                 return $response['distance_in_km'] <= 3;
-                            });
+                            });*/
 
                         $eligibleDriverIds = [];
 
@@ -2343,11 +2343,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($car) use ($trip) {
+                        ->get();
+                       /* ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
@@ -2419,11 +2419,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($car) use ($trip) {
+                        ->get();
+                      /*  ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
@@ -2486,11 +2486,11 @@ class Chat implements MessageComponentInterface
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
                         ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($scooter) use ($trip) {
+                        ->get();
+                        /*->filter(function ($scooter) use ($trip) {
                             $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
-                        });
+                        });*/
 
                     $eligibleDriverIds = [];
 
