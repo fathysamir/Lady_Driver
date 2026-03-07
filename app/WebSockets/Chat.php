@@ -1200,6 +1200,12 @@ class Chat implements MessageComponentInterface
             $driver->send($message);
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->user_id);
+            $client = $this->getClientByUserId($offer->trip->user_id);
+            if ($client) {
+                $client->send($message);
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of canceled offer "%s" sent to user %d' . "\n", $date_time, $message, $offer->trip->user_id);
+            }
         }
     }
 
