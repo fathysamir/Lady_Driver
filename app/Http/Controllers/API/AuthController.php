@@ -1128,6 +1128,11 @@ class AuthController extends ApiController
         $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
         $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
         $user->PassportImage = getFirstMediaUrl($user, $user->passportImageCollection);
+        $user->medical_examination_image = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
+        $user->criminal_record_image = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
+
+
+
         if ($user->mode == 'client') {
             $user->rate = Trip::where('user_id', $user->id)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
         } elseif ($user->mode == 'driver') {
