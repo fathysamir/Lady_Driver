@@ -183,14 +183,14 @@ class DriverController extends ApiController
                 'required',
                 Rule::exists('cars', 'id'),
             ],
-            // 'car_mark_id'         => [
-            //     'required',
-            //     Rule::exists('car_marks', 'id'),
-            // ],
-            // 'car_model_id'        => [
-            //     'required',
-            //     Rule::exists('car_models', 'id'),
-            // ],
+            'car_mark_id'         => [
+                'required',
+                Rule::exists('car_marks', 'id'),
+             ],
+            'car_model_id'        => [
+               'required',
+               Rule::exists('car_models', 'id'),
+             ],
             'color'           => 'required|string|max:255',
             // 'year'                => 'required|integer|min:1900|max:' . date('Y'),
             // 'car_plate'           => 'required|string|max:255',
@@ -207,8 +207,8 @@ class DriverController extends ApiController
         }
 
         Car::where('id', $request->car_id)->update([
-            // 'car_mark_id'         => $request->car_mark_id,
-            // 'car_model_id'        => $request->car_model_id,
+             'car_mark_id'         => $request->car_mark_id,
+             'car_model_id'        => $request->car_model_id,
             'color'          => $request->color,
             // 'year'                => $request->year,
             // 'car_plate'           => $request->car_plate,
