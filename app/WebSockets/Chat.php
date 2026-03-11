@@ -377,6 +377,8 @@ class Chat implements MessageComponentInterface
             $newTrip['updated_at']                = $trip->updated_at;
             $newTrip['user']['id']                = intval($AuthUserID);
             $newTrip['user']['name']              = $u->name;
+            $newTrip['user']['country_code']      = $u->country_code;
+            $newTrip ['user']['phone']            = $u->phone;
             $newTrip['user']['image']             = $user_image;
             $newTrip['user']['rate']              = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
             switch ($type) {
