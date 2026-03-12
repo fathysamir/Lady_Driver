@@ -37,6 +37,8 @@ class NewChatMessage implements ShouldBroadcast
             'id'       => $this->chat->id,
             'trip_id'  => $this->chat->trip_id,
             'sender'   => $this->chat->sender_id,
+            'sender_name' => $this->chat->sender->name,
+            'sender_image' => $this->chat->sender->getFirstMediaUrl($this->chat->sender->avatarCollection),
             'message'  => $this->chat->message,
             'location' => $this->chat->location,
             'image'    => $this->chat->image,
