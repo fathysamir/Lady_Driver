@@ -965,7 +965,7 @@ class ClientController extends ApiController
             'message'  => 'nullable|string',
             'location' => 'nullable|string',
             'image'    => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
-            'record'   => 'nullable|file|mimes:mp3,wav,m4a|max:5120',
+            'record'   => 'nullable|file|mimes:mp3,wav,m4a|max:20480',
         ]);
 
         if ($validator->fails()) {
