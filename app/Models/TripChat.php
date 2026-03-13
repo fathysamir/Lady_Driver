@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Carbon\Carbon;
 
 class TripChat extends Model
 {
@@ -30,6 +31,10 @@ class TripChat extends Model
         'record'
 
     ];
+    protected function serializeDate(\DateTimeInterface $date)
+{
+    return Carbon::instance($date)->timezone('Africa/Cairo')->format('Y-m-d\TH:i:s.000000\Z');
+}
     public function getMessageAttribute($value)
     {
         if ($value != null) {
