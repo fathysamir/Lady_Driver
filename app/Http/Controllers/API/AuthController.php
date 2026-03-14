@@ -1789,22 +1789,21 @@ return $this->sendResponse($cities, null, 200);
 
     public function getTripbyID(Request $request)
 {
-    $user = auth()->id();
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|exists:trips,id',
+        ]);
 
-    $trip = Trip::with(['car', 'scooter', 'user:id,name'])
-                ->where('id', $request->id)
-                ->where(function($query) use ($user) {
-                    $query->where('user_id', $user)
-                          ->orWhereHas('car', function($q) use ($user) {
-                              $q->where('user_id', $user);
-                          });
-                })
-                ->first();
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
 
-    if (!$trip) {
-        return $this->sendError(null, 'Trip not found', 404);
+        $trip = Trip::with(['car', 'scooter', 'user', 'driver'])->find($request->trip_id);
+
+        if (! $trip) {
+            return $this->sendError(null, 'Trip not found', 404);
+        }
+
+        return $this->sendResponse($trip, null, 200);
     }
-
-    return $this->sendResponse($trip, null, 200);
-}
 }
