@@ -1786,4 +1786,25 @@ return $this->sendResponse($cities, null, 200);
         ]);
     }
 
+
+    public function getTripbyID(Request $request)
+{
+    $user = auth()->id();
+
+    $trip = Trip::with(['car', 'scooter', 'user:id,name'])
+                ->where('id', $request->id)
+                ->where(function($query) use ($user) {
+                    $query->where('user_id', $user)
+                          ->orWhereHas('car', function($q) use ($user) {
+                              $q->where('user_id', $user);
+                          });
+                })
+                ->first();
+
+    if (!$trip) {
+        return $this->sendError(null, 'Trip not found', 404);
+    }
+
+    return $this->sendResponse($trip, null, 200);
+}
 }

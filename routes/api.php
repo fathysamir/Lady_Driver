@@ -123,6 +123,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 
     Route::get('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
+    Route::get('/get_trip_by_id', [AuthController::class, 'getTripbyID'])->name('show_trip_by_id');
+
 
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
     Route::post('/create_offer', [DriverController::class, 'create_offer'])->name('create_offer');
