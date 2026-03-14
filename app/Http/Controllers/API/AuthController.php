@@ -1787,10 +1787,12 @@ return $this->sendResponse($cities, null, 200);
     }
 
 
-    public function getTripbyID(Request $request)
-{
-        $validator = Validator::make($request->all(), [
-            'trip_id' => 'required|exists:trips,id',
+    public function getTripbyID($id)
+    {
+        $validator = Validator::make([
+            'id' => $id
+        ], [
+            'id' => 'required|exists:trips,id',
         ]);
 
         if ($validator->fails()) {
@@ -1798,9 +1800,9 @@ return $this->sendResponse($cities, null, 200);
             return $this->sendError(null, $errors, 400);
         }
 
-        $trip = Trip::with(['car', 'scooter', 'user', 'driver'])->find($request->trip_id);
+        $trip = Trip::with(['car', 'scooter', 'user', 'driver'])->find($id);
 
-        if (! $trip) {
+        if (!$trip) {
             return $this->sendError(null, 'Trip not found', 404);
         }
 
