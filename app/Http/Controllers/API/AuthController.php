@@ -1797,7 +1797,7 @@ return $this->sendResponse($cities, null, 200);
                 'message' => 'Unauthorized'
             ], 401);
         }
-        $trip = Trip::find($id);
+        $trip = Trip::with(['car', 'scooter'])->find($id);
 
         if (!$trip) {
             return response()->json([
