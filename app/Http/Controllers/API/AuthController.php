@@ -1787,25 +1787,42 @@ return $this->sendResponse($cities, null, 200);
     }
 
 
-    public function getTripbyID($id)
+    public function TripByID($id)
     {
-        $validator = Validator::make([
-            'id' => $id
-        ], [
-            'id' => 'required|exists:trips,id',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Unauthorized'
+            ], 401);
         }
-
-        $trip = Trip::with(['car', 'scooter', 'user', 'driver'])->find($id);
+        $trip = Trip::find($id);
 
         if (!$trip) {
-            return $this->sendError(null, 'Trip not found', 404);
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Trip not found'
+            ], 404);
+        }
+        $tripOwnerId = $trip->user_id;
+        $carOwnerId  = $trip->car->user_id ?? null;
+        $scooterOwnerId = $trip->scooter->user_id ?? null;
+
+        if ($user->id !== $tripOwnerId && $user->id !== $carOwnerId && $user->id !== $scooterOwnerId) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'This Trip does not belong to this user'
+            ], 403);
         }
 
-        return $this->sendResponse($trip, null, 200);
+        return response()->json([
+            'success' => true,
+            'data' => $trip,
+            'message' => null
+        ], 200);
     }
+
 }

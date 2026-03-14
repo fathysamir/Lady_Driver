@@ -123,7 +123,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/remove_account', [AuthController::class, 'remove_account'])->name('remove_account');
 
     Route::get('/created_trips', [DriverController::class, 'created_trips'])->name('created_trips');
-    Route::post('/get_trip_by_id', [AuthController::class, 'getTripbyID'])->name('show_trip_by_id');
 
 
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
@@ -164,4 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/edit-email', [ProfileController::class, 'updateEmail']);
     Route::post('/verify-email-otp', [ProfileController::class, 'verifyEmailOtp']);
     Route::put('/edit-birth-date', [ProfileController::class, 'updateBirthDate']);
+    Route::get('/get-trip-by-id/{id}', [AuthController::class, 'TripByID']);
+
+
 });
