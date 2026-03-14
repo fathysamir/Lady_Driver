@@ -1810,14 +1810,6 @@ return $this->sendResponse($cities, null, 200);
         $carOwnerId  = $trip->car->user_id ?? null;
         $scooterOwnerId = $trip->scooter->user_id ?? null;
 
-        if ($user->id !== $tripOwnerId && $user->id !== $carOwnerId && $user->id !== $scooterOwnerId) {
-            return response()->json([
-                'success' => false,
-                'data' => null,
-                'message' => 'This Trip does not belong to this user'
-            ], 403);
-        }
-
         return response()->json([
             'success' => true,
             'data' => $trip,
