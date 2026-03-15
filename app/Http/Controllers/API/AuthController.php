@@ -1817,4 +1817,34 @@ return $this->sendResponse($cities, null, 200);
         ], 200);
     }
 
+    public function get_offer($id)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $trip = Trip::with('offers')->find($id);
+
+        if (!$trip) {
+            return response()->json([
+                'success' => false,
+                'data' => null,
+                'message' => 'Trip not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $trip->offers,
+            'message' => null
+        ], 200);
+    }
+
+
 }

@@ -127,6 +127,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/expire_offer/{id}', [DriverController::class, 'expire_offer'])->name('expire_offer');
     Route::post('/create_offer', [DriverController::class, 'create_offer'])->name('create_offer');
+    Route::get('/get_offer_from_trip/{id}', [AuthController::class, 'get_offer'])->name('get_offer');
+
     Route::post('/driver_arriving', [DriverController::class, 'driver_arriving'])->name('driver_arriving');
 
     Route::get('/current_trip', [ClientController::class, 'current_trip'])->name('current_trip');
