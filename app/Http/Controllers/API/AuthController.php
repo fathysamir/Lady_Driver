@@ -1819,29 +1819,123 @@ return $this->sendResponse($cities, null, 200);
 
     public function get_offer($id)
     {
-        $user = auth()->user();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'data' => null,
-                'message' => 'Unauthorized'
-            ], 401);
-        }
-
-        $trip = Trip::with('offers')->find($id);
+        $trip = Trip::with([
+            'offers.user',
+            'offers.car.mark',
+            'offers.car.model',
+            'offers.scooter.motorcycleMark',
+            'offers.scooter.motorcycleModel',
+            'user',
+            'car.mark',
+            'car.model',
+        ])->find($id);
 
         if (!$trip) {
             return response()->json([
                 'success' => false,
-                'data' => null,
+                'data'    => null,
                 'message' => 'Trip not found'
             ], 404);
         }
 
+        $offers = $trip->offers->map(function ($offer) use ($trip) {
+
+            // Calculate distance from driver vehicle to trip start
+            if ($trip->type == 'scooter') {
+                $response = calculate_distance(
+                    $offer->scooter->lat, $offer->scooter->lng,
+                    $trip->start_lat, $trip->start_lng
+                );
+            } else {
+                $response = calculate_distance(
+                    $offer->car->lat, $offer->car->lng,
+                    $trip->start_lat, $trip->start_lng
+                );
+            }
+
+            $driver = $offer->user;
+
+            $result = [
+                'id'                       => $offer->id,
+                'code'                     => $offer->code,
+                'offer'                    => floatval($offer->offer),
+                'status'                   => $offer->status,
+                'client_location_distance' => $response['distance_in_km'],
+                'client_location_duration' => $response['duration_in_M'],
+                'created_at'               => $offer->created_at,
+
+                'user' => [
+                    'id'    => $driver->id,
+                    'name'  => $driver->name,
+                    'image' => getFirstMedia($driver, $driver->avatarCollection)
+                        ? 'https://api.lady-driver.com' . getFirstMedia($driver, $driver->avatarCollection)
+                        : null,
+                ],
+            ];
+
+            if ($trip->type == 'car' || $trip->type == 'comfort_car') {
+
+                $car = $offer->car;
+
+                $result['user']['rate'] = Trip::whereHas('car', function ($q) use ($driver) {
+                    $q->where('user_id', $driver->id);
+                })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
+
+                $result['user']['trips_count'] = Trip::whereHas('car', function ($q) use ($driver) {
+                    $q->where('user_id', $driver->id);
+                })->where('status', 'completed')->count();
+
+                $result['car'] = [
+                    'id'    => $car->id,
+                    'image' => 'https://api.lady-driver.com' . getFirstMedia($car, $car->avatarCollection),
+                    'year'  => $car->year,
+                    'mark'  => [
+                        'id'   => $car->mark->id,
+                        'name' => $car->mark->name,
+                    ],
+                    'model' => [
+                        'id'   => $car->model->id,
+                        'name' => $car->model->name,
+                    ],
+                ];
+
+            } elseif ($trip->type == 'scooter') {
+
+                $scooter = $offer->scooter;
+
+                $result['user']['rate'] = Trip::whereHas('scooter', function ($q) use ($driver) {
+                    $q->where('user_id', $driver->id);
+                })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 5.00;
+
+                $result['user']['trips_count'] = Trip::whereHas('scooter', function ($q) use ($driver) {
+                    $q->where('user_id', $driver->id);
+                })->where('status', 'completed')->count();
+
+                $result['scooter'] = [
+                    'id'    => $scooter->id,
+                    'image' => 'https://api.lady-driver.com' . getFirstMedia($scooter, $scooter->avatarCollection),
+                    'year'  => $scooter->year,
+                    'mark'  => [
+                        'id'   => $scooter->motorcycleMark->id,
+                        'name' => $scooter->motorcycleMark->name,
+                    ],
+                    'model' => [
+                        'id'   => $scooter->motorcycleModel->id,
+                        'name' => $scooter->motorcycleModel->name,
+                    ],
+                ];
+            }
+
+            return $result;
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $trip->offers,
+            'data'    => [
+                'trip_id' => $trip->id,
+                'type'    => $trip->type,
+                'offers'  => $offers,
+            ],
             'message' => null
         ], 200);
     }
