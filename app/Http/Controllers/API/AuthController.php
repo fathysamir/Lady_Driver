@@ -1882,7 +1882,7 @@ return $this->sendResponse($cities, null, 200);
                     ] : null,
                     'car'                      => in_array($trip->type, ['car', 'comfort_car']) && $offer->car ? [
                         'id'           => $offer->car->id,
-                        'image'        => getFirstMediaUrl($offer->car, $offer->car->carImageCollection),
+                        'image'        => getFirstMediaUrl($offer->car, $offer->car->avatarCollection),
                         'year'         => $offer->car->year,
                         'car_mark_id'  => $offer->car->mark_id,
                         'car_model_id' => $offer->car->model_id,
