@@ -1318,6 +1318,28 @@ class Chat implements MessageComponentInterface
                 $date_time = date('Y-m-d h:i:s a');
                 echo sprintf('[ %s ] Message of accept offer "%s" sent to user %d' . "\n", $date_time, $res, $offer->user_id);
             }
+$seenDrivers = DB::table('drivers_trips')
+->where('trip_id', $trip->id)
+->get();
+
+foreach ($seenDrivers as $record) {
+// skip the accepted one driver
+if ($record->driver_id == $offer->user_id) continue;
+
+$client = $this->getClientByUserId($record->driver_id);
+if ($client) {
+    $x['offer_id'] = $offer->id;
+    $x['trip_id']  = $trip->id;
+    $data2 = [
+        'type'    => 'canceled_offer',
+        'data'    => $x,
+        'message' => 'Sorry, the customer has chosen another driver.',
+    ];
+    $client->send(json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $date_time = date('Y-m-d h:i:s a');
+    echo sprintf('[ %s ] canceled_offer sent to driver %d' . "\n", $date_time, $record->driver_id);
+}
+}
             DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
 
         }
