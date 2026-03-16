@@ -1818,92 +1818,97 @@ return $this->sendResponse($cities, null, 200);
     }
 
     public function get_offer($id)
-{
-    $trip = Trip::with([
-        'offers.user',
-        'offers.car.mark',
-        'offers.car.model',
-        'offers.scooter.motorcycleMark',
-        'offers.scooter.motorcycleModel',
-        'user',
-        'car.mark',
-        'car.model',
-    ])->find($id);
+    {
+        $trip = Trip::with([
+            'offers.user',
+            'offers.car.mark',
+            'offers.car.model',
+            'offers.scooter.motorcycleMark',
+            'offers.scooter.motorcycleModel',
+        ])->find($id);
 
-    if (!$trip) {
+        if (!$trip) {
+            return response()->json([
+                'success' => false,
+                'data'    => null,
+                'message' => 'Trip not found'
+            ], 404);
+        }
+
+        $isScooter = $trip->type == 'scooter';
+
+        // all driver states in one query instead per offer
+        $driverIds = $trip->offers->pluck('user_id')->unique();
+
+        $completedTrips = Trip::where('status', 'completed')
+            ->whereHas($isScooter ? 'scooter' : 'car', fn($q) => $q->whereIn('user_id', $driverIds))
+            ->with($isScooter ? 'scooter' : 'car')
+            ->get();
+
+        $statsByDriver = $completedTrips->groupBy(
+            fn($t) => $isScooter ? $t->scooter->user_id : $t->car->user_id
+        ); //combine all the completed trips for each user
+
         return response()->json([
-            'success' => false,
-            'data'    => null,
-            'message' => 'Trip not found'
-        ], 404);
+            'success' => true,
+            'data'    => [
+                'offers' => $trip->offers->map(function ($offer) use ($trip, $isScooter, $statsByDriver) {
+
+
+                    if ($isScooter && $offer->scooter) {
+                        $distance = calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
+                    } elseif ($offer->car) {
+                        $distance = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+                    } else {
+                        $distance = ['distance_in_km' => 0, 'duration_in_M' => 0];
+                    }
+
+                    // query handle
+                    $driverTrips = $statsByDriver->get($offer->user_id);
+                    $rate        = $driverTrips && $driverTrips->where('client_stare_rate', '>', 0)->count()
+                        ? $driverTrips->where('client_stare_rate', '>', 0)->avg('client_stare_rate')
+                        : 5.00;
+                    $tripsCount  = $driverTrips ? $driverTrips->count() : 0;
+
+                    return [
+                        'id'                       => $offer->id,
+                        'user_id'                  => $offer->user_id,
+                        'car_id'                   => $offer->car_id,
+                        'trip_id'                  => $offer->trip_id,
+                        'client_location_distance' => $distance['distance_in_km'],
+                        'client_location_duration' => $distance['duration_in_M'],
+                        'offer'                    => $offer->offer,
+                        'user'                     => $offer->user ? [
+                            'id'          => $offer->user->id,
+                            'name'        => $offer->user->name,
+                            'image'       => getFirstMediaUrl($offer->user, $offer->user->avatarCollection),
+                            'rate'        => $rate,
+                            'trips_count' => $tripsCount,
+                        ] : null,
+                        'car'                      => in_array($trip->type, ['car', 'comfort_car']) && $offer->car ? [
+                            'id'           => $offer->car->id,
+                            'image'        => getFirstMediaUrl($offer->car, $offer->car->avatarCollection),
+                            'year'         => $offer->car->year,
+                            'car_mark_id'  => $offer->car->car_mark_id,
+                            'car_model_id' => $offer->car->car_model_id,
+                            'mark'         => $offer->car->mark,
+                            'model'        => $offer->car->model,
+                        ] : null,
+                        'scooter'                  => $isScooter && $offer->scooter ? [
+                            'id'               => $offer->scooter->id,
+                            'image'            => getFirstMediaUrl($offer->scooter, $offer->scooter->avatarCollection),
+                            'year'             => $offer->scooter->year,
+                            'scooter_mark_id'  => $offer->scooter->motorcycle_mark_id,
+                            'scooter_model_id' => $offer->scooter->motorcycle_model_id,
+                            'mark'             => $offer->scooter->motorcycleMark,
+                            'model'            => $offer->scooter->motorcycleModel,
+                        ] : null,
+                        'status'                   => $offer->status,
+                        'created_at'               => $offer->created_at->format('Y-m-d H:i:s'),
+                    ];
+                }),
+            ],
+            'message' => null
+        ], 200);
     }
-
-    return response()->json([
-        'success' => true,
-        'data'    => [
-            'offers' => $trip->offers->map(function ($offer) use ($trip) {
-//att 1 and 2
-                $isScooter = $trip->type == 'scooter';
-
-                $distance = calculate_distance(
-                    $isScooter ? $offer->scooter->lat : $offer->car->lat,
-                    $isScooter ? $offer->scooter->lng : $offer->car->lng,
-                    $trip->start_lat, $trip->start_lng
-                );
-/////
-                return [
-                    'id'                       => $offer->id,
-                    'user_id'                  => $offer->user_id,
-                    'car_id'                   => $offer->car_id,
-                    'trip_id'                  => $offer->trip_id,
-                    'client_location_distance' => $distance['distance_in_km'],
-                    'client_location_duration' => $distance['duration_in_M'],
-                    'offer'                    => $offer->offer,
-                    'user'                     => $offer->user ? [
-                        'id'          => $offer->user->id,
-                        'name'        => $offer->user->name,
-                        'image'       => getFirstMediaUrl($offer->user, $offer->user->avatarCollection),
-                        'rate'        => $isScooter
-                            ? Trip::whereHas('scooter', fn($q) => $q->where('user_id', $offer->user->id))
-                                ->where('status', 'completed')
-                                ->where('client_stare_rate', '>', 0)
-                                ->avg('client_stare_rate') ?? 5.00
-                            : Trip::whereHas('car', fn($q) => $q->where('user_id', $offer->user->id))
-                                ->where('status', 'completed')
-                                ->where('client_stare_rate', '>', 0)
-                                ->avg('client_stare_rate') ?? 5.00,
-                        'trips_count' => $isScooter
-                            ? Trip::whereHas('scooter', fn($q) => $q->where('user_id', $offer->user->id))
-                                ->where('status', 'completed')
-                                ->count()
-                            : Trip::whereHas('car', fn($q) => $q->where('user_id', $offer->user->id))
-                                ->where('status', 'completed')
-                                ->count(),
-                    ] : null,
-                    'car'                      => in_array($trip->type, ['car', 'comfort_car']) && $offer->car ? [
-                        'id'           => $offer->car->id,
-                        'image'        => getFirstMediaUrl($offer->car, $offer->car->avatarCollection),
-                        'year'         => $offer->car->year,
-                        'car_mark_id'  => $offer->car->car_mark_id,
-                        'car_model_id' => $offer->car->car_model_id,
-                        'mark'         => $offer->car->mark,
-                        'model'        => $offer->car->model,
-                    ] : null,
-                    'scooter'                  => $isScooter && $offer->scooter ? [
-                        'id'               => $offer->scooter->id,
-                        'image'            => getFirstMediaUrl($offer->scooter, $offer->scooter->avatarCollection),
-                        'year'             => $offer->scooter->year,
-                        'scooter_mark_id'  => $offer->scooter->motorcycle_mark_id,
-                        'scooter_model_id' => $offer->scooter->motorcycle_model_id,
-                        'mark'             => $offer->scooter->motorcycleMark,
-                        'model'            => $offer->scooter->motorcycleModel,
-                    ] : null,
-                    'status'                   => $offer->status,
-                    'created_at'               => $offer->created_at->format('Y-m-d H:i:s'),
-                ];
-            }),
-        ],
-        'message' => null
-    ], 200);
-}
 }
