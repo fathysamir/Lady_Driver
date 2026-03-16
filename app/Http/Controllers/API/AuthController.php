@@ -1819,7 +1819,16 @@ return $this->sendResponse($cities, null, 200);
 
     public function get_offer($id)
 {
-    $trip = Trip::with('offers', 'user', 'car', 'car.mark', 'car.model')->find($id);
+    $trip = Trip::with([
+        'offers.user',
+        'offers.car.mark',
+        'offers.car.model',
+        'offers.scooter.motorcycleMark',
+        'offers.scooter.motorcycleModel',
+        'user',
+        'car.mark',
+        'car.model',
+    ])->find($id);
 
     if (!$trip) {
         return response()->json([
@@ -1832,76 +1841,67 @@ return $this->sendResponse($cities, null, 200);
     return response()->json([
         'success' => true,
         'data'    => [
-            'offers' => $trip->offers->map(fn($offer) => [
-                'id'                       => $offer->id,
-                'code'                     => $offer->code,
-                'offer'                    => floatval($offer->offer),
-                'status'                   => $offer->status,
-                'client_location_distance' => calculate_distance(
-                    $trip->type == 'scooter' ? $offer->scooter->lat : $offer->car->lat,
-                    $trip->type == 'scooter' ? $offer->scooter->lng : $offer->car->lng,
+            'offers' => $trip->offers->map(function ($offer) use ($trip) {
+
+                $isScooter = $trip->type == 'scooter';
+
+                $distance = calculate_distance(
+                    $isScooter ? $offer->scooter->lat : $offer->car->lat,
+                    $isScooter ? $offer->scooter->lng : $offer->car->lng,
                     $trip->start_lat, $trip->start_lng
-                )['distance_in_km'],
-                'client_location_duration' => calculate_distance(
-                    $trip->type == 'scooter' ? $offer->scooter->lat : $offer->car->lat,
-                    $trip->type == 'scooter' ? $offer->scooter->lng : $offer->car->lng,
-                    $trip->start_lat, $trip->start_lng
-                )['duration_in_M'],
-                'created_at'               => $offer->created_at,
-                'user'                     => [
-                    'id'          => $offer->user->id,
-                    'name'        => $offer->user->name,
-                    'image'       => getFirstMedia($offer->user, $offer->user->avatarCollection)
-                        ? 'https://api.lady-driver.com' . getFirstMedia($offer->user, $offer->user->avatarCollection)
-                        : null,
-                    'rate'        => $trip->type == 'scooter'
-                        ? Trip::whereHas('scooter', fn($q) => $q->where('user_id', $offer->user->id))
-                            ->where('status', 'completed')
-                            ->where('client_stare_rate', '>', 0)
-                            ->avg('client_stare_rate') ?? 5.00
-                        : Trip::whereHas('car', fn($q) => $q->where('user_id', $offer->user->id))
-                            ->where('status', 'completed')
-                            ->where('client_stare_rate', '>', 0)
-                            ->avg('client_stare_rate') ?? 5.00,
-                    'trips_count' => $trip->type == 'scooter'
-                        ? Trip::whereHas('scooter', fn($q) => $q->where('user_id', $offer->user->id))
-                            ->where('status', 'completed')
-                            ->count()
-                        : Trip::whereHas('car', fn($q) => $q->where('user_id', $offer->user->id))
-                            ->where('status', 'completed')
-                            ->count(),
-                ],
-                'car'     => $trip->type != 'scooter' ? [
-                    'id'           => $offer->car->id,
-                    'image'        => 'https://api.lady-driver.com' . getFirstMedia($offer->car, $offer->car->avatarCollection),
-                    'year'         => $offer->car->year,
-                    'car_mark_id'  => $offer->car->car_mark_id,
-                    'car_model_id' => $offer->car->car_model_id,
-                    'mark'         => [
-                        'id'   => $offer->car->mark->id,
-                        'name' => $offer->car->mark->name,
-                    ],
-                    'model'        => [
-                        'id'   => $offer->car->model->id,
-                        'name' => $offer->car->model->name,
-                    ],
-                ] : null,
-                'scooter' => $trip->type == 'scooter' ? [
-                    'id'               => $offer->scooter->id,
-                    'image'            => 'https://api.lady-driver.com' . getFirstMedia($offer->scooter, $offer->scooter->avatarCollection),
-                    'year'             => $offer->scooter->year,
-                    'scooter_mark_id'  => $offer->scooter->motorcycle_mark_id,
-                    'scooter_model_id' => $offer->scooter->motorcycle_model_id,
-                    'mark'             => [
-                        'id'   => $offer->scooter->motorcycleMark->id,
-                        'name' => $offer->scooter->motorcycleMark->name,
-                    ],
-                    'model'            => [
-                        'id'   => $offer->scooter->motorcycleModel->id,
-                        'name' => $offer->scooter->motorcycleModel->name,
-                    ],
-                ] : null,
-            ]),
+                );
+
+                return [
+                    'id'                       => $offer->id,
+                    'user_id'                  => $offer->user_id,
+                    'car_id'                   => $offer->car_id,
+                    'trip_id'                  => $offer->trip_id,
+                    'client_location_distance' => $distance['distance_in_km'],
+                    'client_location_duration' => $distance['duration_in_M'],
+                    'offer'                    => $offer->offer,
+                    'user'                     => $offer->user ? [
+                        'id'          => $offer->user->id,
+                        'name'        => $offer->user->name,
+                        'image'       => getFirstMediaUrl($offer->user, $offer->user->avatarCollection),
+                        'rate'        => $isScooter
+                            ? Trip::whereHas('scooter', fn($q) => $q->where('user_id', $offer->user->id))
+                                ->where('status', 'completed')
+                                ->where('client_stare_rate', '>', 0)
+                                ->avg('client_stare_rate') ?? 5.00
+                            : Trip::whereHas('car', fn($q) => $q->where('user_id', $offer->user->id))
+                                ->where('status', 'completed')
+                                ->where('client_stare_rate', '>', 0)
+                                ->avg('client_stare_rate') ?? 5.00,
+                        'trips_count' => $isScooter
+                            ? Trip::whereHas('scooter', fn($q) => $q->where('user_id', $offer->user->id))
+                                ->where('status', 'completed')
+                                ->count()
+                            : Trip::whereHas('car', fn($q) => $q->where('user_id', $offer->user->id))
+                                ->where('status', 'completed')
+                                ->count(),
+                    ] : null,
+                    'car'                      => in_array($trip->type, ['car', 'comfort_car']) && $offer->car ? [
+                        'id'           => $offer->car->id,
+                        'image'        => getFirstMediaUrl($offer->car, $offer->car->carImageCollection),
+                        'year'         => $offer->car->year,
+                        'car_mark_id'  => $offer->car->mark_id,
+                        'car_model_id' => $offer->car->model_id,
+                        'mark'         => $offer->car->mark,
+                        'model'        => $offer->car->model,
+                    ] : null,
+                    'scooter'                  => $isScooter && $offer->scooter ? [
+                        'id'               => $offer->scooter->id,
+                        'image'            => getFirstMediaUrl($offer->scooter, $offer->scooter->avatarCollection),
+                        'year'             => $offer->scooter->year,
+                        'scooter_mark_id'  => $offer->scooter->motorcycle_mark_id,
+                        'scooter_model_id' => $offer->scooter->motorcycle_model_id,
+                        'mark'             => $offer->scooter->motorcycleMark,
+                        'model'            => $offer->scooter->motorcycleModel,
+                    ] : null,
+                    'status'                   => $offer->status,
+                    'created_at'               => $offer->created_at->format('Y-m-d H:i:s'),
+                ];
+            }),
         ],
         'message' => null
     ], 200);
