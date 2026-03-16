@@ -1842,7 +1842,7 @@ return $this->sendResponse($cities, null, 200);
         'success' => true,
         'data'    => [
             'offers' => $trip->offers->map(function ($offer) use ($trip) {
-
+//att 1 and 2
                 $isScooter = $trip->type == 'scooter';
 
                 $distance = calculate_distance(
@@ -1850,7 +1850,7 @@ return $this->sendResponse($cities, null, 200);
                     $isScooter ? $offer->scooter->lng : $offer->car->lng,
                     $trip->start_lat, $trip->start_lng
                 );
-
+/////
                 return [
                     'id'                       => $offer->id,
                     'user_id'                  => $offer->user_id,
@@ -1884,8 +1884,8 @@ return $this->sendResponse($cities, null, 200);
                         'id'           => $offer->car->id,
                         'image'        => getFirstMediaUrl($offer->car, $offer->car->avatarCollection),
                         'year'         => $offer->car->year,
-                        'car_mark_id'  => $offer->car->mark_id,
-                        'car_model_id' => $offer->car->model_id,
+                        'car_mark_id'  => $offer->car->car_mark_id,
+                        'car_model_id' => $offer->car->car_model_id,
                         'mark'         => $offer->car->mark,
                         'model'        => $offer->car->model,
                     ] : null,
