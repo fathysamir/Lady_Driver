@@ -1280,14 +1280,14 @@ class Chat implements MessageComponentInterface
                     $x['offer_id'] = $offer->id;
                     $x['trip_id']  = $trip->id;
                     $data2         = [
-                        'type'    => 'trip_taken',
+                        'type'    => 'cancelled_offer',
                         'data'    => $x,
                         'message' => 'Sorry, the customer has chosen another offer.Have a pleasant trip.',
                     ];
-                    $res2 = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-                    $client->send($res2);
+                    $res = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    $client->send($res);
                     $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res2, $exp_offer->user_id);
+                    echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res, $exp_offer->user_id);
                 }
             }
             if ($offer->user->device_token) {
