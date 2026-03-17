@@ -1284,8 +1284,8 @@ class Chat implements MessageComponentInterface
                         'data'    => $x,
                         'message' => 'Sorry, the customer has chosen another offer.Have a pleasant trip.',
                     ];
-                    $res = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-                    $client->send($res);
+                    $res2 = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    $client->send($res2);
                     $date_time = date('Y-m-d h:i:s a');
                     echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res, $exp_offer->user_id);
                 }
