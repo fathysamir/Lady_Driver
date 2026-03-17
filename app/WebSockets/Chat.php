@@ -1331,7 +1331,7 @@ if ($client) {
     $x['offer_id'] = $offer->id;
     $x['trip_id']  = $trip->id;
     $data2 = [
-        'type'    => 'canceled_offer',
+        'type'    => 'trip_taken',
         'data'    => $x,
         'message' => 'Sorry, the customer has chosen another driver.',
     ];
