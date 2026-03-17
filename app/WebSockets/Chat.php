@@ -1287,7 +1287,7 @@ class Chat implements MessageComponentInterface
                     $res2 = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                     $client->send($res2);
                     $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res, $exp_offer->user_id);
+                    echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res2, $exp_offer->user_id);
                 }
             }
             if ($offer->user->device_token) {
