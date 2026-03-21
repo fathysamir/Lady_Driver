@@ -20,6 +20,7 @@ use App\Models\Scooter;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Trip;
+use App\Models\TripChat;
 use App\Models\User;
 use App\Rules\ValidPublicImage;
 use App\Services\FawryService;
@@ -1913,4 +1914,26 @@ return $this->sendResponse($cities, null, 200);
             'message' => null
         ], 200);
     }
+
+    public function getMessagesAfter(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'after_id' => 'required|exists:trip_chats,id',
+    ]);
+
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
+    }
+
+    $tripChat = TripChat::find($request->after_id);
+
+    $messages = TripChat::where('trip_id', $tripChat->trip_id)
+        ->where('id', '>', $request->after_id)
+        ->orderBy('id', 'asc')
+        ->get();
+
+    return $this->sendResponse($messages, 'Messages retrieved successfully', 200);
+}
+
 }
