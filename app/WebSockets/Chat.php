@@ -1402,6 +1402,9 @@ if ($client) {
     {
         $data       = json_decode($cancelTripRequest, true);
         $trip       = Trip::findOrFail($data['trip_id']);
+
+$reason = null;
+$cancelling_cost = 0;
         $sss_status = $trip->status;
         if ($trip->status == 'pending') {
             $sss_status = 'created';
