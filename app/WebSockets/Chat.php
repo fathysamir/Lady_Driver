@@ -1421,6 +1421,7 @@ $cancelling_cost = 0;
         $trip->trip_cancelling_reason_text = $data['reason_text'];
         $trip->save();
         $canceled_trip['trip_id'] = $trip->id;
+        $canceled_trip['user_id'] = $trip->user_id;
         $data2                    = [
             'type' => 'canceled_trip',
             'data' => $canceled_trip,
