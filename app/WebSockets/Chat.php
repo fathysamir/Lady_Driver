@@ -1455,16 +1455,29 @@ if ($client) {
             $trip->user->wallet = $trip->user->wallet - $value;
             $data2['message']   = 'The trip was cancelled by client.';
             $message            = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if ($trip->car_id != null) {
-                $driver = $this->getClientByUserId($trip->car->user_id);
-            } else {
-                $driver = $this->getClientByUserId($trip->scooter->user_id);
-            }
-            if ($driver) {
-                $driver->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
-            }
+$driver = null;
+if ($trip->car_id != null && $trip->car) {
+    $driver = $this->getClientByUserId($trip->car->user_id);
+} elseif ($trip->scooter_id != null && $trip->scooter) {
+    $driver = $this->getClientByUserId($trip->scooter->user_id);
+}
+if ($driver) {
+    $driver->send($message);
+}
+
+$seenDrivers = DB::table('drivers_trips')
+    ->where('trip_id', $trip->id)
+    ->select('driver_id')
+    ->get();
+
+foreach ($seenDrivers as $seen) {
+    $client = $this->getClientByUserId($seen->driver_id);
+    if ($client) {
+        $client->send($message);
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ] canceled_trip sent to seen driver %d' . "\n", $date_time, $seen->driver_id);
+    }
+}
         } else {
             $data2['message'] = 'The trip was cancelled by the captain. Another one is being assigned.';
             $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -1476,11 +1489,12 @@ if ($client) {
             }
             $data2['message'] = 'The trip was cancelled by you.';
             $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if ($trip->car_id != null) {
-                $driver = $this->getClientByUserId($trip->car->user_id);
-            } else {
-                $driver = $this->getClientByUserId($trip->scooter->user_id);
-            }
+            $driver = null;
+if ($trip->car_id != null && $trip->car) {
+    $driver = $this->getClientByUserId($trip->car->user_id);
+} elseif ($trip->scooter_id != null && $trip->scooter) {
+    $driver = $this->getClientByUserId($trip->scooter->user_id);
+}
             if ($driver) {
                 $driver->send($message);
                 $date_time = date('Y-m-d h:i:s a');
