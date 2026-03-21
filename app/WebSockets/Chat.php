@@ -615,7 +615,7 @@ class Chat implements MessageComponentInterface
     private function startTripBroadcast($trip, $newTrip, $type)
     {
                             // Broadcast trip every 5 seconds for max 3 minutes
-        $maxDuration = 900; // seconds
+        $maxDuration = 300; // seconds    //its 15 min but its now 5 min temporary!!
         $interval    = 5;   // seconds
         $startTime   = time();
 
