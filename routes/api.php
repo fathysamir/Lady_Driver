@@ -170,6 +170,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/get-trip-by-id/{id}', [AuthController::class, 'TripByID']);
     Route::get('/messages', [AuthController::class, 'getMessagesAfter']);
+    Route::get('/sos_triggered', [AuthController::class, 'sos_triggered']);
 
 
 

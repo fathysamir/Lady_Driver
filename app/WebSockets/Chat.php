@@ -2057,6 +2057,41 @@ if ($trip->car_id != null && $trip->car) {
                 case 'barcode_verification_request':
                     $this->check_barcode($from, $AuthUserID, $requestData);
                     break;
+                    case 'sos_triggered':
+                        $sosData = json_decode($requestData, true);
+
+                        $trip_id   = $sosData['trip_id'] ?? null;
+                        $user_id   = $sosData['user_id'] ?? null;
+                        $driver_id = $sosData['driver_id'] ?? $AuthUserID;
+                        $lat       = $sosData['lat'] ?? null;
+                        $lng       = $sosData['lng'] ?? null;
+
+                        $payload = [
+                            'type' => 'sos_triggered',
+                            'data' => [
+                                'trip_id'   => $trip_id,
+                                'user_id'   => $user_id,
+                                'driver_id' => $driver_id,
+                                'lat'       => $lat,
+                                'lng'       => $lng,
+                            ],
+                        ];
+
+                        $res = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+                        if ($user_id) {
+                            $client = $this->getClientByUserId($user_id);
+                            if ($client) {
+                                $client->send($res);
+                            }
+                        }
+
+                        $from->send($res);
+
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ] SOS triggered "%s"' . "\n", $date_time, $res);
+
+                        break;
                 case 'set_availability':
                         $user = User::findOrFail($AuthUserID);
                         $user->is_online = $data['data']['is_online'];

@@ -1935,5 +1935,36 @@ return $this->sendResponse($cities, null, 200);
 
     return $this->sendResponse($messages, 'Messages retrieved successfully', 200);
 }
+public function sos_triggered(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'trip_id'   => 'required',
+        'lat'       => 'required|numeric',
+        'lng'       => 'required|numeric',
+        'user_id'   => 'nullable',
+        'driver_id' => 'nullable',
+    ]);
+
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
+    }
+
+    $authUser = auth()->user();
+
+    $date_time = date('Y-m-d h:i:s a');
+    \Log::info('SOS triggered', [
+        'time' => $date_time,
+        'auth_user_id' => $authUser->id,
+        'trip_id' => $request->trip_id,
+        'lat' => (float) $request->lat,
+        'lng' => (float) $request->lng,
+        'user_id' => $request->user_id,
+        'driver_id' => $request->driver_id,
+    ]);
+
+    return $this->sendResponse(null, 'sos triggered successfully', 200);
+}
+
 
 }
