@@ -1009,6 +1009,10 @@ class DriverController extends ApiController
             'lat' => 'required',
             'lng' => 'required',
 
+
+            'heading' => 'nullable|numeric',
+            'speed'   => 'nullable|numeric',
+
         ]);
         // dd($request->all());
         if ($validator->fails()) {
@@ -1017,9 +1021,18 @@ class DriverController extends ApiController
 
             return $this->sendError(null, $errors, 400);
         }
+
         $user      = auth()->user();
         $user->lat = floatval($request->lat);
         $user->lng = floatval($request->lng);
+
+        if ($request->has('heading')) {
+            $user->heading = floatval($request->heading);
+        }
+        if ($request->has('speed')) {
+            $user->speed = floatval($request->speed);
+        }
+
         $user->save();
 
         if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
@@ -1032,6 +1045,14 @@ class DriverController extends ApiController
             }
             $car->lat = floatval($request->lat);
             $car->lng = floatval($request->lng);
+
+            if ($request->has('heading')) {
+                $car->heading = floatval($request->heading);
+            }
+            if ($request->has('speed')) {
+                $car->speed = floatval($request->speed);
+            }
+
             $car->save();
             return $this->sendResponse(null, 'car location updated successfully', 200);
         } elseif (auth()->user()->driver_type == 'scooter') {
@@ -1044,10 +1065,18 @@ class DriverController extends ApiController
             }
             $scooter->lat = floatval($request->lat);
             $scooter->lng = floatval($request->lng);
+
+            // added (only set if provided)
+            if ($request->has('heading')) {
+                $scooter->heading = floatval($request->heading);
+            }
+            if ($request->has('speed')) {
+                $scooter->speed = floatval($request->speed);
+            }
+
             $scooter->save();
             return $this->sendResponse(null, 'scooter location updated successfully', 200);
         }
-
     }
 
     public function driver_completed_trips()
