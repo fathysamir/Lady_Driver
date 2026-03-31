@@ -1884,53 +1884,80 @@ if ($trip->car_id != null && $trip->car) {
     }
 
     private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
-    {
-        $data     = json_decode($trackCarRequest, true);
-        $lat      = $data['lat'];
-        $lng      = $data['lng'];
-        $x['lat'] = $lat;
-        $x['lng'] = $lng;
-        $data1    = [
-            'type' => 'track_car',
-            'data' => $x,
-        ];
-        $res         = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $driver      = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
-        $driver->lat = floatval($lat);
-        $driver->lng = floatval($lng);
-        $driver->save();
-        if ($driver->car) {
-            $driver->car->update([
-                'lat' => $lat,
-                'lng' => $lng,
-            ]);
-            $trip = Trip::where('car_id', $driver->car->id)->whereIn('status', ['pending', 'in_progress'])->first();
-            if ($trip) {
-                $client = $this->getClientByUserId($trip->user_id);
-                if ($client) {
-                    $client->send($res);
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
-                }
-            }
-        } elseif ($driver->scooter) {
-            $driver->scooter->update([
-                'lat' => $lat,
-                'lng' => $lng,
-            ]);
-            $trip = Trip::where('scooter_id', $driver->scooter->id)->whereIn('status', ['pending', 'in_progress'])->first();
-            if ($trip) {
-                $client = $this->getClientByUserId($trip->user_id);
-                if ($client) {
-                    $client->send($res);
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
-                }
+{
+    $data     = json_decode($trackCarRequest, true);
+    $lat      = $data['lat'];
+    $lng      = $data['lng'];
+
+    $heading  = $data['heading'] ?? null;
+    $speed    = $data['speed'] ?? null;
+
+    $x['lat']     = $lat;
+    $x['lng']     = $lng;
+
+
+    $x['heading'] = $heading;
+    $x['speed']   = $speed;
+
+
+    $data1 = [
+        'type' => 'track_car',
+        'data' => $x,
+    ];
+    $resTrack = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    // update_location payload (new, same data)
+    $data2 = [
+        'type' => 'update_location',
+        'data' => $x,
+    ];
+    $resUpdate = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    $driver      = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
+    $driver->lat = floatval($lat);
+    $driver->lng = floatval($lng);
+    $driver->save();
+
+    if ($driver->car) {
+        $driver->car->update([
+            'lat' => $lat,
+            'lng' => $lng,
+        ]);
+        $trip = Trip::where('car_id', $driver->car->id)->whereIn('status', ['pending', 'in_progress'])->first();
+        if ($trip) {
+            $client = $this->getClientByUserId($trip->user_id);
+            if ($client) {
+
+                $client->send($resTrack);
+                $client->send($resUpdate);
+
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $resUpdate, $trip->user_id);
             }
         }
-        $from->send($res);
+    } elseif ($driver->scooter) {
+        $driver->scooter->update([
+            'lat' => $lat,
+            'lng' => $lng,
+        ]);
+        $trip = Trip::where('scooter_id', $driver->scooter->id)->whereIn('status', ['pending', 'in_progress'])->first();
+        if ($trip) {
+            $client = $this->getClientByUserId($trip->user_id);
+            if ($client) {
+
+                $client->send($resTrack);
+                $client->send($resUpdate);
+
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $resUpdate, $trip->user_id);
+            }
+        }
     }
 
+
+    $from->send($resTrack);
+    $from->send($resUpdate);
+}
     public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
     {
         $data = json_decode($checkBarcodeRequest, true);
