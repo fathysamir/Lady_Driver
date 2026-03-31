@@ -154,8 +154,8 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
        // $response2['duration_in_M']  = ceil($duration / 60);
 
 
-        $response2['distance_in_km'] = round($distance / 1000,2); // Convert distance to kilometers
-        $response2['duration_in_M']  = round($duration / 60,2);
+        $response2['distance_in_km'] = floatval($distance / 1000,2); // Convert distance to kilometers
+        $response2['duration_in_M']  = ceil($duration / 60,2);
 
         return $response2;
     } else {
