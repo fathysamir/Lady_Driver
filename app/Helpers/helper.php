@@ -150,8 +150,12 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
         $distance = $element['distance']['value'] ?? 0;                                             // meters
         $duration = $element['duration_in_traffic']['value'] ?? $element['duration']['value'] ?? 0; // seconds
 
-        $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
-        $response2['duration_in_M']  = ceil($duration / 60);
+       // $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
+       // $response2['duration_in_M']  = ceil($duration / 60);
+
+
+        $response2['distance_in_km'] = round($distance / 1000,2); // Convert distance to kilometers
+        $response2['duration_in_M']  = round($duration / 60,2);
 
         return $response2;
     } else {
