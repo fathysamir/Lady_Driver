@@ -52,6 +52,7 @@ class Trip extends Model
         'payment_method',
         'seen_count',
     ];
+    protected $appends = ['is_driver_arrived'];
 
     protected $allowedSorts = [
 
@@ -101,5 +102,9 @@ class Trip extends Model
         return $this->hasMany(TripDestination::class, 'trip_id')->orderBy('id');
     }
 
+    public function getIsDriverArrivedAttribute()
+    {
+        return !is_null($this->driver_arrived);
+    }
 
 }
