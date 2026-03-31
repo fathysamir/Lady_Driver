@@ -161,6 +161,16 @@ class Chat implements MessageComponentInterface
 
                 // dd(Crypt::encryptString($tokenValue),$token->token);
                 if ($token && hash('sha256', $tokenValue) === $token->token) {
+                    if (isset($this->clientUserIdMap[$userId])) {
+                        $oldConn = $this->clientUserIdMap[$userId];
+                        try {
+                            $oldConn->close();
+                        } catch (\Exception $e) {
+                            echo "Old connection already closed\n";
+                        }
+                        $this->clients->detach($oldConn);
+                        unset($this->clientUserIdMap[$userId]);
+                    }
                     // Token matches
                     $this->clients->attach($conn, $userId);
                     $this->clientUserIdMap[$userId] = $conn;
@@ -632,8 +642,9 @@ class Chat implements MessageComponentInterface
             $realSeenCount = DB::table('drivers_trips')
               ->where('trip_id', $trip->id)
               ->count();
+            //  $totalCount = min($realSeenCount * 2, 10);
 
-            $totalCount = min($realSeenCount * 2, 10);
+            $totalCount = $realSeenCount * 2;
            $trip->seen_count = $totalCount;
            $trip->save();
             $newTrip_client                        = [];
@@ -1976,7 +1987,10 @@ if ($trip->car_id != null && $trip->car) {
         if (array_key_exists('pong', $data)) {
             echo sprintf("sss");
         } else {
-            $AuthUserID = $this->clients[$from];
+            $AuthUserID = $this->getUserIdByConn($from);
+            if (!$AuthUserID) {
+                return;
+            }
             if (array_key_exists('data', $data)) {
                 $requestData = json_encode($data['data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
@@ -2057,8 +2071,8 @@ if ($trip->car_id != null && $trip->car) {
     public function onClose(ConnectionInterface $conn)
     {
         // The connection is closed, remove it, as we can no longer send it messages
+        $userId = $this->getUserIdByConn($conn);
 
-        $userId = $this->clients[$conn];
         unset($this->clientUserIdMap[$userId]);
         $this->clients->detach($conn);
         $date_time = date('Y-m-d h:i:s a');
@@ -2582,5 +2596,14 @@ if ($trip->car_id != null && $trip->car) {
             }
         }
 
+    }
+    private function getUserIdByConn(ConnectionInterface $conn)
+    {
+        foreach ($this->clientUserIdMap as $userId => $client) {
+            if ($client === $conn) {
+                return $userId;
+            }
+        }
+        return null;
     }
 }
