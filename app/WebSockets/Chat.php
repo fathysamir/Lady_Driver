@@ -1368,13 +1368,21 @@ if ($client) {
                 $arrivedAt = Carbon::parse($trip->driver_arrived);
                 $now       = now();
 
-                $minutesDelay = $arrivedAt->diffInMinutes($now); // فرق بالدقائق
+                $minutesDelay = $arrivedAt->diffInMinutes($now);
 
-                $delay_cost        = Setting::where('key', 'delay_cost')->where('category', 'Trips')->where('type', 'number')->first()->value;
-                $trip->delay_cost  = $minutesDelay * floatVal($delay_cost);
-                $trip->total_price = $trip->total_price + ($minutesDelay * floatVal($delay_cost));
+                if ($minutesDelay > 5) {
+                    $chargeableMinutes = $minutesDelay - 5;
+                    $delay_cost        = Setting::where('key', 'delay_cost')
+                                                ->where('category', 'Trips')
+                                                ->where('type', 'number')
+                                                ->first()->value;
+                    $trip->delay_cost  = $chargeableMinutes * floatval($delay_cost);
+                    $trip->total_price = $trip->total_price + ($chargeableMinutes * floatval($delay_cost));
+                } else {
+                    $trip->delay_cost = 0;
+                }
             } else {
-                $trip->delay_cost = 0; // لو مفيش وقت للسائق
+                $trip->delay_cost = 0;
             }
             $trip->save();
             $type    = 'started_trip';
