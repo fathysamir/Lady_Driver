@@ -462,7 +462,8 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -538,7 +539,8 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -605,7 +607,8 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -713,7 +716,7 @@ class Chat implements MessageComponentInterface
                             'data'    => $expired_trip,
                             'message' => 'Trip expired successfully',
                         ];
-                        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
                         $from    = $this->getClientByUserId($trip->user_id);
                         if ($from) {
                             $from->send($message);
@@ -809,7 +812,8 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $trip->refresh();
                               if (in_array($trip->status, ['expired', 'cancelled', 'accepted', 'pending', 'completed'])) {
                                $this->loop->cancelTimer($timer);
@@ -897,7 +901,8 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $trip->refresh();
                              if (in_array($trip->status, ['expired', 'cancelled', 'accepted', 'pending', 'completed'])) {
                              $this->loop->cancelTimer($timer);
@@ -977,7 +982,8 @@ class Chat implements MessageComponentInterface
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $trip->refresh();
                                 if (in_array($trip->status, ['expired', 'cancelled', 'accepted', 'pending', 'completed'])) {
                                     $this->loop->cancelTimer($timer);
@@ -1031,7 +1037,7 @@ class Chat implements MessageComponentInterface
             'data'    => $expired_trip,
             'message' => 'Trip expired successfully',
         ];
-        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
         $from->send($message);
         $date_time = date('Y-m-d h:i:s a');
 
@@ -1124,7 +1130,8 @@ class Chat implements MessageComponentInterface
             'data'    => $x,
             'message' => 'Offer Created Successfully',
         ];
-        $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
         $from->send($res);
         $date_time = date('Y-m-d h:i:s a');
         echo sprintf('[ %s ],created offer message has been sent to user %d' . "\n", $date_time, $AuthUserID);
@@ -1205,7 +1212,8 @@ class Chat implements MessageComponentInterface
             'data'    => $canceled_offer,
             'message' => 'Offer canceled successfully',
         ];
-        $message   = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $message   = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
         $date_time = date('Y-m-d h:i:s a');
 
         $from->send($message);
@@ -1240,7 +1248,8 @@ class Chat implements MessageComponentInterface
                 'data'    => $x,
                 'message' => 'The selected offer is expired.',
             ];
-            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $from->send($res);
             $date_time = date('Y-m-d h:i:s a');
 
@@ -1295,7 +1304,8 @@ class Chat implements MessageComponentInterface
                         'data'    => $x,
                         'message' => 'Sorry, the customer has chosen another offer.Have a pleasant trip.',
                     ];
-                    $res = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    $res = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                     $client->send($res);
                     $date_time = date('Y-m-d h:i:s a');
                     echo sprintf('[ %s ] Message of expire offer "%s" sent to user %d' . "\n", $date_time, $res, $exp_offer->user_id);
@@ -1318,7 +1328,8 @@ class Chat implements MessageComponentInterface
                 'data'    => $x,
                 'message' => 'Offer accepted Successfully',
             ];
-            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $from->send($res);
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of accept offer "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
@@ -1404,7 +1415,8 @@ if ($client) {
             'data'    => $x,
             'message' => $message,
         ];
-        $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
         $from->send($res);
         $date_time = date('Y-m-d h:i:s a');
         echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $AuthUserID);
@@ -1458,7 +1470,8 @@ $cancelling_cost = 0;
         }
         if ($trip->user_id == $AuthUserID) {
             $data2['message'] = 'The trip canceled successfully.';
-            $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $client           = $this->getClientByUserId($trip->user_id);
             if ($client) {
                 $client->send($message);
@@ -1477,7 +1490,8 @@ $cancelling_cost = 0;
 
             $trip->user->wallet = $trip->user->wallet - $value;
             $data2['message']   = 'The trip was cancelled by client.';
-            $message            = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $message            = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
 $driver = null;
 if ($trip->car_id != null && $trip->car) {
     $driver = $this->getClientByUserId($trip->car->user_id);
@@ -1503,7 +1517,8 @@ foreach ($seenDrivers as $seen) {
 }
         } else {
             $data2['message'] = 'The trip was cancelled by the captain. Another one is being assigned.';
-            $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $client           = $this->getClientByUserId($trip->user_id);
             if ($client) {
                 $client->send($message);
@@ -1511,7 +1526,8 @@ foreach ($seenDrivers as $seen) {
                 echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->user_id);
             }
             $data2['message'] = 'The trip was cancelled by you.';
-            $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $message          = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $driver = null;
 if ($trip->car_id != null && $trip->car) {
     $driver = $this->getClientByUserId($trip->car->user_id);
@@ -1721,7 +1737,8 @@ if ($trip->car_id != null && $trip->car) {
 
                                     $data2['type'] = 'new_trip';
                                     $data2['data'] = $newTrip;
-                                    $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                    $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                     $client->send($message);
                                     $date_time = date('Y-m-d h:i:s a');
                                     echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -1800,7 +1817,8 @@ if ($trip->car_id != null && $trip->car) {
 
                                     $data2['type'] = 'new_trip';
                                     $data2['data'] = $newTrip;
-                                    $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                    $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                     $client->send($message);
                                     $date_time = date('Y-m-d h:i:s a');
                                     echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -1871,7 +1889,8 @@ if ($trip->car_id != null && $trip->car) {
 
                                     $data2['type'] = 'new_trip';
                                     $data2['data'] = $newTrip;
-                                    $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                    $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                     $client->send($message);
                                     $date_time = date('Y-m-d h:i:s a');
                                     echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -1911,7 +1930,8 @@ if ($trip->car_id != null && $trip->car) {
             'data' => $x,
         ];
 
-        $res         = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $res         = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
         $driver      = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
         $driver->lat = floatval($lat);
         $driver->lng = floatval($lng);
@@ -1960,7 +1980,8 @@ if ($trip->car_id != null && $trip->car) {
                 'type' => 'barcode_verification',
                 'data' => $x,
             ];
-            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $from->send($res);
             if ($trip->user_id == $AuthUserID) {
                 if ($trip->car_id != null) {
@@ -1988,7 +2009,8 @@ if ($trip->car_id != null && $trip->car) {
                 'type' => 'barcode_verification',
                 'data' => $x,
             ];
-            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             $from->send($res);
         }
 
@@ -2010,7 +2032,8 @@ if ($trip->car_id != null && $trip->car) {
                 return;
             }
             if (array_key_exists('data', $data)) {
-                $requestData = json_encode($data['data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $requestData = json_encode($data['data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
             }
 
             switch ($data['type']) {
@@ -2068,7 +2091,8 @@ if ($trip->car_id != null && $trip->car) {
                             ],
                         ];
 
-                        $res = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                        $res = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
 
                         if ($user_id) {
                             $client = $this->getClientByUserId($user_id);
@@ -2492,7 +2516,8 @@ if ($trip->car_id != null && $trip->car) {
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -2567,7 +2592,8 @@ if ($trip->car_id != null && $trip->car) {
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
@@ -2634,7 +2660,8 @@ if ($trip->car_id != null && $trip->car) {
 
                                 $data2['type'] = 'new_trip';
                                 $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
                                 $client->send($message);
                                 $date_time = date('Y-m-d h:i:s a');
                                 echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
