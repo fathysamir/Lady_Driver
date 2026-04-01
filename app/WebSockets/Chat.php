@@ -370,7 +370,7 @@ class Chat implements MessageComponentInterface
             $newTrip['seen_count']['count'] = 0;
 
             $newTrip['seen_count']['images'] = [];
-            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION));
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
             $newTrip["client_stare_rate"]         = 0;
@@ -692,7 +692,7 @@ class Chat implements MessageComponentInterface
                         'data'    => $expired_trip,
                         'message' => 'Trip expired successfully',
                     ];
-                    $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
                     $from    = $this->getClientByUserId($trip->user_id);
 
                     if ($from) {
@@ -1006,7 +1006,7 @@ class Chat implements MessageComponentInterface
             'data'    => $expired_trip,
             'message' => 'Trip expired successfully',
         ];
-        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
         $records = DB::table('drivers_trips')->where('trip_id', $trip->id)->get();
         foreach ($records as $record) {
             $client = $this->getClientByUserId($record->driver_id);
@@ -1182,7 +1182,7 @@ class Chat implements MessageComponentInterface
                 'type' => 'new_offer',
                 'data' => $offer_result,
             ];
-            $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $message = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
             $client->send($message);
 
             $date_time = date('Y-m-d h:i:s a');
@@ -1627,7 +1627,7 @@ if ($trip->car_id != null && $trip->car) {
                 }
                 $client = $this->getClientByUserId($trip->user_id);
                 if ($client) {
-                    $client->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                    $client->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION));
                     $date_time = date('Y-m-d h:i:s a');
                     echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $trip->user_id);
                 }
@@ -2403,7 +2403,7 @@ if ($trip->car_id != null && $trip->car) {
                 $newTrip['address4']  = $data['address4'];
             }
 
-            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION));
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
             $newTrip["client_stare_rate"]         = 0;
