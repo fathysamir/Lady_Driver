@@ -665,7 +665,7 @@ class Chat implements MessageComponentInterface
             $user_id                                = $trip->user_id;
             $client_trip_                           = $this->getClientByUserId($user_id);
             if ($client_trip_) {
-                $client_trip_->send(json_encode(['type' => 'created_trip', 'data' => $newTrip_client, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                $client_trip_->send(json_encode(['type' => 'created_trip', 'data' => $newTrip_client, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE |JSON_PRESERVE_ZERO_FRACTION));
             }
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $trip->user_id);
