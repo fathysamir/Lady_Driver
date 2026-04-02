@@ -1953,7 +1953,7 @@ public function sos_triggered(Request $request)
     $authUser = auth()->user();
 
     $date_time = date('Y-m-d h:i:s a');
-    \Log::info('SOS triggered', [
+    Log::info('SOS triggered', [
         'time' => $date_time,
         'auth_user_id' => $authUser->id,
         'trip_id' => $request->trip_id,
