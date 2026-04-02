@@ -43,12 +43,10 @@ class TrackCar implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
-            'data' => [
                 'lat'     => $this->lat,
                 'lng'     => $this->lng,
                 'heading' => $this->heading,
                 'speed'   => $this->speed,
-            ],
         ];
     }
 }
