@@ -22,11 +22,12 @@ class TrackCar implements ShouldBroadcast
 
     public function __construct($lat, $lng, $heading, $speed, $receiverId)
     {
-        $this->lat        = $lat;
-        $this->lng        = $lng;
-        $this->heading    = $heading;
-        $this->speed      = $speed;
-        $this->receiverId = $receiverId;
+
+    $this->lat        = floatval($lat);
+    $this->lng        = floatval($lng);
+    $this->heading    = $heading !== null ? floatval($heading) : 0;
+    $this->speed      = $speed !== null ? floatval($speed) : 0;
+    $this->receiverId = $receiverId;
     }
 
     public function broadcastOn()
