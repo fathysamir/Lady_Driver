@@ -36,9 +36,12 @@ class TripStarted implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
-            'trip_id'     => $this->trip->id,
-            'trip_status' => $this->trip->status,
-            'message'     => 'trip started now',
+                'type'        => 'started_trip',
+                'data'        => [
+                    'trip_id'     => $this->trip->id,
+                    'trip_status' => $this->trip->status,
+                ],
+                'message'     => 'trip started now',
         ];
     }
 }
