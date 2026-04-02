@@ -134,7 +134,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/current_trip', [ClientController::class, 'current_trip'])->name('current_trip');
     Route::post('/accept_offer', [ClientController::class, 'accept_offer'])->name('accept_offer');
     Route::get('/driver_current_trip', [DriverController::class, 'driver_current_trip'])->name('driver_current_trip');
-    Route::post('/start_trip', [DriverController::class, 'start_trip'])->name('start_trip');
+    Route::post('/start_end_trip', [DriverController::class, 'start_end_trip'])->name('start_end_trip');
     Route::post('/pay_trip', [ClientController::class, 'pay_trip'])->name('pay_trip');
     Route::get('/completed_trips', [ClientController::class, 'completed_trips'])->name('completed_trips');
     Route::get('/cancelled_trips', [ClientController::class, 'cancelled_trips'])->name('cancelled_trips');

@@ -758,6 +758,10 @@ class DriverController extends ApiController
 
     public function created_trips(Request $request)
     {
+        $trip = Trip::where('status', 'created')
+        ->where('created_at', '>=', now()->subMinutes(5))
+        ->get();
+
         $check_account = $this->check_banned();
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
@@ -967,40 +971,47 @@ class DriverController extends ApiController
         return $this->sendResponse($trip, null, 200);
     }
 
-    // public function start_trip(Request $request)
-    // {
-    //     $check_account = $this->check_banned();
-    //     if ($check_account != true) {
-    //         return $this->sendError(null, $check_account, 400);
-    //     }
-    //     $validator = Validator::make($request->all(), [
-    //         'trip_id' => [
-    //             'required',
-    //             Rule::exists('trips', 'id'),
-    //         ],
-    //     ]);
-    //     // dd($request->all());
-    //     if ($validator->fails()) {
+    public function start_end_trip(Request $request)
+    {
+        $check_account = $this->check_banned();
+        if ($check_account != true) {
+            return $this->sendError(null, $check_account, 400);
+        }
 
-    //         $errors = implode(" / ", $validator->errors()->all());
+        $validator = Validator::make($request->all(), [
+            'trip_id' => [
+                'required',
+                Rule::exists('trips', 'id'),
+            ],
+        ]);
 
-    //         return $this->sendError(null, $errors, 400);
-    //     }
-    //     $trip = Trip::find($request->trip_id);
-    //     if ($trip->status == 'pending') {
-    //         $trip->status     = 'in_progress';
-    //         $trip->start_date = date('Y-m-d');
-    //         $trip->start_time = date('H:i:s');
-    //         $trip->save();
-    //         return $this->sendResponse(null, 'trip started now', 200);
-    //     } elseif ($trip->status == 'in_progress') {
-    //         $trip->status   = 'completed';
-    //         $trip->end_date = date('Y-m-d');
-    //         $trip->end_time = date('H:i:s');
-    //         $trip->save();
-    //         return $this->sendResponse(null, 'trip ended now', 200);
-    //     }
-    // }
+        if ($validator->fails()) {
+
+            $errors = implode(" / ", $validator->errors()->all());
+
+            return $this->sendError(null, $errors, 400);
+        }
+
+        $trip = Trip::find($request->trip_id);
+
+        if ($trip->status == 'pending') {
+            $trip->status     = 'in_progress';
+            $trip->start_date = date('Y-m-d');
+            $trip->start_time = date('H:i:s');
+            $trip->save();
+
+            return $this->sendResponse(null, 'trip started now', 200);
+
+        } elseif ($trip->status == 'in_progress') {
+
+            $trip->status   = 'completed';
+            $trip->end_date = date('Y-m-d');
+            $trip->end_time = date('H:i:s');
+            $trip->save();
+
+            return $this->sendResponse(null, 'trip ended now', 200);
+        }
+    }
 
     public function update_location_car(Request $request)
     {
