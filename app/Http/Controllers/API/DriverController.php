@@ -22,6 +22,7 @@ use App\Events\TripEnded;
 use App\Events\TrackCar;
 
 
+
 class DriverController extends ApiController
 {
     protected $firebaseService;
@@ -1030,7 +1031,7 @@ class DriverController extends ApiController
         }
     }
 
-    use App\Events\TrackCar;
+
 
     public function update_location_car(Request $request)
     {
