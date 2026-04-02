@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Events\TripStarted;
 use App\Events\TripEnded;
+use App\Events\TrackCar;
+
 
 class DriverController extends ApiController
 {
@@ -1028,23 +1030,19 @@ class DriverController extends ApiController
         }
     }
 
+    use App\Events\TrackCar;
+
     public function update_location_car(Request $request)
     {
         $validator = Validator::make($request->all(), [
-
-            'lat' => 'required',
-            'lng' => 'required',
-
-
+            'lat'     => 'required',
+            'lng'     => 'required',
             'heading' => 'nullable|numeric',
             'speed'   => 'nullable|numeric',
-
         ]);
-        // dd($request->all());
+
         if ($validator->fails()) {
-
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
 
@@ -1063,7 +1061,7 @@ class DriverController extends ApiController
 
         if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
             $car = Car::where('user_id', auth()->user()->id)->first();
-            if (! $car) {
+            if (!$car) {
                 return $this->sendError(null, "You don't create your car yet", 400);
             }
             if (auth()->user()->is_online == '0') {
@@ -1080,10 +1078,27 @@ class DriverController extends ApiController
             }
 
             $car->save();
+
+            // Fire event to notify passenger
+            $trip = Trip::where('car_id', $car->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+
+            if ($trip) {
+                event(new TrackCar(
+                    $request->lat,
+                    $request->lng,
+                    $request->heading ?? 0,
+                    $request->speed ?? 0,
+                    $trip->user_id
+                ));
+            }
+
             return $this->sendResponse(null, 'car location updated successfully', 200);
+
         } elseif (auth()->user()->driver_type == 'scooter') {
             $scooter = Scooter::where('user_id', auth()->user()->id)->first();
-            if (! $scooter) {
+            if (!$scooter) {
                 return $this->sendError(null, "You don't create your scooter yet", 400);
             }
             if (auth()->user()->is_online == '0') {
@@ -1092,7 +1107,6 @@ class DriverController extends ApiController
             $scooter->lat = floatval($request->lat);
             $scooter->lng = floatval($request->lng);
 
-            // added (only set if provided)
             if ($request->has('heading')) {
                 $scooter->heading = floatval($request->heading);
             }
@@ -1101,10 +1115,25 @@ class DriverController extends ApiController
             }
 
             $scooter->save();
+
+            // Fire event to notify passenger
+            $trip = Trip::where('scooter_id', $scooter->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+
+            if ($trip) {
+                event(new TrackCar(
+                    $request->lat,
+                    $request->lng,
+                    $request->heading ?? 0,
+                    $request->speed ?? 0,
+                    $trip->user_id
+                ));
+            }
+
             return $this->sendResponse(null, 'scooter location updated successfully', 200);
         }
     }
-
     public function driver_completed_trips()
     {
         if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
