@@ -17,6 +17,8 @@ use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Events\TripStarted;
+use App\Events\TripEnded;
 
 class DriverController extends ApiController
 {
@@ -1000,14 +1002,27 @@ class DriverController extends ApiController
             $trip->start_time = date('H:i:s');
             $trip->save();
 
+            // Notify passenger
+            event(new \App\Events\TripStarted($trip, $trip->user_id));
+
+            // Notify driver
+            $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
+            event(new \App\Events\TripStarted($trip, $driverId));
+
             return $this->sendResponse(null, 'trip started now', 200);
 
         } elseif ($trip->status == 'in_progress') {
-
             $trip->status   = 'completed';
             $trip->end_date = date('Y-m-d');
             $trip->end_time = date('H:i:s');
             $trip->save();
+
+            // Notify passenger
+            event(new \App\Events\TripEnded($trip, $trip->user_id));
+
+            // Notify driver
+            $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
+            event(new \App\Events\TripEnded($trip, $driverId));
 
             return $this->sendResponse(null, 'trip ended now', 200);
         }
