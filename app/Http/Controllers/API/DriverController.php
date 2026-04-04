@@ -631,40 +631,44 @@ class DriverController extends ApiController
                 'date_format:Y-m-d',
                 'before_or_equal:today',
             ],
-
         ]);
-        // dd($request->all());
+
         if ($validator->fails()) {
-
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
+
         $car = Car::where('user_id', auth()->user()->id)->first();
 
-        if ($request->file('Car_inspection_image') && $car) {
-            $car->car_inspection_date = date('Y-m-d', strtotime($request->inspection_date));
+        if (!$car) {
+            return $this->sendError(null, 'Make sure the car is registered', 400);
+        }
 
+        $car->car_inspection_date = date('Y-m-d', strtotime($request->inspection_date));
+
+        if ($request->hasFile('Car_inspection_image')) {
             $Car_inspection_image = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
             if ($Car_inspection_image != null) {
                 deleteMedia($car, $car->CarInspectionImageCollection);
             }
             uploadMedia($request->Car_inspection_image, $car->CarInspectionImageCollection, $car);
-            $car->status = 'pending';
+            $car->status  = 'pending';
             $car->save();
+
             $user         = auth()->user();
             $user->status = 'pending';
             $user->save();
         } else {
-            return $this->sendError(null, 'Make sure the car is registered and the inspection is uploaded', 400);
-
+            $car->save();
         }
+
         return $this->sendResponse([
-            'inspection_date'       => $car->car_inspection_date,
+            'inspection_date'      => $car->car_inspection_date,
             'Car_inspection_image' => getFirstMediaUrl($car, $car->CarInspectionImageCollection),
             'status'               => $car->status,
         ], 'Car inspection saved successfully', 200);
     }
+
     public function medical_examination(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -674,39 +678,34 @@ class DriverController extends ApiController
                 'date_format:Y-m-d',
                 'before_or_equal:today',
             ],
-
         ]);
-        // dd($request->all());
+
         if ($validator->fails()) {
-
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
+
         $user = auth()->user();
 
-        if ($request->file('medical_examination_image')) {
-            $user->medical_examination_date = date('Y-m-d', strtotime($request->medical_examination_date));
+        $user->medical_examination_date = date('Y-m-d', strtotime($request->medical_examination_date));
+
+        if ($request->hasFile('medical_examination_image')) {
             $medical_examination_image = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
             if ($medical_examination_image != null) {
                 deleteMedia($user, $user->medicalExaminationImageCollection);
             }
             uploadMedia($request->medical_examination_image, $user->medicalExaminationImageCollection, $user);
             $user->status = 'pending';
-            $user->save();
-        } else {
-            return $this->sendError(null, 'Make sure the medical examination is uploaded', 400);
-
         }
+
+        $user->save();
+
         return $this->sendResponse([
             'medical_examination_date'  => $user->medical_examination_date,
             'medical_examination_image' => getFirstMediaUrl($user, $user->medicalExaminationImageCollection),
             'status'                    => $user->status,
         ], 'Medical examination saved successfully', 200);
-
-
     }
-
     public function criminal_record(Request $request)
     {
         $validator = Validator::make($request->all(), [
