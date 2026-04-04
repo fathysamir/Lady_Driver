@@ -625,7 +625,7 @@ class DriverController extends ApiController
     public function add_car_inspection(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'Car_inspection_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'Car_inspection_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'inspection_date'      => [
                 'required',
                 'date_format:Y-m-d',
@@ -668,7 +668,7 @@ class DriverController extends ApiController
     public function medical_examination(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'medical_examination_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'medical_examination_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'medical_examination_date'  => [
                 'required',
                 'date_format:Y-m-d',
@@ -710,7 +710,7 @@ class DriverController extends ApiController
     public function criminal_record(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'criminal_record_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'criminal_record_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'criminal_record_date'  => [
                 'required',
                 'date_format:Y-m-d',
