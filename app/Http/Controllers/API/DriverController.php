@@ -1216,7 +1216,7 @@ class DriverController extends ApiController
         $startLng  = $trip->start_lng;
         $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
 
-        if ($distance <= 15) {
+        if ($distance <= 40) {
 
             // Only save first time of arriving
             if (! $trip->driver_arrived) {
