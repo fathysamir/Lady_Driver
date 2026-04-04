@@ -708,44 +708,45 @@ class DriverController extends ApiController
     }
 
     public function criminal_record(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'criminal_record_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'criminal_record_date'  => [
-                'required',
-                'date_format:Y-m-d',
-                'before_or_equal:today',
-            ],
+{
+    $validator = Validator::make($request->all(), [
+        'criminal_record_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'criminal_record_date'  => [
+            'required',
+            'date_format:Y-m-d',
+            'before_or_equal:today',
+        ],
+    ]);
 
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
-        }
-        $user = auth()->user();
-
-        if ($request->file('criminal_record_image')) {
-            $user->criminal_record_date = date('Y-m-d', strtotime($request->criminal_record_date));
-            $user->save();
-            $criminal_record_image = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
-            if ($criminal_record_image != null) {
-                deleteMedia($user, $user->criminalRecordImageCollection);
-            }
-            uploadMedia($request->criminal_record_image, $user->criminalRecordImageCollection, $user);
-            $user->status = 'pending';
-            $user->save();
-        } else {
-            return $this->sendError(null, 'Make sure the criminal record is uploaded', 400);
-
-        }
-        return $this->sendResponse([
-            'criminal_record_date'  => $user->criminal_record_date,
-            'criminal_record_image' => getFirstMediaUrl($user, $user->criminalRecordImageCollection),
-            'status'                => $user->status,
-        ], 'Criminal record saved successfully!!', 200);
-
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
     }
+
+    $user = auth()->user();
+
+    if ($request->hasFile('criminal_record_image')) {
+        $user->criminal_record_date = date('Y-m-d', strtotime($request->criminal_record_date));
+        $user->save();
+
+        $criminal_record_image = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
+        if ($criminal_record_image != null) {
+            deleteMedia($user, $user->criminalRecordImageCollection);
+        }
+
+        uploadMedia($request->criminal_record_image, $user->criminalRecordImageCollection, $user);
+        $user->status = 'pending';
+        $user->save();
+    } else {
+        return $this->sendError(null, 'Make sure the criminal record is uploaded', 400);
+    }
+
+    return $this->sendResponse([
+        'criminal_record_date'  => $user->criminal_record_date,
+        'criminal_record_image' => getFirstMediaUrl($user, $user->criminalRecordImageCollection),
+        'status'                => $user->status,
+    ], 'Criminal record saved successfully!!', 200);
+}
     public function driving_license()
     {
         $driving_license = DriverLicense::where('user_id', auth()->user()->id)->first();
