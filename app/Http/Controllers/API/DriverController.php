@@ -1228,7 +1228,8 @@ class DriverController extends ApiController
         event(new \App\Events\DriverArriving($data, $trip->user_id));
 
         // Notify driver
-        event(new \App\Events\DriverArriving($data, auth()->id()));
+        $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
+        event(new \App\Events\TripStarted($trip, $driverId));
 
         return $this->sendResponse([
             'distance'   => $distance,
