@@ -1261,51 +1261,61 @@ public function driver_reached(Request $request)
         return $this->sendError(null, 'Trip not found', 404);
     }
 
-    // Trip must be in progress
     if ($trip->status != 'in_progress') {
         return $this->sendError(null, 'Trip is not in progress', 400);
     }
 
-    // Get final destination
-    $destination = $trip->finalDestination;
+    $destinations = $trip->destinations()->orderBy('id', 'asc')->get();
 
-    if (!$destination) {
-        return $this->sendError(null, 'No destination found', 400);
+    if ($destinations->isEmpty()) {
+        return $this->sendError(null, 'No destinations found', 400);
     }
 
-    $distance = $this->calculateDistance(
-        $request->lat,
-        $request->lng,
-        $destination->lat,
-        $destination->lng
-    );
+    $reachedDestination = null;
+    $reachedDistance    = null;
 
-    if ($distance <= 40) {
+    foreach ($destinations as $destination) {
+        $distance = $this->calculateDistance(
+            $request->lat,
+            $request->lng,
+            $destination->lat,
+            $destination->lng
+        );
 
-        $trip->load(['user', 'car.mark', 'car.model', 'finaldestinations','scooter.mark','scooter.model']);
-
-        $data = [
-            'trip_id'  => $trip->id,
-            'message'  => 'Driver reached destination',
-            'distance' => $distance,
-            'trip'     => $trip,
-        ];
-
-        // Notify passenger
-        event(new \App\Events\DriverReached($data, $trip->user_id));
-
-        // Notify driver
-        $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
-        event(new \App\Events\DriverReached($data, $driverId));
-
-        return $this->sendResponse([
-            'distance' => $distance,
-        ], 'You have reached the destination', 200);
+        if ($distance <= 100) {
+            $reachedDestination = $destination;
+            $reachedDistance    = $distance;
+            break;
+        }
     }
 
-    return $this->sendError([
-        'distance' => $distance,
-    ], 'You are not close enough to destination', 404);
+    if (!$reachedDestination) {
+        return $this->sendError([
+            'distance' => $distance ?? null,
+        ], 'You are not close enough to any destination', 404);
+    }
+
+    $trip->load(['user', 'car.mark', 'car.model', 'finaldestinations','scooter.mark','scooter.model']);
+
+    $data = [
+        'trip_id'        => $trip->id,
+        'message'        => 'Driver reached destination',
+        'distance'       => $reachedDistance,
+        'destination_id' => $reachedDestination->id,
+        'trip'           => $trip,
+    ];
+
+    // Notify passenger
+    event(new \App\Events\DriverReached($data, $trip->user_id));
+
+    // Notify driver
+    $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
+    event(new \App\Events\DriverReached($data, $driverId));
+
+    return $this->sendResponse([
+        'distance'       => $reachedDistance,
+        'destination_id' => $reachedDestination->id,
+    ], 'You have reached the destination', 200);
 }
     private function calculateDistance($lat1, $lng1, $lat2, $lng2)
     {
