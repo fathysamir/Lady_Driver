@@ -1284,7 +1284,7 @@ public function driver_reached(Request $request)
 
     if ($distance <= 100) {
 
-        $trip->load(['user', 'car.mark', 'car.model', 'finaldestinations','scooter.mark','scooter.model']);
+        $trip->load(['user', 'car.mark', 'car.model', 'finalDestination','scooter.mark','scooter.model']);
 
         $data = [
             'trip_id'  => $trip->id,
@@ -1307,7 +1307,7 @@ public function driver_reached(Request $request)
 
     return $this->sendError([
         'distance' => $distance,
-    ], 'You are not close enough to destination', 404);
+    ], 'You are not close enough to destination', 400);
 }
     private function calculateDistance($lat1, $lng1, $lat2, $lng2)
     {
