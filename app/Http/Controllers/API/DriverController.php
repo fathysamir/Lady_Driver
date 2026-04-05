@@ -1265,7 +1265,7 @@ public function driver_reached(Request $request)
         return $this->sendError(null, 'Trip is not in progress', 400);
     }
 
-    $destinations = $trip->destinations()->orderBy('id', 'asc')->get();
+    $destinations = $trip->finaldestinations()->orderBy('id', 'asc')->get();
 
     if ($destinations->isEmpty()) {
         return $this->sendError(null, 'No destinations found', 400);
