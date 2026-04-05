@@ -1242,6 +1242,71 @@ class DriverController extends ApiController
         'distance' => $distance,
     ], 'You are not close enough', 404);
 }
+public function driver_reached(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'lat'     => 'required|numeric|between:-90,90',
+        'lng'     => 'required|numeric|between:-180,180',
+        'trip_id' => 'required|exists:trips,id',
+    ]);
+
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
+    }
+
+    $trip = Trip::find($request->trip_id);
+
+    if (!$trip) {
+        return $this->sendError(null, 'Trip not found', 404);
+    }
+
+    // Trip must be in progress
+    if ($trip->status != 'in_progress') {
+        return $this->sendError(null, 'Trip is not in progress', 400);
+    }
+
+    // Get final destination
+    $destination = $trip->finalDestination;
+
+    if (!$destination) {
+        return $this->sendError(null, 'No destination found', 400);
+    }
+
+    $distance = $this->calculateDistance(
+        $request->lat,
+        $request->lng,
+        $destination->lat,
+        $destination->lng
+    );
+
+    if ($distance <= 40) {
+
+        $trip->load(['user', 'car.mark', 'car.model', 'finaldestinations','scooter.mark','scooter.model']);
+
+        $data = [
+            'trip_id'  => $trip->id,
+            'message'  => 'Driver reached destination',
+            'distance' => $distance,
+            'trip'     => $trip,
+        ];
+
+        // Notify passenger
+        event(new \App\Events\DriverReached($data, $trip->user_id));
+
+        // Notify driver
+        $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
+        event(new \App\Events\DriverReached($data, $driverId));
+
+        return $this->sendResponse([
+            'distance' => $distance,
+        ], 'You have reached the destination', 200);
+    }
+
+    return $this->sendError([
+        'distance' => $distance,
+    ], 'You are not close enough to destination', 404);
+}
     private function calculateDistance($lat1, $lng1, $lat2, $lng2)
     {
         $earthRadius = 6371000; // meters

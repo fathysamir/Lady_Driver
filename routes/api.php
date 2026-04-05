@@ -130,6 +130,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get_offer_from_trip/{id}', [AuthController::class, 'get_offer'])->name('get_offer');
 
     Route::post('/driver_arriving', [DriverController::class, 'driver_arriving'])->name('driver_arriving');
+    Route::post('/driver_reached', [DriverController::class, 'driver_reached']);
 
     Route::get('/current_trip', [ClientController::class, 'current_trip'])->name('current_trip');
     Route::post('/accept_offer', [ClientController::class, 'accept_offer'])->name('accept_offer');
