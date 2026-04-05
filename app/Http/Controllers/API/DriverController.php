@@ -1268,7 +1268,7 @@ public function driver_reached(Request $request)
     }
 
     // Get final destination
-    $destination = $trip->finaldestinations()->orderBy('id', 'desc')->first();
+    $destination = $trip->finalDestination()->orderBy('id', 'desc')->first();
 
 
     if (!$destination) {
