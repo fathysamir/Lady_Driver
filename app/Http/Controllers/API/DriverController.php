@@ -1185,60 +1185,61 @@ class DriverController extends ApiController
     }
 
     public function driver_arriving(Request $request)
-    {
+{
+    $validator = Validator::make($request->all(), [
+        'lat'     => 'required|numeric|between:-90,90',
+        'lng'     => 'required|numeric|between:-180,180',
+        'trip_id' => 'required|exists:trips,id',
+    ]);
 
-        $validator = Validator::make($request->all(), [
-
-            'lat'     => 'required|numeric|between:-90,90',
-            'lng'     => 'required|numeric|between:-180,180',
-            'trip_id' => 'required|exists:trips,id',
-
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
-
-            $errors = implode(" / ", $validator->errors()->all());
-
-            return $this->sendError(null, $errors, 400);
-        }
-        $trip = Trip::find($request->trip_id);
-
-        if (! $trip) {
-            return $this->sendError(null, 'Trip not found', 404);
-        }
-        // Calculate distance between driver location and trip start point
-        $driverLat = $request->lat;
-        $driverLng = $request->lng;
-        $startLat  = $trip->start_lat;
-        $startLng  = $trip->start_lng;
-        $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng); // in meters
-
-        if ($distance <= 40) {
-
-            // Only save first time of arriving
-            if (! $trip->driver_arrived) {
-                $trip->driver_arrived = now();
-                $trip->save();
-            }
-            $receiverId = $trip->user_id;
-            $data       = [
-                'trip_id'    => $trip->id,
-                'message'    => 'Driver arrived on pickup point',
-                'distance'   => $distance,
-                'arrived_at' => $trip->driver_arrived,
-            ];
-            event(new \App\Events\DriverArriving($data, $receiverId));
-            return $this->sendResponse([
-                'distance'   => $distance,
-                'arrived_at' => $trip->driver_arrived,
-            ], 'You are close to pickup point', 200);
-        }
-
-        return $this->sendError([
-            'distance' => $distance,
-        ], 'You are not close enough', 404);
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
     }
 
+    $trip = Trip::find($request->trip_id);
+
+    if (!$trip) {
+        return $this->sendError(null, 'Trip not found', 404);
+    }
+
+    $driverLat = $request->lat;
+    $driverLng = $request->lng;
+    $startLat  = $trip->start_lat;
+    $startLng  = $trip->start_lng;
+    $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng);
+
+    if ($distance <= 40) {
+            // Only save first time of arriving
+
+        if (!$trip->driver_arrived) {
+            $trip->driver_arrived = now();
+            $trip->save();
+        }
+
+        $data = [
+            'trip_id'    => $trip->id,
+            'message'    => 'Driver arrived on pickup point',
+            'distance'   => $distance,
+            'arrived_at' => $trip->driver_arrived,
+        ];
+
+        // Notify passenger
+        event(new \App\Events\DriverArriving($data, $trip->user_id));
+
+        // Notify driver
+        event(new \App\Events\DriverArriving($data, auth()->id()));
+
+        return $this->sendResponse([
+            'distance'   => $distance,
+            'arrived_at' => $trip->driver_arrived,
+        ], 'You are close to pickup point', 200);
+    }
+
+    return $this->sendError([
+        'distance' => $distance,
+    ], 'You are not close enough', 404);
+}
     private function calculateDistance($lat1, $lng1, $lat2, $lng2)
     {
         $earthRadius = 6371000; // meters

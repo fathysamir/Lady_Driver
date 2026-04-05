@@ -1408,13 +1408,12 @@ if ($client) {
 
         }
         $trip             = Trip::find($data['trip_id']);
-        $x['trip_id']     = $trip->id;
-        $x['trip_status'] = $trip->status;
         $data1            = [
             'type'    => $type,
-            'data'    => $x,
+            'data'    => $trip,
             'message' => $message,
         ];
+
         $res = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
 
         $from->send($res);

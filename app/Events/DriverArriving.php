@@ -6,6 +6,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Trip;
 
 class DriverArriving implements ShouldBroadcast
 {
@@ -32,11 +33,19 @@ class DriverArriving implements ShouldBroadcast
 
     public function broadcastWith()
     {
+        $trip = Trip::with([
+            'user',
+            'car.mark',
+            'car.model',
+            'destinations',
+        ])->find($this->driver_arriving['trip_id']);
+
         return [
-            'trip_id'  => $this->driver_arriving['trip_id'],
-            'message'  => $this->driver_arriving['message'],
-            'distance' => $this->driver_arriving['distance'],
+            'trip_id'    => $this->driver_arriving['trip_id'],
+            'message'    => $this->driver_arriving['message'],
+            'distance'   => $this->driver_arriving['distance'],
             'arrived_at' => $this->driver_arriving['arrived_at'],
+            'trip'       => $trip,
         ];
     }
 }
