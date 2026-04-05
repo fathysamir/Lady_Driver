@@ -1323,6 +1323,9 @@ class Chat implements MessageComponentInterface
             }
             $x['offer_id'] = $offer->id;
             $x['trip_id']  = $trip->id;
+            $x['trip']  = Trip::find($data['trip_id']);
+
+
             $data1         = [
                 'type'    => 'accepted_offer',
                 'data'    => $x,
