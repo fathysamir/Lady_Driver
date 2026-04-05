@@ -37,7 +37,9 @@ class DriverArriving implements ShouldBroadcast
             'user',
             'car.mark',
             'car.model',
-            'destinations',
+            'finalDestination',
+            'scooter.mark',
+            'scooter.model',
         ])->find($this->driver_arriving['trip_id']);
 
         return [
