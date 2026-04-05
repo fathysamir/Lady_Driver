@@ -1321,10 +1321,8 @@ class Chat implements MessageComponentInterface
                 // ];
                 // Notification::create(['user_id'=>$offer->user_id,'data'=>json_encode($data)]);
             }
-            $x = [
-                'offer_id' => $offer->id,
-                'trip_id'  => $trip->id,
-            ];
+            $x['offer_id'] = $offer->id;
+            $x['trip_id']  = $trip->id;
 
             $data1 = [
                 'type'    => 'accepted_offer',
