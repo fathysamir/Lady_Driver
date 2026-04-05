@@ -1268,7 +1268,8 @@ public function driver_reached(Request $request)
     }
 
     // Get final destination
-    $destination = $trip->finalDestination;
+    $destination = $trip->destinations()->orderBy('id', 'desc')->first();
+
 
     if (!$destination) {
         return $this->sendError(null, 'No destination found', 400);
