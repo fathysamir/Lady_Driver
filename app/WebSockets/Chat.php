@@ -1323,6 +1323,7 @@ class Chat implements MessageComponentInterface
             }
             $x['offer_id'] = $offer->id;
             $x['trip_id']  = $trip->id;
+            $x['trip']  = $trip;
 
             $data1 = [
                 'type'    => 'accepted_offer',
