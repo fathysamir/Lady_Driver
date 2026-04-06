@@ -5,6 +5,7 @@ use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\Dashboard\PaymentController;
 //use App\Http\Controllers\API\UltramsgController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -55,6 +56,8 @@ use Illuminate\Support\Facades\Route;
 //     return true;
 // });
 //Route::post('/send-otp', [UltramsgController::class, 'sendWhatsappOtp']);
+Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name('api.fawry.webhook');
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -172,6 +175,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/get-trip-by-id/{id}', [AuthController::class, 'TripByID']);
     Route::get('/messages', [AuthController::class, 'getMessagesAfter']);
     Route::get('/sos_triggered', [AuthController::class, 'sos_triggered']);
+    ///////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 
