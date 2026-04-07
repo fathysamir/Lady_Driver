@@ -176,6 +176,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages', [AuthController::class, 'getMessagesAfter']);
     Route::get('/sos_triggered', [AuthController::class, 'sos_triggered']);
     ///////////////////////////////////////////////////////////////////////////////////
+    Route::post('/calculate_trip_price', [ClientController::class, 'calculate_trip_price']);
 
 
 
