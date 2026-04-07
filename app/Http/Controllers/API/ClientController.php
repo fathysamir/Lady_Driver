@@ -1365,7 +1365,7 @@ class ClientController extends ApiController
     public function get_current_trip_price(Request $request)
     {
         $trip = Trip::where('user_id', auth()->id())
-                    ->where('status', 'pending') // or whatever your active status is called
+                    ->where('status', 'created') // or whatever your active status is called
                     ->latest()
                     ->first();
 
