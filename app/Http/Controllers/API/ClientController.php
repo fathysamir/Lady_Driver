@@ -1378,6 +1378,7 @@ class ClientController extends ApiController
             'total_price' => floatval($trip->total_price ?? 0),
             'discount'    => floatval($trip->discount ?? 0),
             'final_price' => floatval(max(0, ($trip->total_price ?? 0) - ($trip->discount ?? 0))),
+            'payment_method'      => $trip->payment_method,
             'distance'    => floatval($trip->distance ?? 0),
             'duration'    => intval($trip->duration ?? 0),
             'is_student'  => (bool) $trip->student_trip,
