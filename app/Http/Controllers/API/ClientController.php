@@ -1375,10 +1375,11 @@ class ClientController extends ApiController
 
         return $this->sendResponse([
             'trip_id'     => $trip->id,
-            'total_price' => floatval($trip->total_price),
-            'discount'    => floatval($trip->discount),
-            'distance'    => floatval($trip->distance),
-            'duration'    => intval($trip->duration),
+            'total_price' => floatval($trip->total_price ?? 0),
+            'discount'    => floatval($trip->discount ?? 0),
+            'final_price' => floatval(max(0, ($trip->total_price ?? 0) - ($trip->discount ?? 0))),
+            'distance'    => floatval($trip->distance ?? 0),
+            'duration'    => intval($trip->duration ?? 0),
             'is_student'  => (bool) $trip->student_trip,
             'type'        => $trip->type,
             'status'      => $trip->status,
