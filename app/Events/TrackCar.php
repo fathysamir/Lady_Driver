@@ -4,13 +4,10 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
-
 
 class TrackCar implements ShouldBroadcast, ShouldQueue
 {
@@ -20,16 +17,33 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
     public $lng;
     public $heading;
     public $speed;
+
+    public $distance;
+    public $duration;
+    public $eta;
+
     public $receiverId;
 
-    public function __construct($lat, $lng, $heading, $speed, $receiverId)
-    {
+    public function __construct(
+        $lat,
+        $lng,
+        $heading,
+        $speed,
+        $distance = null,
+        $duration = null,
+        $eta = null,
+        $receiverId = null
+    ) {
+        $this->lat        = floatval($lat);
+        $this->lng        = floatval($lng);
+        $this->heading    = $heading !== null ? floatval($heading) : 0;
+        $this->speed      = $speed !== null ? floatval($speed) : 0;
 
-    $this->lat        = floatval($lat);
-    $this->lng        = floatval($lng);
-    $this->heading    = $heading !== null ? floatval($heading) : 0;
-    $this->speed      = $speed !== null ? floatval($speed) : 0;
-    $this->receiverId = $receiverId;
+        $this->distance   = $distance;
+        $this->duration   = $duration;
+        $this->eta        = $eta;
+
+        $this->receiverId = $receiverId;
     }
 
     public function broadcastOn()
@@ -45,11 +59,14 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
     public function broadcastWith()
     {
         return [
-                'lat'     => $this->lat,
-                'lng'     => $this->lng,
-                'heading' => $this->heading,
-                'speed'   => $this->speed,
-        ];
+            'lat'               => $this->lat,
+            'lng'               => $this->lng,
+            'heading'           => $this->heading,
+            'speed'             => $this->speed,
 
+            'distance'=> $this->distance,
+            'duration'=> $this->duration,
+            'estimated_time'     => $this->eta,
+        ];
     }
 }
