@@ -1059,6 +1059,7 @@ class DriverController extends ApiController
 
         $user->save();
 
+        // ================= CAR =================
         if (in_array($user->driver_type, ['car', 'comfort_car'])) {
 
             $car = Car::where('user_id', $user->id)->first();
@@ -1095,6 +1096,10 @@ class DriverController extends ApiController
                     $trip->start_lng
                 );
 
+                $distance = null;
+                $duration = null;
+                $eta      = null;
+
                 if ($response) {
 
                     $distance = round($response['distance_in_km'], 2);
@@ -1103,10 +1108,41 @@ class DriverController extends ApiController
                     $duration = intval($response['duration_in_M']);
                     $eta      = now()->addMinutes($duration)->format('h:i A');
 
+                    // 🚨 START TRIP
+                    if ($trip->status == 'pending' && $meters <= 100) {
+                        $trip->status = 'in_progress';
+                        $trip->save();
+                    }
+
+                    // 📍 RANGE MESSAGE
+                    $message = null;
+                    $status  = 'on_the_way';
+
+                    if ($meters <= 500 && $meters > 400) {
+                        $message = '500m away';
+                    } elseif ($meters <= 400 && $meters > 300) {
+                        $message = '400m away';
+                    } elseif ($meters <= 300 && $meters > 200) {
+                        $message = '300m away';
+                    } elseif ($meters <= 200 && $meters > 100) {
+                        $message = '200m away';
+                    } elseif ($meters <= 100 && $meters > 0) {
+                        $message = '100m away';
+                    }
+
+                    // 🔴 REACHED
+                    if ($meters <= 100) {
+                        $message  = 'driver reached';
+                        $status   = 'reached';
+                        $distance = 0;
+                        $duration = 0;
+                        $eta      = null;
+                    }
+
                     $passengerId = $trip->user_id;
                     $driverId    = $car->user_id;
 
-                    // 🚗 BASE TRACKING (always)
+                    // 📡 PASSENGER
                     event(new \App\Events\TrackCar(
                         $request->lat,
                         $request->lng,
@@ -1115,63 +1151,143 @@ class DriverController extends ApiController
                         $distance,
                         $duration,
                         $eta,
-                        $passengerId,
-                        $driverId
+                        $message,
+                        $status,
+                        $passengerId
                     ));
 
-                    // 📍 RANGE SYSTEM
-
-                    if ($meters <= 500 && $meters > 400) {
-                        $label = 500;
-                    } elseif ($meters <= 400 && $meters > 300) {
-                        $label = 400;
-                    } elseif ($meters <= 300 && $meters > 200) {
-                        $label = 300;
-                    } elseif ($meters <= 200 && $meters > 100) {
-                        $label = 200;
-                    } elseif ($meters <= 100 && $meters > 0) {
-                        $label = 100;
-                    } else {
-                        $label = null;
-                    }
-
-                    // 📡 send range update
-                    if ($label !== null) {
-
-                        event(new \App\Events\TrackCar(
-                            $request->lat,
-                            $request->lng,
-                            $request->heading ?? 0,
-                            $request->speed ?? 0,
-                            $distance,
-                            0,
-                            $label . 'm away',
-                            $passengerId,
-                            $driverId
-                        ));
-                    }
-
-                    // 🔴 REACHED
-                    if ($meters <= 100) {
-
-                        event(new \App\Events\TrackCar(
-                            $request->lat,
-                            $request->lng,
-                            $request->heading ?? 0,
-                            $request->speed ?? 0,
-                            0,
-                            0,
-                            'reached',
-                            $passengerId,
-                            $driverId
-                        ));
-                    }
+                    // 📡 DRIVER
+                    event(new \App\Events\TrackCar(
+                        $request->lat,
+                        $request->lng,
+                        $request->heading ?? 0,
+                        $request->speed ?? 0,
+                        $distance,
+                        $duration,
+                        $eta,
+                        $message,
+                        $status,
+                        $driverId
+                    ));
                 }
             }
 
             $car->save();
 
             return $this->sendResponse(null, 'car location updated successfully', 200);
+        }
+
+        // ================= SCOOTER =================
+        elseif ($user->driver_type == 'scooter') {
+
+            $scooter = Scooter::where('user_id', $user->id)->first();
+
+            if (!$scooter) {
+                return $this->sendError(null, "You don't create your scooter yet", 400);
+            }
+
+            if ($user->is_online == '0') {
+                return $this->sendError(null, "You are Offline, You should be online first", 400);
+            }
+
+            $scooter->lat = floatval($request->lat);
+            $scooter->lng = floatval($request->lng);
+
+            if ($request->has('heading')) {
+                $scooter->heading = floatval($request->heading);
+            }
+
+            if ($request->has('speed')) {
+                $scooter->speed = floatval($request->speed);
+            }
+
+            $trip = Trip::where('scooter_id', $scooter->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+
+            if ($trip) {
+
+                $response = calculate_distance(
+                    $request->lat,
+                    $request->lng,
+                    $trip->start_lat,
+                    $trip->start_lng
+                );
+
+                $distance = null;
+                $duration = null;
+                $eta      = null;
+
+                if ($response) {
+
+                    $distance = round($response['distance_in_km'], 2);
+                    $meters   = $distance * 1000;
+
+                    $duration = intval($response['duration_in_M']);
+                    $eta      = now()->addMinutes($duration)->format('h:i A');
+
+                    if ($trip->status == 'pending' && $meters <= 100) {
+                        $trip->status = 'in_progress';
+                        $trip->save();
+                    }
+
+                    $message = null;
+                    $status  = 'on_the_way';
+
+                    if ($meters <= 500 && $meters > 400) {
+                        $message = '500m away';
+                    } elseif ($meters <= 400 && $meters > 300) {
+                        $message = '400m away';
+                    } elseif ($meters <= 300 && $meters > 200) {
+                        $message = '300m away';
+                    } elseif ($meters <= 200 && $meters > 100) {
+                        $message = '200m away';
+                    } elseif ($meters <= 100 && $meters > 0) {
+                        $message = '100m away';
+                    }
+
+                    if ($meters <= 100) {
+                        $message  = 'driver reached';
+                        $status   = 'reached';
+                        $distance = 0;
+                        $duration = 0;
+                        $eta      = null;
+                    }
+
+                    $passengerId = $trip->user_id;
+                    $driverId    = $scooter->user_id;
+
+                    event(new \App\Events\TrackCar(
+                        $request->lat,
+                        $request->lng,
+                        $request->heading ?? 0,
+                        $request->speed ?? 0,
+                        $distance,
+                        $duration,
+                        $eta,
+                        $message,
+                        $status,
+                        $passengerId
+                    ));
+
+                    event(new \App\Events\TrackCar(
+                        $request->lat,
+                        $request->lng,
+                        $request->heading ?? 0,
+                        $request->speed ?? 0,
+                        $distance,
+                        $duration,
+                        $eta,
+                        $message,
+                        $status,
+                        $driverId
+                    ));
+                }
+            }
+
+            $scooter->save();
+
+            return $this->sendResponse(null, 'scooter location updated successfully', 200);
         }
     }
     public function driver_completed_trips()
