@@ -1325,67 +1325,64 @@ public function driver_reached(Request $request)
         return $earthRadius * $c; // distance in meters
     }
     public function track_vehicle(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'lat'     => 'required|numeric|between:-90,90',
-            'lng'     => 'required|numeric|between:-180,180',
-            'trip_id' => 'required|exists:trips,id',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'lat'     => 'required|numeric|between:-90,90',
+        'lng'     => 'required|numeric|between:-180,180',
+        'trip_id' => 'required|exists:trips,id',
+    ]);
 
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
-        }
-
-        $trip = Trip::find($request->trip_id);
-
-        if (!$trip) {
-            return $this->sendError(null, 'Trip not found', 404);
-        }
-
-        if (!in_array($trip->status, ['pending', 'in_progress'])) {
-            return $this->sendError(null, 'Trip is not active', 400);
-        }
-
-        // pending → calculate distance to pickup point
-        if ($trip->status == 'pending') {
-            $response = calculate_distance(
-                $request->lat,
-                $request->lng,
-                $trip->start_lat,
-                $trip->start_lng
-            );
-        }
-
-        // in_progress → calculate distance to destination
-        if ($trip->status == 'in_progress') {
-            $destination = $trip->finalDestination()->orderBy('id', 'desc')->first();
-
-            if (!$destination) {
-                return $this->sendError(null, 'No destination found', 400);
-            }
-
-            $response = calculate_distance(
-                $request->lat,
-                $request->lng,
-                $destination->lat,
-                $destination->lng
-            );
-        }
-
-        $distance = round($response['distance_in_km'], 2);
-        $duration = intval($response['duration_in_M']);
-        $eta      = now()->addMinutes($duration)->format('h:i A');
-
-        // Fire event to passenger
-        event(new \App\Events\TrackVehicle($distance, $duration, $eta, $trip->user_id));
-
-        return $this->sendResponse([
-            'distance' => $distance,
-            'duration' => $duration,
-            'eta'      => $eta,
-        ], 'Location tracked successfully', 200);
+    if ($validator->fails()) {
+        return $this->sendError(
+            null,
+            implode(" / ", $validator->errors()->all()),
+            422
+        );
     }
+
+    $trip = Trip::find($request->trip_id);
+
+    if (!$trip) {
+        return $this->sendError(null, 'Trip not found', 404);
+    }
+
+    if ($trip->status !== 'pending') {
+        return $this->sendError(
+            null,
+            'Tracking not available',
+            403
+        );
+    }
+
+    $response = calculate_distance(
+        $request->lat,
+        $request->lng,
+        $trip->start_lat,
+        $trip->start_lng
+    );
+
+    if (!$response) {
+        return $this->sendError(null, 'Distance calculation failed', 500);
+    }
+
+    $distance = round($response['distance_in_km'], 2);
+    $duration = intval($response['duration_in_M']);
+    $eta      = now()->addMinutes($duration)->format('h:i A');
+
+    event(new \App\Events\TrackVehicle(
+        $distance,
+        $duration,
+        $eta,
+        $trip->user_id
+    ));
+
+    return $this->sendResponse([
+        'distance' => $distance,
+        'duration' => $duration,
+        'eta'      => $eta,
+        'status'   => 'pending'
+    ], 'Location tracked successfully', 200);
+}
     // public function create_offer(Request $request)
     // {
     //     $check_account = $this->check_banned();
