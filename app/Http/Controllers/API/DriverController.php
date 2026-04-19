@@ -1031,189 +1031,206 @@ class DriverController extends ApiController
 
 
     public function update_location_car(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'lat'     => 'required',
-            'lng'     => 'required',
-            'heading' => 'nullable|numeric',
-            'speed'   => 'nullable|numeric',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'lat'     => 'required',
+        'lng'     => 'required',
+        'heading' => 'nullable|numeric',
+        'speed'   => 'nullable|numeric',
+    ]);
 
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
+    }
+
+    $user = auth()->user();
+
+    $user->lat = floatval($request->lat);
+    $user->lng = floatval($request->lng);
+
+    if ($request->has('heading')) {
+        $user->heading = floatval($request->heading);
+    }
+
+    if ($request->has('speed')) {
+        $user->speed = floatval($request->speed);
+    }
+
+    $user->save();
+
+    if (in_array($user->driver_type, ['car', 'comfort_car'])) {
+
+        $car = Car::where('user_id', $user->id)->first();
+
+        if (!$car) {
+            return $this->sendError(null, "You don't create your car yet", 400);
         }
 
-        $user = auth()->user();
+        if ($user->is_online == '0') {
+            return $this->sendError(null, "You are Offline, You should be online first", 400);
+        }
 
-        $user->lat = floatval($request->lat);
-        $user->lng = floatval($request->lng);
+        $car->lat = floatval($request->lat);
+        $car->lng = floatval($request->lng);
 
         if ($request->has('heading')) {
-            $user->heading = floatval($request->heading);
+            $car->heading = floatval($request->heading);
         }
 
         if ($request->has('speed')) {
-            $user->speed = floatval($request->speed);
+            $car->speed = floatval($request->speed);
         }
 
-        $user->save();
+        $trip = Trip::where('car_id', $car->id)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->first();
 
-        if (in_array($user->driver_type, ['car', 'comfort_car'])) {
+        $distance = null;
+        $duration = null;
+        $eta      = null;
 
-            $car = Car::where('user_id', $user->id)->first();
+        if ($trip) {
 
-            if (!$car) {
-                return $this->sendError(null, "You don't create your car yet", 400);
-            }
+            $response = calculate_distance(
+                $request->lat,
+                $request->lng,
+                $trip->start_lat,
+                $trip->start_lng
+            );
 
-            if ($user->is_online == '0') {
-                return $this->sendError(null, "You are Offline, You should be online first", 400);
-            }
+            if ($response) {
 
-            $car->lat = floatval($request->lat);
-            $car->lng = floatval($request->lng);
+                $distance = round($response['distance_in_km'], 2);
+                $duration = intval($response['duration_in_M']);
+                $eta      = now()->addMinutes($duration)->format('h:i A');
 
-            if ($request->has('heading')) {
-                $car->heading = floatval($request->heading);
-            }
-
-            if ($request->has('speed')) {
-                $car->speed = floatval($request->speed);
-            }
-
-            $trip = Trip::where('car_id', $car->id)
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->first();
-
-            $distance = null;
-            $duration = null;
-            $eta      = null;
-
-            if ($trip) {
-
-                $response = calculate_distance(
-                    $request->lat,
-                    $request->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
-
-                if ($response) {
-                    $distance = round($response['distance_in_km'], 2);
-                    $duration = intval($response['duration_in_M']);
-                    $eta      = now()->addMinutes($duration)->format('h:i A');
+                // 🚨 ARRIVAL → START TRIP
+                if ($trip->status == 'pending' && $distance <= 0.1) {
+                    $trip->status = 'in_progress';
+                    $trip->save();
                 }
-
-                $passengerId = $trip->user_id;
-                $driverId    = $car->user_id;
-
-                // 📡 send to passenger
-                event(new \App\Events\TrackCar(
-                    $request->lat,
-                    $request->lng,
-                    $request->heading ?? 0,
-                    $request->speed ?? 0,
-                    $distance,
-                    $duration,
-                    $eta,
-                    $passengerId
-                ));
-
-                // 📡 send to driver
-                event(new \App\Events\TrackCar(
-                    $request->lat,
-                    $request->lng,
-                    $request->heading ?? 0,
-                    $request->speed ?? 0,
-                    $distance,
-                    $duration,
-                    $eta,
-                    $driverId
-                ));
             }
 
-            $car->save();
+            $passengerId = $trip->user_id;
+            $driverId    = $car->user_id;
 
-            return $this->sendResponse(null, 'car location updated successfully', 200);
+            // 📡 send to passenger
+            event(new \App\Events\TrackCar(
+                $request->lat,
+                $request->lng,
+                $request->heading ?? 0,
+                $request->speed ?? 0,
+                $distance,
+                $duration,
+                $eta,
+                $passengerId,
+                $driverId
+            ));
 
-        } elseif ($user->driver_type == 'scooter') {
-
-            $scooter = Scooter::where('user_id', $user->id)->first();
-
-            if (!$scooter) {
-                return $this->sendError(null, "You don't create your scooter yet", 400);
-            }
-
-            if ($user->is_online == '0') {
-                return $this->sendError(null, "You are Offline, You should be online first", 400);
-            }
-
-            $scooter->lat = floatval($request->lat);
-            $scooter->lng = floatval($request->lng);
-
-            if ($request->has('heading')) {
-                $scooter->heading = floatval($request->heading);
-            }
-
-            if ($request->has('speed')) {
-                $scooter->speed = floatval($request->speed);
-            }
-
-            $trip = Trip::where('scooter_id', $scooter->id)
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->first();
-
-            $distance = null;
-            $duration = null;
-            $eta      = null;
-
-            if ($trip) {
-
-                $response = calculate_distance(
-                    $request->lat,
-                    $request->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
-
-                if ($response) {
-                    $distance = round($response['distance_in_km'], 2);
-                    $duration = intval($response['duration_in_M']);
-                    $eta      = now()->addMinutes($duration)->format('h:i A');
-                }
-
-                $passengerId = $trip->user_id;
-                $driverId    = $scooter->user_id;
-
-                event(new \App\Events\TrackCar(
-                    $request->lat,
-                    $request->lng,
-                    $request->heading ?? 0,
-                    $request->speed ?? 0,
-                    $distance,
-                    $duration,
-                    $eta,
-                    $passengerId
-                ));
-
-                event(new \App\Events\TrackCar(
-                    $request->lat,
-                    $request->lng,
-                    $request->heading ?? 0,
-                    $request->speed ?? 0,
-                    $distance,
-                    $duration,
-                    $eta,
-                    $driverId
-                ));
-            }
-
-            $scooter->save();
-
-            return $this->sendResponse(null, 'scooter location updated successfully', 200);
+            // 📡 send to driver
+            event(new \App\Events\TrackCar(
+                $request->lat,
+                $request->lng,
+                $request->heading ?? 0,
+                $request->speed ?? 0,
+                $distance,
+                $duration,
+                $eta,
+                $driverId,
+                $driverId
+            ));
         }
+
+        $car->save();
+
+        return $this->sendResponse(null, 'car location updated successfully', 200);
+
+    } elseif ($user->driver_type == 'scooter') {
+
+        $scooter = Scooter::where('user_id', $user->id)->first();
+
+        if (!$scooter) {
+            return $this->sendError(null, "You don't create your scooter yet", 400);
+        }
+
+        if ($user->is_online == '0') {
+            return $this->sendError(null, "You are Offline, You should be online first", 400);
+        }
+
+        $scooter->lat = floatval($request->lat);
+        $scooter->lng = floatval($request->lng);
+
+        if ($request->has('heading')) {
+            $scooter->heading = floatval($request->heading);
+        }
+
+        if ($request->has('speed')) {
+            $scooter->speed = floatval($request->speed);
+        }
+
+        $trip = Trip::where('scooter_id', $scooter->id)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->first();
+
+        $distance = null;
+        $duration = null;
+        $eta      = null;
+
+        if ($trip) {
+
+            $response = calculate_distance(
+                $request->lat,
+                $request->lng,
+                $trip->start_lat,
+                $trip->start_lng
+            );
+
+            if ($response) {
+
+                $distance = round($response['distance_in_km'], 2);
+                $duration = intval($response['duration_in_M']);
+                $eta      = now()->addMinutes($duration)->format('h:i A');
+
+                if ($trip->status == 'pending' && $distance <= 0.1) {
+                    $trip->status = 'in_progress';
+                    $trip->save();
+                }
+            }
+
+            $passengerId = $trip->user_id;
+            $driverId    = $scooter->user_id;
+
+            event(new \App\Events\TrackCar(
+                $request->lat,
+                $request->lng,
+                $request->heading ?? 0,
+                $request->speed ?? 0,
+                $distance,
+                $duration,
+                $eta,
+                $passengerId,
+                $driverId
+            ));
+
+            event(new \App\Events\TrackCar(
+                $request->lat,
+                $request->lng,
+                $request->heading ?? 0,
+                $request->speed ?? 0,
+                $distance,
+                $duration,
+                $eta,
+                $driverId,
+                $driverId
+            ));
+        }
+
+        $scooter->save();
+
+        return $this->sendResponse(null, 'scooter location updated successfully', 200);
     }
+}
     public function driver_completed_trips()
     {
         if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
