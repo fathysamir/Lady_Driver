@@ -22,6 +22,9 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
     public $duration;
     public $eta;
 
+    public $message;
+    public $status;
+
     public $receiverId;
 
     public function __construct(
@@ -32,6 +35,8 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
         $distance = null,
         $duration = null,
         $eta = null,
+        $message = null,
+        $status = 'on_the_way',
         $receiverId = null
     ) {
         $this->lat        = floatval($lat);
@@ -42,6 +47,9 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
         $this->distance   = $distance;
         $this->duration   = $duration;
         $this->eta        = $eta;
+
+        $this->message    = $message;
+        $this->status     = $status;
 
         $this->receiverId = $receiverId;
     }
@@ -59,14 +67,17 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
     public function broadcastWith()
     {
         return [
-            'lat'               => $this->lat,
-            'lng'               => $this->lng,
-            'heading'           => $this->heading,
-            'speed'             => $this->speed,
+            'lat'       => $this->lat,
+            'lng'       => $this->lng,
+            'heading'   => $this->heading,
+            'speed'     => $this->speed,
 
-            'distance'=> $this->distance,
-            'duration'=> $this->duration,
-            'estimated_time'     => $this->eta,
+            'distance'  => $this->distance,
+            'duration'  => $this->duration,
+            'eta'       => $this->eta,
+
+            'message'   => $this->message,
+            'status'    => $this->status,
         ];
     }
 }
