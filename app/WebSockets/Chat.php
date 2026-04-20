@@ -1913,61 +1913,95 @@ if ($trip->car_id != null && $trip->car) {
 
     private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
     {
-        $data     = json_decode($trackCarRequest, true);
-        $lat      = $data['lat'];
-        $lng      = $data['lng'];
+        $data = json_decode($trackCarRequest, true);
 
-        $heading  = $data['heading'] ?? null;
-        $speed    = $data['speed'] ?? null;
+        $lat = $data['lat'];
+        $lng = $data['lng'];
 
-        $x['lat'] = $lat;
-        $x['lng'] = $lng;
+        $heading = $data['heading'] ?? null;
+        $speed   = $data['speed'] ?? null;
 
-        $x['heading'] = $heading;
-        $x['speed']   = $speed;
+        $driver = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
 
-        $data1 = [
-            'type' => 'track_car',
-            'data' => $x,
-        ];
+        $driver->update([
+            'lat' => floatval($lat),
+            'lng' => floatval($lng),
+            'heading' => $heading ?? $driver->heading,
+            'speed'   => $speed ?? $driver->speed,
+        ]);
 
-        $res         = json_encode($data1, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+        $tracker = app(\App\Services\TripTrackingService::class);
 
-        $driver      = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
-        $driver->lat = floatval($lat);
-        $driver->lng = floatval($lng);
-        $driver->save();
+        $trip = null;
 
+        // ================= GET TRIP =================
         if ($driver->car) {
             $driver->car->update([
                 'lat' => $lat,
                 'lng' => $lng,
+                'heading' => $heading,
+                'speed' => $speed,
             ]);
-            $trip = Trip::where('car_id', $driver->car->id)->whereIn('status', ['pending', 'in_progress'])->first();
-            if ($trip) {
-                $client = $this->getClientByUserId($trip->user_id);
-                if ($client) {
-                    $client->send($res);
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
-                }
-            }
-        } elseif ($driver->scooter) {
+
+            $trip = Trip::where('car_id', $driver->car->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+        }
+
+        elseif ($driver->scooter) {
             $driver->scooter->update([
                 'lat' => $lat,
                 'lng' => $lng,
+                'heading' => $heading,
+                'speed' => $speed,
             ]);
-            $trip = Trip::where('scooter_id', $driver->scooter->id)->whereIn('status', ['pending', 'in_progress'])->first();
-            if ($trip) {
-                $client = $this->getClientByUserId($trip->user_id);
-                if ($client) {
-                    $client->send($res);
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ] Message of update location "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
-                }
+
+            $trip = Trip::where('scooter_id', $driver->scooter->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+        }
+
+        // ================= CALCULATE =================
+        $result = null;
+
+        if ($trip) {
+            $result = $tracker->calculate($lat, $lng, $trip);
+        }
+
+        // ================= BUILD RESPONSE =================
+        $payload = [
+            'type' => 'track_car',
+            'data' => [
+                'lat'     => floatval($lat),
+                'lng'     => floatval($lng),
+                'heading' => floatval($heading ?? 0),
+                'speed'   => floatval($speed ?? 0),
+
+                'distance' => $result['distance'] ?? null,
+                'duration' => $result['duration'] ?? null,
+                'eta'      => $result['eta'] ?? null,
+                'message'  => $result['message'] ?? null,
+                'status'   => $result['status'] ?? 'on_the_way',
+            ],
+        ];
+
+        $res = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+
+        // ================= SEND TO PASSENGER =================
+        if ($trip) {
+            $client = $this->getClientByUserId($trip->user_id);
+            if ($client) {
+                $client->send($res);
             }
         }
 
+        // ================= SEND TO DRIVER =================
+        $driverClient = $this->getClientByUserId($AuthUserID);
+        if ($driverClient) {
+            $driverClient->send($res);
+        }
+
+        // ================= SEND BACK TO SOCKET =================
         $from->send($res);
     }
     public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
