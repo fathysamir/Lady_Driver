@@ -42,12 +42,12 @@ class Scooter extends Model
     {
         return $this->hasMany(Trip::class,'scooter_id');
     }
-    public function motorcycleMark()
+    public function mark()
 {
     return $this->belongsTo(MotorcycleMark::class, 'motorcycle_mark_id');
 }
 
-public function motorcycleModel()
+public function model()
 {
     return $this->belongsTo(MotorcycleModel::class, 'motorcycle_model_id');
 }

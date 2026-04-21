@@ -720,7 +720,7 @@ class ClientController extends ApiController
                         $offer_result['scooter']['image']           = getFirstMediaUrl($offer->scooter()->first(), $offer->scooter()->first()->avatarCollection);
                         $offer_result['scooter']['year']            = $offer->scooter()->first()->year;
                         $offer_result['scooter']['scooter_mark_id'] = $offer->scooter()->first()->motorcycle_mark_id;
-                        $offer_result['scooter']['scooter_mark_id'] = $offer->scooter()->first()->motorcycle_model_id;
+                        $offer_result['scooter']['scooter_model_id'] = $offer->scooter()->first()->motorcycle_model_id;
                         $offer_result['scooter']['mark']['id']      = $offer->scooter()->first()->mark()->first()->id;
                         $offer_result['scooter']['mark']['name']    = $offer->scooter()->first()->mark()->first()->name;
                         $offer_result['scooter']['model']['id']     = $offer->scooter()->first()->model()->first()->id;
