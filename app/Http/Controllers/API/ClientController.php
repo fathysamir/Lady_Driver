@@ -595,7 +595,7 @@ class ClientController extends ApiController
         $trip = Trip::where('user_id', auth()->user()->id)->whereIn('status', ['created', 'pending', 'in_progress'])->with(['car' => function ($query) {
             $query->select('id', 'user_id', 'car_mark_id', 'car_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
         }, 'scooter' => function ($query) {
-            $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
+            $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')->with(['mark:id,en_name,ar_name', 'model:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
         }, 'finalDestination' => function ($xx) {
             $xx->select('id', 'trip_id', 'lat', 'lng', 'address') // مكان الأعمدة الصحيح
                 ->orderBy('id');
