@@ -1915,33 +1915,33 @@ if ($trip->car_id != null && $trip->car) {
     {
         $data = json_decode($trackCarRequest, true);
 
-        $lat = $data['lat'];
-        $lng = $data['lng'];
+        if (!$data) {
+            return;
+        }
 
-        $heading = $data['heading'] ?? null;
-        $speed   = $data['speed'] ?? null;
+        $lat = (float) ($data['lat'] ?? 0);
+        $lng = (float) ($data['lng'] ?? 0);
 
-        $driver = User::with(['car', 'scooter'])->findOrFail($AuthUserID);
+        $heading = isset($data['heading']) ? (float) $data['heading'] : 0;
+        $speed   = isset($data['speed']) ? (float) $data['speed'] : 0;
+
+        $driver = User::with(['car', 'scooter'])->find($AuthUserID);
+
+        if (!$driver) return;
 
         $driver->update([
-            'lat' => floatval($lat),
-            'lng' => floatval($lng),
-            'heading' => $heading ?? $driver->heading,
-            'speed'   => $speed ?? $driver->speed,
+            'lat' => $lat,
+            'lng' => $lng,
+            'heading' => $heading,
+            'speed' => $speed,
         ]);
 
         $tracker = app(\App\Services\TripTrackingService::class);
-
         $trip = null;
 
-        // ================= GET TRIP =================
+        // ================= TRIP =================
         if ($driver->car) {
-            $driver->car->update([
-                'lat' => $lat,
-                'lng' => $lng,
-                'heading' => $heading,
-                'speed' => $speed,
-            ]);
+            $driver->car->update(compact('lat','lng','heading','speed'));
 
             $trip = Trip::where('car_id', $driver->car->id)
                 ->whereIn('status', ['pending', 'in_progress'])
@@ -1949,59 +1949,48 @@ if ($trip->car_id != null && $trip->car) {
         }
 
         elseif ($driver->scooter) {
-            $driver->scooter->update([
-                'lat' => $lat,
-                'lng' => $lng,
-                'heading' => $heading,
-                'speed' => $speed,
-            ]);
+            $driver->scooter->update(compact('lat','lng','heading','speed'));
 
             $trip = Trip::where('scooter_id', $driver->scooter->id)
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->first();
         }
 
-        // ================= CALCULATE =================
-        $result = null;
+        $result = $trip ? $tracker->calculate($lat, $lng, $trip) : null;
 
-        if ($trip) {
-            $result = $tracker->calculate($lat, $lng, $trip);
-        }
-
-        // ================= BUILD RESPONSE =================
+        // ================= SAFE PAYLOAD =================
         $payload = [
             'type' => 'track_car',
             'data' => [
-                'lat'     => floatval($lat),
-                'lng'     => floatval($lng),
-                'heading' => floatval($heading ?? 0),
-                'speed'   => floatval($speed ?? 0),
+                'lat'     => $lat,
+                'lng'     => $lng,
+                'heading' => $heading,
+                'speed'   => $speed,
 
                 'distance' => $result['distance'] ?? null,
                 'duration' => $result['duration'] ?? null,
                 'eta'      => $result['eta'] ?? null,
-                'message'  => $result['message'] ?? null,
                 'status'   => $result['status'] ?? 'on_the_way',
+
+                // 👇 flattened to avoid frontend issues
+                'message_en' => $result['message']['en'] ?? null,
+                'message_ar' => $result['message']['ar'] ?? null,
             ],
         ];
 
-        $res = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+        $res = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
-        // ================= SEND TO PASSENGER =================
+        // ================= SEND =================
         if ($trip) {
-            $client = $this->getClientByUserId($trip->user_id);
-            if ($client) {
+            if ($client = $this->getClientByUserId($trip->user_id)) {
                 $client->send($res);
             }
         }
 
-        // ================= SEND TO DRIVER =================
-        $driverClient = $this->getClientByUserId($AuthUserID);
-        if ($driverClient) {
+        if ($driverClient = $this->getClientByUserId($AuthUserID)) {
             $driverClient->send($res);
         }
 
-        // ================= SEND BACK TO SOCKET =================
         $from->send($res);
     }
     public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
