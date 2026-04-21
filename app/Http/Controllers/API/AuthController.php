@@ -1787,7 +1787,7 @@ return $this->sendResponse($cities, null, 200);
         ]);
     }
 
-
+/*
     public function TripByID($id)
     {
         $user = auth()->user();
@@ -1819,6 +1819,60 @@ return $this->sendResponse($cities, null, 200);
             'message' => null
         ], 200);
     }
+        */
+        public function TripByID($id)
+{
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'data' => null,
+            'message' => 'Unauthorized'
+        ], 401);
+    }
+
+    $trip = Trip::where('id', $id)
+        ->with([
+            'car' => function ($query) {
+                $query->select('id', 'user_id', 'car_mark_id', 'car_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')
+                    ->with([
+                        'mark:id,en_name,ar_name',
+                        'model:id,en_name,ar_name',
+                        'owner:id,name,country_code,phone,level'
+                    ]);
+            },
+            'scooter' => function ($query) {
+                $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')
+                    ->with([
+                        'mark:id,en_name,ar_name',
+                        'model:id,en_name,ar_name',
+                        'owner:id,name,country_code,phone,level'
+                    ]);
+            },
+            'finalDestination:id,trip_id,lat,lng,address'
+        ])
+        ->first();
+
+    if (!$trip) {
+        return response()->json([
+            'success' => false,
+            'data' => null,
+            'message' => 'Trip not found'
+        ], 404);
+    }
+
+    // rename relation to match current_trip response structure
+    $trip->final_destination = $trip->finalDestination;
+
+    // optional: remove original key to keep structure identical
+    unset($trip->finalDestination);
+
+    return response()->json([
+        'success' => true,
+        'data' => $trip,
+        'message' => null
+    ], 200);
+}
 
     public function get_offer($id)
     {
