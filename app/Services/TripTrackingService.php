@@ -26,37 +26,42 @@ class TripTrackingService
 
         $messages = [
             'en' => [
-                '500' => 'Driver is 500 meters away',
-                '400' => 'Driver is 400 meters away',
-                '300' => 'Driver is 300 meters away',
-                '200' => 'Driver is 200 meters away',
-                '100' => 'Driver is 100 meters away',
+                '500'     => 'Driver is 500 meters away',
+                '400'     => 'Driver is 400 meters away',
+                '300'     => 'Driver is 300 meters away',
+                '200'     => 'Driver is 200 meters away',
+                '100'     => 'Driver is 100 meters away',
                 'arrived' => 'Driver has arrived',
+                'far'     => 'Driver is on the way',   // ← add a fallback key
             ],
             'ar' => [
-                '500' => 'السائق على بعد 500 متر',
-                '400' => 'السائق على بعد 400 متر',
-                '300' => 'السائق على بعد 300 متر',
-                '200' => 'السائق على بعد 200 متر',
-                '100' => 'السائق على بعد 100 متر',
+                '500'     => 'السائق على بعد 500 متر',
+                '400'     => 'السائق على بعد 400 متر',
+                '300'     => 'السائق على بعد 300 متر',
+                '200'     => 'السائق على بعد 200 متر',
+                '100'     => 'السائق على بعد 100 متر',
                 'arrived' => 'وصل السائق',
+                'far'     => 'السائق في الطريق',      // ← add a fallback key
             ]
         ];
 
-        $key = null;
-
-        if ($meters <= 500 && $meters > 400) $key = '500';
-        elseif ($meters <= 400 && $meters > 300) $key = '400';
-        elseif ($meters <= 300 && $meters > 200) $key = '300';
-        elseif ($meters <= 200 && $meters > 100) $key = '200';
-        elseif ($meters <= 100 && $meters > 0)   $key = '100';
-
-        if ($meters <= 100) {
-            $key = 'arrived';
-            $status = 'reached';
+        // Single if/elseif chain — no double-execution bug
+        if ($meters <= 0 || $meters <= 100) {
+            $key        = 'arrived';
+            $status     = 'reached';
             $distanceKm = 0;
-            $duration = 0;
-            $eta = null;
+            $duration   = 0;
+            $eta        = null;
+        } elseif ($meters <= 200) {
+            $key = '100';
+        } elseif ($meters <= 300) {
+            $key = '200';
+        } elseif ($meters <= 400) {
+            $key = '300';
+        } elseif ($meters <= 500) {
+            $key = '400';
+        } else {
+            $key = 'far'; // > 500m, still on the way
         }
 
         return [
@@ -64,11 +69,9 @@ class TripTrackingService
             'duration' => $duration,
             'eta'      => $eta,
             'status'   => $status,
-
-            // 👇 أهم تعديل: تفكيك message بشكل آمن
-            'message' => [
-                'en' => $messages['en'][$key] ?? null,
-                'ar' => $messages['ar'][$key] ?? null,
+            'message'  => [
+                'en' => $messages['en'][$key],
+                'ar' => $messages['ar'][$key],
             ],
         ];
     }
