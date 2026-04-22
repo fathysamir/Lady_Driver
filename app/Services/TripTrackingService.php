@@ -46,12 +46,9 @@ class TripTrackingService
         ];
 
         // Single if/elseif chain — no double-execution bug
-        if ($meters <= 0 || $meters <= 100) {
+        if ($meters <= 40) {
             $key        = 'arrived';
             $status     = 'reached';
-            $distanceKm = 0;
-            $duration   = 0;
-            $eta        = null;
         } elseif ($meters <= 200) {
             $key = '100';
         } elseif ($meters <= 300) {
