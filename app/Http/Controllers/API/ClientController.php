@@ -789,7 +789,7 @@ class ClientController extends ApiController
         $completed_trips = Trip::where('user_id', auth()->user()->id)->where('status', 'completed')->with(['car' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
-            $query->with(['mark', 'model', 'owner']);
+            $query->with(['motorcycleMark', 'motorcycleModel', 'owner']);
         },
             'finalDestination',
         ])->get()->map(function ($trip) {
@@ -810,7 +810,7 @@ class ClientController extends ApiController
         $cancelled_trips = Trip::where('user_id', auth()->user()->id)->where('status', 'cancelled')->with(['car' => function ($query) {
             $query->with(['mark', 'model', 'owner']);
         }, 'scooter' => function ($query) {
-            $query->with(['mark', 'model', 'owner']);
+            $query->with(['motorcycleMark', 'motorcycleModel', 'owner']);
         }, 'cancelled_by', 'cancelling_reason', 'finalDestination'])->get()->map(function ($trip) {
             if (in_array($trip->type, ['car', 'comfort_car'])) {
                 $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);

@@ -952,7 +952,7 @@ class DriverController extends ApiController
         $trip = Trip::where('id', $lastAcceptedOffer->trip_id)->with(['car' => function ($query) {
             $query->with(['mark', 'model']);
         }, 'scooter' => function ($query) {
-            $query->with(['mark', 'model']);
+            $query->with(['motorcycleMark', 'motorcycleModel']);
         }, 'user', 'finalDestination'])->first();
         if (in_array($trip->type, ['car', 'comfort_car'])) {
             $response = calculate_distance($lastAcceptedOffer->car->lat, $lastAcceptedOffer->car->lng, $trip->start_lat, $trip->start_lng);
@@ -1170,7 +1170,7 @@ class DriverController extends ApiController
         } elseif (auth()->user()->driver_type == 'scooter') {
             $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
             $completed_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'completed')->with(['scooter' => function ($query) {
-                $query->with(['mark', 'model', 'owner']);
+                $query->with(['motorcycleMark', 'motorcycleModel', 'owner']);
             }, 'user', 'finalDestination'])->get()->map(function ($trip) {
 
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);

@@ -1880,8 +1880,8 @@ return $this->sendResponse($cities, null, 200);
             'offers.user',
             'offers.car.mark',
             'offers.car.model',
-            'offers.scooter.mark',
-            'offers.scooter.model',
+            'offers.scooter.motorcycleMark',
+            'offers.scooter.motorcycleModel',
         ])->find($id);
 
         if (!$trip) {
