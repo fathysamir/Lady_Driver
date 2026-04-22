@@ -1844,8 +1844,8 @@ return $this->sendResponse($cities, null, 200);
             'scooter' => function ($query) {
                 $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')
                     ->with([
-                        'mark:id,en_name,ar_name',
-                        'model:id,en_name,ar_name',
+                        'motorcycleMark:id,en_name,ar_name',
+                        'motorcycleModel:id,en_name,ar_name',
                         'owner:id,name,country_code,phone,level'
                     ]);
             },
@@ -1880,8 +1880,8 @@ return $this->sendResponse($cities, null, 200);
             'offers.user',
             'offers.car.mark',
             'offers.car.model',
-            'offers.scooter.motorcycleMark',
-            'offers.scooter.motorcycleModel',
+            'offers.scooter.mark',
+            'offers.scooter.model',
         ])->find($id);
 
         if (!$trip) {
