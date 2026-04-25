@@ -906,7 +906,11 @@ class DriverController extends ApiController
             ->sortByDesc('id')
             ->values();
 
-        return $this->sendResponse($trips, null, 200);
+            return response()->json([
+                'success' => true,
+                'data' => $trips,
+                'message' => null
+            ], 200);
     }
 }
 
