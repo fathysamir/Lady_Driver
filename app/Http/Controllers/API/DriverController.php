@@ -1231,64 +1231,70 @@ class DriverController extends ApiController
     }
 
     public function driver_arriving(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'lat'     => 'required|numeric|between:-90,90',
-        'lng'     => 'required|numeric|between:-180,180',
-        'trip_id' => 'required|exists:trips,id',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'lat'     => 'required|numeric|between:-90,90',
+            'lng'     => 'required|numeric|between:-180,180',
+            'trip_id' => 'required|exists:trips,id',
+        ]);
 
-    if ($validator->fails()) {
-        $errors = implode(" / ", $validator->errors()->all());
-        return $this->sendError(null, $errors, 400);
-    }
-
-    $trip = Trip::find($request->trip_id);
-
-    if (!$trip) {
-        return $this->sendError(null, 'Trip not found', 404);
-    }
-
-    $driverLat = $request->lat;
-    $driverLng = $request->lng;
-    $startLat  = $trip->start_lat;
-    $startLng  = $trip->start_lng;
-    $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng);
-
-    if ($distance <= 40) {
-            // Only save first time of arriving
-
-        if (!$trip->driver_arrived) {
-            $trip->driver_arrived = now();
-            $trip->save();
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
         }
 
-        $data = [
-            'trip_id'    => $trip->id,
-            'message'    => 'Driver arrived on pickup point',
-            'distance'   => $distance,
-            'arrived_at' => $trip->driver_arrived,
-        ];
+        $trip = Trip::with(['car', 'scooter'])->find($request->trip_id);
 
-        // Notify passenger
-        event(new \App\Events\DriverArriving($data, $trip->user_id));
+        if (!$trip) {
+            return $this->sendError(null, 'Trip not found', 404);
+        }
 
-        // Notify driver
-        $driverId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
-        event(new \App\Events\DriverArriving($data, $driverId));
+        $driverLat = $request->lat;
+        $driverLng = $request->lng;
+        $startLat  = $trip->start_lat;
+        $startLng  = $trip->start_lng;
+        $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng);
 
+        if ($distance <= 40) {
 
-        return $this->sendResponse([
-            'distance'   => $distance,
-            'arrived_at' => $trip->driver_arrived,
-        ], 'You are close to pickup point', 200);
+            // Only save first time of arriving
+            if (!$trip->driver_arrived) {
+                $trip->driver_arrived = now();
+                $trip->save();
+            }
+
+            $data = [
+                'trip_id'    => $trip->id,
+                'message'    => 'Driver arrived on pickup point',
+                'distance'   => $distance,
+                'arrived_at' => $trip->driver_arrived,
+            ];
+
+            // Notify passenger
+            event(new \App\Events\DriverArriving($data, $trip->user_id));
+
+            // Safely resolve driver user_id and notify driver
+            $driverId = null;
+            if ($trip->car_id && $trip->car) {
+                $driverId = $trip->car->user_id;
+            } elseif ($trip->scooter_id && $trip->scooter) {
+                $driverId = $trip->scooter->user_id;
+            }
+
+            if ($driverId && $driverId !== $trip->user_id) {
+                event(new \App\Events\DriverArriving($data, $driverId));
+            }
+
+            return $this->sendResponse([
+                'distance'   => $distance,
+                'arrived_at' => $trip->driver_arrived,
+            ], 'You are close to pickup point', 200);
+        }
+
+        return $this->sendError([
+            'distance' => $distance,
+        ], 'You are not close enough', 404);
     }
-
-    return $this->sendError([
-        'distance' => $distance,
-    ], 'You are not close enough', 404);
-}
-
 public function driver_reached(Request $request)
 {
     $validator = Validator::make($request->all(), [
