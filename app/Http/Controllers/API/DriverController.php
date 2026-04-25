@@ -760,397 +760,184 @@ class DriverController extends ApiController
 
     public function created_trips(Request $request)
     {
-        $trip = Trip::where('status', 'created')
-            ->where('created_at', '>=', now()->subMinutes(5))
-            ->get();
-
         $check_account = $this->check_banned();
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
         }
 
-        if (auth()->user()->driver_type == 'car') {
-
-            $application_commission = Setting::where('key', 'application_commission')
-                ->where('category', 'Car Trips')
-                ->where('type', 'boolean')
-                ->first()->value;
-
-            $driver_car = Car::where('user_id', auth()->user()->id)->first();
-
-            if (!$driver_car) {
-                return $this->sendError(null, "No car found for this driver", 400);
-            }
-
-            if ($driver_car->status == 'confirmed') {
-
-                if (auth()->user()->is_online == '1') {
-
-                    $radius = 6371;
-                    $decimalPlaces = 2;
-
-                    $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])
-                        ->where('type', 'car')
-                        ->with(['user:id,name', 'finalDestination']);
-
-                    if ($driver_car->air_conditioned == '0') {
-                        $tripsWithin3Km->where('air_conditioned', '0');
-                    }
-
-                    if ($driver_car->animals == '0') {
-                        $tripsWithin3Km->where('animals', '0');
-                    }
-
-                    if ($driver_car->passenger_type == 'female') {
-                        $tripsWithin3Km->whereHas('user', function ($query) {
-                            $query->where('gendor', 'Female');
-                        });
-                    }
-
-                    $tripsWithin3Km = $tripsWithin3Km
-                        ->selectRaw("
-                            ROUND(
-                                (
-                                    $radius * acos(
-                                        cos(radians($driver_car->lat)) *
-                                        cos(radians(start_lat)) *
-                                        cos(radians(start_lng) - radians($driver_car->lng)) +
-                                        sin(radians($driver_car->lat)) *
-                                        sin(radians(start_lat))
-                                    )
-                                ),
-                                $decimalPlaces
-                            ) AS client_location_away
-                        ")
-                        ->having('client_location_away', '<=', 3)
-                        ->get()
-                        ->map(function ($trip) use ($driver_car, $application_commission) {
-
-                            $response = calculate_distance(
-                                $driver_car->lat,
-                                $driver_car->lng,
-                                $trip->start_lat,
-                                $trip->start_lng
-                            );
-
-                            $distance = $response['distance_in_km'];
-                            $duration = $response['duration_in_M'];
-
-                            if ($distance <= 3) {
-
-                                $trip->client_location_distance = $distance;
-                                $trip->client_location_duration = $duration;
-
-                                $trip->user->image = getFirstMediaUrl(
-                                    $trip->user,
-                                    $trip->user->avatarCollection
-                                );
-
-                                $trip->user->rate =
-                                    Trip::where('user_id', $trip->user_id)
-                                        ->where('status', 'completed')
-                                        ->where('driver_stare_rate', '>', 0)
-                                        ->avg('driver_stare_rate') ?? 5.00;
-
-                                $trip->user->trips_count =
-                                    Trip::where('user_id', $trip->user_id)
-                                        ->whereIn(['pending', 'in_progress', 'completed'])
-                                        ->count();
-
-                                $trip->current_offer = Offer::where('user_id', auth()->user()->id)
-                                    ->where('trip_id', $trip->id)
-                                    ->where('status', 'pending')
-                                    ->first();
-
-                                $app_ratio = floatval(
-                                    Setting::where('key', 'app_ratio')
-                                        ->where('category', 'Car Trips')
-                                        ->where('type', 'number')
-                                        ->where('level', auth()->user()->level)
-                                        ->first()->value
-                                );
-
-                                $application_rate =
-                                    $application_commission == 'On'
-                                    ? round(
-                                        ((($trip->total_price + $trip->discount) * $app_ratio) / 100)
-                                        - $trip->discount,
-                                        2
-                                    )
-                                    : 0.00;
-
-                                $trip->application_rate = $application_rate;
-                                $trip->driver__rate = $trip->total_price - $application_rate;
-
-                                return $trip;
-                            }
-                        })
-                        ->filter()
-                        ->sortByDesc('id')
-                        ->values();
-
-                    return $this->sendResponse($tripsWithin3Km, null, 200);
-
-                } else {
-                    return $this->sendError(null, "your are offline", 400);
-                }
-
-            } else {
-                return $this->sendError(
-                    null,
-                    "Thank you for your request, We are reviewing your account information and the process will take 24 hours",
-                    400
-                );
-            }
-
-        } elseif (auth()->user()->driver_type == 'comfort_car') {
-
-            $driver_car = Car::where('user_id', auth()->user()->id)->first();
-
-            if ($driver_car->status == 'confirmed') {
-
-                $application_commission = Setting::where('key', 'application_commission')
-                    ->where('category', 'Comfort Trips')
-                    ->where('type', 'boolean')
-                    ->first()->value;
-
-                if (auth()->user()->is_online == '1') {
-
-                    $radius = 6371;
-                    $decimalPlaces = 2;
-
-                    $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])
-                        ->where('type', 'comfort_car')
-                        ->with(['user:id,name', 'finalDestination']);
-
-                    if ($driver_car->animals == '0') {
-                        $tripsWithin3Km->where('animals', '0');
-                    }
-
-                    if ($driver_car->passenger_type == 'female') {
-                        $tripsWithin3Km->whereHas('user', function ($query) {
-                            $query->where('gendor', 'Female');
-                        });
-                    }
-
-                    $tripsWithin3Km = $tripsWithin3Km
-                        ->selectRaw("
-                            ROUND(
-                                (
-                                    $radius * acos(
-                                        cos(radians($driver_car->lat)) *
-                                        cos(radians(start_lat)) *
-                                        cos(radians(start_lng) - radians($driver_car->lng)) +
-                                        sin(radians($driver_car->lat)) *
-                                        sin(radians(start_lat))
-                                    )
-                                ),
-                                $decimalPlaces
-                            ) AS client_location_away
-                        ")
-                        ->having('client_location_away', '<=', 3)
-                        ->get()
-                        ->map(function ($trip) use ($driver_car, $application_commission) {
-
-                            $response = calculate_distance(
-                                $driver_car->lat,
-                                $driver_car->lng,
-                                $trip->start_lat,
-                                $trip->start_lng
-                            );
-
-                            $distance = $response['distance_in_km'];
-                            $duration = $response['duration_in_M'];
-
-                            if ($distance <= 3) {
-
-                                $trip->client_location_distance = $distance;
-                                $trip->client_location_duration = $duration;
-
-                                $trip->user->image = getFirstMediaUrl(
-                                    $trip->user,
-                                    $trip->user->avatarCollection
-                                );
-
-                                $trip->user->rate =
-                                    Trip::where('user_id', $trip->user_id)
-                                        ->where('status', 'completed')
-                                        ->where('driver_stare_rate', '>', 0)
-                                        ->avg('driver_stare_rate') ?? 5.00;
-
-                                $trip->user->trips_count =
-                                    Trip::where('user_id', $trip->user_id)
-                                        ->whereIn(['pending', 'in_progress', 'completed'])
-                                        ->count();
-
-                                $trip->current_offer = Offer::where('user_id', auth()->user()->id)
-                                    ->where('trip_id', $trip->id)
-                                    ->where('status', 'pending')
-                                    ->first();
-
-                                $app_ratio = floatval(
-                                    Setting::where('key', 'app_ratio')
-                                        ->where('category', 'Comfort Trips')
-                                        ->where('type', 'number')
-                                        ->where('level', auth()->user()->level)
-                                        ->first()->value
-                                );
-
-                                $application_rate =
-                                    $application_commission == 'On'
-                                    ? round(
-                                        ((($trip->total_price + $trip->discount) * $app_ratio) / 100)
-                                        - $trip->discount,
-                                        2
-                                    )
-                                    : 0.00;
-
-                                $trip->application_rate = $application_rate;
-                                $trip->driver__rate = $trip->total_price - $application_rate;
-
-                                return $trip;
-                            }
-                        })
-                        ->filter()
-                        ->sortByDesc('id')
-                        ->values();
-
-                    return $this->sendResponse($tripsWithin3Km, null, 200);
-
-                } else {
-                    return $this->sendError(null, "your are offline", 400);
-                }
-
-            } else {
-                return $this->sendError(
-                    null,
-                    "Thank you for your request, We are reviewing your account information and the process will take 24 hours",
-                    400
-                );
-            }
-
-        } elseif (auth()->user()->driver_type == 'scooter') {
-
-            $application_commission = Setting::where('key', 'application_commission')
-                ->where('category', 'Scooter Trips')
-                ->where('type', 'boolean')
-                ->first()->value;
-
-            $driver_scooter = Scooter::where('user_id', auth()->user()->id)->first();
-
-            if ($driver_scooter->status == 'confirmed') {
-
-                if (auth()->user()->is_online == '1') {
-
-                    $radius = 6371;
-                    $decimalPlaces = 2;
-
-                    $tripsWithin3Km = Trip::select('*')
-                        ->whereIn('status', ['created', 'scheduled'])
-                        ->where('type', 'scooter')
-                        ->with(['user:id,name', 'finalDestination'])
-                        ->whereHas('user', function ($query) {
-                            $query->where('gendor', 'Female');
-                        });
-
-                    $tripsWithin3Km = $tripsWithin3Km
-                        ->selectRaw("
-                            ROUND(
-                                (
-                                    $radius * acos(
-                                        cos(radians($driver_scooter->lat)) *
-                                        cos(radians(start_lat)) *
-                                        cos(radians(start_lng) - radians($driver_scooter->lng)) +
-                                        sin(radians($driver_scooter->lat)) *
-                                        sin(radians(start_lat))
-                                    )
-                                ),
-                                $decimalPlaces
-                            ) AS client_location_away
-                        ")
-                        ->having('client_location_away', '<=', 3)
-                        ->get()
-                        ->map(function ($trip) use ($driver_scooter, $application_commission) {
-
-                            $response = calculate_distance(
-                                $driver_scooter->lat,
-                                $driver_scooter->lng,
-                                $trip->start_lat,
-                                $trip->start_lng
-                            );
-
-                            $distance = $response['distance_in_km'];
-                            $duration = $response['duration_in_M'];
-
-                            if ($distance <= 3) {
-
-                                $trip->client_location_distance = $distance;
-                                $trip->client_location_duration = $duration;
-
-                                $trip->user->image = getFirstMediaUrl(
-                                    $trip->user,
-                                    $trip->user->avatarCollection
-                                );
-
-                                $trip->user->rate =
-                                    Trip::where('user_id', $trip->user_id)
-                                        ->where('status', 'completed')
-                                        ->where('driver_stare_rate', '>', 0)
-                                        ->avg('driver_stare_rate') ?? 5.00;
-
-                                $trip->user->trips_count =
-                                    Trip::where('user_id', $trip->user_id)
-                                        ->whereIn(['pending', 'in_progress', 'completed'])
-                                        ->count();
-
-                                $trip->current_offer = Offer::where('user_id', auth()->user()->id)
-                                    ->where('trip_id', $trip->id)
-                                    ->where('status', 'pending')
-                                    ->first();
-
-                                $app_ratio = floatval(
-                                    Setting::where('key', 'app_ratio')
-                                        ->where('category', 'Scooter Trips')
-                                        ->where('type', 'number')
-                                        ->where('level', auth()->user()->level)
-                                        ->first()->value
-                                );
-
-                                $application_rate =
-                                    $application_commission == 'On'
-                                    ? round(
-                                        ((($trip->total_price + $trip->discount) * $app_ratio) / 100)
-                                        - $trip->discount,
-                                        2
-                                    )
-                                    : 0.00;
-
-                                $trip->application_rate = $application_rate;
-                                $trip->driver__rate = $trip->total_price - $application_rate;
-
-                                return $trip;
-                            }
-                        })
-                        ->filter()
-                        ->sortByDesc('id')
-                        ->values();
-
-                    return $this->sendResponse($tripsWithin3Km, null, 200);
-
-                } else {
-                    return $this->sendError(null, "your are offline", 400);
-                }
-
-            } else {
-                return $this->sendError(
-                    null,
-                    "Thank you for your request, We are reviewing your account information and the process will take 24 hours",
-                    400
-                );
-            }
+        $user = auth()->user();
+        $driverType = $user->driver_type;
+
+        // Determine category and get vehicle
+        $categoryMap = [
+            'car'         => 'Car Trips',
+            'comfort_car' => 'Comfort Trips',
+            'scooter'     => 'Scooter Trips',
+        ];
+
+        if (!array_key_exists($driverType, $categoryMap)) {
+            return $this->sendError(null, "Invalid driver type", 400);
         }
+
+        $category = $categoryMap[$driverType];
+
+        // Get vehicle
+        if ($driverType === 'scooter') {
+            $vehicle = Scooter::where('user_id', $user->id)->first();
+        } else {
+            $vehicle = Car::where('user_id', $user->id)->first();
+        }
+
+        if (!$vehicle) {
+            return $this->sendError(null, "No vehicle found for this driver", 400);
+        }
+
+        if ($vehicle->status !== 'confirmed') {
+            return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
+        }
+
+        if ($user->is_online != '1') {
+            return $this->sendError(null, "your are offline", 400);
+        }
+
+        $application_commission = Setting::where('key', 'application_commission')
+            ->where('category', $category)
+            ->where('type', 'boolean')
+            ->first()->value;
+
+        $app_ratio = floatval(
+            Setting::where('key', 'app_ratio')
+                ->where('category', $category)
+                ->where('type', 'number')
+                ->where('level', $user->level)
+                ->first()->value
+        );
+
+        $radius = 6371;
+        $decimalPlaces = 2;
+        $lat = $vehicle->lat;
+        $lng = $vehicle->lng;
+
+        // Build base query with same relations as TripByID
+        $tripsQuery = Trip::select('*')
+            ->whereIn('status', ['created', 'scheduled'])
+            ->where('type', $driverType)
+            ->with([
+                'car' => function ($query) {
+                    $query->select('id', 'user_id', 'car_mark_id', 'car_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')
+                        ->with([
+                            'mark:id,en_name,ar_name',
+                            'model:id,en_name,ar_name',
+                            'owner:id,name,country_code,phone,level'
+                        ]);
+                },
+                'scooter' => function ($query) {
+                    $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')
+                        ->with([
+                            'motorcycleMark:id,en_name,ar_name',
+                            'motorcycleModel:id,en_name,ar_name',
+                            'owner:id,name,country_code,phone,level'
+                        ]);
+                },
+                'finalDestination:id,trip_id,lat,lng,address',
+                'user:id,name',
+            ]);
+
+        // Apply vehicle-specific filters
+        if ($driverType === 'car') {
+            if ($vehicle->air_conditioned == '0') {
+                $tripsQuery->where('air_conditioned', '0');
+            }
+            if ($vehicle->animals == '0') {
+                $tripsQuery->where('animals', '0');
+            }
+            if ($vehicle->passenger_type == 'female') {
+                $tripsQuery->whereHas('user', fn($q) => $q->where('gendor', 'Female'));
+            }
+        } elseif ($driverType === 'comfort_car') {
+            if ($vehicle->animals == '0') {
+                $tripsQuery->where('animals', '0');
+            }
+            if ($vehicle->passenger_type == 'female') {
+                $tripsQuery->whereHas('user', fn($q) => $q->where('gendor', 'Female'));
+            }
+        } elseif ($driverType === 'scooter') {
+            $tripsQuery->whereHas('user', fn($q) => $q->where('gendor', 'Female'));
+        }
+
+        $tripsWithin3Km = $tripsQuery
+            ->selectRaw("
+                ROUND(
+                    (
+                        $radius * acos(
+                            cos(radians($lat)) *
+                            cos(radians(start_lat)) *
+                            cos(radians(start_lng) - radians($lng)) +
+                            sin(radians($lat)) *
+                            sin(radians(start_lat))
+                        )
+                    ),
+                    $decimalPlaces
+                ) AS client_location_away
+            ")
+            ->having('client_location_away', '<=', 3)
+            ->get()
+            ->map(function ($trip) use ($vehicle, $application_commission, $app_ratio) {
+
+                $response = calculate_distance(
+                    $vehicle->lat,
+                    $vehicle->lng,
+                    $trip->start_lat,
+                    $trip->start_lng
+                );
+
+                $distance = $response['distance_in_km'];
+                $duration = $response['duration_in_M'];
+
+                if ($distance > 3) {
+                    return null;
+                }
+
+                $trip->client_location_distance = $distance;
+                $trip->client_location_duration = $duration;
+
+                $trip->user->image = getFirstMediaUrl(
+                    $trip->user,
+                    $trip->user->avatarCollection
+                );
+
+                $trip->user->rate = Trip::where('user_id', $trip->user_id)
+                    ->where('status', 'completed')
+                    ->where('driver_stare_rate', '>', 0)
+                    ->avg('driver_stare_rate') ?? 5.00;
+
+                $trip->user->trips_count = Trip::where('user_id', $trip->user_id)
+                    ->whereIn('status', ['pending', 'in_progress', 'completed'])
+                    ->count();
+
+                $trip->current_offer = Offer::where('user_id', auth()->user()->id)
+                    ->where('trip_id', $trip->id)
+                    ->where('status', 'pending')
+                    ->first();
+
+                $application_rate = $application_commission == 'On'
+                    ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2)
+                    : 0.00;
+
+                $trip->application_rate = $application_rate;
+                $trip->driver__rate     = $trip->total_price - $application_rate;
+
+                // Match TripByID structure: rename finalDestination -> final_destination
+                $trip->final_destination = $trip->finalDestination;
+                unset($trip->finalDestination);
+
+                return $trip;
+            })
+            ->filter()
+            ->sortByDesc('id')
+            ->values();
+
+        return $this->sendResponse($tripsWithin3Km, null, 200);
     }
 
     public function activation()
