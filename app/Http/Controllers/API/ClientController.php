@@ -800,8 +800,8 @@ class ClientController extends ApiController
                 'user:id,name,country_code,phone',
 
                 'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
-                'car.mark:id,en_name,ar_name,name',
-                'car.model:id,en_name,ar_name,name',
+                'car.mark',
+                'car.model',
                 'car.owner:id,name,country_code,phone',
 
                 'scooter.motorcycleMark',
@@ -859,8 +859,8 @@ class ClientController extends ApiController
 
             // car lightweight زي TripByID
             'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
-            'car.mark:id,en_name,ar_name,name',
-            'car.model:id,en_name,ar_name,name',
+            'car.mark',
+            'car.model',
             'car.owner:id,name,country_code,phone',
 
             // scooter lightweight
