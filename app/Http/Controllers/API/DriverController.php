@@ -761,6 +761,7 @@ class DriverController extends ApiController
     public function created_trips(Request $request)
     {
         $check_account = $this->check_banned();
+
         if ($check_account != true) {
             return $this->sendError(null, $check_account, 400);
         }
@@ -768,105 +769,40 @@ class DriverController extends ApiController
         $user = auth()->user();
         $driverType = $user->driver_type;
 
-        // Determine category and get vehicle
-        $categoryMap = [
-            'car'         => 'Car Trips',
-            'comfort_car' => 'Comfort Trips',
-            'scooter'     => 'Scooter Trips',
-        ];
-
-        if (!array_key_exists($driverType, $categoryMap)) {
-            return $this->sendError(null, "Invalid driver type", 400);
-        }
-
-        $category = $categoryMap[$driverType];
-
-        // Get vehicle
-        if ($driverType === 'scooter') {
-            $vehicle = Scooter::where('user_id', $user->id)->first();
-        } else {
-            $vehicle = Car::where('user_id', $user->id)->first();
-        }
+        $vehicle = $driverType == 'scooter'
+            ? Scooter::where('user_id', $user->id)->first()
+            : Car::where('user_id', $user->id)->first();
 
         if (!$vehicle) {
-            return $this->sendError(null, "No vehicle found for this driver", 400);
+            return $this->sendError(null, "No vehicle found", 400);
         }
 
-        if ($vehicle->status !== 'confirmed') {
-            return $this->sendError(null, "Thank you for your request, We are reviewing your account information and the process will take 24 hours", 400);
+        if ($vehicle->status != 'confirmed') {
+            return $this->sendError(null, "Account under review", 400);
         }
 
         if ($user->is_online != '1') {
-            return $this->sendError(null, "your are offline", 400);
+            return $this->sendError(null, "You are offline", 400);
         }
 
-        $application_commission = Setting::where('key', 'application_commission')
-            ->where('category', $category)
-            ->where('type', 'boolean')
-            ->first()->value;
-
-        $app_ratio = floatval(
-            Setting::where('key', 'app_ratio')
-                ->where('category', $category)
-                ->where('type', 'number')
-                ->where('level', $user->level)
-                ->first()->value
-        );
-
         $radius = 6371;
-        $decimalPlaces = 2;
         $lat = $vehicle->lat;
         $lng = $vehicle->lng;
 
-        // Build base query with same relations as TripByID
-        $tripsQuery = Trip::select('*')
-            ->whereIn('status', ['created', 'scheduled'])
+        $trips = Trip::whereIn('status', ['created', 'scheduled'])
             ->where('type', $driverType)
             ->with([
-                'car' => function ($query) {
-                    $query->select('id', 'user_id', 'car_mark_id', 'car_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')
-                        ->with([
-                            'mark:id,en_name,ar_name',
-                            'model:id,en_name,ar_name',
-                            'owner:id,name,country_code,phone,level'
-                        ]);
-                },
-                'scooter' => function ($query) {
-                    $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')
-                        ->with([
-                            'motorcycleMark:id,en_name,ar_name',
-                            'motorcycleModel:id,en_name,ar_name',
-                            'owner:id,name,country_code,phone,level'
-                        ]);
-                },
-                'finalDestination:id,trip_id,lat,lng,address',
-                'user:id,name',
-            ]);
-
-        // Apply vehicle-specific filters
-        if ($driverType === 'car') {
-            if ($vehicle->air_conditioned == '0') {
-                $tripsQuery->where('air_conditioned', '0');
-            }
-            if ($vehicle->animals == '0') {
-                $tripsQuery->where('animals', '0');
-            }
-            if ($vehicle->passenger_type == 'female') {
-                $tripsQuery->whereHas('user', fn($q) => $q->where('gendor', 'Female'));
-            }
-        } elseif ($driverType === 'comfort_car') {
-            if ($vehicle->animals == '0') {
-                $tripsQuery->where('animals', '0');
-            }
-            if ($vehicle->passenger_type == 'female') {
-                $tripsQuery->whereHas('user', fn($q) => $q->where('gendor', 'Female'));
-            }
-        } elseif ($driverType === 'scooter') {
-            $tripsQuery->whereHas('user', fn($q) => $q->where('gendor', 'Female'));
-        }
-
-        $tripsWithin3Km = $tripsQuery
+                'car.mark',
+                'car.model',
+                'car.owner:id,name,phone',
+                'scooter.motorcycleMark',
+                'scooter.motorcycleModel',
+                'scooter.owner:id,name,phone',
+                'user:id,name,phone',
+                'finalDestination:id,trip_id,lat,lng,address'
+            ])
             ->selectRaw("
+                *,
                 ROUND(
                     (
                         $radius * acos(
@@ -876,13 +812,13 @@ class DriverController extends ApiController
                             sin(radians($lat)) *
                             sin(radians(start_lat))
                         )
-                    ),
-                    $decimalPlaces
-                ) AS client_location_away
+                    ),2
+                ) as client_location_away
             ")
             ->having('client_location_away', '<=', 3)
+            ->latest()
             ->get()
-            ->map(function ($trip) use ($vehicle, $application_commission, $app_ratio) {
+            ->map(function ($trip) use ($vehicle) {
 
                 $response = calculate_distance(
                     $vehicle->lat,
@@ -891,55 +827,27 @@ class DriverController extends ApiController
                     $trip->start_lng
                 );
 
-                $distance = $response['distance_in_km'];
-                $duration = $response['duration_in_M'];
+                $trip->client_location_distance = $response['distance_in_km'];
+                $trip->client_location_duration = $response['duration_in_M'];
 
-                if ($distance > 3) {
-                    return null;
+                // barcode
+                $trip->barcode = url(barcodeImage($trip->id));
+
+                // user minimal
+                if ($trip->user) {
+                    $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 }
 
-                $trip->client_location_distance = $distance;
-                $trip->client_location_duration = $duration;
-
-                $trip->user->image = getFirstMediaUrl(
-                    $trip->user,
-                    $trip->user->avatarCollection
-                );
-
-                $trip->user->rate = Trip::where('user_id', $trip->user_id)
-                    ->where('status', 'completed')
-                    ->where('driver_stare_rate', '>', 0)
-                    ->avg('driver_stare_rate') ?? 5.00;
-
-                $trip->user->trips_count = Trip::where('user_id', $trip->user_id)
-                    ->whereIn('status', ['pending', 'in_progress', 'completed'])
-                    ->count();
-
-                $trip->current_offer = Offer::where('user_id', auth()->user()->id)
-                    ->where('trip_id', $trip->id)
-                    ->where('status', 'pending')
-                    ->first();
-
-                $application_rate = $application_commission == 'On'
-                    ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2)
-                    : 0.00;
-
-                $trip->application_rate = $application_rate;
-                $trip->driver__rate     = $trip->total_price - $application_rate;
-
-                // Match TripByID structure: rename finalDestination -> final_destination
+                // unify relation name
                 $trip->final_destination = $trip->finalDestination;
                 unset($trip->finalDestination);
 
                 return $trip;
             })
-            ->filter()
-            ->sortByDesc('id')
             ->values();
 
-        return $this->sendResponse($tripsWithin3Km, null, 200);
+        return $this->sendResponse($trips, null, 200);
     }
-
     public function activation()
     {
         $user = auth()->user();
@@ -964,12 +872,14 @@ class DriverController extends ApiController
         return $this->sendError(null, $check_account, 400);
     }
 
-    $lastAcceptedOffer = Offer::where('user_id', auth()->id())
+    $user = auth()->user();
+
+    $lastAcceptedOffer = Offer::where('user_id', $user->id)
         ->where('status', 'accepted')
         ->whereHas('trip', function ($q) {
             $q->whereIn('status', ['pending', 'in_progress']);
         })
-        ->latest('id')
+        ->latest()
         ->first();
 
     if (!$lastAcceptedOffer) {
@@ -978,22 +888,14 @@ class DriverController extends ApiController
 
     $trip = Trip::where('id', $lastAcceptedOffer->trip_id)
         ->with([
-            'car' => function ($query) {
-                $query->with([
-                    'mark',
-                    'model',
-                    'owner'
-                ]);
-            },
-            'scooter' => function ($query) {
-                $query->with([
-                    'motorcycleMark',
-                    'motorcycleModel',
-                    'owner'
-                ]);
-            },
-            'user',
-            'finalDestination'
+            'car.mark',
+            'car.model',
+            'car.owner:id,name,phone',
+            'scooter.motorcycleMark',
+            'scooter.motorcycleModel',
+            'scooter.owner:id,name,phone',
+            'user:id,name,phone',
+            'finalDestination:id,trip_id,lat,lng,address'
         ])
         ->first();
 
@@ -1001,60 +903,28 @@ class DriverController extends ApiController
         return $this->sendError(null, 'no current trip existed', 400);
     }
 
-    // distance + duration
-    if (in_array($trip->type, ['car', 'comfort_car']) && $lastAcceptedOffer->car) {
+    // distance
+    $vehicle = $lastAcceptedOffer->car ?? $lastAcceptedOffer->scooter;
 
-        $response = calculate_distance(
-            $lastAcceptedOffer->car->lat,
-            $lastAcceptedOffer->car->lng,
-            $trip->start_lat,
-            $trip->start_lng
-        );
-
-    } elseif ($trip->type == 'scooter' && $lastAcceptedOffer->scooter) {
-
-        $response = calculate_distance(
-            $lastAcceptedOffer->scooter->lat,
-            $lastAcceptedOffer->scooter->lng,
-            $trip->start_lat,
-            $trip->start_lng
-        );
-
-    } else {
-        $response = [
-            'distance_in_km' => 0,
-            'duration_in_M'  => 0
-        ];
-    }
+    $response = calculate_distance(
+        $vehicle->lat,
+        $vehicle->lng,
+        $trip->start_lat,
+        $trip->start_lng
+    );
 
     $trip->client_location_distance = $response['distance_in_km'];
     $trip->client_location_duration = $response['duration_in_M'];
 
-    // barcode image
+    // barcode
     $trip->barcode = url(barcodeImage($trip->id));
 
-    // user image
+    // user minimal
     if ($trip->user) {
         $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
     }
 
-    // owner images car
-    if ($trip->car && $trip->car->owner) {
-        $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
-        $trip->car->owner->id_front_image = getFirstMediaUrl($trip->car->owner, 'id_front_image');
-        $trip->car->owner->id_back_image = getFirstMediaUrl($trip->car->owner, 'id_back_image');
-        $trip->car->owner->passport_image = getFirstMediaUrl($trip->car->owner, 'passport_image');
-    }
-
-    // owner images scooter
-    if ($trip->scooter && $trip->scooter->owner) {
-        $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
-        $trip->scooter->owner->id_front_image = getFirstMediaUrl($trip->scooter->owner, 'id_front_image');
-        $trip->scooter->owner->id_back_image = getFirstMediaUrl($trip->scooter->owner, 'id_back_image');
-        $trip->scooter->owner->passport_image = getFirstMediaUrl($trip->scooter->owner, 'passport_image');
-    }
-
-    // rename relation
+    // clean final destination naming
     $trip->final_destination = $trip->finalDestination;
     unset($trip->finalDestination);
 

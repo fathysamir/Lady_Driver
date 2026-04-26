@@ -1834,22 +1834,14 @@ return $this->sendResponse($cities, null, 200);
 
             $trip = Trip::where('id', $id)
                 ->with([
-                    'car' => function ($query) {
-                        $query->with([
-                            'mark',
-                            'model',
-                            'owner'
-                        ]);
-                    },
-                    'scooter' => function ($query) {
-                        $query->with([
-                            'motorcycleMark',
-                            'motorcycleModel',
-                            'owner'
-                        ]);
-                    },
-                    'user',
-                    'finalDestination'
+                    'car.mark',
+                    'car.model',
+                    'car.owner:id,name,phone',
+                    'scooter.motorcycleMark',
+                    'scooter.motorcycleModel',
+                    'scooter.owner:id,name,phone',
+                    'user:id,name,phone',
+                    'finalDestination:id,trip_id,lat,lng,address'
                 ])
                 ->first();
 
@@ -1861,59 +1853,28 @@ return $this->sendResponse($cities, null, 200);
                 ], 404);
             }
 
-            // distance + duration
-            $response = [
-                'distance_in_km' => 0,
-                'duration_in_M'  => 0
-            ];
+            // distance
+            $vehicle = $trip->car ?? $trip->scooter;
 
-            if (in_array($trip->type, ['car', 'comfort_car']) && $trip->car) {
-
-                $response = calculate_distance(
-                    $trip->car->lat,
-                    $trip->car->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
-
-            } elseif ($trip->type == 'scooter' && $trip->scooter) {
-
-                $response = calculate_distance(
-                    $trip->scooter->lat,
-                    $trip->scooter->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
-            }
+            $response = calculate_distance(
+                $vehicle->lat,
+                $vehicle->lng,
+                $trip->start_lat,
+                $trip->start_lng
+            );
 
             $trip->client_location_distance = $response['distance_in_km'];
             $trip->client_location_duration = $response['duration_in_M'];
 
-            // barcode image
+            // barcode
             $trip->barcode = url(barcodeImage($trip->id));
 
-            // user image
+            // user image only
             if ($trip->user) {
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
             }
 
-            // owner images car
-            if ($trip->car && $trip->car->owner) {
-                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
-                $trip->car->owner->id_front_image = getFirstMediaUrl($trip->car->owner, 'id_front_image');
-                $trip->car->owner->id_back_image = getFirstMediaUrl($trip->car->owner, 'id_back_image');
-                $trip->car->owner->passport_image = getFirstMediaUrl($trip->car->owner, 'passport_image');
-            }
-
-            // owner images scooter
-            if ($trip->scooter && $trip->scooter->owner) {
-                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
-                $trip->scooter->owner->id_front_image = getFirstMediaUrl($trip->scooter->owner, 'id_front_image');
-                $trip->scooter->owner->id_back_image = getFirstMediaUrl($trip->scooter->owner, 'id_back_image');
-                $trip->scooter->owner->passport_image = getFirstMediaUrl($trip->scooter->owner, 'passport_image');
-            }
-
-            // rename relation
+            // rename
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
 
@@ -1921,7 +1882,7 @@ return $this->sendResponse($cities, null, 200);
                 'success' => true,
                 'data' => $trip,
                 'message' => null
-            ], 200);
+            ]);
         }
 
     public function get_offer($id)
