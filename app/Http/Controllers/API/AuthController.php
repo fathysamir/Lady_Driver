@@ -1869,6 +1869,15 @@ return $this->sendResponse($cities, null, 200);
 
             // Barcode
             $trip->barcode = url(barcodeImage($trip->id));
+            // Clean car plate
+if ($trip->car) {
+    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+}
+
+// Clean scooter plate
+if ($trip->scooter) {
+    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+}
 
             // User image and rate
             if ($trip->user) {

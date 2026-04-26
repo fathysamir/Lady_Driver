@@ -731,6 +731,15 @@ class ClientController extends ApiController
 
                 });
                 $trip->offers = $pendingOffers;
+                // Clean car plate
+if ($trip->car) {
+    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+}
+
+// Clean scooter plate
+if ($trip->scooter) {
+    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+}
             }
             return $this->sendResponse($trip, null, 200);
         } else {
@@ -817,6 +826,15 @@ class ClientController extends ApiController
 
                 // barcode standardization (same across all APIs)
                 $trip->barcode = url(barcodeImage($trip->id));
+                // Clean car plate
+if ($trip->car) {
+    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+}
+
+// Clean scooter plate
+if ($trip->scooter) {
+    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+}
 
                 // driver flag
                 $trip->is_driver_arrived = !is_null($trip->driver_arrived);

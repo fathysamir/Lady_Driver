@@ -20,6 +20,9 @@ use Illuminate\Validation\Rule;
 use App\Events\TripStarted;
 use App\Events\TripEnded;
 use App\Events\TrackCar;
+use Illuminate\Support\Facades\DB;
+
+
 
 
 
@@ -812,7 +815,7 @@ class DriverController extends ApiController
             ])
 
             // safe computed distance
-            ->addSelect(\DB::raw("
+            ->addSelect(DB::raw("
                 ROUND(
                     (
                         $radius * acos(
@@ -845,6 +848,18 @@ class DriverController extends ApiController
 
             // barcode
             $trip->barcode = url(barcodeImage($trip->id));
+            if ($trip->car) {
+                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+            }
+            // Clean car plate
+if ($trip->car) {
+    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+}
+
+// Clean scooter plate
+if ($trip->scooter) {
+    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+}
 
             // driver arrived
             $trip->is_driver_arrived = !is_null($trip->driver_arrived);
@@ -960,6 +975,15 @@ class DriverController extends ApiController
 
         // Barcode
         $trip->barcode = url(barcodeImage($trip->id));
+        // Clean car plate
+if ($trip->car) {
+    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+}
+
+// Clean scooter plate
+if ($trip->scooter) {
+    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+}
 
         // Driver arrived
         $trip->is_driver_arrived = !is_null($trip->driver_arrived);
@@ -1231,7 +1255,17 @@ class DriverController extends ApiController
                 return $trip;
 
             });
+            // Clean car plate
+if ($trip->car) {
+    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+}
+
+// Clean scooter plate
+if ($trip->scooter) {
+    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+}S
         }
+
         return $this->sendResponse($completed_trips, null, 200);
     }
 
