@@ -1233,67 +1233,205 @@ if ($trip->scooter) {
         return $this->sendResponse(null, 'scooter location updated successfully', 200);
     }
 }
-    public function driver_completed_trips()
-    {
-        if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
-            $car             = Car::where('user_id', auth()->user()->id)->first();
-            $completed_trips = Trip::where('car_id', $car->id)->where('status', 'completed')->with(['car' => function ($query) {
+public function driver_completed_trips()
+{
+    if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
+        $car             = Car::where('user_id', auth()->user()->id)->first();
+        $completed_trips = Trip::where('car_id', $car->id)
+            ->where('status', 'completed')
+            ->with(['car' => function ($query) {
                 $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'finalDestination'])->get()->map(function ($trip) {
+            }, 'user', 'finalDestination'])
+            ->get()
+            ->map(function ($trip) {
 
-                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                // Clean car plate
+                if ($trip->car) {
+                    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+                }
+
+                // User image + rate
+                if ($trip->user) {
+                    $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                    $trip->user->rate  = round(
+                        Trip::where('user_id', $trip->user->id)
+                            ->where('status', 'completed')
+                            ->where('driver_stare_rate', '>', 0)
+                            ->avg('driver_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Car owner image + rate
+                if ($trip->car && $trip->car->owner) {
+                    $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+                    $trip->car->owner->rate  = round(
+                        Trip::whereHas('car', function ($q) use ($trip) {
+                            $q->where('user_id', $trip->car->owner->id);
+                        })->where('status', 'completed')
+                          ->where('client_stare_rate', '>', 0)
+                          ->avg('client_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Rename finalDestination
+                $trip->final_destination = $trip->finalDestination;
+                unset($trip->finalDestination);
+
                 return $trip;
-
             });
-        } elseif (auth()->user()->driver_type == 'scooter') {
-            $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
-            $completed_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'completed')->with(['scooter' => function ($query) {
+
+    } elseif (auth()->user()->driver_type == 'scooter') {
+        $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
+        $completed_trips = Trip::where('scooter_id', $scooter->id)
+            ->where('status', 'completed')
+            ->with(['scooter' => function ($query) {
                 $query->with(['motorcycleMark', 'motorcycleModel', 'owner']);
-            }, 'user', 'finalDestination'])->get()->map(function ($trip) {
+            }, 'user', 'finalDestination'])
+            ->get()
+            ->map(function ($trip) {
 
-                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                // Clean scooter plate
+                if ($trip->scooter) {
+                    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+                }
+
+                // User image + rate
+                if ($trip->user) {
+                    $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                    $trip->user->rate  = round(
+                        Trip::where('user_id', $trip->user->id)
+                            ->where('status', 'completed')
+                            ->where('driver_stare_rate', '>', 0)
+                            ->avg('driver_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Scooter owner image + rate
+                if ($trip->scooter && $trip->scooter->owner) {
+                    $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+                    $trip->scooter->owner->rate  = round(
+                        Trip::whereHas('scooter', function ($q) use ($trip) {
+                            $q->where('user_id', $trip->scooter->owner->id);
+                        })->where('status', 'completed')
+                          ->where('client_stare_rate', '>', 0)
+                          ->avg('client_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Rename finalDestination
+                $trip->final_destination = $trip->finalDestination;
+                unset($trip->finalDestination);
+
                 return $trip;
-
             });
-            // Clean car plate
-if ($trip->car) {
-    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+    }
+
+    return $this->sendResponse($completed_trips, null, 200);
 }
 
-// Clean scooter plate
-if ($trip->scooter) {
-    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-}S
-        }
+public function driver_cancelled_trips()
+{
+    if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
+        $car             = Car::where('user_id', auth()->user()->id)->first();
+        $cancelled_trips = Trip::where('car_id', $car->id)
+            ->where('status', 'cancelled')
+            ->with(['car' => function ($query) {
+                $query->with(['mark', 'model', 'owner']);
+            }, 'user', 'cancelled_by', 'finalDestination'])
+            ->get()
+            ->map(function ($trip) {
 
-        return $this->sendResponse($completed_trips, null, 200);
+                // Clean car plate
+                if ($trip->car) {
+                    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+                }
+
+                // User image + rate
+                if ($trip->user) {
+                    $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                    $trip->user->rate  = round(
+                        Trip::where('user_id', $trip->user->id)
+                            ->where('status', 'completed')
+                            ->where('driver_stare_rate', '>', 0)
+                            ->avg('driver_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Car owner image + rate
+                if ($trip->car && $trip->car->owner) {
+                    $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+                    $trip->car->owner->rate  = round(
+                        Trip::whereHas('car', function ($q) use ($trip) {
+                            $q->where('user_id', $trip->car->owner->id);
+                        })->where('status', 'completed')
+                          ->where('client_stare_rate', '>', 0)
+                          ->avg('client_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Rename finalDestination
+                $trip->final_destination = $trip->finalDestination;
+                unset($trip->finalDestination);
+
+                return $trip;
+            });
+
+    } elseif (auth()->user()->driver_type == 'scooter') {
+        $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
+        $cancelled_trips = Trip::where('scooter_id', $scooter->id)
+            ->where('status', 'cancelled')
+            ->with(['scooter' => function ($query) {
+                $query->with(['mark', 'model', 'owner']);
+            }, 'user', 'cancelled_by', 'finalDestination'])
+            ->get()
+            ->map(function ($trip) {
+
+                // Clean scooter plate
+                if ($trip->scooter) {
+                    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+                }
+
+                // User image + rate
+                if ($trip->user) {
+                    $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                    $trip->user->rate  = round(
+                        Trip::where('user_id', $trip->user->id)
+                            ->where('status', 'completed')
+                            ->where('driver_stare_rate', '>', 0)
+                            ->avg('driver_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Scooter owner image + rate
+                if ($trip->scooter && $trip->scooter->owner) {
+                    $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+                    $trip->scooter->owner->rate  = round(
+                        Trip::whereHas('scooter', function ($q) use ($trip) {
+                            $q->where('user_id', $trip->scooter->owner->id);
+                        })->where('status', 'completed')
+                          ->where('client_stare_rate', '>', 0)
+                          ->avg('client_stare_rate') ?? 5.00,
+                        1
+                    );
+                }
+
+                // Rename finalDestination
+                $trip->final_destination = $trip->finalDestination;
+                unset($trip->finalDestination);
+
+                return $trip;
+            });
     }
 
-    public function driver_cancelled_trips()
-    {
-        if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
-            $car             = Car::where('user_id', auth()->user()->id)->first();
-            $cancelled_trips = Trip::where('car_id', $car->id)->where('status', 'cancelled')->with(['car' => function ($query) {
-                $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'cancelled_by', 'finalDestination'])->get()->map(function ($trip) {
-
-                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                return $trip;
-
-            });
-        } elseif (auth()->user()->driver_type == 'scooter') {
-            $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
-            $cancelled_trips = Trip::where('scooter_id', $scooter->id)->where('status', 'cancelled')->with(['scooter' => function ($query) {
-                $query->with(['mark', 'model', 'owner']);
-            }, 'user', 'cancelled_by', 'finalDestination'])->get()->map(function ($trip) {
-
-                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                return $trip;
-
-            });
-        }
-        return $this->sendResponse($cancelled_trips, null, 200);
-    }
+    return $this->sendResponse($cancelled_trips, null, 200);
+}
 
     public function driver_arriving(Request $request)
     {
