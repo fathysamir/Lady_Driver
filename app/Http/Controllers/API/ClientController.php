@@ -786,43 +786,128 @@ class ClientController extends ApiController
 
     public function completed_trips()
     {
-        $completed_trips = Trip::where('user_id', auth()->user()->id)->where('status', 'completed')->with(['car' => function ($query) {
-            $query->with(['mark', 'model', 'owner']);
-        }, 'scooter' => function ($query) {
-            $query->with(['motorcycleMark', 'motorcycleModel', 'owner']);
-        },
-            'finalDestination',
-        ])->get()->map(function ($trip) {
-            if (in_array($trip->type, ['car', 'comfort_car'])) {
-                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
-            } elseif ($trip->type == 'scooter') {
-                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
-            }
-            return $trip;
+        $user = auth()->user();
 
-        });
+        $completed_trips = Trip::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'completed')
+
+            // مهم لتفادي أي inconsistency
+            ->select('trips.*')
+
+            ->with([
+                // minimal relations زي باقي endpoints
+                'user:id,name,country_code,phone',
+
+                'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
+                'car.mark:id,en_name,ar_name,name',
+                'car.model:id,en_name,ar_name,name',
+                'car.owner:id,name,country_code,phone',
+
+                'scooter.motorcycleMark',
+                'scooter.motorcycleModel',
+                'scooter.owner:id,name,country_code,phone',
+
+                'finalDestination:id,trip_id,lat,lng,address',
+            ])
+
+            ->latest()
+            ->get()
+            ->map(function ($trip) {
+
+                // barcode standardization (same across all APIs)
+                $trip->barcode = url(barcodeImage($trip->id));
+
+                // driver flag
+                $trip->is_driver_arrived = !is_null($trip->driver_arrived);
+
+                // ================= IMAGE HANDLING =================
+                if ($trip->car && $trip->car->owner) {
+                    $trip->car->owner->image = getFirstMediaUrl(
+                        $trip->car->owner,
+                        $trip->car->owner->avatarCollection
+                    );
+                }
+
+                if ($trip->scooter && $trip->scooter->owner) {
+                    $trip->scooter->owner->image = getFirstMediaUrl(
+                        $trip->scooter->owner,
+                        $trip->scooter->owner->avatarCollection
+                    );
+                }
+
+                return $trip;
+            });
 
         return $this->sendResponse($completed_trips, null, 200);
     }
 
     public function cancelled_trips()
-    {
-        $cancelled_trips = Trip::where('user_id', auth()->user()->id)->where('status', 'cancelled')->with(['car' => function ($query) {
-            $query->with(['mark', 'model', 'owner']);
-        }, 'scooter' => function ($query) {
-            $query->with(['motorcycleMark', 'motorcycleModel', 'owner']);
-        }, 'cancelled_by', 'cancelling_reason', 'finalDestination'])->get()->map(function ($trip) {
-            if (in_array($trip->type, ['car', 'comfort_car'])) {
-                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
-            } elseif ($trip->type == 'scooter') {
-                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
-            }
-            return $trip;
+{
+    $user = auth()->user();
 
+    $cancelled_trips = Trip::query()
+        ->where('user_id', $user->id)
+        ->where('status', 'cancelled')
+
+        // مهم جدًا: نخليها clean
+        ->select('trips.*')
+
+        ->with([
+            // user minimal (لو محتاجه)
+            'user:id,name,country_code,phone',
+
+            // car lightweight زي TripByID
+            'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
+            'car.mark:id,en_name,ar_name,name',
+            'car.model:id,en_name,ar_name,name',
+            'car.owner:id,name,country_code,phone',
+
+            // scooter lightweight
+            'scooter.motorcycleMark',
+            'scooter.motorcycleModel',
+            'scooter.owner:id,name,country_code,phone',
+
+            // essentials only
+            'cancelled_by:id,name,phone',
+            'cancelling_reason:id,reason,ar_reason,en_reason',
+            'finalDestination:id,trip_id,lat,lng,address',
+        ])
+
+        ->latest()
+        ->get()
+        ->map(function ($trip) {
+
+            // barcode standardization
+            $trip->barcode = url(barcodeImage($trip->id));
+
+            // driver flag
+            $trip->is_driver_arrived = !is_null($trip->driver_arrived);
+
+            // image handling (safe null check)
+            if ($trip->car && $trip->car->owner) {
+                $trip->car->owner->image = getFirstMediaUrl(
+                    $trip->car->owner,
+                    $trip->car->owner->avatarCollection
+                );
+            }
+
+            if ($trip->scooter && $trip->scooter->owner) {
+                $trip->scooter->owner->image = getFirstMediaUrl(
+                    $trip->scooter->owner,
+                    $trip->scooter->owner->avatarCollection
+                );
+            }
+
+            // rename consistency with other APIs
+            $trip->final_destination = $trip->finalDestination;
+            unset($trip->finalDestination);
+
+            return $trip;
         });
 
-        return $this->sendResponse($cancelled_trips, null, 200);
-    }
+    return $this->sendResponse($cancelled_trips, null, 200);
+}
 
     public function rate_trip(Request $request)
     {
