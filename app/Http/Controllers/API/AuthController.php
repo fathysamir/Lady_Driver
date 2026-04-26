@@ -1827,7 +1827,7 @@ return $this->sendResponse($cities, null, 200);
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'data' => null,
+                    'data'    => null,
                     'message' => 'Unauthorized'
                 ], 401);
             }
@@ -1848,39 +1848,62 @@ return $this->sendResponse($cities, null, 200);
             if (!$trip) {
                 return response()->json([
                     'success' => false,
-                    'data' => null,
+                    'data'    => null,
                     'message' => 'Trip not found'
                 ], 404);
             }
 
-            // distance
+            // Distance
             $vehicle = $trip->car ?? $trip->scooter;
 
-            $response = calculate_distance(
-                $vehicle->lat,
-                $vehicle->lng,
-                $trip->start_lat,
-                $trip->start_lng
-            );
-
-            $trip->client_location_distance = $response['distance_in_km'];
-            $trip->client_location_duration = $response['duration_in_M'];
-
-            // barcode
-            $trip->barcode = url(barcodeImage($trip->id));
-
-            // user image only
-            if ($trip->user) {
-                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+            if ($vehicle) {
+                $response = calculate_distance(
+                    $vehicle->lat,
+                    $vehicle->lng,
+                    $trip->start_lat,
+                    $trip->start_lng
+                );
+                $trip->client_location_distance = $response['distance_in_km'];
+                $trip->client_location_duration = $response['duration_in_M'];
             }
 
-            // rename
+            // Barcode
+            $trip->barcode = url(barcodeImage($trip->id));
+
+            // User image and rate
+            if ($trip->user) {
+                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                $trip->user->rate  = Trip::where('user_id', $trip->user->id)
+                    ->where('status', 'completed')
+                    ->where('driver_stare_rate', '>', 0)
+                    ->avg('driver_stare_rate') ?? 5.00;
+            }
+
+            // Car owner rate
+            if ($trip->car && $trip->car->owner) {
+                $trip->car->owner->rate = Trip::whereHas('car', function($query) use ($trip) {
+                    $query->where('user_id', $trip->car->owner->id);
+                })->where('status', 'completed')
+                  ->where('client_stare_rate', '>', 0)
+                  ->avg('client_stare_rate') ?? 5.00;
+            }
+
+            // Scooter owner rate
+            if ($trip->scooter && $trip->scooter->owner) {
+                $trip->scooter->owner->rate = Trip::whereHas('scooter', function($query) use ($trip) {
+                    $query->where('user_id', $trip->scooter->owner->id);
+                })->where('status', 'completed')
+                  ->where('client_stare_rate', '>', 0)
+                  ->avg('client_stare_rate') ?? 5.00;
+            }
+
+            // Rename finalDestination
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
 
             return response()->json([
                 'success' => true,
-                'data' => $trip,
+                'data'    => $trip,
                 'message' => null
             ]);
         }
