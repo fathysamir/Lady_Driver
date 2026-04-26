@@ -20,7 +20,6 @@ use Illuminate\Validation\Rule;
 use App\Events\TripStarted;
 use App\Events\TripEnded;
 use App\Events\TrackCar;
-use Illuminate\Support\Facades\DB;
 
 
 
@@ -815,7 +814,7 @@ class DriverController extends ApiController
             ])
 
             // safe computed distance
-            ->addSelect(DB::raw("
+            ->addSelect(\DB::raw("
                 ROUND(
                     (
                         $radius * acos(
