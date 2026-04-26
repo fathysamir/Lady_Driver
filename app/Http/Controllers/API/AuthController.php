@@ -1853,7 +1853,7 @@ return $this->sendResponse($cities, null, 200);
                 ], 404);
             }
 
-            // Distance
+            // Distance from vehicle to pickup
             $vehicle = $trip->car ?? $trip->scooter;
 
             if ($vehicle) {
@@ -1863,8 +1863,8 @@ return $this->sendResponse($cities, null, 200);
                     $trip->start_lat,
                     $trip->start_lng
                 );
-                $trip->client_location_distance = $response['distance_in_km'];
-                $trip->client_location_duration = $response['duration_in_M'];
+                $trip->client_location_distance = round($response['distance_in_km'], 2);
+                $trip->client_location_duration = intval($response['duration_in_M']);
             }
 
             // Barcode
@@ -1873,28 +1873,45 @@ return $this->sendResponse($cities, null, 200);
             // User image and rate
             if ($trip->user) {
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                $trip->user->rate  = Trip::where('user_id', $trip->user->id)
-                    ->where('status', 'completed')
-                    ->where('driver_stare_rate', '>', 0)
-                    ->avg('driver_stare_rate') ?? 5.00;
+                $trip->user->rate  = round(
+                    Trip::where('user_id', $trip->user->id)
+                        ->where('status', 'completed')
+                        ->where('driver_stare_rate', '>', 0)
+                        ->avg('driver_stare_rate') ?? 5.00,
+                    1
+                );
             }
 
-            // Car owner rate
+            // Car owner image and rate
             if ($trip->car && $trip->car->owner) {
-                $trip->car->owner->rate = Trip::whereHas('car', function($query) use ($trip) {
-                    $query->where('user_id', $trip->car->owner->id);
-                })->where('status', 'completed')
-                  ->where('client_stare_rate', '>', 0)
-                  ->avg('client_stare_rate') ?? 5.00;
+                $trip->car->owner->image = getFirstMediaUrl(
+                    $trip->car->owner,
+                    $trip->car->owner->avatarCollection
+                );
+                $trip->car->owner->rate = round(
+                    Trip::whereHas('car', function ($query) use ($trip) {
+                        $query->where('user_id', $trip->car->owner->id);
+                    })->where('status', 'completed')
+                      ->where('client_stare_rate', '>', 0)
+                      ->avg('client_stare_rate') ?? 5.00,
+                    1
+                );
             }
 
-            // Scooter owner rate
+            // Scooter owner image and rate
             if ($trip->scooter && $trip->scooter->owner) {
-                $trip->scooter->owner->rate = Trip::whereHas('scooter', function($query) use ($trip) {
-                    $query->where('user_id', $trip->scooter->owner->id);
-                })->where('status', 'completed')
-                  ->where('client_stare_rate', '>', 0)
-                  ->avg('client_stare_rate') ?? 5.00;
+                $trip->scooter->owner->image = getFirstMediaUrl(
+                    $trip->scooter->owner,
+                    $trip->scooter->owner->avatarCollection
+                );
+                $trip->scooter->owner->rate = round(
+                    Trip::whereHas('scooter', function ($query) use ($trip) {
+                        $query->where('user_id', $trip->scooter->owner->id);
+                    })->where('status', 'completed')
+                      ->where('client_stare_rate', '>', 0)
+                      ->avg('client_stare_rate') ?? 5.00,
+                    1
+                );
             }
 
             // Rename finalDestination
