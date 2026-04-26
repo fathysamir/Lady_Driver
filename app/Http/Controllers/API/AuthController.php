@@ -1821,58 +1821,108 @@ return $this->sendResponse($cities, null, 200);
     }
         */
         public function TripByID($id)
-{
-    $user = auth()->user();
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'data' => null,
-            'message' => 'Unauthorized'
-        ], 401);
-    }
+        {
+            $user = auth()->user();
 
-    $trip = Trip::where('id', $id)
-        ->with([
-            'car' => function ($query) {
-                $query->select('id', 'user_id', 'car_mark_id', 'car_model_id', 'year', 'lat', 'lng', 'color', 'car_plate')
-                    ->with([
-                        'mark:id,en_name,ar_name',
-                        'model:id,en_name,ar_name',
-                        'owner:id,name,country_code,phone,level'
-                    ]);
-            },
-            'scooter' => function ($query) {
-                $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')
-                    ->with([
-                        'motorcycleMark:id,en_name,ar_name',
-                        'motorcycleModel:id,en_name,ar_name',
-                        'owner:id,name,country_code,phone,level'
-                    ]);
-            },
-            'finalDestination:id,trip_id,lat,lng,address'
-        ])
-        ->first();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'data' => null,
+                    'message' => 'Unauthorized'
+                ], 401);
+            }
 
-    if (!$trip) {
-        return response()->json([
-            'success' => false,
-            'data' => null,
-            'message' => 'Trip not found'
-        ], 404);
-    }
+            $trip = Trip::where('id', $id)
+                ->with([
+                    'car' => function ($query) {
+                        $query->with([
+                            'mark',
+                            'model',
+                            'owner'
+                        ]);
+                    },
+                    'scooter' => function ($query) {
+                        $query->with([
+                            'motorcycleMark',
+                            'motorcycleModel',
+                            'owner'
+                        ]);
+                    },
+                    'user',
+                    'finalDestination'
+                ])
+                ->first();
 
-    // rename relation to match current_trip response structure
-    $trip->final_destination = $trip->finalDestination;
+            if (!$trip) {
+                return response()->json([
+                    'success' => false,
+                    'data' => null,
+                    'message' => 'Trip not found'
+                ], 404);
+            }
 
-    // optional: remove original key to keep structure identical
-    unset($trip->finalDestination);
+            // distance + duration
+            $response = [
+                'distance_in_km' => 0,
+                'duration_in_M'  => 0
+            ];
 
-    return response()->json([
-        'success' => true,
-        'data' => $trip,
-        'message' => null
-    ], 200);
-}
+            if (in_array($trip->type, ['car', 'comfort_car']) && $trip->car) {
+
+                $response = calculate_distance(
+                    $trip->car->lat,
+                    $trip->car->lng,
+                    $trip->start_lat,
+                    $trip->start_lng
+                );
+
+            } elseif ($trip->type == 'scooter' && $trip->scooter) {
+
+                $response = calculate_distance(
+                    $trip->scooter->lat,
+                    $trip->scooter->lng,
+                    $trip->start_lat,
+                    $trip->start_lng
+                );
+            }
+
+            $trip->client_location_distance = $response['distance_in_km'];
+            $trip->client_location_duration = $response['duration_in_M'];
+
+            // barcode image
+            $trip->barcode = url(barcodeImage($trip->id));
+
+            // user image
+            if ($trip->user) {
+                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+            }
+
+            // owner images car
+            if ($trip->car && $trip->car->owner) {
+                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+                $trip->car->owner->id_front_image = getFirstMediaUrl($trip->car->owner, 'id_front_image');
+                $trip->car->owner->id_back_image = getFirstMediaUrl($trip->car->owner, 'id_back_image');
+                $trip->car->owner->passport_image = getFirstMediaUrl($trip->car->owner, 'passport_image');
+            }
+
+            // owner images scooter
+            if ($trip->scooter && $trip->scooter->owner) {
+                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+                $trip->scooter->owner->id_front_image = getFirstMediaUrl($trip->scooter->owner, 'id_front_image');
+                $trip->scooter->owner->id_back_image = getFirstMediaUrl($trip->scooter->owner, 'id_back_image');
+                $trip->scooter->owner->passport_image = getFirstMediaUrl($trip->scooter->owner, 'passport_image');
+            }
+
+            // rename relation
+            $trip->final_destination = $trip->finalDestination;
+            unset($trip->finalDestination);
+
+            return response()->json([
+                'success' => true,
+                'data' => $trip,
+                'message' => null
+            ], 200);
+        }
 
     public function get_offer($id)
     {

@@ -957,44 +957,109 @@ class DriverController extends ApiController
     }
 
     public function driver_current_trip()
-    {
-        $check_account = $this->check_banned();
-        if ($check_account != true) {
-            return $this->sendError(null, $check_account, 400);
-        }
-        $lastAcceptedOffer = Offer::where('user_id', auth()->user()->id)
-            ->where('status', 'accepted')
-            ->whereHas('trip', function ($t) {
-                $t->whereIn('status', ['pending', 'in_progress']);
-            })
-            ->orderBy('id', 'desc')
-            ->first();
-        if (! $lastAcceptedOffer) {
-            return $this->sendError(null, 'no current trip existed', 400);
-        }
-        $trip = Trip::where('id', $lastAcceptedOffer->trip_id)->with(['car' => function ($query) {
-            $query->with(['mark', 'model']);
-        }, 'scooter' => function ($query) {
-            $query->with(['motorcycleMark', 'motorcycleModel']);
-        }, 'user', 'finalDestination'])->first();
-        if (in_array($trip->type, ['car', 'comfort_car'])) {
-            $response = calculate_distance($lastAcceptedOffer->car->lat, $lastAcceptedOffer->car->lng, $trip->start_lat, $trip->start_lng);
-        } elseif ($trip->type == 'scooter') {
-            $response = calculate_distance($lastAcceptedOffer->scooter->lat, $lastAcceptedOffer->scooter->lng, $trip->start_lat, $trip->start_lng);
-        }
-        $distance                       = $response['distance_in_km'];
-        $duration                       = $response['duration_in_M'];
-        $trip->client_location_distance = $distance;
-        $trip->client_location_duration = $duration;
+{
+    $check_account = $this->check_banned();
 
-        $barcode_image = url(barcodeImage($trip->id));
-        $trip->barcode = $barcode_image;
-        if ($trip->status == 'completed' || $trip->status == 'cancelled') {
-            return $this->sendError(null, 'no current trip existed', 400);
-        }
-        $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-        return $this->sendResponse($trip, null, 200);
+    if ($check_account != true) {
+        return $this->sendError(null, $check_account, 400);
     }
+
+    $lastAcceptedOffer = Offer::where('user_id', auth()->id())
+        ->where('status', 'accepted')
+        ->whereHas('trip', function ($q) {
+            $q->whereIn('status', ['pending', 'in_progress']);
+        })
+        ->latest('id')
+        ->first();
+
+    if (!$lastAcceptedOffer) {
+        return $this->sendError(null, 'no current trip existed', 400);
+    }
+
+    $trip = Trip::where('id', $lastAcceptedOffer->trip_id)
+        ->with([
+            'car' => function ($query) {
+                $query->with([
+                    'mark',
+                    'model',
+                    'owner'
+                ]);
+            },
+            'scooter' => function ($query) {
+                $query->with([
+                    'motorcycleMark',
+                    'motorcycleModel',
+                    'owner'
+                ]);
+            },
+            'user',
+            'finalDestination'
+        ])
+        ->first();
+
+    if (!$trip || in_array($trip->status, ['completed', 'cancelled'])) {
+        return $this->sendError(null, 'no current trip existed', 400);
+    }
+
+    // distance + duration
+    if (in_array($trip->type, ['car', 'comfort_car']) && $lastAcceptedOffer->car) {
+
+        $response = calculate_distance(
+            $lastAcceptedOffer->car->lat,
+            $lastAcceptedOffer->car->lng,
+            $trip->start_lat,
+            $trip->start_lng
+        );
+
+    } elseif ($trip->type == 'scooter' && $lastAcceptedOffer->scooter) {
+
+        $response = calculate_distance(
+            $lastAcceptedOffer->scooter->lat,
+            $lastAcceptedOffer->scooter->lng,
+            $trip->start_lat,
+            $trip->start_lng
+        );
+
+    } else {
+        $response = [
+            'distance_in_km' => 0,
+            'duration_in_M'  => 0
+        ];
+    }
+
+    $trip->client_location_distance = $response['distance_in_km'];
+    $trip->client_location_duration = $response['duration_in_M'];
+
+    // barcode image
+    $trip->barcode = url(barcodeImage($trip->id));
+
+    // user image
+    if ($trip->user) {
+        $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+    }
+
+    // owner images car
+    if ($trip->car && $trip->car->owner) {
+        $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+        $trip->car->owner->id_front_image = getFirstMediaUrl($trip->car->owner, 'id_front_image');
+        $trip->car->owner->id_back_image = getFirstMediaUrl($trip->car->owner, 'id_back_image');
+        $trip->car->owner->passport_image = getFirstMediaUrl($trip->car->owner, 'passport_image');
+    }
+
+    // owner images scooter
+    if ($trip->scooter && $trip->scooter->owner) {
+        $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+        $trip->scooter->owner->id_front_image = getFirstMediaUrl($trip->scooter->owner, 'id_front_image');
+        $trip->scooter->owner->id_back_image = getFirstMediaUrl($trip->scooter->owner, 'id_back_image');
+        $trip->scooter->owner->passport_image = getFirstMediaUrl($trip->scooter->owner, 'passport_image');
+    }
+
+    // rename relation
+    $trip->final_destination = $trip->finalDestination;
+    unset($trip->finalDestination);
+
+    return $this->sendResponse($trip, null, 200);
+}
 
     public function start_end_trip(Request $request)
     {
