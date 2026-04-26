@@ -1836,12 +1836,12 @@ return $this->sendResponse($cities, null, 200);
                 ->with([
                     'car.mark',
                     'car.model',
-                    'car.owner',
+                    'car.owner:id,name,country_code,phone',
                     'scooter.motorcycleMark',
                     'scooter.motorcycleModel',
-                    'scooter.owner',
-                    'user',
-                    'finalDestination'
+                    'scooter.owner:id,name,phone',
+                    'user:id,name,country_code,phone',
+                    'finalDestination:id,trip_id,lat,lng,address'
                 ])
                 ->first();
 
@@ -1853,93 +1853,28 @@ return $this->sendResponse($cities, null, 200);
                 ], 404);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | DISTANCE
-            |--------------------------------------------------------------------------
-            */
+            // distance
             $vehicle = $trip->car ?? $trip->scooter;
 
-            if ($vehicle) {
-                $response = calculate_distance(
-                    $vehicle->lat,
-                    $vehicle->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
+            $response = calculate_distance(
+                $vehicle->lat,
+                $vehicle->lng,
+                $trip->start_lat,
+                $trip->start_lng
+            );
 
-                $trip->client_location_distance = $response['distance_in_km'];
-                $trip->client_location_duration = $response['duration_in_M'];
-            } else {
-                $trip->client_location_distance = 0;
-                $trip->client_location_duration = 0;
-            }
+            $trip->client_location_distance = $response['distance_in_km'];
+            $trip->client_location_duration = $response['duration_in_M'];
 
-            /*
-            |--------------------------------------------------------------------------
-            | BARCODE
-            |--------------------------------------------------------------------------
-            */
+            // barcode
             $trip->barcode = url(barcodeImage($trip->id));
 
-            /*
-            |--------------------------------------------------------------------------
-            | USER (CLIENT)
-            |--------------------------------------------------------------------------
-            */
+            // user image only
             if ($trip->user) {
-
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-
-                $trip->user->country_code = $trip->user->country_code;
-
-                $trip->user->rate = Trip::where('user_id', $trip->user_id)
-                    ->where('status', 'completed')
-                    ->where('driver_stare_rate', '>', 0)
-                    ->avg('driver_stare_rate') ?? 5;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | CAR OWNER
-            |--------------------------------------------------------------------------
-            */
-            if ($trip->car && $trip->car->owner) {
-
-                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
-
-                $trip->car->owner->country_code = $trip->car->owner->country_code;
-
-                $trip->car->owner->rate = Trip::whereHas('car', function ($q) use ($trip) {
-                        $q->where('user_id', $trip->car->owner->id);
-                    })
-                    ->where('status', 'completed')
-                    ->avg('driver_stare_rate') ?? 5;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | SCOOTER OWNER
-            |--------------------------------------------------------------------------
-            */
-            if ($trip->scooter && $trip->scooter->owner) {
-
-                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
-
-                $trip->scooter->owner->country_code = $trip->scooter->owner->country_code;
-
-                $trip->scooter->owner->rate = Trip::whereHas('scooter', function ($q) use ($trip) {
-                        $q->where('user_id', $trip->scooter->owner->id);
-                    })
-                    ->where('status', 'completed')
-                    ->avg('driver_stare_rate') ?? 5;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | FINAL DESTINATION
-            |--------------------------------------------------------------------------
-            */
+            // rename
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
 
