@@ -1853,7 +1853,11 @@ return $this->sendResponse($cities, null, 200);
                 ], 404);
             }
 
-            // distance
+            /*
+            |--------------------------------------------------------------------------
+            | DISTANCE
+            |--------------------------------------------------------------------------
+            */
             $vehicle = $trip->car ?? $trip->scooter;
 
             if ($vehicle) {
@@ -1871,12 +1875,16 @@ return $this->sendResponse($cities, null, 200);
                 $trip->client_location_duration = 0;
             }
 
-            // barcode
+            /*
+            |--------------------------------------------------------------------------
+            | BARCODE
+            |--------------------------------------------------------------------------
+            */
             $trip->barcode = url(barcodeImage($trip->id));
 
             /*
             |--------------------------------------------------------------------------
-            | USER (client)
+            | USER (CLIENT)
             |--------------------------------------------------------------------------
             */
             if ($trip->user) {
@@ -1927,7 +1935,11 @@ return $this->sendResponse($cities, null, 200);
                     ->avg('driver_stare_rate') ?? 5;
             }
 
-            // rename relation
+            /*
+            |--------------------------------------------------------------------------
+            | FINAL DESTINATION
+            |--------------------------------------------------------------------------
+            */
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
 
