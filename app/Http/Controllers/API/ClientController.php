@@ -870,7 +870,7 @@ class ClientController extends ApiController
 
             // essentials only
             'cancelled_by:id,name,phone',
-            'cancelling_reason:id,reason,ar_reason,en_reason',
+            'cancelling_reason:id,ar_reason,en_reason',
             'finalDestination:id,trip_id,lat,lng,address',
         ])
 
