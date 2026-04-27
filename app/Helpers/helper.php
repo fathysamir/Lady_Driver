@@ -326,32 +326,32 @@ function username_Generation($name)
 
 function getTripSettings($category, $level = 1)
 {
-    $settings = Setting::whereIn('key', [
+    // 🔹 GLOBAL SETTINGS (VAT + Income Tax)
+    $global = Setting::whereIn('key', [
         'vat_percentage',
-        'income_tax_percentage',
-        'app_ratio'
-    ])
-    ->where(function ($q) use ($category, $level) {
-        $q->where('category', $category)
-          ->where(function ($q2) use ($level) {
-              $q2->whereNull('level')
-                 ->orWhere('level', $level);
-          });
-    })
-    ->get()
-    ->groupBy('key');
+        'income_tax_percentage'
+    ])->get()->keyBy('key');
+
+    // 🔹 COMMISSION (dynamic)
+    $commission = Setting::where('key', 'app_ratio')
+        ->where('category', $category)
+        ->where(function ($q) use ($level) {
+            $q->whereNull('level')
+              ->orWhere('level', $level);
+        })
+        ->first();
 
     return [
         'vat' => [
-            'value' => (float) ($settings['vat_percentage'][0]->value ?? 0),
+            'value' => (float) ($global['vat_percentage']->value ?? 0),
             'unit' => '%',
         ],
         'income_tax' => [
-            'value' => (float) ($settings['income_tax_percentage'][0]->value ?? 0),
+            'value' => (float) ($global['income_tax_percentage']->value ?? 0),
             'unit' => '%',
         ],
         'application_commission' => [
-            'value' => (float) ($settings['app_ratio'][0]->value ?? 0),
+            'value' => (float) ($commission->value ?? 0),
             'unit' => '%',
             'level' => $level
         ],
