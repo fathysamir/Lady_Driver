@@ -1047,6 +1047,16 @@ if ($trip->scooter) {
         $trip->final_destination = $trip->finalDestination;
         unset($trip->finalDestination);
 
+        $category = $trip->car
+        ? 'Car Trips'
+        : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
+
+    $level = $trip->car->owner->level
+        ?? $trip->scooter->owner->level
+        ?? 1;
+
+    // من الـ helper function
+    $trip->taxes = getTripSettings($category, $level);
         return $this->sendResponse($trip, null, 200);
     }
 
