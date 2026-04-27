@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Milon\Barcode\DNS2D;
+use App\Models\Setting;
+
 
 function uploadMedia($request_file, $collection_name, $model)
 {
@@ -322,7 +324,7 @@ function username_Generation($name)
     return $username;
 }
 
-private function getTripSettings($category, $level = 1)
+function getTripSettings($category, $level = 1)
 {
     $settings = Setting::whereIn('key', [
         'vat_percentage',
