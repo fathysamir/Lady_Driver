@@ -341,19 +341,9 @@ function getTripSettings($category, $level = 1)
         })
         ->first();
 
-    return [
-        'vat' => [
-            'value' => (float) ($global['vat_percentage']->value ?? 0),
-            'unit' => '%',
-        ],
-        'income_tax' => [
-            'value' => (float) ($global['income_tax_percentage']->value ?? 0),
-            'unit' => '%',
-        ],
-        'application_commission' => [
-            'value' => (float) ($commission->value ?? 0),
-            'unit' => '%',
-            'level' => $level
-        ],
-    ];
+        return [
+            'vat_percentage' => (float) ($global['vat_percentage']->value ?? 0),
+            'income_tax_percentage' => (float) ($global['income_tax_percentage']->value ?? 0),
+            'application_commission' => (float) ($commission->value ?? 0),
+        ];
 }
