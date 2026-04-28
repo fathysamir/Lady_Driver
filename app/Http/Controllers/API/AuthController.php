@@ -1943,7 +1943,7 @@ return $this->sendResponse($cities, null, 200);
             // Calculate amounts correctly (delay cost is not taxable)
             $totalPrice       = (float) $trip->total_price;
             $delayCost        = (float) $trip->delay_cost;
-            $basePrice        = $totalPrice - $delayCost;
+            $basePrice        = $totalPrice;
 
             $vatAmount        = round($basePrice * ($taxes['vat_percentage'] / 100), 2);
             $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
@@ -1953,7 +1953,7 @@ return $this->sendResponse($cities, null, 200);
             $trip->taxes = array_merge($taxes, [
                 'vat_amount'            => $vatAmount,
                 'income_tax_amount'     => $incomeAmount,
-                'app_commission_amount' => $commissionAmount,
+                'app_commission_amount' => $commissionAmount, //
                 'driver_remaining'      => $driverAmount,
             ]);
 

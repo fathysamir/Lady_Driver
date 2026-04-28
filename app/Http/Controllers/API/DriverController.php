@@ -1062,7 +1062,7 @@ if ($trip->scooter) {
         // Calculate amounts correctly (delay cost is not taxable)
         $totalPrice       = (float) $trip->total_price;
         $delayCost        = (float) $trip->delay_cost;
-        $basePrice        = $totalPrice - $delayCost;
+        $basePrice        = $totalPrice;
 
         $vatAmount        = round($basePrice * ($taxes['vat_percentage'] / 100), 2);
         $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
