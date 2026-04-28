@@ -1947,7 +1947,8 @@ return $this->sendResponse($cities, null, 200);
     $vatAmount        = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
     $incomeAmount     = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
     $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
-    $driverAmount = round(($totalPrice - $vatAmount - $incomeAmount - $commissionAmount) + $delayCost, 2);
+    $driverAmount     = round($totalPrice - $vatAmount - $incomeAmount - $commissionAmount, 2);
+
     $trip->taxes = array_merge($taxes, [
         'vat_amount'            => $vatAmount,
         'income_tax_amount'     => $incomeAmount,
