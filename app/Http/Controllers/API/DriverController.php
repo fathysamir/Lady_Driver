@@ -1059,16 +1059,14 @@ if ($trip->scooter) {
         // Get tax percentages
         $taxes = getTripSettings($category, $level);
 
-        // Calculate amounts correctly (delay cost is not taxable)
+        // Calculate amounts from total_price
         $totalPrice       = (float) $trip->total_price;
         $delayCost        = (float) $trip->delay_cost;
-        $basePrice        = $totalPrice;
 
-        $vatAmount        = round($basePrice * ($taxes['vat_percentage'] / 100), 2);
-        $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
-        $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
-        $driverAmount     = round($basePrice - $vatAmount - $incomeAmount - $commissionAmount + $delayCost, 2);
-
+        $vatAmount        = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
+        $incomeAmount     = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
+        $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
+        $driverAmount = round(($totalPrice - $vatAmount - $incomeAmount - $commissionAmount) + $delayCost, 2);
         $trip->taxes = array_merge($taxes, [
             'vat_amount'            => $vatAmount,
             'income_tax_amount'     => $incomeAmount,

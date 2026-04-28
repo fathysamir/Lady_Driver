@@ -1821,148 +1821,146 @@ return $this->sendResponse($cities, null, 200);
     }
         */
         public function TripByID($id)
-        {
-            $user = auth()->user();
+{
+    $user = auth()->user();
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'data'    => null,
-                    'message' => 'Unauthorized'
-                ], 401);
-            }
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'data'    => null,
+            'message' => 'Unauthorized'
+        ], 401);
+    }
 
-            $trip = Trip::where('id', $id)
-                ->with([
-                    'car.mark',
-                    'car.model',
-                    'car.owner:id,name,country_code,phone',
-                    'scooter.motorcycleMark',
-                    'scooter.motorcycleModel',
-                    'scooter.owner:id,name,phone',
-                    'user:id,name,country_code,phone',
-                    'finalDestination:id,trip_id,lat,lng,address'
-                ])
-                ->first();
+    $trip = Trip::where('id', $id)
+        ->with([
+            'car.mark',
+            'car.model',
+            'car.owner:id,name,country_code,phone',
+            'scooter.motorcycleMark',
+            'scooter.motorcycleModel',
+            'scooter.owner:id,name,phone',
+            'user:id,name,country_code,phone',
+            'finalDestination:id,trip_id,lat,lng,address'
+        ])
+        ->first();
 
-            if (!$trip) {
-                return response()->json([
-                    'success' => false,
-                    'data'    => null,
-                    'message' => 'Trip not found'
-                ], 404);
-            }
+    if (!$trip) {
+        return response()->json([
+            'success' => false,
+            'data'    => null,
+            'message' => 'Trip not found'
+        ], 404);
+    }
 
-            // Distance from vehicle to pickup
-            $vehicle = $trip->car ?? $trip->scooter;
+    // Distance from vehicle to pickup
+    $vehicle = $trip->car ?? $trip->scooter;
 
-            if ($vehicle) {
-                $response = calculate_distance(
-                    $vehicle->lat,
-                    $vehicle->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
-                $trip->client_location_distance = round($response['distance_in_km'], 2);
-                $trip->client_location_duration = intval($response['duration_in_M']);
-            }
+    if ($vehicle) {
+        $response = calculate_distance(
+            $vehicle->lat,
+            $vehicle->lng,
+            $trip->start_lat,
+            $trip->start_lng
+        );
+        $trip->client_location_distance = round($response['distance_in_km'], 2);
+        $trip->client_location_duration = intval($response['duration_in_M']);
+    }
 
-            // Barcode
-            $trip->barcode = url(barcodeImage($trip->id));
+    // Barcode
+    $trip->barcode = url(barcodeImage($trip->id));
 
-            // Clean car plate
-            if ($trip->car) {
-                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-            }
+    // Clean car plate
+    if ($trip->car) {
+        $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+    }
 
-            // Clean scooter plate
-            if ($trip->scooter) {
-                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-            }
+    // Clean scooter plate
+    if ($trip->scooter) {
+        $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+    }
 
-            // User image and rate
-            if ($trip->user) {
-                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
-                $trip->user->rate  = round(
-                    Trip::where('user_id', $trip->user->id)
-                        ->where('status', 'completed')
-                        ->where('driver_stare_rate', '>', 0)
-                        ->avg('driver_stare_rate') ?? 5.00,
-                    1
-                );
-            }
+    // User image and rate
+    if ($trip->user) {
+        $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+        $trip->user->rate  = round(
+            Trip::where('user_id', $trip->user->id)
+                ->where('status', 'completed')
+                ->where('driver_stare_rate', '>', 0)
+                ->avg('driver_stare_rate') ?? 5.00,
+            1
+        );
+    }
 
-            // Car owner image and rate
-            if ($trip->car && $trip->car->owner) {
-                $trip->car->owner->image = getFirstMediaUrl(
-                    $trip->car->owner,
-                    $trip->car->owner->avatarCollection
-                );
-                $trip->car->owner->rate = round(
-                    Trip::whereHas('car', function ($query) use ($trip) {
-                        $query->where('user_id', $trip->car->owner->id);
-                    })->where('status', 'completed')
-                      ->where('client_stare_rate', '>', 0)
-                      ->avg('client_stare_rate') ?? 5.00,
-                    1
-                );
-            }
+    // Car owner image and rate
+    if ($trip->car && $trip->car->owner) {
+        $trip->car->owner->image = getFirstMediaUrl(
+            $trip->car->owner,
+            $trip->car->owner->avatarCollection
+        );
+        $trip->car->owner->rate = round(
+            Trip::whereHas('car', function ($query) use ($trip) {
+                $query->where('user_id', $trip->car->owner->id);
+            })->where('status', 'completed')
+              ->where('client_stare_rate', '>', 0)
+              ->avg('client_stare_rate') ?? 5.00,
+            1
+        );
+    }
 
-            // Scooter owner image and rate
-            if ($trip->scooter && $trip->scooter->owner) {
-                $trip->scooter->owner->image = getFirstMediaUrl(
-                    $trip->scooter->owner,
-                    $trip->scooter->owner->avatarCollection
-                );
-                $trip->scooter->owner->rate = round(
-                    Trip::whereHas('scooter', function ($query) use ($trip) {
-                        $query->where('user_id', $trip->scooter->owner->id);
-                    })->where('status', 'completed')
-                      ->where('client_stare_rate', '>', 0)
-                      ->avg('client_stare_rate') ?? 5.00,
-                    1
-                );
-            }
+    // Scooter owner image and rate
+    if ($trip->scooter && $trip->scooter->owner) {
+        $trip->scooter->owner->image = getFirstMediaUrl(
+            $trip->scooter->owner,
+            $trip->scooter->owner->avatarCollection
+        );
+        $trip->scooter->owner->rate = round(
+            Trip::whereHas('scooter', function ($query) use ($trip) {
+                $query->where('user_id', $trip->scooter->owner->id);
+            })->where('status', 'completed')
+              ->where('client_stare_rate', '>', 0)
+              ->avg('client_stare_rate') ?? 5.00,
+            1
+        );
+    }
 
-            // Rename finalDestination
-            $trip->final_destination = $trip->finalDestination;
-            unset($trip->finalDestination);
+    // Rename finalDestination
+    $trip->final_destination = $trip->finalDestination;
+    unset($trip->finalDestination);
 
-            // Category and level
-            $category = $trip->car
-                ? 'Car Trips'
-                : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
+    // Category and level
+    $category = $trip->car
+        ? 'Car Trips'
+        : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
 
-            $level = $trip->car->owner->level
-                ?? $trip->scooter->owner->level
-                ?? 1;
+    $level = $trip->car->owner->level
+        ?? $trip->scooter->owner->level
+        ?? 1;
 
-            // Get tax percentages
-            $taxes = getTripSettings($category, $level);
+    // Get tax percentages
+    $taxes = getTripSettings($category, $level);
 
-            // Calculate amounts correctly (delay cost is not taxable)
-            $totalPrice       = (float) $trip->total_price;
-            $delayCost        = (float) $trip->delay_cost;
-            $basePrice        = $totalPrice;
+    // Calculate amounts from total_price
+    $totalPrice       = (float) $trip->total_price;
+    $delayCost        = (float) $trip->delay_cost;
 
-            $vatAmount        = round($basePrice * ($taxes['vat_percentage'] / 100), 2);
-            $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
-            $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
-            $driverAmount     = round($basePrice - $vatAmount - $incomeAmount - $commissionAmount + $delayCost, 2);
+    $vatAmount        = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
+    $incomeAmount     = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
+    $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
+    $driverAmount = round(($totalPrice - $vatAmount - $incomeAmount - $commissionAmount) + $delayCost, 2);
+    $trip->taxes = array_merge($taxes, [
+        'vat_amount'            => $vatAmount,
+        'income_tax_amount'     => $incomeAmount,
+        'app_commission_amount' => $commissionAmount,
+        'driver_remaining'      => $driverAmount,
+    ]);
 
-            $trip->taxes = array_merge($taxes, [
-                'vat_amount'            => $vatAmount,
-                'income_tax_amount'     => $incomeAmount,
-                'app_commission_amount' => $commissionAmount, //
-                'driver_remaining'      => $driverAmount,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'data'    => $trip,
-                'message' => null
-            ]);
-        }
+    return response()->json([
+        'success' => true,
+        'data'    => $trip,
+        'message' => null
+    ]);
+}
     public function get_offer($id)
     {
         $trip = Trip::with([
