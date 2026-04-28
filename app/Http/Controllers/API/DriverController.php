@@ -937,7 +937,6 @@ if ($trip->scooter) {
             return $this->sendError(null, 'no current trip existed', 400);
         }
 
-        // FIX: use clean select (avoid hidden/partial hydration issues)
         $trip = Trip::query()
             ->where('id', $lastAcceptedOffer->trip_id)
             ->select('trips.*')
@@ -974,15 +973,16 @@ if ($trip->scooter) {
 
         // Barcode
         $trip->barcode = url(barcodeImage($trip->id));
-        // Clean car plate
-if ($trip->car) {
-    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-}
 
-// Clean scooter plate
-if ($trip->scooter) {
-    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-}
+        // Clean car plate
+        if ($trip->car) {
+            $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+        }
+
+        // Clean scooter plate
+        if ($trip->scooter) {
+            $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+        }
 
         // Driver arrived
         $trip->is_driver_arrived = !is_null($trip->driver_arrived);
@@ -1047,19 +1047,34 @@ if ($trip->scooter) {
         $trip->final_destination = $trip->finalDestination;
         unset($trip->finalDestination);
 
+        // Category and level
         $category = $trip->car
-        ? 'Car Trips'
-        : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
+            ? 'Car Trips'
+            : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
 
-    $level = $trip->car->owner->level
-        ?? $trip->scooter->owner->level
-        ?? 1;
+        $level = $trip->car->owner->level
+            ?? $trip->scooter->owner->level
+            ?? 1;
 
-    // من الـ helper function
-    $trip->taxes = getTripSettings($category, $level);
+        // Get tax percentages
+        $taxes = getTripSettings($category, $level);
+
+        // Calculate amounts from total_price
+        $totalPrice           = (float) $trip->total_price;
+        $vatAmount            = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
+        $incomeAmount         = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
+        $commissionAmount     = round($totalPrice * ($taxes['application_commission'] / 100), 2);
+        $driverAmount         = round($totalPrice - $vatAmount - $incomeAmount - $commissionAmount, 2);
+
+        $trip->taxes = array_merge($taxes, [
+            'vat_amount'            => $vatAmount,
+            'income_tax_amount'     => $incomeAmount,
+            'app_commission_amount' => $commissionAmount,
+            'driver_remaining'         => $driverAmount,
+        ]);
+
         return $this->sendResponse($trip, null, 200);
     }
-
     public function start_end_trip(Request $request)
     {
         $check_account = $this->check_banned();

@@ -1951,7 +1951,7 @@ return $this->sendResponse($cities, null, 200);
                 'vat_amount'               => $vatAmount,
                 'income_tax_amount'        => $incomeAmount,
                 'app_commission_amount'    => $commissionAmount,
-                'driver_amount'            => $driverAmount,
+                'driver_remaining'            => $driverAmount,
             ]);
 
             return response()->json([
