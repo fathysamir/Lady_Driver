@@ -1869,15 +1869,16 @@ return $this->sendResponse($cities, null, 200);
 
             // Barcode
             $trip->barcode = url(barcodeImage($trip->id));
-            // Clean car plate
-if ($trip->car) {
-    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-}
 
-// Clean scooter plate
-if ($trip->scooter) {
-    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-}
+            // Clean car plate
+            if ($trip->car) {
+                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+            }
+
+            // Clean scooter plate
+            if ($trip->scooter) {
+                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+            }
 
             // User image and rate
             if ($trip->user) {
@@ -1926,16 +1927,32 @@ if ($trip->scooter) {
             // Rename finalDestination
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
+
+            // Category and level
             $category = $trip->car
-    ? 'Car Trips'
-    : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
+                ? 'Car Trips'
+                : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
 
-$level = $trip->car->owner->level
-    ?? $trip->scooter->owner->level
-    ?? 1;
+            $level = $trip->car->owner->level
+                ?? $trip->scooter->owner->level
+                ?? 1;
 
-// من الـ helper function
-$trip->taxes = getTripSettings($category, $level);
+            // Get tax percentages
+            $taxes = getTripSettings($category, $level);
+
+            // Calculate amounts from total_price
+            $totalPrice     = (float) $trip->total_price;
+            $vatAmount      = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
+            $incomeAmount   = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
+            $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
+            $driverAmount   = round($totalPrice - $vatAmount - $incomeAmount - $commissionAmount, 2);
+
+            $trip->taxes = array_merge($taxes, [
+                'vat_amount'               => $vatAmount,
+                'income_tax_amount'        => $incomeAmount,
+                'app_commission_amount'    => $commissionAmount,
+                'driver_amount'            => $driverAmount,
+            ]);
 
             return response()->json([
                 'success' => true,
