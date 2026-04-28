@@ -1954,7 +1954,6 @@ return $this->sendResponse($cities, null, 200);
                 'vat_amount'            => $vatAmount,
                 'income_tax_amount'     => $incomeAmount,
                 'app_commission_amount' => $commissionAmount,
-                'delay_cost'            => $delayCost,
                 'driver_remaining'      => $driverAmount,
             ]);
 
