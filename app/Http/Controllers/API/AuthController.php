@@ -1958,8 +1958,8 @@ return $this->sendResponse($cities, null, 200);
             // VAT rate from settings (e.g. 14% → 0.14)
             $vatRate = $taxes['vat_percentage'] / 100;
 
-            // total_price = basePrice * (1 + vatRate) + delayCost
-            // So: basePrice = (total_price - delayCost) / (1 + vatRate)
+            // total_price = basePrice * (1 + vatRate)
+            // So: basePrice = (total_price) / (1 + vatRate)
             $basePrice = round(($totalPrice) / (1 + $vatRate), 2);
 
             // VAT amount = basePrice * vatRate

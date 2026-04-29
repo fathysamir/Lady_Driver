@@ -1073,9 +1073,9 @@ if ($trip->scooter) {
         // VAT rate from settings (e.g. 14% → 0.14)
         $vatRate = $taxes['vat_percentage'] / 100;
 
-        // total_price = basePrice * (1 + vatRate) + delayCost
-        // So: basePrice = (total_price - delayCost) / (1 + vatRate)
-        $basePrice = round(($totalPrice - $delayCost) / (1 + $vatRate), 2);
+        // total_price = basePrice * (1 + vatRate)
+        // So: basePrice = (total_price ) / (1 + vatRate)
+        $basePrice = round(($totalPrice) / (1 + $vatRate), 2);
 
         // VAT amount = basePrice * vatRate
         $vatAmount = round($basePrice * $vatRate, 2);
@@ -1093,7 +1093,7 @@ if ($trip->scooter) {
         $incomeTaxAmount = round($driverBeforeTax * ($taxes['income_tax_percentage'] / 100), 2);
 
         // Final driver remaining
-        $driverRemaining = round($driverBeforeTax - $incomeTaxAmount, 2);
+        $driverRemaining = round(($driverBeforeTax - $incomeTaxAmount)+$delayCost, 2);
 
         // ================= ATTACH TAXES TO TRIP =================
         $trip->taxes = array_merge($taxes, [
