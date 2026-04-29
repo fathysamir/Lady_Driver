@@ -1974,8 +1974,8 @@ return $this->sendResponse($cities, null, 200);
             // Driver share before income tax
             $driverBeforeTax = round($priceWithoutVat - $commissionAmount, 2);
 
-            // Income tax = 5% deducted from driver's share
-            $incomeTaxAmount = round($driverBeforeTax * ($taxes['income_tax_percentage'] / 100), 2);
+            // Income tax = 5% of price without Vat (base+delay)
+            $incomeTaxAmount = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
 
             // Final driver remaining
             $driverRemaining = round($driverBeforeTax - $incomeTaxAmount, 2);
@@ -1984,7 +1984,6 @@ return $this->sendResponse($cities, null, 200);
             $trip->taxes = array_merge($taxes, [
                 'base_price'            => $basePrice,
                 'vat_amount'            => $vatAmount,
-                'price_without_vat'     => $priceWithoutVat,
                 'app_commission_amount' => $commissionAmount,
                 'income_tax_amount'     => $incomeTaxAmount,
                 'delay_minutes'         => $delayMinutes,
