@@ -1942,27 +1942,7 @@ return $this->sendResponse($cities, null, 200);
 
             $taxes = getTripSettings($category, $level);
 
-            // ================= CALCULATIONS =================
-            $totalPrice = (float) $trip->total_price;
-            $delayCost  = (float) $trip->delay_cost;
-
-            // Fare only (without delay)
-            $fareOnly = $totalPrice - $delayCost;
-
-            $vatPercentage = $taxes['vat_percentage'] / 100;
-
-            // VAT added ON TOP of fare
-            $vatAmount        = round($fareOnly * $vatPercentage, 2);
-            $incomeAmount     = round($fareOnly * ($taxes['income_tax_percentage'] / 100), 2);
-            $commissionAmount = round($fareOnly * ($taxes['application_commission'] / 100), 2);
-
-            // Driver gets share of base fare + full delay cost
-            $driverAmount = round(
-                ($fareOnly - $incomeAmount - $commissionAmount) + $delayCost,
-                2
-            );
-
-            // ================= DELAY =================
+            // ================= DELAY MINUTES =================
             $delayMinutes = 0;
             if ($trip->driver_arrived && $trip->start_time) {
                 $arrivedAt    = \Carbon\Carbon::parse($trip->driver_arrived);
@@ -1971,12 +1951,44 @@ return $this->sendResponse($cities, null, 200);
                 $delayMinutes = $totalMinutes > 5 ? $totalMinutes - 5 : 0;
             }
 
+            // ================= CALCULATIONS =================
+            $totalPrice = (float) $trip->total_price;
+            $delayCost  = (float) $trip->delay_cost;
+
+            // VAT rate from settings (e.g. 14% → 0.14)
+            $vatRate = $taxes['vat_percentage'] / 100;
+
+            // total_price = basePrice * (1 + vatRate) + delayCost
+            // So: basePrice = (total_price - delayCost) / (1 + vatRate)
+            $basePrice = round(($totalPrice - $delayCost) / (1 + $vatRate), 2);
+
+            // VAT amount = basePrice * vatRate
+            $vatAmount = round($basePrice * $vatRate, 2);
+
+            // Price without VAT = basePrice + delayCost (total_price - vat_amount)
+            $priceWithoutVat = round($totalPrice - $vatAmount, 2);
+
+            // App commission = 25% of price without VAT (base + delay)
+            $commissionAmount = round($priceWithoutVat * ($taxes['application_commission'] / 100), 2);
+
+            // Driver share before income tax
+            $driverBeforeTax = round($priceWithoutVat - $commissionAmount, 2);
+
+            // Income tax = 5% deducted from driver's share
+            $incomeTaxAmount = round($driverBeforeTax * ($taxes['income_tax_percentage'] / 100), 2);
+
+            // Final driver remaining
+            $driverRemaining = round($driverBeforeTax - $incomeTaxAmount, 2);
+
+            // ================= ATTACH TAXES TO TRIP =================
             $trip->taxes = array_merge($taxes, [
+                'base_price'            => $basePrice,
                 'vat_amount'            => $vatAmount,
-                'income_tax_amount'     => $incomeAmount,
+                'price_without_vat'     => $priceWithoutVat,
                 'app_commission_amount' => $commissionAmount,
+                'income_tax_amount'     => $incomeTaxAmount,
                 'delay_minutes'         => $delayMinutes,
-                'driver_remaining'      => $driverAmount,
+                'driver_remaining'      => $driverRemaining,
             ]);
 
             return response()->json([
