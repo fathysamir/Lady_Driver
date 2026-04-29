@@ -1068,10 +1068,20 @@ if ($trip->scooter) {
         $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
         $driverAmount     = round($totalPrice - $vatAmount - $incomeAmount - $commissionAmount, 2);
 
+        // Calculate delay minutes
+        $delayMinutes = 0;
+        if ($trip->driver_arrived && $trip->start_time) {
+            $arrivedAt    = \Carbon\Carbon::parse($trip->driver_arrived);
+            $startedAt    = \Carbon\Carbon::parse($trip->start_date . ' ' . $trip->start_time);
+            $totalMinutes = $arrivedAt->diffInMinutes($startedAt);
+            $delayMinutes = $totalMinutes > 5 ? $totalMinutes - 5 : 0;
+        }
+
         $trip->taxes = array_merge($taxes, [
             'vat_amount'            => $vatAmount,
             'income_tax_amount'     => $incomeAmount,
             'app_commission_amount' => $commissionAmount,
+            'delay_minutes'         => $delayMinutes,
             'driver_remaining'      => $driverAmount,
         ]);
 
