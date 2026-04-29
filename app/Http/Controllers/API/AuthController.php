@@ -1941,28 +1941,30 @@ return $this->sendResponse($cities, null, 200);
                 ?? 1;
 
             $taxes = getTripSettings($category, $level);
+// ================= CALCULATIONS =================
+$totalPrice = (float) $trip->total_price;
+$delayCost  = (float) $trip->delay_cost;
 
-            // ================= CALCULATIONS =================
-            $totalPrice = (float) $trip->total_price;
-            $delayCost  = (float) $trip->delay_cost;
+// ✅ Remove delay_cost from the price before VAT extraction
+$fareOnly = $totalPrice - $delayCost;
 
-            $vatPercentage = $taxes['vat_percentage'] / 100;
+$vatPercentage = $taxes['vat_percentage'] / 100;
 
-            // استخراج السعر بدون VAT
-            $basePrice = round($totalPrice / (1 + $vatPercentage), 2);
+// Extract base price without VAT (from fare only, not delay)
+$basePrice = round($fareOnly / (1 + $vatPercentage), 2);
 
-            // VAT الحقيقي
-            $vatAmount = round($totalPrice - $basePrice, 2);
+// Real VAT (on fare only)
+$vatAmount = round($fareOnly - $basePrice, 2);
 
-            // باقي الحسابات على base
-            $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
-            $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
+// Commission & income tax on base fare only
+$incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
+$commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
 
-            // السواق
-            $driverAmount = round(
-                ($basePrice - $incomeAmount - $commissionAmount) + $delayCost,
-                2
-            );
+// Driver gets their share of base fare + full delay cost
+$driverAmount = round(
+    ($basePrice - $incomeAmount - $commissionAmount) + $delayCost,
+    2
+);
             // ================= DELAY =================
             $delayMinutes = 0;
             if ($trip->driver_arrived && $trip->start_time) {
