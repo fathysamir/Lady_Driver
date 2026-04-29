@@ -1853,7 +1853,7 @@ return $this->sendResponse($cities, null, 200);
                 ], 404);
             }
 
-            // Distance from vehicle to pickup
+            // ================= DISTANCE =================
             $vehicle = $trip->car ?? $trip->scooter;
 
             if ($vehicle) {
@@ -1867,20 +1867,19 @@ return $this->sendResponse($cities, null, 200);
                 $trip->client_location_duration = intval($response['duration_in_M']);
             }
 
-            // Barcode
+            // ================= BARCODE =================
             $trip->barcode = url(barcodeImage($trip->id));
 
-            // Clean car plate
+            // ================= CLEAN PLATES =================
             if ($trip->car) {
                 $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
             }
 
-            // Clean scooter plate
             if ($trip->scooter) {
                 $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
             }
 
-            // User image and rate
+            // ================= USER =================
             if ($trip->user) {
                 $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                 $trip->user->rate  = round(
@@ -1892,43 +1891,47 @@ return $this->sendResponse($cities, null, 200);
                 );
             }
 
-            // Car owner image and rate
+            // ================= OWNER (CAR) =================
             if ($trip->car && $trip->car->owner) {
                 $trip->car->owner->image = getFirstMediaUrl(
                     $trip->car->owner,
                     $trip->car->owner->avatarCollection
                 );
+
                 $trip->car->owner->rate = round(
-                    Trip::whereHas('car', function ($query) use ($trip) {
-                        $query->where('user_id', $trip->car->owner->id);
-                    })->where('status', 'completed')
-                      ->where('client_stare_rate', '>', 0)
-                      ->avg('client_stare_rate') ?? 5.00,
+                    Trip::whereHas('car', function ($q) use ($trip) {
+                        $q->where('user_id', $trip->car->owner->id);
+                    })
+                    ->where('status', 'completed')
+                    ->where('client_stare_rate', '>', 0)
+                    ->avg('client_stare_rate') ?? 5.00,
                     1
                 );
             }
 
-            // Scooter owner image and rate
+            // ================= OWNER (SCOOTER) =================
             if ($trip->scooter && $trip->scooter->owner) {
                 $trip->scooter->owner->image = getFirstMediaUrl(
                     $trip->scooter->owner,
                     $trip->scooter->owner->avatarCollection
                 );
+
                 $trip->scooter->owner->rate = round(
-                    Trip::whereHas('scooter', function ($query) use ($trip) {
-                        $query->where('user_id', $trip->scooter->owner->id);
-                    })->where('status', 'completed')
-                      ->where('client_stare_rate', '>', 0)
-                      ->avg('client_stare_rate') ?? 5.00,
+                    Trip::whereHas('scooter', function ($q) use ($trip) {
+                        $q->where('user_id', $trip->scooter->owner->id);
+                    })
+                    ->where('status', 'completed')
+                    ->where('client_stare_rate', '>', 0)
+                    ->avg('client_stare_rate') ?? 5.00,
                     1
                 );
             }
 
-            // Rename finalDestination
+            // ================= FINAL DESTINATION =================
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
 
-            // Category and level
+            // ================= TAX SETTINGS =================
             $category = $trip->car
                 ? 'Car Trips'
                 : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
@@ -1937,19 +1940,28 @@ return $this->sendResponse($cities, null, 200);
                 ?? $trip->scooter->owner->level
                 ?? 1;
 
-            // Get tax percentages
             $taxes = getTripSettings($category, $level);
 
-            // Calculate amounts from total_price
-            $totalPrice       = (float) $trip->total_price;
-            $delayCost        = (float) $trip->delay_cost;
+            // ================= CALCULATIONS =================
+            $totalPrice = (float) $trip->total_price;
+            $delayCost  = (float) $trip->delay_cost;
 
-            $vatAmount        = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
-            $incomeAmount     = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
-            $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
-            $driverAmount     = round($totalPrice - $vatAmount - $incomeAmount - $commissionAmount, 2);
+            $vatPercentage = $taxes['vat_percentage'] / 100;
 
-            // Calculate delay minutes
+            // استخراج السعر بدون VAT
+            $basePrice = round($totalPrice / (1 + $vatPercentage), 2);
+
+            // VAT الحقيقي
+            $vatAmount = round($totalPrice - $basePrice, 2);
+
+            // باقي الحسابات على base
+            $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
+            $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
+
+            // السواق
+            $driverAmount = round($basePrice - $incomeAmount - $commissionAmount, 2);
+
+            // ================= DELAY =================
             $delayMinutes = 0;
             if ($trip->driver_arrived && $trip->start_time) {
                 $arrivedAt    = \Carbon\Carbon::parse($trip->driver_arrived);
