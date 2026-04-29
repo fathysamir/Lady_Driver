@@ -1978,7 +1978,7 @@ return $this->sendResponse($cities, null, 200);
             $incomeTaxAmount = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
 
             // Final driver remaining
-            $driverRemaining = round($driverBeforeTax - $incomeTaxAmount, 2);
+            $driverRemaining = round(($driverBeforeTax - $incomeTaxAmount)+$delayCost, 2);
 
             // ================= ATTACH TAXES TO TRIP =================
             $trip->taxes = array_merge($taxes, [
