@@ -1959,8 +1959,10 @@ return $this->sendResponse($cities, null, 200);
             $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
 
             // السواق
-            $driverAmount = round($basePrice - $incomeAmount - $commissionAmount, 2);
-
+            $driverAmount = round(
+                ($basePrice - $incomeAmount - $commissionAmount) + $delayCost,
+                2
+            );
             // ================= DELAY =================
             $delayMinutes = 0;
             if ($trip->driver_arrived && $trip->start_time) {
