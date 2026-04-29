@@ -1960,7 +1960,7 @@ return $this->sendResponse($cities, null, 200);
 
             // total_price = basePrice * (1 + vatRate) + delayCost
             // So: basePrice = (total_price - delayCost) / (1 + vatRate)
-            $basePrice = round(($totalPrice - $delayCost) / (1 + $vatRate), 2);
+            $basePrice = round(($totalPrice) / (1 + $vatRate), 2);
 
             // VAT amount = basePrice * vatRate
             $vatAmount = round($basePrice * $vatRate, 2);
