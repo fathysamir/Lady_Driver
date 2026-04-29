@@ -1946,24 +1946,19 @@ return $this->sendResponse($cities, null, 200);
             $totalPrice = (float) $trip->total_price;
             $delayCost  = (float) $trip->delay_cost;
 
-            // Remove delay_cost before VAT extraction (VAT applies to fare only)
+            // Fare only (without delay)
             $fareOnly = $totalPrice - $delayCost;
 
             $vatPercentage = $taxes['vat_percentage'] / 100;
 
-            // Extract base price without VAT
-            $basePrice = round($fareOnly / (1 + $vatPercentage), 2);
-
-            // VAT on fare only
-            $vatAmount = round($fareOnly - $basePrice, 2);
-
-            // Commission & income tax on base fare only
-            $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
-            $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
+            // VAT added ON TOP of fare
+            $vatAmount        = round($fareOnly * $vatPercentage, 2);
+            $incomeAmount     = round($fareOnly * ($taxes['income_tax_percentage'] / 100), 2);
+            $commissionAmount = round($fareOnly * ($taxes['application_commission'] / 100), 2);
 
             // Driver gets share of base fare + full delay cost
             $driverAmount = round(
-                ($basePrice - $incomeAmount - $commissionAmount) + $delayCost,
+                ($fareOnly - $incomeAmount - $commissionAmount) + $delayCost,
                 2
             );
 
