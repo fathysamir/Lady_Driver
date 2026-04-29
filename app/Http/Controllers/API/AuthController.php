@@ -1941,30 +1941,32 @@ return $this->sendResponse($cities, null, 200);
                 ?? 1;
 
             $taxes = getTripSettings($category, $level);
-// ================= CALCULATIONS =================
-$totalPrice = (float) $trip->total_price;
-$delayCost  = (float) $trip->delay_cost;
 
-// ✅ Remove delay_cost from the price before VAT extraction
-$fareOnly = $totalPrice - $delayCost;
+            // ================= CALCULATIONS =================
+            $totalPrice = (float) $trip->total_price;
+            $delayCost  = (float) $trip->delay_cost;
 
-$vatPercentage = $taxes['vat_percentage'] / 100;
+            // Remove delay_cost before VAT extraction (VAT applies to fare only)
+            $fareOnly = $totalPrice - $delayCost;
 
-// Extract base price without VAT (from fare only, not delay)
-$basePrice = round($fareOnly / (1 + $vatPercentage), 2);
+            $vatPercentage = $taxes['vat_percentage'] / 100;
 
-// Real VAT (on fare only)
-$vatAmount = round($fareOnly - $basePrice, 2);
+            // Extract base price without VAT
+            $basePrice = round($fareOnly / (1 + $vatPercentage), 2);
 
-// Commission & income tax on base fare only
-$incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
-$commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
+            // VAT on fare only
+            $vatAmount = round($fareOnly - $basePrice, 2);
 
-// Driver gets their share of base fare + full delay cost
-$driverAmount = round(
-    ($basePrice - $incomeAmount - $commissionAmount) + $delayCost,
-    2
-);
+            // Commission & income tax on base fare only
+            $incomeAmount     = round($basePrice * ($taxes['income_tax_percentage'] / 100), 2);
+            $commissionAmount = round($basePrice * ($taxes['application_commission'] / 100), 2);
+
+            // Driver gets share of base fare + full delay cost
+            $driverAmount = round(
+                ($basePrice - $incomeAmount - $commissionAmount) + $delayCost,
+                2
+            );
+
             // ================= DELAY =================
             $delayMinutes = 0;
             if ($trip->driver_arrived && $trip->start_time) {
