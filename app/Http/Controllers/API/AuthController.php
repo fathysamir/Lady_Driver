@@ -1982,7 +1982,6 @@ return $this->sendResponse($cities, null, 200);
 
             // ================= ATTACH TAXES TO TRIP =================
             $trip->taxes = array_merge($taxes, [
-                'base_price'            => $basePrice,
                 'vat_amount'            => $vatAmount,
                 'app_commission_amount' => $commissionAmount,
                 'income_tax_amount'     => $incomeTaxAmount,

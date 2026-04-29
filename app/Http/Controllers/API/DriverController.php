@@ -956,7 +956,7 @@ if ($trip->scooter) {
             return $this->sendError(null, 'no current trip existed', 400);
         }
 
-        // Distance from vehicle to pickup
+        // ================= DISTANCE =================
         $vehicle = $lastAcceptedOffer->car ?? $lastAcceptedOffer->scooter;
 
         if ($vehicle) {
@@ -971,20 +971,19 @@ if ($trip->scooter) {
             $trip->client_location_duration  = (int) $response['duration_in_M'];
         }
 
-        // Barcode
+        // ================= BARCODE =================
         $trip->barcode = url(barcodeImage($trip->id));
 
-        // Clean car plate
+        // ================= CLEAN PLATES =================
         if ($trip->car) {
             $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
         }
 
-        // Clean scooter plate
         if ($trip->scooter) {
             $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
         }
 
-        // Driver arrived
+        // ================= DRIVER ARRIVED =================
         $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
         // ================= USER =================
@@ -1043,11 +1042,11 @@ if ($trip->scooter) {
             );
         }
 
-        // Rename final destination
+        // ================= FINAL DESTINATION =================
         $trip->final_destination = $trip->finalDestination;
         unset($trip->finalDestination);
 
-        // Category and level
+        // ================= TAX SETTINGS =================
         $category = $trip->car
             ? 'Car Trips'
             : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
@@ -1056,19 +1055,9 @@ if ($trip->scooter) {
             ?? $trip->scooter->owner->level
             ?? 1;
 
-        // Get tax percentages
         $taxes = getTripSettings($category, $level);
 
-        // Calculate amounts from total_price
-        $totalPrice       = (float) $trip->total_price;
-        $delayCost        = (float) $trip->delay_cost;
-
-        $vatAmount        = round($totalPrice * ($taxes['vat_percentage'] / 100), 2);
-        $incomeAmount     = round($totalPrice * ($taxes['income_tax_percentage'] / 100), 2);
-        $commissionAmount = round($totalPrice * ($taxes['application_commission'] / 100), 2);
-        $driverAmount     = round($totalPrice - $vatAmount - $incomeAmount - $commissionAmount, 2);
-
-        // Calculate delay minutes
+        // ================= DELAY MINUTES =================
         $delayMinutes = 0;
         if ($trip->driver_arrived && $trip->start_time) {
             $arrivedAt    = \Carbon\Carbon::parse($trip->driver_arrived);
@@ -1077,12 +1066,42 @@ if ($trip->scooter) {
             $delayMinutes = $totalMinutes > 5 ? $totalMinutes - 5 : 0;
         }
 
+        // ================= CALCULATIONS =================
+        $totalPrice = (float) $trip->total_price;
+        $delayCost  = (float) $trip->delay_cost;
+
+        // VAT rate from settings (e.g. 14% → 0.14)
+        $vatRate = $taxes['vat_percentage'] / 100;
+
+        // total_price = basePrice * (1 + vatRate) + delayCost
+        // So: basePrice = (total_price - delayCost) / (1 + vatRate)
+        $basePrice = round(($totalPrice - $delayCost) / (1 + $vatRate), 2);
+
+        // VAT amount = basePrice * vatRate
+        $vatAmount = round($basePrice * $vatRate, 2);
+
+        // Price without VAT = basePrice + delayCost (= total_price - vat_amount)
+        $priceWithoutVat = round($totalPrice - $vatAmount, 2);
+
+        // App commission = 25% of price without VAT (base + delay)
+        $commissionAmount = round($priceWithoutVat * ($taxes['application_commission'] / 100), 2);
+
+        // Driver share before income tax
+        $driverBeforeTax = round($priceWithoutVat - $commissionAmount, 2);
+
+        // Income tax = 5% deducted from driver's share
+        $incomeTaxAmount = round($driverBeforeTax * ($taxes['income_tax_percentage'] / 100), 2);
+
+        // Final driver remaining
+        $driverRemaining = round($driverBeforeTax - $incomeTaxAmount, 2);
+
+        // ================= ATTACH TAXES TO TRIP =================
         $trip->taxes = array_merge($taxes, [
             'vat_amount'            => $vatAmount,
-            'income_tax_amount'     => $incomeAmount,
             'app_commission_amount' => $commissionAmount,
+            'income_tax_amount'     => $incomeTaxAmount,
             'delay_minutes'         => $delayMinutes,
-            'driver_remaining'      => $driverAmount,
+            'driver_remaining'      => $driverRemaining,
         ]);
 
         return $this->sendResponse($trip, null, 200);
