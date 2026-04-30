@@ -1482,8 +1482,7 @@ if ($trip->scooter) {
     }
 
     // ── 1. Get settings based on trip type ──
-    $type = $request->type;
-
+    $type      = $request->type;
     $categoryMap = [
         'car'         => 'Car Trips',
         'comfort_car' => 'Comfort Trips',
@@ -1506,47 +1505,47 @@ if ($trip->scooter) {
         ? floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', $category)->first()->value)
         : 0;
 
-    // ── 2. Calculate total distance ──
-    $response = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
-    $distance = $response['distance_in_km'];
-    $duration = $response['duration_in_M'];
+    // ── 2. Calculate total distance (use calc_ prefix to avoid clash with request->distance) ──
+    $r             = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
+    $calc_distance = $r['distance_in_km'];
+    $calc_duration = $r['duration_in_M'];
 
     if ($request->end_lat_2 && $request->end_lng_2) {
-        $r2 = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2);
-        $distance += $r2['distance_in_km'];
-        $duration += $r2['duration_in_M'];
+        $r2             = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2);
+        $calc_distance += $r2['distance_in_km'];
+        $calc_duration += $r2['duration_in_M'];
     }
 
     if ($request->end_lat_3 && $request->end_lng_3) {
-        $r3 = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3);
-        $distance += $r3['distance_in_km'];
-        $duration += $r3['duration_in_M'];
+        $r3             = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3);
+        $calc_distance += $r3['distance_in_km'];
+        $calc_duration += $r3['duration_in_M'];
     }
 
     // ── 3. Check distance limit ──
-    if ($distance > $maximum_distance_long_trip) {
-        return $this->sendError(null, "Trip distance ({$distance} km) exceeds maximum allowed ({$maximum_distance_long_trip} km).", 422);
+    if ($calc_distance > $maximum_distance_long_trip) {
+        return $this->sendError(null, "Trip distance ({$calc_distance} km) exceeds maximum allowed ({$maximum_distance_long_trip} km).", 422);
     }
 
     // ── 4. Calculate base price by tiers ──
     $base_price = 0;
 
-    if ($distance >= $maximum_distance_short_trip) {
+    if ($calc_distance >= $maximum_distance_short_trip) {
         $base_price += $kilometer_price_short_trip * $maximum_distance_short_trip;
     } else {
-        $base_price += $kilometer_price_short_trip * $distance;
+        $base_price += $kilometer_price_short_trip * $calc_distance;
     }
 
-    if ($distance >= $maximum_distance_medium_trip) {
+    if ($calc_distance >= $maximum_distance_medium_trip) {
         $base_price += $kilometer_price_medium_trip * ($maximum_distance_medium_trip - $maximum_distance_short_trip);
-    } elseif ($distance > $maximum_distance_short_trip) {
-        $base_price += $kilometer_price_medium_trip * ($distance - $maximum_distance_short_trip);
+    } elseif ($calc_distance > $maximum_distance_short_trip) {
+        $base_price += $kilometer_price_medium_trip * ($calc_distance - $maximum_distance_short_trip);
     }
 
-    if ($distance == $maximum_distance_long_trip) {
+    if ($calc_distance == $maximum_distance_long_trip) {
         $base_price += $kilometer_price_long_trip * ($maximum_distance_long_trip - $maximum_distance_medium_trip);
-    } elseif ($distance > $maximum_distance_medium_trip) {
-        $base_price += $kilometer_price_long_trip * ($distance - $maximum_distance_medium_trip);
+    } elseif ($calc_distance > $maximum_distance_medium_trip) {
+        $base_price += $kilometer_price_long_trip * ($calc_distance - $maximum_distance_medium_trip);
     }
 
     // ── 5. Air conditioning extra ──
@@ -1560,8 +1559,8 @@ if ($trip->scooter) {
     $start_time = $request->start_time ?? now()->format('H:i');
     $day        = date('l', strtotime($start_date));
 
-    $peakJson   = Setting::where('key', 'peak_times')->where('category', 'Trips')->first()->value;
-    $peakTimes  = json_decode($peakJson, true);
+    $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->first()->value;
+    $peakTimes = json_decode($peakJson, true);
 
     $isPeak         = false;
     $peak_time_cost = 0;
@@ -1590,9 +1589,9 @@ if ($trip->scooter) {
     $total_before_discount = ceil($total_before_discount);
 
     // ── 9. Student discount ──
-    $discount   = 0;
-    $is_student = false;
-    $student    = \App\Models\Student::where('user_id', auth()->id())
+    $calc_discount = 0;
+    $is_student    = false;
+    $student       = \App\Models\Student::where('user_id', auth()->id())
         ->where('status', 'confirmed')
         ->where('student_discount_service', '1')
         ->first();
@@ -1605,20 +1604,20 @@ if ($trip->scooter) {
             ->count();
 
         if ($student_trips_today < 3) {
-            $is_student = true;
-            $discount   = round($total_before_discount * ($student_discount_rate / 100), 2);
+            $is_student    = true;
+            $calc_discount = round($total_before_discount * ($student_discount_rate / 100), 2);
         }
     }
 
-    $total_price = $total_before_discount - $discount;
+    $total_price = $total_before_discount - $calc_discount;
 
-    // ── 10. Return original response shape ──
+    // ── 10. Return response ──
     return $this->sendResponse([
         'total_price'          => floatval($total_price),
-        'discount'             => floatval($discount),
+        'discount'             => floatval($calc_discount),
         'price_after_discount' => floatval($total_price),
-        'distance'             => round($distance, 2),
-        'duration'             => intval($duration),
+        'distance'             => round($calc_distance, 2),
+        'duration'             => intval($calc_duration),
         'is_peak_time'         => $isPeak,
         'is_student'           => $is_student,
         'type'                 => $type,
@@ -1626,7 +1625,7 @@ if ($trip->scooter) {
             'base_price'       => floatval($base_price),
             'air_conditioning' => floatval($air_conditioning_cost),
             'peak_time_extra'  => floatval($peak_time_cost),
-            'student_discount' => floatval($discount),
+            'student_discount' => floatval($calc_discount),
         ],
     ], 'Price calculated successfully', 200);
 }
