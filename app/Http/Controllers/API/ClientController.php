@@ -1480,9 +1480,9 @@ if ($trip->scooter) {
         $errors = implode(" / ", $validator->errors()->all());
         return $this->sendError(null, $errors, 400);
     }
-$total_cost=$request->total_cost;
+
     // ── 1. Get settings based on trip type ──
-    $type      = $request->type;
+    $type        = $request->type;
     $categoryMap = [
         'car'         => 'Car Trips',
         'comfort_car' => 'Comfort Trips',
@@ -1497,7 +1497,6 @@ $total_cost=$request->total_cost;
     $maximum_distance_short_trip  = floatval(Setting::where('key', "maximum_distance_{$keyPrefix}_short_trip")->where('category', $category)->first()->value);
     $maximum_distance_medium_trip = floatval(Setting::where('key', "maximum_distance_{$keyPrefix}_medium_trip")->where('category', $category)->first()->value);
     $maximum_distance_long_trip   = floatval(Setting::where('key', "maximum_distance_{$keyPrefix}_long_trip")->where('category', $category)->first()->value);
-    $less_cost_for_trip           = floatval(Setting::where('key', "less_cost_for_{$keyPrefix}_trip")->where('category', $category)->first()->value);
     $increase_rate_peak_time      = floatval(Setting::where('key', "increase_rate_peak_time_{$keyPrefix}_trip")->where('category', $category)->first()->value);
     $student_discount_rate        = floatval(Setting::where('key', 'student_discount')->where('category', $category)->first()->value);
 
@@ -1505,7 +1504,7 @@ $total_cost=$request->total_cost;
         ? floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', $category)->first()->value)
         : 0;
 
-    // ── 2. Calculate total distance (use calc_ prefix to avoid clash with request->distance) ──
+    // ── 2. Calculate total distance ──
     $r             = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
     $calc_distance = $r['distance_in_km'];
     $calc_duration = $r['duration_in_M'];
@@ -1578,17 +1577,10 @@ $total_cost=$request->total_cost;
         $peak_time_cost = round($base_price * ($increase_rate_peak_time / 100), 2);
     }
 
-    // ── 7. Total before discount ──
-    $total_before_discount = $base_price + $air_conditioning_cost + $peak_time_cost;
+    // ── 7. Flutter total_cost is the base total we work with ──
+    $flutter_total_cost = floatval($request->total_cost);
 
-    // ── 8. Apply minimum price ──
-    if ($total_before_discount < $less_cost_for_trip) {
-        $total_before_discount = $less_cost_for_trip;
-    }
-
-    $total_before_discount = ceil($total_before_discount);
-
-    // ── 9. Student discount ──
+    // ── 8. Student discount (calculated on top of Flutter's total_cost) ──
     $calc_discount = 0;
     $is_student    = false;
     $student       = \App\Models\Student::where('user_id', auth()->id())
@@ -1605,18 +1597,19 @@ $total_cost=$request->total_cost;
 
         if ($student_trips_today < 3) {
             $is_student    = true;
-            $calc_discount = round($total_before_discount * ($student_discount_rate / 100), 2);
+            $calc_discount = round($flutter_total_cost * ($student_discount_rate / 100), 2);
         }
     }
 
-    $total_cost = $total_before_discount - $calc_discount;
+    $price_after_discount = $flutter_total_cost - $calc_discount;
 
-    // ── 10. Return response ──
+    // ── 9. Return response ──
     return $this->sendResponse([
-        'total_price'          => floatval($total_cost),
+        'total_price'          => floatval($flutter_total_cost),
         'discount'             => floatval($calc_discount),
-        'price_after_discount' => floatval($total_cost),
+        'price_after_discount' => floatval($price_after_discount),
         'distance'             => round($calc_distance, 2),
+        'duration'             => intval($calc_duration),
         'is_peak_time'         => $isPeak,
         'is_student'           => $is_student,
         'type'                 => $type,
