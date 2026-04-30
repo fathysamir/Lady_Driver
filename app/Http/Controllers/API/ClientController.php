@@ -1572,10 +1572,12 @@ if ($trip->scooter) {
     // ── 7. Total before discount ──
     $total_before_discount = $base_price + $air_conditioning_cost + $peak_time_cost;
 
-    // ── 8. Apply minimum price ──
-    if ($total_before_discount < $less_cost_for_trip) {
-        $total_before_discount = $less_cost_for_trip;
-    }
+   // ── 8. Apply minimum price ──
+$total_before_discount = ceil($total_before_discount);
+
+if ($total_before_discount < $less_cost_for_trip) {
+    $total_before_discount = $less_cost_for_trip;
+}
 
     $total_before_discount = ceil($total_before_discount);
 
