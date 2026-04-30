@@ -524,8 +524,9 @@ class ClientController extends ApiController
         }
 
         $response['scooter']['distance'] = $distance;
-        $response['scooter']['duration'] = $duration;
+        $scooterDuration = round($duration * 0.8); // أسرع 20%
 
+        $response['scooter']['duration'] = $scooterDuration;
         if ($distance > $maximum_distance_long_trip) {
             return $this->sendError(null, "Trip distance ($distance km) exceeds maximum allowed ($maximum_distance_long_trip km).", 400);
         }
