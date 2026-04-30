@@ -446,6 +446,7 @@ class DriverController extends ApiController
         $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
         $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
         $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+        $scooter->scooter_plate = str_replace('|', '', $scooter->scooter_plate);
 
         return $this->sendResponse($scooter, null, 200);
     }
