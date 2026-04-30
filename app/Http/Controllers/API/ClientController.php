@@ -1609,15 +1609,14 @@ $total_cost=$request->total_cost;
         }
     }
 
-    $total_price = $total_before_discount - $calc_discount;
+    $total_cost = $total_before_discount - $calc_discount;
 
     // ── 10. Return response ──
     return $this->sendResponse([
         'total_price'          => floatval($total_cost),
         'discount'             => floatval($calc_discount),
-        'price_after_discount' => floatval($total_price),
+        'price_after_discount' => floatval($total_cost),
         'distance'             => round($calc_distance, 2),
-        'duration'             => intval($calc_duration),
         'is_peak_time'         => $isPeak,
         'is_student'           => $is_student,
         'type'                 => $type,
