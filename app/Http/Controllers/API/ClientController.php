@@ -1580,10 +1580,13 @@ if ($trip->scooter) {
     // ── 7. Flutter total_cost is the base total we work with ──
     $flutter_total_cost = floatval($request->total_cost);
 
-    // ── 8. Student discount (calculated on top of Flutter's total_cost) ──
-    $calc_discount = 0;
-    $is_student    = false;
-    $student       = \App\Models\Student::where('user_id', auth()->id())
+    // ── 8. Discount calculation ──
+    $calc_discount        = 0;
+    $is_student           = false;
+    $request_discount_rate = floatval($request->discount);
+
+    // Student discount from DB
+    $student = \App\Models\Student::where('user_id', auth()->id())
         ->where('status', 'confirmed')
         ->where('student_discount_service', '1')
         ->first();
@@ -1599,6 +1602,12 @@ if ($trip->scooter) {
             $is_student    = true;
             $calc_discount = round($flutter_total_cost * ($student_discount_rate / 100), 2);
         }
+    }
+
+    // Flutter sent a discount % — calculate its amount and use whichever is greater
+    $request_discount_amount = round($flutter_total_cost * ($request_discount_rate / 100), 2);
+    if ($request_discount_amount > $calc_discount) {
+        $calc_discount = $request_discount_amount;
     }
 
     $price_after_discount = $flutter_total_cost - $calc_discount;
