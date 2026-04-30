@@ -782,7 +782,7 @@ class DriverController extends ApiController
             return $this->sendError(null, "No vehicle found", 400);
         }
 
-        if ($vehicle->status != 'confirmed') {
+        if ($user->status != 'confirmed') {
             return $this->sendError(null, "Account under review", 400);
         }
 
@@ -1858,6 +1858,6 @@ public function driver_reached(Request $request)
     //     $offer         = Offer::find($id);
     //     $offer->status = 'expired';
     //     $offer->save();
-    //     return $this->sendResponse(null, 'Offer is expired', 200);
+    //   return   $this->sendResponse(null, 'Offer is expired', 200);
     // }
 }
