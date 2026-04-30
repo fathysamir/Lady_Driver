@@ -437,7 +437,7 @@ class DriverController extends ApiController
     public function scooter(Request $request)
     {
         $acceptedLanguage = $request->header('Accept-Language');
-        $scooter          = Scooter::where('user_id', auth()->user()->id)->with(['owner:id,name', 'mark', 'model'])->first();
+        $scooter          = Scooter::where('user_id', auth()->user()->id)->with(['owner:id,name', 'motorcycleMark', 'motorcycleModel'])->first();
         if (! $scooter) {
             return $this->sendError(null, "You don't create your scooter yet", 400);
         }
