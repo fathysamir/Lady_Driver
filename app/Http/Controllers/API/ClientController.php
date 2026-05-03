@@ -539,6 +539,8 @@ class ClientController extends ApiController
         $scooter_dist += $r['distance_in_km'];
         $scooter_dur  += $r['duration_in_M'];
     }
+    $scooter_dur = intval($scooter_dur * 0.8);
+
 
     if ($scooter_dist > floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value)) {
         return $this->sendError(null, "Scooter trip distance ({$scooter_dist} km) exceeds maximum allowed.", 400);
