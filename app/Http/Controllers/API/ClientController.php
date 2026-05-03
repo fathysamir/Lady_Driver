@@ -539,7 +539,6 @@ class ClientController extends ApiController
         $scooter_dist += $r['distance_in_km'];
         $scooter_dur  += $r['duration_in_M'];
     }
-    $scooter_dur = intval($scooter_dur * 0.8);
 
 
     if ($scooter_dist > floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value)) {
@@ -1523,6 +1522,9 @@ if ($trip->scooter) {
             $calc_distance += $r3['distance_in_km'];
             $calc_duration += $r3['duration_in_M'];
         }
+        if ($type === 'scooter') {
+            $calc_duration = intval($calc_duration * 0.8);
+        }
 
         // ── 3. Check distance limit ──
         if ($calc_distance > $maximum_distance_long_trip) {
@@ -1584,7 +1586,7 @@ if ($trip->scooter) {
         }
 
         // ── 7. Server-side total with minimum price enforced ──
-        $server_total = ceil($base_price + $air_conditioning_cost + $peak_time_cost);
+        $server_total = floatval($request->total_cost);
 
         if ($server_total < $less_cost_for_trip) {
             $server_total = $less_cost_for_trip;
