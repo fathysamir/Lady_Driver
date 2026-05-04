@@ -306,7 +306,7 @@ class ClientController extends ApiController
         return $this->sendError(null, $errors, 400);
     }
 
-    // ── Peak time ──
+    //Peak time
     $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
     $peakTimes = json_decode($peakJson, true);
 
@@ -330,7 +330,7 @@ class ClientController extends ApiController
         }
     }
 
-    // ── Base response fields ──
+
     $response                    = [];
     $response['start_date']      = $start_date;
     $response['start_time']      = $start_time;
@@ -358,7 +358,7 @@ class ClientController extends ApiController
 
     $is_student = $student && $student_trips_count < 3;
 
-    // ── Helper: calculate price for one vehicle type ──
+    //calculate price for one vehicle type
     $calcPrice = function(
         $distance,
         $km_short, $km_medium, $km_long,
@@ -581,7 +581,7 @@ class ClientController extends ApiController
         }, 'scooter' => function ($query) {
             $query->select('id', 'user_id', 'motorcycle_mark_id', 'motorcycle_model_id', 'year', 'lat', 'lng', 'color', 'scooter_plate')->with(['motorcycleMark:id,en_name,ar_name', 'motorcycleModel:id,en_name,ar_name', 'owner:id,name,country_code,phone,level']);
         }, 'finalDestination' => function ($xx) {
-            $xx->select('id', 'trip_id', 'lat', 'lng', 'address') // مكان الأعمدة الصحيح
+            $xx->select('id', 'trip_id', 'lat', 'lng', 'address')
                 ->orderBy('id');
         }])->first();
 
@@ -1483,7 +1483,7 @@ if ($trip->scooter) {
             return $this->sendError(null, $errors, 400);
         }
 
-        // ── 1. Get settings based on trip type ──
+        //settings based on trip type
         $type        = $request->type;
         $categoryMap = [
             'car'         => 'Car Trips',
@@ -1507,7 +1507,7 @@ if ($trip->scooter) {
             ? floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', $category)->first()->value)
             : 0;
 
-        // ── 2. Calculate total distance ──
+        //Calculate total distance
         $r             = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
         $calc_distance = $r['distance_in_km'];
         $calc_duration = $r['duration_in_M'];
@@ -1532,7 +1532,7 @@ if ($trip->scooter) {
             return $this->sendError(null, "Trip distance ({$calc_distance} km) exceeds maximum allowed ({$maximum_distance_long_trip} km).", 422);
         }
 
-        // ── 4. Calculate base price by tiers ──
+
         $base_price = 0;
 
         // Short tier
@@ -1556,13 +1556,13 @@ if ($trip->scooter) {
             $base_price += $kilometer_price_long_trip * ($calc_distance - $maximum_distance_medium_trip);
         }
 
-        // ── 5. Air conditioning extra ──
+        //Air conditioning extra
         $air_conditioning_cost = 0;
         if ($type === 'car' && $request->air_conditioned == '1' && $Air_conditioning_service_price > 0) {
             $air_conditioning_cost = round($base_price * ($Air_conditioning_service_price / 100), 2);
         }
 
-        // ── 6. Peak time extra ──
+        //Peak time extra
         $start_date = $request->start_date ?? now()->toDateString();
         $start_time = $request->start_time ?? now()->format('H:i');
         $day        = date('l', strtotime($start_date));
@@ -1586,14 +1586,14 @@ if ($trip->scooter) {
             $peak_time_cost = round($base_price * ($increase_rate_peak_time / 100), 2);
         }
 
-        // ── 7. Server-side total with minimum price enforced ──
+        //Server-side total with minimum price enforced
         $server_total = floatval($request->total_cost);
 
         if ($server_total < $less_cost_for_trip) {
             $server_total = $less_cost_for_trip;
         }
 
-        // ── 8. Student discount (from DB only) ──
+        //Student discount
         $calc_discount = 0;
         $is_student    = false;
 
@@ -1622,7 +1622,7 @@ if ($trip->scooter) {
             $calc_discount        = $server_total - $less_cost_for_trip;
         }
 
-        // ── 9. Return response (field names unchanged) ──
+
         return $this->sendResponse([
             'total_price'          => floatval($server_total),
             'discount'             => floatval($calc_discount),

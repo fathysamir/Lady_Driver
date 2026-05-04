@@ -1959,7 +1959,6 @@ return $this->sendResponse($cities, null, 200);
             $vatRate = $taxes['vat_percentage'] / 100;
 
             // total_price = basePrice * (1 + vatRate)
-            // So: basePrice = (total_price) / (1 + vatRate)
             $basePrice = round(($totalPrice) / (1 + $vatRate), 2);
 
             // VAT amount = basePrice * vatRate
@@ -1980,7 +1979,6 @@ return $this->sendResponse($cities, null, 200);
             // Final driver remaining
             $driverRemaining = round(($driverBeforeTax - $incomeTaxAmount)+$delayCost, 2);
 
-            // ================= ATTACH TAXES TO TRIP =================
             $trip->taxes = array_merge($taxes, [
                 'vat_amount'            => $vatAmount,
                 'app_commission_amount' => $commissionAmount,
@@ -2015,7 +2013,7 @@ return $this->sendResponse($cities, null, 200);
 
         $isScooter = $trip->type == 'scooter';
 
-        // all driver states in one query instead per offer
+
         $driverIds = $trip->offers->pluck('user_id')->unique();
 
         $completedTrips = Trip::where('status', 'completed')

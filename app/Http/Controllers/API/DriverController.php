@@ -1645,7 +1645,7 @@ public function driver_cancelled_trips()
             // Notify passenger
             event(new \App\Events\DriverArriving($data, $trip->user_id));
 
-            // Safely resolve driver user_id and notify driver
+
             $driverId = null;
             if ($trip->car_id && $trip->car) {
                 $driverId = $trip->car->user_id;
@@ -1691,7 +1691,7 @@ public function driver_reached(Request $request)
         return $this->sendError(null, 'Trip is not in progress', 400);
     }
 
-    // Get final destination
+
     $destination = $trip->finalDestination()->orderBy('id', 'desc')->first();
 
 
