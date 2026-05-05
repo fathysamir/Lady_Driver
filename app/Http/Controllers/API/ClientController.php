@@ -530,8 +530,8 @@ class ClientController extends ApiController
         floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
         floatval(Setting::where('key', 'increase_rate_peak_time_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
         floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->first()->value),
-        0, // no air conditioning for comfort car
-        false,
+        floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Car Trips')->first()->value), // rate = 10
+        true, // ← always AC for comfort
         $isPeak,
         $is_student
     );
