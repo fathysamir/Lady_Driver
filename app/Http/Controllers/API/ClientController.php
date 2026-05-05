@@ -288,17 +288,36 @@ class ClientController extends ApiController
     }
 
     $validator = Validator::make($request->all(), [
-        'start_date'      => 'nullable|date|date_format:Y-m-d',
-        'start_time'      => 'nullable|date_format:H:i',
-        'start_lat'       => 'required|numeric|between:-90,90',
-        'start_lng'       => 'required|numeric|between:-180,180',
-        'end_lat_1'       => 'required|numeric|between:-90,90',
-        'end_lng_1'       => 'required|numeric|between:-180,180',
-        'end_lat_2'       => 'nullable|numeric|between:-90,90',
-        'end_lng_2'       => 'nullable|numeric|between:-180,180',
-        'end_lat_3'       => 'nullable|numeric|between:-90,90',
-        'end_lng_3'       => 'nullable|numeric|between:-180,180',
-        'air_conditioned' => 'nullable|boolean',
+        // Location
+        'start_lat'      => 'required|numeric|between:-90,90',
+        'start_lng'      => 'required|numeric|between:-180,180',
+        'end_lat_1'      => 'required|numeric|between:-90,90',
+        'end_lng_1'      => 'required|numeric|between:-180,180',
+        'end_lat_2'      => 'nullable|numeric|between:-90,90',
+        'end_lng_2'      => 'nullable|numeric|between:-180,180',
+        'end_lat_3'      => 'nullable|numeric|between:-90,90',
+        'end_lng_3'      => 'nullable|numeric|between:-180,180',
+
+        // Addresses
+        'address1'       => 'required|string',
+        'address2'       => 'required|string',
+        'address3'       => 'nullable|string',
+        'address4'       => 'nullable|string',
+
+        // Trip options
+        'type'           => 'required|in:car,comfort_car,scooter',
+        'air_conditioned'=> 'nullable|boolean',
+        'bags'           => 'nullable|boolean',
+        'animals'        => 'nullable|boolean',
+        'luggage'        => 'nullable|boolean',
+        'payment_method' => 'required|in:cash,wallet',
+
+        // Scheduling
+        'start_date'     => 'nullable|date|date_format:Y-m-d',
+        'start_time'     => 'nullable|date_format:H:i',
+
+
+        // 'discount', 'distance', 'total_cost', 'duration' ← server-calculated
     ]);
 
     if ($validator->fails()) {
