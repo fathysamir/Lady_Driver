@@ -193,10 +193,57 @@ public function updateStatus(Request $request, $id)
     ]);
 
     $trip = Trip::findOrFail($id);
-
     $trip->status = $request->status;
     $trip->save();
+    $trip->load(['user', 'car', 'scooter']);
 
-    return back()->with('success', 'Status updated successfully');
+    // Get driver user_id
+    $driverUserId = null;
+    if ($trip->car_id && $trip->car) {
+        $driverUserId = $trip->car->user_id;
+    } elseif ($trip->scooter_id && $trip->scooter) {
+        $driverUserId = $trip->scooter->user_id;
+    }
+
+    // Build the payload matching your WS format
+    $payload = [
+        'type' => $this->resolveSocketType($request->status),
+        'data' => $trip,
+        'message' => 'Trip status updated by admin',
+    ];
+
+    // Publish to Redis for the passenger
+    $this->publishToRedis($trip->user_id, $payload);
+
+    // Publish to Redis for the driver
+    if ($driverUserId) {
+        $this->publishToRedis($driverUserId, $payload);
+    }
+
+    return back()->with('success', 'Status updated and socket sent.');
+}
+
+private function resolveSocketType(string $status): string
+{
+    return match($status) {
+        'in_progress' => 'started_trip',
+        'completed'   => 'ended_trip',
+        'cancelled'   => 'canceled_trip',
+        'pending'     => 'accepted_offer',
+        'expired'     => 'expired_trip',
+        default       => 'trip_status_updated',
+    };
+}
+
+private function publishToRedis(int $userId, array $payload): void
+{
+    $redis = \Illuminate\Support\Facades\Redis::connection();
+    // Channel pattern must match what your WS listens to: psubscribe('*')
+    // Your WS splits by '.' and takes the last segment as userId
+    $channel = "trip.status.{$userId}";
+    $redis->publish($channel, json_encode([
+        'event' => $payload['type'],
+        'data'  => $payload,
+    ]));
 }
 }
