@@ -197,7 +197,6 @@ public function updateStatus(Request $request, $id)
     $trip->save();
     $trip->load(['user', 'car', 'scooter']);
 
-    // Get driver user_id
     $driverUserId = null;
     if ($trip->car_id && $trip->car) {
         $driverUserId = $trip->car->user_id;
@@ -205,19 +204,29 @@ public function updateStatus(Request $request, $id)
         $driverUserId = $trip->scooter->user_id;
     }
 
-    // Build the payload matching your WS format
-    $payload = [
-        'type' => $this->resolveSocketType($request->status),
-        'data' => $trip,
-        'message' => 'Trip status updated by admin',
-    ];
+    switch ($request->status) {
 
-    // Publish to Redis for the passenger
-    $this->publishToRedis($trip->user_id, $payload);
+        //Laravel Broadcast Events
+        case 'in_progress':
+            event(new \App\Events\TripStarted($trip, $trip->user_id));
+            if ($driverUserId) event(new \App\Events\TripStarted($trip, $driverUserId));
+            break;
 
-    // Publish to Redis for the driver
-    if ($driverUserId) {
-        $this->publishToRedis($driverUserId, $payload);
+        case 'completed':
+            event(new \App\Events\TripEnded($trip, $trip->user_id));
+            if ($driverUserId) event(new \App\Events\TripEnded($trip, $driverUserId));
+            break;
+
+        //  Redis directly like Chat.php
+        default:
+            $payload = [
+                'type'    => $this->resolveSocketType($request->status),
+                'data'    => $trip,
+                'message' => 'Trip status updated by admin',
+            ];
+            $this->publishToRedis($trip->user_id, $payload);
+            if ($driverUserId) $this->publishToRedis($driverUserId, $payload);
+            break;
     }
 
     return back()->with('success', 'Status updated and socket sent.');
@@ -226,20 +235,16 @@ public function updateStatus(Request $request, $id)
 private function resolveSocketType(string $status): string
 {
     return match($status) {
-        'in_progress' => 'started_trip',
-        'completed'   => 'ended_trip',
-        'cancelled'   => 'canceled_trip',
-        'pending'     => 'accepted_offer',
-        'expired'     => 'expired_trip',
-        default       => 'trip_status_updated',
+        'cancelled' => 'canceled_trip',
+        'pending'   => 'accepted_offer',
+        'expired'   => 'expired_trip',
+        default     => 'trip_status_updated',
     };
 }
 
 private function publishToRedis(int $userId, array $payload): void
 {
     $redis = \Illuminate\Support\Facades\Redis::connection();
-    // Channel pattern must match what your WS listens to: psubscribe('*')
-    // Your WS splits by '.' and takes the last segment as userId
     $channel = "trip.status.{$userId}";
     $redis->publish($channel, json_encode([
         'event' => $payload['type'],
