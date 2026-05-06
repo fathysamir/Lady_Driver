@@ -217,7 +217,7 @@
                                                                             @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                             class="img-circle" alt="user avatar"></span>
                                                                     {!! highlight($trip->user->name, $search ?? '') !!}</td>
-                                                                    <td>{{ $trip->user->phone ?? 'N/A' }}</td>
+                                                                    <td>{!! highlight($trip->user->phone, $search ?? '') !!}</td>
 
 
                                                                 @if ($tripType === 'scooter')
