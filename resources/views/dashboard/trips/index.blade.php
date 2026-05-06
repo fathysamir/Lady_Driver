@@ -357,12 +357,27 @@ function showTimeTab(tripType, timeFilter) {
     document.getElementById('type_input').value = tripType;
     document.getElementById('time_filter_input').value = timeFilter;
 
-    // Update URL so pagination links carry type and time_filter
+    // Update URL
     const url = new URL(window.location.href);
     url.searchParams.set('type', tripType);
     url.searchParams.set('time_filter', timeFilter);
     url.searchParams.delete('page');
     window.history.replaceState(null, '', url.toString());
+
+    // Fix all pagination links to include current type and time_filter
+    updatePaginationLinks(tripType, timeFilter);
+}
+
+function updatePaginationLinks(tripType, timeFilter) {
+    document.querySelectorAll('.pagination a').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href) {
+            const url = new URL(href, window.location.origin);
+            url.searchParams.set('type', tripType);
+            url.searchParams.set('time_filter', timeFilter);
+            link.setAttribute('href', url.toString());
+        }
+    });
 }
 
 function toggleFilters() {
@@ -418,7 +433,6 @@ $(document).ready(function () {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Read directly from URL bar, not from hidden inputs
     const urlParams = new URLSearchParams(window.location.search);
     const currentType = urlParams.get('type') || 'car';
     const currentTime = urlParams.get('time_filter') || 'current';
