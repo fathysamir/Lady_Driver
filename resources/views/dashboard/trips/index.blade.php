@@ -418,8 +418,10 @@ $(document).ready(function () {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    const currentType = document.getElementById('type_input').value || 'car';
-    const currentTime = document.getElementById('time_filter_input').value || 'current';
+    // Read directly from URL bar, not from hidden inputs
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentType = urlParams.get('type') || 'car';
+    const currentTime = urlParams.get('time_filter') || 'current';
     showTab(currentType, currentTime);
 });
     </script>
