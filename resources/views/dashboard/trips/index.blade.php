@@ -171,8 +171,9 @@
                                                     <tr>
                                                         <th>Trip Code</th>
                                                         <th>Client</th>
-                                                        <th>Client Phone No. </th>
+                                                        <th>Client Phone</th>
                                                         <th>Driver</th>
+                                                        <th>Driver Phone</th>
                                                         <th>Vehicle</th>
                                                         <th>Created at</th>
                                                         <th>Status</th>
@@ -234,6 +235,9 @@
                                                                             N/A
                                                                         @endif
                                                                     </td>
+                                                                    <td>
+                                                                        {!! highlight($trip->scooter->owner->phone ?? 'N/A', $search ?? '') !!}
+                                                                    </td>
                                                                 @else
                                                                     <td><span class="user-profile"><img
                                                                                 @if ($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
@@ -247,6 +251,9 @@
                                                                         @else
                                                                             N/A
                                                                         @endif
+                                                                    </td>
+                                                                    <td>
+                                                                        {!! highlight($trip->car->owner->phone ?? 'N/A', $search ?? '') !!}
                                                                     </td>
                                                                 @endif
 

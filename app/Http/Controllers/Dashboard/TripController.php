@@ -48,27 +48,28 @@ class TripController extends Controller
         }
 
         // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
+if ($request->filled('search')) {
+    $search = $request->search;
 
-            $all_trips->where(function ($query) use ($search, $request) {
-                $query->where('code', 'LIKE', '%' . $search . '%')
-                    ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', '%' . $search . '%');
-                    });
-
-                // Search depending on type
-                if ($request->type === 'scooter') {
-                    $query->orWhereHas('scooter.owner', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', '%' . $search . '%');
-                    });
-                } else {
-                    $query->orWhereHas('car.owner', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', '%' . $search . '%');
-                    });
-                }
+    $all_trips->where(function ($query) use ($search, $request) {
+        $query->where('code', 'LIKE', '%' . $search . '%')
+            ->orWhereHas('user', function ($q) use ($search) {
+                $q->where('name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('phone', 'LIKE', '%' . $search . '%');
             });
-        }
+
+    // Search depending on type
+if ($request->type === 'scooter') {
+    $query->orWhereHas('scooter.owner', function ($q) use ($search) {
+        $q->where('name', 'LIKE', '%' . $search . '%')
+          ->orWhere('phone', 'LIKE', '%' . $search . '%');
+    });
+} else {
+    $query->orWhereHas('car.owner', function ($q) use ($search) {
+        $q->where('name', 'LIKE', '%' . $search . '%')
+          ->orWhere('phone', 'LIKE', '%' . $search . '%');
+    });
+}
 
         // Client filter
         if ($request->filled('user')) {
