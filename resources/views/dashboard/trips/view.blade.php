@@ -156,6 +156,27 @@
                                             @endif
                                         </label>
                                     </div>
+                                    <form action="{{ route('update.trip.status', $trip->id) }}" method="POST">
+                                        @csrf
+
+                                        <div class="form-group">
+                                            <label>Change Status :</label>
+
+                                            <select class="form-control" name="status">
+                                                <option value="created" @if ($trip->status == 'created') selected @endif>Created</option>
+                                                <option value="scheduled" @if ($trip->status == 'scheduled') selected @endif>Scheduled</option>
+                                                <option value="pending" @if ($trip->status == 'pending') selected @endif>Pending</option>
+                                                <option value="in_progress" @if ($trip->status == 'in_progress') selected @endif>In Progress</option>
+                                                <option value="completed" @if ($trip->status == 'completed') selected @endif>Completed</option>
+                                                <option value="cancelled" @if ($trip->status == 'cancelled') selected @endif>Cancelled</option>
+                                                <option value="expired" @if ($trip->status == 'expired') selected @endif>Expired</option>
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-light px-5">
+                                            <i class="fa fa-save"></i> Save
+                                        </button>
+                                    </form>
 
                                 </div>
                             </div>

@@ -186,4 +186,17 @@ class TripController extends Controller
     }
     return response()->json(['error' => 'Scooter not found'], 404);
 }
+public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|in:created,scheduled,pending,in_progress,completed,cancelled,expired'
+    ]);
+
+    $trip = Trip::findOrFail($id);
+
+    $trip->status = $request->status;
+    $trip->save();
+
+    return back()->with('success', 'Status updated successfully');
+}
 }

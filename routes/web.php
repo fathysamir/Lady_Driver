@@ -167,6 +167,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/trip/view/{id}', [TripController::class, 'view'])->name('view.trip');
     Route::get('/getMotorcycleModels', [TripController::class, 'getMotorcycleModels'])->name('getMotorcycleModels');
     Route::get('/scooter-location/{id}', [TripController::class, 'getScooterLocation']);
+    Route::post('/trip/update-status/{id}', [TripController::class, 'updateStatus'])->name('update.trip.status');
     //////////////////////////////////////////
     Route::any('/settings', [SettingController::class, 'index'])->name('settings');
     Route::get('/setting/edit/{id}', [SettingController::class, 'edit'])->name('edit.setting');
