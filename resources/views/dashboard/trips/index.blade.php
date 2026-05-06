@@ -14,8 +14,8 @@
                         <div class="card-body">
                             <div style="text-align: center;">
                                 <form id="searchForm" class="search-bar" style="margin-bottom:1%;margin-left:0px;"
-                                    method="post" action="{{ route('trips') }}" enctype="multipart/form-data">
-                                    @csrf
+                                    method="GET" action="{{ route('trips') }}" enctype="multipart/form-data">
+
                                     {{-- Hidden inputs for tab filtering --}}
                                     <input type="hidden" name="type" id="type_input"
                                         value="{{ request('type', 'car') }}">
