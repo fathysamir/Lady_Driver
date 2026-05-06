@@ -356,6 +356,13 @@ function showTimeTab(tripType, timeFilter) {
 
     document.getElementById('type_input').value = tripType;
     document.getElementById('time_filter_input').value = timeFilter;
+
+    // Update URL so pagination links carry type and time_filter
+    const url = new URL(window.location.href);
+    url.searchParams.set('type', tripType);
+    url.searchParams.set('time_filter', timeFilter);
+    url.searchParams.delete('page');
+    window.history.replaceState(null, '', url.toString());
 }
 
 function toggleFilters() {
