@@ -226,7 +226,9 @@
                                                                                 @if ($trip->scooter && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                                 class="img-circle" alt="user avatar"></span>
                                                                         {!! $trip->scooter ? highlight($trip->scooter->owner->name, $search ?? '') : 'N/A' !!}</td>
-
+                                                                        <td>
+                                                                            {!! highlight($trip->scooter->owner->phone ?? 'N/A', $search ?? '') !!}
+                                                                        </td>
                                                                     <td>
                                                                         @if ($trip->scooter)
                                                                             {{ $trip->scooter->motorcycleMark->en_name ?? 'N/A' }} -
@@ -235,15 +237,15 @@
                                                                             N/A
                                                                         @endif
                                                                     </td>
-                                                                    <td>
-                                                                        {!! highlight($trip->scooter->owner->phone ?? 'N/A', $search ?? '') !!}
-                                                                    </td>
+
                                                                 @else
                                                                     <td><span class="user-profile"><img
                                                                                 @if ($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                                 class="img-circle" alt="user avatar"></span>
                                                                         {!! $trip->car ? highlight($trip->car->owner->name, $search ?? '') : 'N/A' !!}</td>
-
+                                                                        <td>
+                                                                            {!! highlight($trip->car->owner->phone ?? 'N/A', $search ?? '') !!}
+                                                                        </td>
                                                                     <td>
                                                                         @if ($trip->car)
                                                                             {{ $trip->car->mark->name }} -
@@ -252,9 +254,7 @@
                                                                             N/A
                                                                         @endif
                                                                     </td>
-                                                                    <td>
-                                                                        {!! highlight($trip->car->owner->phone ?? 'N/A', $search ?? '') !!}
-                                                                    </td>
+
                                                                 @endif
 
                                                                 <td>{{ date('Y-m-d h:i a', strtotime($trip->created_at)) }}
