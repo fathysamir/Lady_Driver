@@ -29,126 +29,88 @@ class TripController extends Controller
     public function index(Request $request)
     {
         $all_trips = Trip::orderBy('id', 'desc')
-            ->whereIn('status', ['scheduled', 'pending', 'in_progress', 'completed', 'cancelled']);
+            ->whereIn('status', [
+                'scheduled',
+                'pending',
+                'in_progress',
+                'completed',
+                'cancelled'
+            ]);
+
 
         if ($request->filled('type')) {
             $all_trips->where('type', $request->type);
         }
 
         if ($request->filled('time_filter')) {
-            $time = $request->time_filter;
-
-            if ($time === 'scheduled') {
+            if ($request->time_filter === 'scheduled') {
                 $all_trips->whereIn('status', ['pending', 'scheduled']);
-            } elseif ($time === 'current') {
+            } elseif ($request->time_filter === 'current') {
                 $all_trips->where('status', 'in_progress');
-            } elseif ($time === 'past') {
+            } elseif ($request->time_filter === 'past') {
                 $all_trips->whereIn('status', ['completed', 'cancelled']);
             }
         }
 
-        // Search
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $all_trips->where(function ($query) use ($search, $request) {
-                $query->where('code', 'LIKE', '%' . $search . '%')
-                    ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', '%' . $search . '%');
-                    });
+            $all_trips->where(function ($q) use ($search, $request) {
+                $q->where('code', 'LIKE', "%$search%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'LIKE', "%$search%");
+                  });
 
-                // Search depending on type
                 if ($request->type === 'scooter') {
-                    $query->orWhereHas('scooter.owner', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', '%' . $search . '%');
+                    $q->orWhereHas('scooter.owner', function ($s) use ($search) {
+                        $s->where('name', 'LIKE', "%$search%");
                     });
                 } else {
-                    $query->orWhereHas('car.owner', function ($q) use ($search) {
-                        $q->where('name', 'LIKE', '%' . $search . '%');
+                    $q->orWhereHas('car.owner', function ($c) use ($search) {
+                        $c->where('name', 'LIKE', "%$search%");
                     });
                 }
             });
         }
 
-        // Client filter
         if ($request->filled('user')) {
             $all_trips->where('user_id', $request->user);
         }
 
-        // Created date
-        if ($request->filled('created_date')) {
-            $all_trips->whereDate('created_at', $request->created_date);
-        }
-
-        // Payment status
-        if ($request->filled('payment_status')) {
-            $all_trips->where('payment_status', $request->payment_status);
-        }
-
-        // Status dropdown
         if ($request->filled('status')) {
             $all_trips->where('status', $request->status);
         }
 
-        // Air conditioned (only for cars)
-        if ($request->filled('air_conditioned') && $request->type !== 'scooter') {
-            $all_trips->where('air_conditioned', '1');
-        }
-
-        // Driver filter
         if ($request->filled('driver')) {
             if ($request->type === 'scooter') {
-                $all_trips->whereHas('scooter', function ($query) use ($request) {
-                    $query->where('user_id', $request->driver);
+                $all_trips->whereHas('scooter', function ($q) use ($request) {
+                    $q->where('user_id', $request->driver);
                 });
             } else {
-                $all_trips->whereHas('car', function ($query) use ($request) {
-                    $query->where('user_id', $request->driver);
+                $all_trips->whereHas('car', function ($q) use ($request) {
+                    $q->where('user_id', $request->driver);
                 });
             }
         }
 
-        // Mark filter (car or motorcycle)
-        if ($request->filled('mark')) {
-            if ($request->type === 'scooter') {
-                $all_trips->whereHas('scooter', function ($query) use ($request) {
-                    $query->where('motorcycle_mark_id', $request->mark);
-                });
-            } else {
-                $all_trips->whereHas('car', function ($query) use ($request) {
-                    $query->where('car_mark_id', $request->mark);
-                });
-            }
-        }
 
-        // Model filter (car or motorcycle)
-        if ($request->filled('model')) {
-            if ($request->type === 'scooter') {
-                $all_trips->whereHas('scooter', function ($query) use ($request) {
-                    $query->where('motorcycle_model_id', $request->model);
-                });
-            } else {
-                $all_trips->whereHas('car', function ($query) use ($request) {
-                    $query->where('car_model_id', $request->model);
-                });
-            }
-        }
+        $all_trips = $all_trips
+            ->paginate(12)
+            ->appends($request->query());
 
-        $all_trips = $all_trips->paginate(12)->withQueryString();
+        $drivers = User::whereHas('roles', fn($q) =>
+            $q->where('name', 'Driver')
+        )->get();
 
-        $drivers = User::whereHas('roles', function ($query) {
-            $query->where('roles.name', 'Driver');
-        })->get();
+        $users = User::whereHas('roles', fn($q) =>
+            $q->where('name', 'Client')
+        )->get();
 
-        $users = User::whereHas('roles', function ($query) {
-            $query->where('roles.name', 'Client');
-        })->get();
-
-        $car_marks = CarMark::all();
-        $motorcycle_marks = MotorcycleMark::all();
-        $search = $request->search;
-
-        return view('dashboard.trips.index', compact('all_trips', 'drivers', 'users', 'car_marks', 'motorcycle_marks', 'search'));
+        return view('dashboard.trips.index', compact(
+            'all_trips',
+            'drivers',
+            'users'
+        ));
     }
 
     public function view($id)
