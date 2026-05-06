@@ -305,138 +305,117 @@
             });
         });
 
-        function showTab(tripType, timeFilter = 'current') {
-    const bars = document.querySelectorAll('.time-filter-bar');
-    bars.forEach(bar => bar.style.display = 'none');
+        function showTab(tripType) {
+            const bars = document.querySelectorAll('.time-filter-bar');
+            bars.forEach(bar => bar.style.display = 'none');
 
-    const targetBar = document.getElementById('bar-' + tripType);
-    if (targetBar) targetBar.style.display = 'inline-flex';
+            const targetBar = document.getElementById('bar-' + tripType);
+            if (targetBar) targetBar.style.display = 'inline-flex';
 
-    document.querySelectorAll('.trip-type-btn').forEach(btn => {
-        if (btn.getAttribute('data-type') === tripType) {
-            btn.style.backgroundColor = '#30638a';
-            btn.style.color = 'white';
-        } else {
-            btn.style.backgroundColor = '';
-            btn.style.color = '';
-        }
-    });
-
-    updateMarkDropdown(tripType);
-
-    const airConditionedCheckbox = document.getElementById('airConditionedCheckbox');
-    if (tripType === 'scooter') {
-        airConditionedCheckbox.style.display = 'none';
-    } else {
-        airConditionedCheckbox.style.display = 'block';
-    }
-
-    showTimeTab(tripType, timeFilter);
-}
-
-function showTimeTab(tripType, timeFilter) {
-    const tabs = document.querySelectorAll('.trip-tab');
-    tabs.forEach(tab => tab.style.display = 'none');
-
-    const targetTab = document.getElementById('tab-' + tripType + '-' + timeFilter);
-    if (targetTab) targetTab.style.display = 'block';
-
-    const currentBar = document.getElementById('bar-' + tripType);
-    if (currentBar) {
-        currentBar.querySelectorAll('.time-filter-btn').forEach(btn => {
-            if (btn.getAttribute('data-filter') === timeFilter) {
-                btn.style.backgroundColor = '#30638a';
-                btn.style.color = 'white';
-            } else {
-                btn.style.backgroundColor = '';
-                btn.style.color = '';
-            }
-        });
-    }
-
-    document.getElementById('type_input').value = tripType;
-    document.getElementById('time_filter_input').value = timeFilter;
-
-    // Update URL
-    const url = new URL(window.location.href);
-    url.searchParams.set('type', tripType);
-    url.searchParams.set('time_filter', timeFilter);
-    url.searchParams.delete('page');
-    window.history.replaceState(null, '', url.toString());
-
-    // Fix all pagination links to include current type and time_filter
-    updatePaginationLinks(tripType, timeFilter);
-}
-
-function updatePaginationLinks(tripType, timeFilter) {
-    document.querySelectorAll('.pagination a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href) {
-            const url = new URL(href, window.location.origin);
-            url.searchParams.set('type', tripType);
-            url.searchParams.set('time_filter', timeFilter);
-            link.setAttribute('href', url.toString());
-        }
-    });
-}
-
-function toggleFilters() {
-    const filterOptions = document.getElementById("filterOptions");
-    filterOptions.style.display = (filterOptions.style.display === "none") ? "block" : "none";
-}
-
-function updateMarkDropdown(tripType) {
-    const markSelect = document.getElementById('markSelect');
-    const modelSelect = document.getElementById('modelSelect');
-    const currentMark = '{{ request("mark") }}';
-
-    markSelect.innerHTML = '<option value="">Select Vehicle Mark</option>';
-    modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
-    modelSelect.style.display = 'none';
-
-    if (tripType === 'scooter') {
-        @foreach ($motorcycle_marks as $mark)
-            markSelect.innerHTML += `<option value="{{ $mark->id }}" ${currentMark == '{{ $mark->id }}' ? 'selected' : ''}>{{ $mark->en_name }} - {{ $mark->ar_name }}</option>`;
-        @endforeach
-    } else {
-        @foreach ($car_marks as $mark)
-            markSelect.innerHTML += `<option value="{{ $mark->id }}" ${currentMark == '{{ $mark->id }}' ? 'selected' : ''}>{{ $mark->en_name }} - {{ $mark->ar_name }}</option>`;
-        @endforeach
-    }
-}
-
-document.getElementById('markSelect').addEventListener('change', function () {
-    const markId = this.value;
-    const modelSelect = document.getElementById('modelSelect');
-    const currentType = document.getElementById('type_input').value;
-
-    const endpoint = currentType === 'scooter'
-        ? '/admin-dashboard/getMotorcycleModels?markId=' + markId
-        : '/admin-dashboard/getModels?markId=' + markId;
-
-    fetch(endpoint)
-        .then(response => response.json())
-        .then(data => {
-            modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
-            data.forEach(model => {
-                modelSelect.innerHTML += `<option value="${model.id}">${model.en_name} - ${model.ar_name}</option>`;
+            document.querySelectorAll('.trip-type-btn').forEach(btn => {
+                if (btn.getAttribute('data-type') === tripType) {
+                    btn.style.backgroundColor = '#30638a';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.backgroundColor = '';
+                    btn.style.color = '';
+                }
             });
-            modelSelect.style.display = 'block';
-        })
-        .catch(err => console.error('Error:', err));
-});
 
-$(document).ready(function () {
-    $('#submitForm').on('click', function () {
-        $('#searchForm').submit();
-    });
-});
+            // Update mark dropdown based on vehicle type
+            updateMarkDropdown(tripType);
 
-window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentType = urlParams.get('type') || 'car';
-    const currentTime = urlParams.get('time_filter') || 'current';
-    showTab(currentType, currentTime);
-});
+            // Show/hide air conditioned checkbox
+            const airConditionedCheckbox = document.getElementById('airConditionedCheckbox');
+            if (tripType === 'scooter') {
+                airConditionedCheckbox.style.display = 'none';
+            } else {
+                airConditionedCheckbox.style.display = 'block';
+            }
+
+            showTimeTab(tripType, 'current');
+        }
+
+        function showTimeTab(tripType, timeFilter) {
+            const tabs = document.querySelectorAll('.trip-tab');
+            tabs.forEach(tab => tab.style.display = 'none');
+
+            const targetTab = document.getElementById('tab-' + tripType + '-' + timeFilter);
+            if (targetTab) targetTab.style.display = 'block';
+
+            const currentBar = document.getElementById('bar-' + tripType);
+            if (currentBar) {
+                currentBar.querySelectorAll('.time-filter-btn').forEach(btn => {
+                    if (btn.getAttribute('data-filter') === timeFilter) {
+                        btn.style.backgroundColor = '#30638a';
+                        btn.style.color = 'white';
+                    } else {
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '';
+                    }
+                });
+            }
+
+            // Update hidden inputs
+            document.getElementById('type_input').value = tripType;
+            document.getElementById('time_filter_input').value = timeFilter;
+        }
+
+        function toggleFilters() {
+            const filterOptions = document.getElementById("filterOptions");
+            filterOptions.style.display = (filterOptions.style.display === "none") ? "block" : "none";
+        }
+
+        function updateMarkDropdown(tripType) {
+            const markSelect = document.getElementById('markSelect');
+            const modelSelect = document.getElementById('modelSelect');
+            const currentMark = '{{ request("mark") }}';
+
+            // Clear both dropdowns
+            markSelect.innerHTML = '<option value="">Select Vehicle Mark</option>';
+            modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
+            modelSelect.style.display = 'none';
+
+            // Populate marks based on vehicle type
+            if (tripType === 'scooter') {
+                @foreach ($motorcycle_marks as $mark)
+                    markSelect.innerHTML += `<option value="{{ $mark->id }}" ${currentMark == '{{ $mark->id }}' ? 'selected' : ''}>{{ $mark->en_name }} - {{ $mark->ar_name }}</option>`;
+                @endforeach
+            } else {
+                @foreach ($car_marks as $mark)
+                    markSelect.innerHTML += `<option value="{{ $mark->id }}" ${currentMark == '{{ $mark->id }}' ? 'selected' : ''}>{{ $mark->en_name }} - {{ $mark->ar_name }}</option>`;
+                @endforeach
+            }
+        }
+
+        document.getElementById('markSelect').addEventListener('change', function() {
+            const markId = this.value;
+            const modelSelect = document.getElementById('modelSelect');
+            const currentType = document.getElementById('type_input').value;
+
+            // Determine the correct endpoint based on vehicle type
+            const endpoint = currentType === 'scooter'
+                ? '/admin-dashboard/getMotorcycleModels?markId=' + markId
+                : '/admin-dashboard/getModels?markId=' + markId;
+
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
+                    data.forEach(model => {
+                        modelSelect.innerHTML +=
+                            `<option value="${model.id}">${model.en_name} - ${model.ar_name}</option>`;
+                    });
+                    modelSelect.style.display = 'block';
+                })
+                .catch(err => console.error('Error:', err));
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentType = document.getElementById('type_input').value || 'car';
+            const currentTime = document.getElementById('time_filter_input').value || 'current';
+            showTab(currentType);
+            showTimeTab(currentType, currentTime);
+        });
     </script>
 @endpush
