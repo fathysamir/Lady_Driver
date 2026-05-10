@@ -12,6 +12,7 @@ use App\Models\Suggestion;
 use App\Models\Trip;
 use App\Models\TripCancellingReason;
 use App\Models\TripChat;
+use App\Models\User;
 use App\Models\UserAddress;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
