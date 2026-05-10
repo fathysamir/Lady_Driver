@@ -143,6 +143,58 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
 
         });
     }
+   ///////////////////////////////////////////////////////////////////////////////////////
+
+   private function startPendingWatchdog(Trip $trip)
+{
+    $maxDuration = 7200; // 2 hours
+    $interval    = 60;
+    $startTime   = time();
+
+    $this->loop->addPeriodicTimer($interval, function (TimerInterface $timer) use ($trip, $startTime, $maxDuration) {
+        $trip->refresh();
+
+        if (!in_array($trip->status, ['pending'])) {
+            echo "✅ Watchdog: trip {$trip->id} is now {$trip->status}, stopping.\n";
+            $this->loop->cancelTimer($timer);
+            return;
+        }
+
+        if (time() - $startTime < $maxDuration) {
+            echo "⏳ Watchdog: trip {$trip->id} still pending...\n";
+            return;
+        }
+
+        echo "🔥 Watchdog: trip {$trip->id} stuck in pending for 2 hours, expiring.\n";
+        $this->loop->cancelTimer($timer);
+
+        $trip->status = 'expired';
+        $trip->save();
+
+        $payload = json_encode([
+            'type'    => 'expired_trip',
+            'data'    => ['trip_id' => $trip->id],
+            'message' => 'Your driver did not start the trip in time.',
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $client = $this->getClientByUserId($trip->user_id);
+        if ($client) $client->send($payload);
+
+        $driverUserId = null;
+        if ($trip->car_id && $trip->car) {
+            $driverUserId = $trip->car->user_id;
+        } elseif ($trip->scooter_id && $trip->scooter) {
+            $driverUserId = $trip->scooter->user_id;
+        }
+
+        if ($driverUserId) {
+            $driver = $this->getClientByUserId($driverUserId);
+            if ($driver) $driver->send($payload);
+        }
+    });
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
     public function onOpen(ConnectionInterface $conn)
     {
 
@@ -1343,6 +1395,9 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
 
             $trip->save();
             $offer->save();
+            if ($trip->status === 'pending') {
+                $this->startPendingWatchdog($trip);
+            }
             Offer::where('id', '!=', $data['offer_id'])->where('trip_id', $trip->id)->update(['status' => 'expired']);
             $otherOffers = Offer::where('id', '!=', $data['offer_id'])->where('trip_id', $trip->id)->get();
             foreach ($otherOffers as $exp_offer) {
