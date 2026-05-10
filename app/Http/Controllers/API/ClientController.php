@@ -797,115 +797,41 @@ if ($trip->scooter) {
     // }
 
     public function completed_trips()
-    {
-        $user = auth()->user();
-
-        $completed_trips = Trip::query()
-            ->where('user_id', $user->id)
-            ->where('status', 'completed')
-
-            // مهم لتفادي أي inconsistency
-            ->select('trips.*')
-
-            ->with([
-                // minimal relations زي باقي endpoints
-                'user:id,name,country_code,phone',
-
-                'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
-                'car.mark',
-                'car.model',
-                'car.owner:id,name,country_code,phone',
-
-                'scooter.motorcycleMark',
-                'scooter.motorcycleModel',
-                'scooter.owner:id,name,country_code,phone',
-
-                'finalDestination:id,trip_id,lat,lng,address',
-            ])
-
-            ->latest()
-            ->get()
-            ->map(function ($trip) {
-
-                // barcode standardization (same across all APIs)
-                $trip->barcode = url(barcodeImage($trip->id));
-                // Clean car plate
-if ($trip->car) {
-    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-}
-
-// Clean scooter plate
-if ($trip->scooter) {
-    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-}
-
-                // driver flag
-                $trip->is_driver_arrived = !is_null($trip->driver_arrived);
-
-                // ================= IMAGE HANDLING =================
-                if ($trip->car && $trip->car->owner) {
-                    $trip->car->owner->image = getFirstMediaUrl(
-                        $trip->car->owner,
-                        $trip->car->owner->avatarCollection
-                    );
-                }
-
-                if ($trip->scooter && $trip->scooter->owner) {
-                    $trip->scooter->owner->image = getFirstMediaUrl(
-                        $trip->scooter->owner,
-                        $trip->scooter->owner->avatarCollection
-                    );
-                }
-
-                return $trip;
-            });
-
-        return $this->sendResponse($completed_trips, null, 200);
-    }
-
-    public function cancelled_trips()
 {
     $user = auth()->user();
 
-    $cancelled_trips = Trip::query()
+    $completed_trips = Trip::query()
         ->where('user_id', $user->id)
-        ->where('status', 'cancelled')
-
-        // مهم جدًا: نخليها clean
+        ->where('status', 'completed')
         ->select('trips.*')
-
         ->with([
-            // user minimal (لو محتاجه)
             'user:id,name,country_code,phone',
-
-            // car lightweight زي TripByID
             'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
             'car.mark',
             'car.model',
             'car.owner:id,name,country_code,phone',
-
-            // scooter lightweight
             'scooter.motorcycleMark',
             'scooter.motorcycleModel',
             'scooter.owner:id,name,country_code,phone',
-
-            // essentials only
-            'cancelled_by:id,name,phone',
-            'cancelling_reason:id,ar_reason,en_reason',
             'finalDestination:id,trip_id,lat,lng,address',
         ])
-
         ->latest()
+        ->take(20)
         ->get()
         ->map(function ($trip) {
 
-            // barcode standardization
             $trip->barcode = url(barcodeImage($trip->id));
 
-            // driver flag
+            if ($trip->car) {
+                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+            }
+
+            if ($trip->scooter) {
+                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+            }
+
             $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
-            // image handling (safe null check)
             if ($trip->car && $trip->car->owner) {
                 $trip->car->owner->image = getFirstMediaUrl(
                     $trip->car->owner,
@@ -920,7 +846,55 @@ if ($trip->scooter) {
                 );
             }
 
-            // rename consistency with other APIs
+            return $trip;
+        });
+
+    return $this->sendResponse($completed_trips, null, 200);
+}
+public function cancelled_trips()
+{
+    $user = auth()->user();
+
+    $cancelled_trips = Trip::query()
+        ->where('user_id', $user->id)
+        ->where('status', 'cancelled')
+        ->select('trips.*')
+        ->with([
+            'user:id,name,country_code,phone',
+            'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
+            'car.mark',
+            'car.model',
+            'car.owner:id,name,country_code,phone',
+            'scooter.motorcycleMark',
+            'scooter.motorcycleModel',
+            'scooter.owner:id,name,country_code,phone',
+            'cancelled_by:id,name,phone',
+            'cancelling_reason:id,ar_reason,en_reason',
+            'finalDestination:id,trip_id,lat,lng,address',
+        ])
+        ->latest()
+        ->take(20)
+        ->get()
+        ->map(function ($trip) {
+
+            $trip->barcode = url(barcodeImage($trip->id));
+
+            $trip->is_driver_arrived = !is_null($trip->driver_arrived);
+
+            if ($trip->car && $trip->car->owner) {
+                $trip->car->owner->image = getFirstMediaUrl(
+                    $trip->car->owner,
+                    $trip->car->owner->avatarCollection
+                );
+            }
+
+            if ($trip->scooter && $trip->scooter->owner) {
+                $trip->scooter->owner->image = getFirstMediaUrl(
+                    $trip->scooter->owner,
+                    $trip->scooter->owner->avatarCollection
+                );
+            }
+
             $trip->final_destination = $trip->finalDestination;
             unset($trip->finalDestination);
 

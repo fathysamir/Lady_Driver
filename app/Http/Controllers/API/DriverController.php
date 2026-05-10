@@ -1294,8 +1294,10 @@ if ($trip->scooter) {
 }
 public function driver_completed_trips()
 {
-    if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
-        $car             = Car::where('user_id', auth()->user()->id)->first();
+    $user = auth()->user();
+
+    if (in_array($user->driver_type, ['car', 'comfort_car'])) {
+        $car             = Car::where('user_id', $user->id)->first();
         $completed_trips = Trip::where('car_id', $car->id)
             ->where('status', 'completed')
             ->with([
@@ -1305,10 +1307,11 @@ public function driver_completed_trips()
                 'user:id,name,country_code,phone',
                 'finalDestination:id,trip_id,lat,lng,address',
             ])
+            ->latest()
+            ->take(20)
             ->get()
             ->map(function ($trip) {
 
-                // Distance
                 $vehicle = $trip->car;
                 if ($vehicle) {
                     $response = calculate_distance(
@@ -1319,18 +1322,13 @@ public function driver_completed_trips()
                     $trip->client_location_duration = intval($response['duration_in_M']);
                 }
 
-                // Barcode
                 $trip->barcode = url(barcodeImage($trip->id));
-
-                // is_driver_arrived
                 $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
-                // Clean car plate
                 if ($trip->car) {
                     $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
                 }
 
-                // User image + rate
                 if ($trip->user) {
                     $trip->user->image          = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                     $trip->user->id_front_image = getFirstMediaUrl($trip->user, $trip->user->IDfrontImageCollection);
@@ -1345,7 +1343,6 @@ public function driver_completed_trips()
                     );
                 }
 
-                // Car owner image + rate
                 if ($trip->car && $trip->car->owner) {
                     $trip->car->owner->image          = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
                     $trip->car->owner->id_front_image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->IDfrontImageCollection);
@@ -1361,15 +1358,14 @@ public function driver_completed_trips()
                     );
                 }
 
-                // Rename finalDestination
                 $trip->final_destination = $trip->finalDestination;
                 unset($trip->finalDestination);
 
                 return $trip;
             });
 
-    } elseif (auth()->user()->driver_type == 'scooter') {
-        $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
+    } elseif ($user->driver_type == 'scooter') {
+        $scooter         = Scooter::where('user_id', $user->id)->first();
         $completed_trips = Trip::where('scooter_id', $scooter->id)
             ->where('status', 'completed')
             ->with([
@@ -1379,10 +1375,11 @@ public function driver_completed_trips()
                 'user:id,name,country_code,phone',
                 'finalDestination:id,trip_id,lat,lng,address',
             ])
+            ->latest()
+            ->take(20)
             ->get()
             ->map(function ($trip) {
 
-                // Distance
                 $vehicle = $trip->scooter;
                 if ($vehicle) {
                     $response = calculate_distance(
@@ -1393,18 +1390,13 @@ public function driver_completed_trips()
                     $trip->client_location_duration = intval($response['duration_in_M']);
                 }
 
-                // Barcode
                 $trip->barcode = url(barcodeImage($trip->id));
-
-                // is_driver_arrived
                 $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
-                // Clean scooter plate
                 if ($trip->scooter) {
                     $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
                 }
 
-                // User image + rate
                 if ($trip->user) {
                     $trip->user->image          = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                     $trip->user->id_front_image = getFirstMediaUrl($trip->user, $trip->user->IDfrontImageCollection);
@@ -1419,7 +1411,6 @@ public function driver_completed_trips()
                     );
                 }
 
-                // Scooter owner image + rate
                 if ($trip->scooter && $trip->scooter->owner) {
                     $trip->scooter->owner->image          = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
                     $trip->scooter->owner->id_front_image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->IDfrontImageCollection);
@@ -1435,7 +1426,6 @@ public function driver_completed_trips()
                     );
                 }
 
-                // Rename finalDestination
                 $trip->final_destination = $trip->finalDestination;
                 unset($trip->finalDestination);
 
@@ -1448,8 +1438,10 @@ public function driver_completed_trips()
 
 public function driver_cancelled_trips()
 {
-    if (in_array(auth()->user()->driver_type, ['car', 'comfort_car'])) {
-        $car             = Car::where('user_id', auth()->user()->id)->first();
+    $user = auth()->user();
+
+    if (in_array($user->driver_type, ['car', 'comfort_car'])) {
+        $car             = Car::where('user_id', $user->id)->first();
         $cancelled_trips = Trip::where('car_id', $car->id)
             ->where('status', 'cancelled')
             ->with([
@@ -1460,10 +1452,11 @@ public function driver_cancelled_trips()
                 'cancelled_by',
                 'finalDestination:id,trip_id,lat,lng,address',
             ])
+            ->latest()
+            ->take(20)
             ->get()
             ->map(function ($trip) {
 
-                // Distance
                 $vehicle = $trip->car;
                 if ($vehicle) {
                     $response = calculate_distance(
@@ -1474,18 +1467,13 @@ public function driver_cancelled_trips()
                     $trip->client_location_duration = intval($response['duration_in_M']);
                 }
 
-                // Barcode
                 $trip->barcode = url(barcodeImage($trip->id));
-
-                // is_driver_arrived
                 $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
-                // Clean car plate
                 if ($trip->car) {
                     $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
                 }
 
-                // User image + rate
                 if ($trip->user) {
                     $trip->user->image          = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                     $trip->user->id_front_image = getFirstMediaUrl($trip->user, $trip->user->IDfrontImageCollection);
@@ -1500,7 +1488,6 @@ public function driver_cancelled_trips()
                     );
                 }
 
-                // Car owner image + rate
                 if ($trip->car && $trip->car->owner) {
                     $trip->car->owner->image          = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
                     $trip->car->owner->id_front_image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->IDfrontImageCollection);
@@ -1516,15 +1503,14 @@ public function driver_cancelled_trips()
                     );
                 }
 
-                // Rename finalDestination
                 $trip->final_destination = $trip->finalDestination;
                 unset($trip->finalDestination);
 
                 return $trip;
             });
 
-    } elseif (auth()->user()->driver_type == 'scooter') {
-        $scooter         = Scooter::where('user_id', auth()->user()->id)->first();
+    } elseif ($user->driver_type == 'scooter') {
+        $scooter         = Scooter::where('user_id', $user->id)->first();
         $cancelled_trips = Trip::where('scooter_id', $scooter->id)
             ->where('status', 'cancelled')
             ->with([
@@ -1535,10 +1521,11 @@ public function driver_cancelled_trips()
                 'cancelled_by',
                 'finalDestination:id,trip_id,lat,lng,address',
             ])
+            ->latest()
+            ->take(20)
             ->get()
             ->map(function ($trip) {
 
-                // Distance
                 $vehicle = $trip->scooter;
                 if ($vehicle) {
                     $response = calculate_distance(
@@ -1549,18 +1536,13 @@ public function driver_cancelled_trips()
                     $trip->client_location_duration = intval($response['duration_in_M']);
                 }
 
-                // Barcode
                 $trip->barcode = url(barcodeImage($trip->id));
-
-                // is_driver_arrived
                 $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
-                // Clean scooter plate
                 if ($trip->scooter) {
                     $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
                 }
 
-                // User image + rate
                 if ($trip->user) {
                     $trip->user->image          = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
                     $trip->user->id_front_image = getFirstMediaUrl($trip->user, $trip->user->IDfrontImageCollection);
@@ -1575,7 +1557,6 @@ public function driver_cancelled_trips()
                     );
                 }
 
-                // Scooter owner image + rate
                 if ($trip->scooter && $trip->scooter->owner) {
                     $trip->scooter->owner->image          = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
                     $trip->scooter->owner->id_front_image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->IDfrontImageCollection);
@@ -1591,7 +1572,6 @@ public function driver_cancelled_trips()
                     );
                 }
 
-                // Rename finalDestination
                 $trip->final_destination = $trip->finalDestination;
                 unset($trip->finalDestination);
 
