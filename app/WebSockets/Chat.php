@@ -87,6 +87,16 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
         echo "✅ Push sent to: {$deviceToken}\n";
     } catch (\Exception $e) {
         echo "❌ Push failed: " . $e->getMessage() . "\n";
+
+        if (str_contains($e->getMessage(), 'not-registered')) {
+            // delete token from DB
+            $user = User::where('device_token', $deviceToken)->first();
+            if ($user) {
+                $user->device_token = null;
+                $user->save();
+                echo "🧹 Removed invalid FCM token\n";
+            }
+        }
     }
 }
 
