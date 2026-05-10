@@ -26,12 +26,21 @@ class Chat implements MessageComponentInterface
     protected $clients;
     protected $loop;
     protected $firebaseService;
+    protected $messaging;
     private $clientUserIdMap;
 
     public function __construct($loop)
     {
         $this->clients = new \SplObjectStorage();
         $this->loop    = $loop;
+        // ADD THIS after $this->loop = $loop;
+try {
+    $firebase        = (new \Kreait\Firebase\Factory)->withServiceAccount(storage_path('firebase_credentials.json'));
+    $this->messaging = $firebase->createMessaging();
+    echo "✅ Firebase initialized\n";
+} catch (\Exception $e) {
+    echo "❌ Firebase initialization failed: " . $e->getMessage() . "\n";
+}
 
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
@@ -66,6 +75,21 @@ class Chat implements MessageComponentInterface
             echo "❌ Redis connection failed: " . $e->getMessage() . "\n";
         });
     }
+///////////////////////////////////////////////////////////////////////////////////////
+private function sendPushNotification($deviceToken, $title, $body, $data = [])
+{
+    try {
+        $message = \Kreait\Firebase\Messaging\CloudMessage::withTarget('token', $deviceToken)
+            ->withNotification(\Kreait\Firebase\Messaging\Notification::create($title, $body))
+            ->withData($data);
+
+        $this->messaging->send($message);
+        echo "✅ Push sent to: {$deviceToken}\n";
+    } catch (\Exception $e) {
+        echo "❌ Push failed: " . $e->getMessage() . "\n";
+    }
+}
+
 
     ///////////////////////////////////////////////////////////////////////////////////////
     public function driverArrivingBroadcast($data)
@@ -432,17 +456,24 @@ class Chat implements MessageComponentInterface
                     foreach ($eligibleCars as $car) {
                         $eligibleDriverIds[] = $car->user_id;
                         if ($car->owner->device_token) {
-                            // $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
-                            // $data=[
-                            //     "title"=>"Lady Driver - New Trip",
-                            //     "message"=>"There is a new trip created in your current area",
-                            //     "screen"=>"New Trip",
-                            //     "ID"=>$trip->id
-                            // ];
-                            // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
+                            $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                            $distance2 = round($response2['distance_in_km'], 1);
+                            $duration2 = intval($response2['duration_in_M']);
+                            $this->sendPushNotification(
+                                $car->owner->device_token,
+                                'Lady Driver',
+                                'New Trip Near You',
+                                [
+                                    'screen'   => 'New Trip',
+                                    'ID'       => (string) $trip->id,
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                                    'title_en' => 'New Trip Near You',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
+                                ]
+                            );
                         }
                     }
-
                     if (count($eligibleDriverIds) > 0) {
                         foreach ($eligibleDriverIds as $eligibleDriverId) {
                             $client = $this->getClientByUserId($eligibleDriverId);
@@ -510,14 +541,22 @@ class Chat implements MessageComponentInterface
                     foreach ($eligibleCars as $car) {
                         $eligibleDriverIds[] = $car->user_id;
                         if ($car->owner->device_token) {
-                            // $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
-                            // $data=[
-                            //     "title"=>"Lady Driver - New Trip",
-                            //     "message"=>"There is a new trip created in your current area",
-                            //     "screen"=>"New Trip",
-                            //     "ID"=>$trip->id
-                            // ];
-                            // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
+                            $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                            $distance2 = round($response2['distance_in_km'], 1);
+                            $duration2 = intval($response2['duration_in_M']);
+                            $this->sendPushNotification(
+                                $car->owner->device_token,
+                                'Lady Driver',
+                                'New Trip Near You',
+                                [
+                                    'screen'   => 'New Trip',
+                                    'ID'       => (string) $trip->id,
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                                    'title_en' => 'New Trip Near You',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
+                                ]
+                            );
                         }
                     }
                     if (count($eligibleDriverIds) > 0) {
@@ -578,14 +617,22 @@ class Chat implements MessageComponentInterface
                     foreach ($eligibleScooters as $scooter) {
                         $eligibleDriverIds[] = $scooter->user_id;
                         if ($scooter->owner->device_token) {
-                            // $this->firebaseService->sendNotification($car->owner->device_token,'Lady Driver - New Trip',"There is a new trip created in your current area",["screen"=>"New Trip","ID"=>$trip->id]);
-                            // $data=[
-                            //     "title"=>"Lady Driver - New Trip",
-                            //     "message"=>"There is a new trip created in your current area",
-                            //     "screen"=>"New Trip",
-                            //     "ID"=>$trip->id
-                            // ];
-                            // Notification::create(['user_id'=>$car->user_id,'data'=>json_encode($data)]);
+                            $response2 = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
+                            $distance2 = round($response2['distance_in_km'], 1);
+                            $duration2 = intval($response2['duration_in_M']);
+                            $this->sendPushNotification(
+                                $scooter->owner->device_token,
+                                'Lady Driver',
+                                'New Trip Near You',
+                                [
+                                    'screen'   => 'New Trip',
+                                    'ID'       => (string) $trip->id,
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                                    'title_en' => 'New Trip Near You',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
+                                ]
+                            );
                         }
                     }
                     if (count($eligibleDriverIds) > 0) {
