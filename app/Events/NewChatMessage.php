@@ -34,18 +34,16 @@ class NewChatMessage implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
-            'id'       => $this->chat->id,
-            'trip_id'  => $this->chat->trip_id,
-            'sender'   => $this->chat->sender_id,
-            'sender_name' => $this->chat->sender->name,
-            'sender_image' => getFirstMedia($this->chat->sender, $this->chat->sender->avatarCollection)
-    ? 'https://api.lady-driver.com' . getFirstMedia($this->chat->sender, $this->chat->sender->avatarCollection)
-    : null,
-            'message'  => $this->chat->message,
-            'location' => $this->chat->location,
-            'image'    => $this->chat->image,
-            'record'   => $this->chat->record,
-            'created'  => $this->chat->created_at->toDateTimeString(),
+            'id'           => $this->chat->id,
+            'trip_id'      => $this->chat->trip_id,
+            'sender'       => $this->chat->sender_id,
+            'sender_name'  => $this->chat->sender->name,
+            'sender_image' => $this->chat->sender->image,
+            'message'      => $this->chat->message,
+            'location'     => $this->chat->location,
+            'image'        => $this->chat->image,
+            'record'       => $this->chat->record,
+            'created'      => $this->chat->created_at->toDateTimeString(),
         ];
     }
 }
