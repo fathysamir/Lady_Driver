@@ -1079,30 +1079,52 @@ public function cancelled_trips()
 
         }
         event(new \App\Events\NewChatMessage($chat, $receiverId));
+        $result = [
+            'id'           => $chat->id,
+            'trip_id'      => $chat->trip_id,
+            'sender'       => $chat->sender_id,
+            'sender_name'  => $chat->sender->name,
+            'sender_image' => getFirstMedia($chat->sender, $chat->sender->avatarCollection)
+                                ? 'https://api.lady-driver.com' . getFirstMedia($chat->sender, $chat->sender->avatarCollection)
+                                : null,
+            'message'      => $chat->message,
+            'location'     => $chat->location,
+            'image'        => $chat->image,
+            'record'       => $chat->record,
+            'seen'         => $chat->seen,
+            'created'      => $chat->created_at->toDateTimeString(),
+        ];
+        return $this->sendResponse($result, 'Message sent successfully', 201);
 
-        return $this->sendResponse($chat, 'Message sent successfully', 201);
     }
 
     public function getTripMessages($id)
-    {
-        $tripChats = TripChat::with('sender')
-            ->where('trip_id', $id)
-            ->orderBy('created_at', 'asc')
-            ->get();
+{
+    $tripChats = TripChat::with('sender')
+        ->where('trip_id', $id)
+        ->orderBy('created_at', 'asc')
+        ->get();
 
-        return $this->sendResponse($tripChats, 'Messages retrieved successfully', 200);
-    }
+    $tripChats = $tripChats->map(function ($chat) {
+        return [
+            'id'           => $chat->id,
+            'trip_id'      => $chat->trip_id,
+            'sender'       => $chat->sender_id,
+            'sender_name'  => $chat->sender->name,
+            'sender_image' => getFirstMedia($chat->sender, $chat->sender->avatarCollection)
+                                ? 'https://api.lady-driver.com' . getFirstMedia($chat->sender, $chat->sender->avatarCollection)
+                                : null,
+            'message'      => $chat->message,
+            'location'     => $chat->location,
+            'image'        => $chat->image,
+            'record'       => $chat->record,
+            'seen'         => $chat->seen,
+            'created'      => $chat->created_at->toDateTimeString(),
+        ];
+    });
 
-    public function getMessage($id)
-    {
-        $tripChat = TripChat::with('sender')
-            ->where('id', $id)
-            ->first();
-        $tripChat->seen = "1";
-        $tripChat->save();
-
-        return $this->sendResponse($tripChat, 'Message retrieved successfully', 200);
-    }
+    return $this->sendResponse($tripChats, 'Messages retrieved successfully', 200);
+}
 
     public function updateUserLocation(Request $request)
     {
