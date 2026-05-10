@@ -11,7 +11,7 @@ class FirebaseService
 
     public function __construct()
     {
-        $serviceAccountPath = public_path('lady-driver-63940-firebase-adminsdk-b90i4-0e286020b0.json');
+        $serviceAccountPath = storage_path('firebase_credentials.json');
         $factory = (new Factory())->withServiceAccount($serviceAccountPath);
         $this->messaging = $factory->createMessaging();
     }
