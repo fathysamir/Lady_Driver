@@ -528,8 +528,10 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                                 [
                                     'screen'   => 'New Trip',
                                     'ID'       => (string) $trip->id,
-                                    'title_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
-                                    'title_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                                    'title_en' => 'New Trip Near You',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
                                 ]
                             );
                         }
@@ -611,8 +613,10 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                                 [
                                     'screen'   => 'New Trip',
                                     'ID'       => (string) $trip->id,
-                                    'title_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
-                                    'title_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                                    'title_en' => 'New Trip Near You',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
                                 ]
                             );
                         }
@@ -685,8 +689,10 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                                 [
                                     'screen'   => 'New Trip',
                                     'ID'       => (string) $trip->id,
-                                    'title_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
-                                    'title_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                                    'title_en' => 'New Trip Near You',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
                                 ]
                             );
                         }
