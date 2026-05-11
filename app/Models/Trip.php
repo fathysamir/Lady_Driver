@@ -107,4 +107,8 @@ class Trip extends Model
         return !is_null($this->driver_arrived);
     }
 
+    public function chats()
+    {
+        return $this->hasMany(TripChat::class, 'trip_id');
+    }
 }
