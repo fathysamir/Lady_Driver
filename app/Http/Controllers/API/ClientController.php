@@ -1143,56 +1143,70 @@ public function cancelled_trips()
             'scooter.owner:id,name',
             'user:id,name',
         ])
-        ->get()
-        ->map(function ($trip) use ($userId) {
-            if ($trip->user_id === $userId) {
-                if (in_array($trip->type, ['car', 'comfort_car']) && $trip->car?->owner) {
-                    $other      = $trip->car->owner;
-                    $otherImage = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
-                } elseif ($trip->type === 'scooter' && $trip->scooter?->owner) {
-                    $other      = $trip->scooter->owner;
-                    $otherImage = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
-                } else {
-                    return null;
-                }
+        ->orderByDesc('updated_at')
+        ->paginate(10); // 👈 pagination هنا
+
+    $data = $trips->getCollection()->map(function ($trip) use ($userId) {
+
+        if ($trip->user_id === $userId) {
+
+            if (in_array($trip->type, ['car', 'comfort_car']) && $trip->car?->owner) {
+                $other = $trip->car->owner;
+                $otherImage = getFirstMediaUrl($other, $other->avatarCollection);
+
+            } elseif ($trip->type === 'scooter' && $trip->scooter?->owner) {
+                $other = $trip->scooter->owner;
+                $otherImage = getFirstMediaUrl($other, $other->avatarCollection);
+
             } else {
-                $other      = $trip->user;
-                $otherImage = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+                return null;
             }
 
-            $lastChat    = $trip->chats->first();
-            $unreadCount = TripChat::where('trip_id', $trip->id)
-                ->where('sender_id', '!=', $userId)
-                ->where('seen', 0)
-                ->count();
+        } else {
+            $other = $trip->user;
+            $otherImage = getFirstMediaUrl($other, $other->avatarCollection);
+        }
 
-            return [
-                'trip_id'      => $trip->id,
-                'trip_code'    => $trip->code,
-                'trip_type'    => $trip->type,
-                'trip_status'  => $trip->status,
-                'other_party'  => [
-                    'id'    => $other->id,
-                    'name'  => $other->name,
-                    'image' => $otherImage,
-                ],
-                'last_message' => $lastChat ? [
-                    'message'    => $lastChat->message,
-                    'location'   => $lastChat->location,
-                    'image'      => $lastChat->image,
-                    'is_mine'    => $lastChat->sender_id === $userId,
-                    'created_at' => $lastChat->created_at->toDateTimeString(),
-                ] : null,
-                'unread_count' => $unreadCount,
-            ];
-        })
-        ->filter()
-        ->sortByDesc(fn($c) => $c['last_message']['created_at'] ?? '')
-        ->values();
+        $lastChat = $trip->chats->first();
+
+        $unreadCount = TripChat::where('trip_id', $trip->id)
+            ->where('sender_id', '!=', $userId)
+            ->where('seen', 0)
+            ->count();
+
+        return [
+            'trip_id'     => $trip->id,
+            'trip_code'   => $trip->code,
+            'trip_type'   => $trip->type,
+            'trip_status' => $trip->status,
+
+            'other_party' => [
+                'id'    => $other->id,
+                'name'  => $other->name,
+                'image' => $otherImage,
+            ],
+
+            'last_message' => $lastChat ? [
+                'message'    => $lastChat->message,
+                'location'   => $lastChat->location,
+                'image'      => $lastChat->image,
+                'is_mine'    => $lastChat->sender_id === $userId,
+                'created_at' => $lastChat->created_at->toDateTimeString(),
+            ] : null,
+
+            'unread_count' => $unreadCount,
+        ];
+    })->filter()->values();
 
     return $this->sendResponse([
-        'count'         => $trips->count(),
-        'conversations' => $trips,
+        'count' => $trips->total(),
+        'conversations' => $data,
+        'pagination' => [
+            'current_page' => $trips->currentPage(),
+            'last_page'    => $trips->lastPage(),
+            'per_page'     => $trips->perPage(),
+            'total'        => $trips->total(),
+        ]
     ], null, 200);
 }
 
