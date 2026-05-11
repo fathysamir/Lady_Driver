@@ -154,6 +154,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/trip-chats/send', [ClientController::class, 'sendMessage']);
     Route::get('/trip-chats/{id}', [ClientController::class, 'getTripMessages']);
     Route::get('/trip-chats/message/{id}', [ClientController::class, 'getMessage']);
+    Route::get('/client/conversations',       [ClientController::class, 'get_conversations']);
+Route::post('/client/messages/mark-seen', [ClientController::class, 'mark_messages_seen']);
     Route::post('/user/update-location', [ClientController::class, 'updateUserLocation']);
 
     Route::post('/live-location/create', [LiveLocationController::class, 'create']);

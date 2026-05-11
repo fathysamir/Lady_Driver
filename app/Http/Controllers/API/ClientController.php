@@ -1127,6 +1127,92 @@ public function cancelled_trips()
         return $this->sendResponse($tripChats, 'Messages retrieved successfully', 200);
     }
 
+    public function get_conversations()
+{
+    $userId = auth()->id();
+
+    $trips = Trip::where(function ($q) use ($userId) {
+            $q->where('user_id', $userId)
+              ->orWhereHas('car', fn($q) => $q->where('user_id', $userId))
+              ->orWhereHas('scooter', fn($q) => $q->where('user_id', $userId));
+        })
+        ->whereHas('chats')
+        ->with([
+            'chats' => fn($q) => $q->orderBy('created_at', 'desc')->limit(1),
+            'car.owner:id,name',
+            'scooter.owner:id,name',
+            'user:id,name',
+        ])
+        ->get()
+        ->map(function ($trip) use ($userId) {
+            if ($trip->user_id === $userId) {
+                if (in_array($trip->type, ['car', 'comfort_car']) && $trip->car?->owner) {
+                    $other      = $trip->car->owner;
+                    $otherImage = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+                } elseif ($trip->type === 'scooter' && $trip->scooter?->owner) {
+                    $other      = $trip->scooter->owner;
+                    $otherImage = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+                } else {
+                    return null;
+                }
+            } else {
+                $other      = $trip->user;
+                $otherImage = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+            }
+
+            $lastChat    = $trip->chats->first();
+            $unreadCount = TripChat::where('trip_id', $trip->id)
+                ->where('sender_id', '!=', $userId)
+                ->where('seen', 0)
+                ->count();
+
+            return [
+                'trip_id'      => $trip->id,
+                'trip_code'    => $trip->code,
+                'trip_type'    => $trip->type,
+                'trip_status'  => $trip->status,
+                'other_party'  => [
+                    'id'    => $other->id,
+                    'name'  => $other->name,
+                    'image' => $otherImage,
+                ],
+                'last_message' => $lastChat ? [
+                    'message'    => $lastChat->message,
+                    'location'   => $lastChat->location,
+                    'image'      => $lastChat->image,
+                    'is_mine'    => $lastChat->sender_id === $userId,
+                    'created_at' => $lastChat->created_at->toDateTimeString(),
+                ] : null,
+                'unread_count' => $unreadCount,
+            ];
+        })
+        ->filter()
+        ->sortByDesc(fn($c) => $c['last_message']['created_at'] ?? '')
+        ->values();
+
+    return $this->sendResponse([
+        'count'         => $trips->count(),
+        'conversations' => $trips,
+    ], null, 200);
+}
+
+public function mark_messages_seen(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'trip_id' => 'required|exists:trips,id',
+    ]);
+
+    if ($validator->fails()) {
+        return $this->sendError(null, implode(' / ', $validator->errors()->all()), 400);
+    }
+
+    TripChat::where('trip_id', $request->trip_id)
+        ->where('sender_id', '!=', auth()->id())
+        ->where('seen', 0)
+        ->update(['seen' => 1]);
+
+    return $this->sendResponse(null, 'Messages marked as seen.', 200);
+}
     public function updateUserLocation(Request $request)
     {
         $validator = Validator::make($request->all(), [
