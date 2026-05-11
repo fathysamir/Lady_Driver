@@ -907,7 +907,7 @@ class AuthController extends ApiController
         $validator = Validator::make($request->all(), [
             'email'        => 'required|string',
             'password'     => 'required|string|min:8',
-            'device_token' => 'required',
+            'device_token' => 'nullable',
         ]);
 
         if ($validator->fails()) {
