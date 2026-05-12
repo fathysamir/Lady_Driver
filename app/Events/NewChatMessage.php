@@ -2,6 +2,7 @@
 namespace App\Events;
 
 use App\Models\TripChat;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -19,13 +20,13 @@ class NewChatMessage implements ShouldBroadcast
     {
         $this->chat       = $chat;
         $this->receiverId = $receiverId;
-
     }
 
     public function broadcastOn()
     {
         return new Channel('user.' . $this->receiverId);
     }
+
     public function broadcastAs()
     {
         return 'new_message';
@@ -33,12 +34,13 @@ class NewChatMessage implements ShouldBroadcast
 
     public function broadcastWith()
     {
+        $sender = User::find($this->chat->sender_id);
         return [
             'id'           => $this->chat->id,
             'trip_id'      => $this->chat->trip_id,
             'sender'       => $this->chat->sender_id,
-            'sender_name'  => $this->chat->sender->name,
-            'sender_image' => $this->chat->sender->image,
+            'sender_name'  => $sender?->name,
+            'sender_image' => $sender?->image ?: asset('dashboard/user_avatar.png'),
             'message'      => $this->chat->message,
             'location'     => $this->chat->location,
             'image'        => $this->chat->image,

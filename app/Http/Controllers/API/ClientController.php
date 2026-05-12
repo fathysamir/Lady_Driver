@@ -1144,7 +1144,7 @@ public function cancelled_trips()
             'trip_id'      => $chat->trip_id,
             'sender'       => $chat->sender_id,
             'sender_name'  => $sender?->name,
-            'sender_image' => $sender?->image,
+            'sender_image' => $sender?->image ?: asset('dashboard/user_avatar.png'),
             'message'      => $chat->message,
             'location'     => $chat->location,
             'image'        => $chat->image,
