@@ -1180,7 +1180,7 @@ public function cancelled_trips()
         });
 
         return $this->sendResponse($tripChats, 'Messages retrieved successfully', 200);
-    }
+    } //
 
     public function get_conversations()
 {
