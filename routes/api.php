@@ -144,6 +144,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/scheduled_trips', [ClientController::class, 'scheduled_trips'])->name('scheduled_trips');
     Route::get('/cancelled_trips', [ClientController::class, 'cancelled_trips'])->name('cancelled_trips');
     Route::get('/driver_completed_trips', [DriverController::class, 'driver_completed_trips'])->name('driver_completed_trips');
+    Route::get('/driver_scheduled_trips', [DriverController::class, 'driver_scheduled_trips'])->name('driver_scheduled_trips');
     Route::get('/driver_cancelled_trips', [DriverController::class, 'driver_cancelled_trips'])->name('driver_cancelled_trips');
     Route::post('/update_location_car', [DriverController::class, 'update_location_car'])->name('update_location_car');
     Route::post('/rate_trip', [ClientController::class, 'rate_trip'])->name('rate_trip');
