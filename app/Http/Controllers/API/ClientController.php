@@ -852,6 +852,61 @@ if ($trip->scooter) {
 
     return $this->sendResponse($completed_trips, null, 200);
 }
+public function scheduled_trips()
+{
+    $user = auth()->user();
+
+    $scheduled_trips = Trip::query()
+        ->where('user_id', $user->id)
+        ->where('status', 'scheduled')
+        ->select('trips.*')
+        ->with([
+            'user:id,name,country_code,phone',
+            'car:id,code,car_mark_id,car_model_id,user_id,color,year,status',
+            'car.mark',
+            'car.model',
+            'car.owner:id,name,country_code,phone',
+            'scooter.motorcycleMark',
+            'scooter.motorcycleModel',
+            'scooter.owner:id,name,country_code,phone',
+            'finalDestination:id,trip_id,lat,lng,address',
+        ])
+        ->latest()
+        ->take(20)
+        ->get()
+        ->map(function ($trip) {
+
+            $trip->barcode = url(barcodeImage($trip->id));
+
+            if ($trip->car) {
+                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+            }
+
+            if ($trip->scooter) {
+                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+            }
+
+            $trip->is_driver_arrived = !is_null($trip->driver_arrived);
+
+            if ($trip->car && $trip->car->owner) {
+                $trip->car->owner->image = getFirstMediaUrl(
+                    $trip->car->owner,
+                    $trip->car->owner->avatarCollection
+                );
+            }
+
+            if ($trip->scooter && $trip->scooter->owner) {
+                $trip->scooter->owner->image = getFirstMediaUrl(
+                    $trip->scooter->owner,
+                    $trip->scooter->owner->avatarCollection
+                );
+            }
+
+            return $trip;
+        });
+
+    return $this->sendResponse($scheduled_trips, null, 200);
+}
 public function cancelled_trips()
 {
     $user = auth()->user();
