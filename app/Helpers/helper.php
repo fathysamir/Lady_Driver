@@ -143,7 +143,9 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
     $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&mode=$mode&departure_time=now&traffic_model=best_guess&key=$api_key";
     //$request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
 
-    $response = file_get_contents($request_url);
+    // $response = file_get_contents($request_url);
+    $context = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+$response = file_get_contents($request_url, false, $context);
     $data     = json_decode($response, true);
 
     if ($data['status'] == 'OK') {
@@ -206,7 +208,9 @@ function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
     $url = "https://maps.googleapis.com/maps/api/directions/json?origin={$lat1},{$lng1}&destination={$lat2},{$lng2}&key={$api_key}";
 
     // إجراء الطلب إلى Google Directions API
-    $response = file_get_contents($url);
+   // $response = file_get_contents($url);
+   $context = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+$response = file_get_contents($url, false, $context);
     $data     = json_decode($response, true);
 
     // التحقق من حالة الطلب
