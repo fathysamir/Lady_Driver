@@ -623,59 +623,64 @@ public function current_trip()
             }
         ])->first();
 
-    if ($trip) {
+    if (!$trip) {
+        return $this->sendError(null, 'no current trip existed', 400);
+    }
 
-        $totalDistance = 0;
-        $totalDuration = 0;
+    $totalDistance = 0;
+    $totalDuration = 0;
 
-        $prevLat = $trip->start_lat;
-        $prevLng = $trip->start_lng;
+    $prevLat = $trip->start_lat;
+    $prevLng = $trip->start_lng;
 
-        $type = '';
+    $type = '';
 
-        switch (strtolower($trip->type)) {
+    switch (strtolower($trip->type)) {
+        case 'scooter':
+            $type = 'scooter';
+            break;
 
-            case 'scooter':
-                $type = 'scooter';
-                break;
+        case 'comfort_car':
+            $type = 'car';
+            break;
 
-            case 'comfort_car':
-                $type = 'car';
-                break;
+        default:
+            $type = 'car';
+    }
 
-            default:
-                $type = 'car';
-        }
+    foreach ($trip->finalDestination as $destination) {
 
-        foreach ($trip->finalDestination as $destination) {
+        $response = calculate_distance(
+            $prevLat,
+            $prevLng,
+            $destination->lat,
+            $destination->lng,
+            $type
+        );
 
-            $response = calculate_distance(
-                $prevLat,
-                $prevLng,
-                $destination->lat,
-                $destination->lng,
-                $type
-            );
+        $totalDistance += $response['distance_in_km'];
+        $totalDuration += $response['duration_in_M'];
 
-            $totalDistance += $response['distance_in_km'];
-            $totalDuration += $response['duration_in_M'];
+        $prevLat = $destination->lat;
+        $prevLng = $destination->lng;
+    }
 
-            $prevLat = $destination->lat;
-            $prevLng = $destination->lng;
-        }
+    $trip->duration = $totalDuration;
 
-        $trip->duration = $totalDuration;
+    $barcode_image = url(barcodeImage($trip->id));
+    $trip->barcode = $barcode_image;
 
-        $barcode_image = url(barcodeImage($trip->id));
-        $trip->barcode = $barcode_image;
+    /*
+    |--------------------------------------------------------------------------
+    | pending / in_progress
+    |--------------------------------------------------------------------------
+    */
 
-        if ($trip->status == 'pending' || $trip->status == 'in_progress') {
+    if ($trip->status == 'pending' || $trip->status == 'in_progress') {
 
-            if (in_array($trip->type, ['car', 'comfort_car'])) {
+        if (in_array($trip->type, ['car', 'comfort_car'])) {
 
-                if (!$trip->car || !$trip->car->owner) {
-                    return $this->sendError(null, 'car or owner not exist', 404);
-                }
+            if ($trip->car && $trip->car->owner) {
 
                 $driver_ = $trip->car->owner;
 
@@ -697,11 +702,14 @@ public function current_trip()
                     $trip->car->avatarCollection
                 );
 
-            } elseif ($trip->type == 'scooter') {
+            } else {
 
-                if (!$trip->scooter || !$trip->scooter->owner) {
-                    return $this->sendError(null, 'scooter or owner not exist', 404);
-                }
+                $trip->car = null;
+            }
+
+        } elseif ($trip->type == 'scooter') {
+
+            if ($trip->scooter && $trip->scooter->owner) {
 
                 $driver_ = $trip->scooter->owner;
 
@@ -722,16 +730,25 @@ public function current_trip()
                     $trip->scooter,
                     $trip->scooter->avatarCollection
                 );
+
+            } else {
+
+                $trip->scooter = null;
             }
         }
+    }
 
-        if ($trip->status == 'pending') {
+    /*
+    |--------------------------------------------------------------------------
+    | pending
+    |--------------------------------------------------------------------------
+    */
 
-            if (in_array($trip->type, ['car', 'comfort_car'])) {
+    if ($trip->status == 'pending') {
 
-                if (!$trip->car) {
-                    return $this->sendError(null, 'car not exist', 404);
-                }
+        if (in_array($trip->type, ['car', 'comfort_car'])) {
+
+            if ($trip->car) {
 
                 $response = calculate_distance(
                     $trip->car->lat,
@@ -741,11 +758,16 @@ public function current_trip()
                     'car'
                 );
 
-            } elseif ($trip->type == 'scooter') {
+                $distance = $response['distance_in_km'];
+                $duration = $response['duration_in_M'];
 
-                if (!$trip->scooter) {
-                    return $this->sendError(null, 'scooter not exist', 404);
-                }
+                $trip->client_location_distance = $distance;
+                $trip->client_location_duration = $duration;
+            }
+
+        } elseif ($trip->type == 'scooter') {
+
+            if ($trip->scooter) {
 
                 $response = calculate_distance(
                     $trip->scooter->lat,
@@ -754,177 +776,179 @@ public function current_trip()
                     $trip->start_lng,
                     'scooter'
                 );
+
+                $distance = $response['distance_in_km'];
+                $duration = $response['duration_in_M'];
+
+                $trip->client_location_distance = $distance;
+                $trip->client_location_duration = $duration;
             }
-
-            $distance = $response['distance_in_km'];
-            $duration = $response['duration_in_M'];
-
-            $trip->client_location_distance = $distance;
-            $trip->client_location_duration = $duration;
         }
+    }
 
-        if ($trip->status == 'created') {
+    /*
+    |--------------------------------------------------------------------------
+    | created
+    |--------------------------------------------------------------------------
+    */
 
-            $pendingOffers = $trip->offers()
-                ->where('status', 'pending')
-                ->get()
-                ->map(function ($offer) use ($trip) {
+    if ($trip->status == 'created') {
 
-                    $user = $offer->user()->first();
+        $pendingOffers = $trip->offers()
+            ->where('status', 'pending')
+            ->get()
+            ->map(function ($offer) use ($trip) {
 
-                    if (!$user) {
+                $user = $offer->user()->first();
+
+                if (!$user) {
+                    return null;
+                }
+
+                if (in_array($trip->type, ['car', 'comfort_car'])) {
+
+                    if (!$offer->car) {
                         return null;
                     }
 
-                    if (in_array($trip->type, ['car', 'comfort_car'])) {
-
-                        if (!$offer->car) {
-                            return null;
-                        }
-
-                        $response = calculate_distance(
-                            $offer->car->lat,
-                            $offer->car->lng,
-                            $trip->start_lat,
-                            $trip->start_lng,
-                            'car'
-                        );
-
-                    } elseif ($trip->type == 'scooter') {
-
-                        if (!$offer->scooter) {
-                            return null;
-                        }
-
-                        $response = calculate_distance(
-                            $offer->scooter->lat,
-                            $offer->scooter->lng,
-                            $trip->start_lat,
-                            $trip->start_lng,
-                            'scooter'
-                        );
-                    }
-
-                    $distance = $response['distance_in_km'];
-                    $duration = $response['duration_in_M'];
-
-                    $offer_result['id'] = $offer->id;
-                    $offer_result['user_id'] = $user->id;
-
-                    if (in_array($trip->type, ['car', 'comfort_car'])) {
-
-                        $offer_result['car_id'] = $offer->car()->first()->id;
-
-                    } elseif ($trip->type == 'scooter') {
-
-                        $offer_result['scooter_id'] = $offer->scooter()->first()->id;
-                    }
-
-                    $offer_result['trip_id'] = $trip->id;
-                    $offer_result['client_location_distance'] = $distance;
-                    $offer_result['client_location_duration'] = $duration;
-                    $offer_result['offer'] = $offer->offer;
-
-                    $offer_result['user']['id'] = $user->id;
-                    $offer_result['user']['name'] = $user->name;
-                    $offer_result['user']['image'] = getFirstMediaUrl(
-                        $user,
-                        $user->avatarCollection
+                    $response = calculate_distance(
+                        $offer->car->lat,
+                        $offer->car->lng,
+                        $trip->start_lat,
+                        $trip->start_lng,
+                        'car'
                     );
 
-                    $driver_ = $user;
+                } elseif ($trip->type == 'scooter') {
 
-                    if (in_array($trip->type, ['car', 'comfort_car'])) {
-
-                        $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
-                            $query->where('user_id', $driver_->id);
-                        })
-                            ->where('status', 'completed')
-                            ->where('client_stare_rate', '>', 0)
-                            ->avg('client_stare_rate') ?? 5.00;
-
-                        $offer_result['user']['trips_count'] = Trip::whereHas('car', function ($query) use ($driver_) {
-                            $query->where('user_id', $driver_->id);
-                        })
-                            ->where('status', 'completed')
-                            ->count();
-
-                        $offer_result['car']['id'] = $offer->car()->first()->id;
-                        $offer_result['car']['image'] = getFirstMediaUrl(
-                            $offer->car()->first(),
-                            $offer->car()->first()->avatarCollection
-                        );
-
-                        $offer_result['car']['year'] = $offer->car()->first()->year;
-                        $offer_result['car']['car_mark_id'] = $offer->car()->first()->car_mark_id;
-                        $offer_result['car']['car_model_id'] = $offer->car()->first()->car_model_id;
-
-                        $offer_result['car']['mark']['id'] = $offer->car()->first()->mark()->first()->id;
-                        $offer_result['car']['mark']['name'] = $offer->car()->first()->mark()->first()->name;
-
-                        $offer_result['car']['model']['id'] = $offer->car()->first()->model()->first()->id;
-                        $offer_result['car']['model']['name'] = $offer->car()->first()->model()->first()->name;
-
-                    } elseif ($trip->type == 'scooter') {
-
-                        $offer_result['user']['rate'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
-                            $query->where('user_id', $driver_->id);
-                        })
-                            ->where('status', 'completed')
-                            ->where('client_stare_rate', '>', 0)
-                            ->avg('client_stare_rate') ?? 5.00;
-
-                        $offer_result['user']['trips_count'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
-                            $query->where('user_id', $driver_->id);
-                        })
-                            ->where('status', 'completed')
-                            ->count();
-
-                        $offer_result['scooter']['id'] = $offer->scooter()->first()->id;
-
-                        $offer_result['scooter']['image'] = getFirstMediaUrl(
-                            $offer->scooter()->first(),
-                            $offer->scooter()->first()->avatarCollection
-                        );
-
-                        $offer_result['scooter']['year'] = $offer->scooter()->first()->year;
-
-                        $offer_result['scooter']['scooter_mark_id'] = $offer->scooter()->first()->motorcycle_mark_id;
-
-                        $offer_result['scooter']['scooter_model_id'] = $offer->scooter()->first()->motorcycle_model_id;
-
-                        $offer_result['scooter']['mark']['id'] = $offer->scooter()->first()->mark()->first()->id;
-
-                        $offer_result['scooter']['mark']['name'] = $offer->scooter()->first()->mark()->first()->name;
-
-                        $offer_result['scooter']['model']['id'] = $offer->scooter()->first()->model()->first()->id;
-
-                        $offer_result['scooter']['model']['name'] = $offer->scooter()->first()->model()->first()->name;
+                    if (!$offer->scooter) {
+                        return null;
                     }
 
-                    $offer_result['created_at'] = $offer->created_at;
+                    $response = calculate_distance(
+                        $offer->scooter->lat,
+                        $offer->scooter->lng,
+                        $trip->start_lat,
+                        $trip->start_lng,
+                        'scooter'
+                    );
+                }
 
-                    return $offer_result;
+                $distance = $response['distance_in_km'];
+                $duration = $response['duration_in_M'];
 
-                })->filter()->values();
+                $offer_result['id'] = $offer->id;
+                $offer_result['user_id'] = $user->id;
 
-            $trip->offers = $pendingOffers;
+                if (in_array($trip->type, ['car', 'comfort_car'])) {
 
-            if ($trip->car) {
-                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-            }
+                    $offer_result['car_id'] = $offer->car()->first()->id;
 
-            if ($trip->scooter) {
-                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-            }
+                } elseif ($trip->type == 'scooter') {
+
+                    $offer_result['scooter_id'] = $offer->scooter()->first()->id;
+                }
+
+                $offer_result['trip_id'] = $trip->id;
+                $offer_result['client_location_distance'] = $distance;
+                $offer_result['client_location_duration'] = $duration;
+                $offer_result['offer'] = $offer->offer;
+
+                $offer_result['user']['id'] = $user->id;
+                $offer_result['user']['name'] = $user->name;
+                $offer_result['user']['image'] = getFirstMediaUrl(
+                    $user,
+                    $user->avatarCollection
+                );
+
+                $driver_ = $user;
+
+                if (in_array($trip->type, ['car', 'comfort_car'])) {
+
+                    $offer_result['user']['rate'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })
+                        ->where('status', 'completed')
+                        ->where('client_stare_rate', '>', 0)
+                        ->avg('client_stare_rate') ?? 5.00;
+
+                    $offer_result['user']['trips_count'] = Trip::whereHas('car', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })
+                        ->where('status', 'completed')
+                        ->count();
+
+                    $offer_result['car']['id'] = $offer->car()->first()->id;
+                    $offer_result['car']['image'] = getFirstMediaUrl(
+                        $offer->car()->first(),
+                        $offer->car()->first()->avatarCollection
+                    );
+
+                    $offer_result['car']['year'] = $offer->car()->first()->year;
+                    $offer_result['car']['car_mark_id'] = $offer->car()->first()->car_mark_id;
+                    $offer_result['car']['car_model_id'] = $offer->car()->first()->car_model_id;
+
+                    $offer_result['car']['mark']['id'] = optional($offer->car()->first()->mark()->first())->id;
+                    $offer_result['car']['mark']['name'] = optional($offer->car()->first()->mark()->first())->name;
+
+                    $offer_result['car']['model']['id'] = optional($offer->car()->first()->model()->first())->id;
+                    $offer_result['car']['model']['name'] = optional($offer->car()->first()->model()->first())->name;
+
+                } elseif ($trip->type == 'scooter') {
+
+                    $offer_result['user']['rate'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })
+                        ->where('status', 'completed')
+                        ->where('client_stare_rate', '>', 0)
+                        ->avg('client_stare_rate') ?? 5.00;
+
+                    $offer_result['user']['trips_count'] = Trip::whereHas('scooter', function ($query) use ($driver_) {
+                        $query->where('user_id', $driver_->id);
+                    })
+                        ->where('status', 'completed')
+                        ->count();
+
+                    $offer_result['scooter']['id'] = $offer->scooter()->first()->id;
+
+                    $offer_result['scooter']['image'] = getFirstMediaUrl(
+                        $offer->scooter()->first(),
+                        $offer->scooter()->first()->avatarCollection
+                    );
+
+                    $offer_result['scooter']['year'] = $offer->scooter()->first()->year;
+
+                    $offer_result['scooter']['scooter_mark_id'] = $offer->scooter()->first()->motorcycle_mark_id;
+
+                    $offer_result['scooter']['scooter_model_id'] = $offer->scooter()->first()->motorcycle_model_id;
+
+                    $offer_result['scooter']['mark']['id'] = optional($offer->scooter()->first()->mark()->first())->id;
+
+                    $offer_result['scooter']['mark']['name'] = optional($offer->scooter()->first()->mark()->first())->name;
+
+                    $offer_result['scooter']['model']['id'] = optional($offer->scooter()->first()->model()->first())->id;
+
+                    $offer_result['scooter']['model']['name'] = optional($offer->scooter()->first()->model()->first())->name;
+                }
+
+                $offer_result['created_at'] = $offer->created_at;
+
+                return $offer_result;
+
+            })->filter()->values();
+
+        $trip->offers = $pendingOffers;
+
+        if ($trip->car) {
+            $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
         }
 
-        return $this->sendResponse($trip, null, 200);
-
-    } else {
-
-        return $this->sendError(null, 'no current trip existed', 400);
+        if ($trip->scooter) {
+            $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+        }
     }
+
+    return $this->sendResponse($trip, null, 200);
 }
 
     // public function pay_trip(Request $request)
