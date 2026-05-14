@@ -89,6 +89,9 @@ private function sendPushNotification(string $deviceToken, array $data): void
     }
 
     try {
+        // =========================
+        // 1) Access Token
+        // =========================
         $accessToken = $this->getFirebaseAccessToken();
 
         if (!$accessToken) {
@@ -103,22 +106,38 @@ private function sendPushNotification(string $deviceToken, array $data): void
 
         $projectId = $credentialsData['project_id'];
 
+        // =========================
+        // 2) Language
+        // =========================
+        $lang = $data['lang'] ?? 'en';
+
+        $title = $lang === 'ar'
+            ? ($data['title_ar'] ?? 'رحلة جديدة')
+            : ($data['title_en'] ?? 'New Trip Near You');
+
+        $body = $lang === 'ar'
+            ? ($data['body_ar'] ?? 'يوجد رحلة جديدة بالقرب منك')
+            : ($data['body_en'] ?? 'New Trip Near You');
+
+        // =========================
+        // 3) Clean data payload
+        // =========================
         $stringData = array_map('strval', $data);
 
+        // =========================
+        // 4) FCM Payload
+        // =========================
         $payload = [
             'message' => [
                 'token' => $deviceToken,
 
-
                 'notification' => [
-                    'title' => $data['title'] ?? 'New Trip',
-                    'body'  => $data['body'] ?? 'New Trip Near to You',
+                    'title' => $title,
+                    'body'  => $body,
                 ],
-
 
                 'data' => $stringData,
 
-                // Android settings
                 'android' => [
                     'priority' => 'high',
                     'notification' => [
@@ -127,7 +146,6 @@ private function sendPushNotification(string $deviceToken, array $data): void
                     ],
                 ],
 
-                // iOS settings
                 'apns' => [
                     'payload' => [
                         'aps' => [
@@ -139,34 +157,42 @@ private function sendPushNotification(string $deviceToken, array $data): void
             ],
         ];
 
+        // =========================
+        // 5) Send Request
+        // =========================
         echo "🔔 Sending push to: {$deviceToken}\n";
 
         $ch = curl_init("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $accessToken,
-            'Content-Type: application/json',
+        curl_setopt_array($ch, [
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $accessToken,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
         ]);
-
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
         curl_close($ch);
 
         $responseData = json_decode($response, true);
 
+        // =========================
+        // 6) Error Handling
+        // =========================
         if ($httpCode !== 200) {
-            $errorCode = $responseData['error']['details'][0]['errorCode'] ?? '';
 
-            echo "❌ Push failed [{$httpCode}]: " .
-                ($responseData['error']['message'] ?? $response) . "\n";
+            $errorMessage = $responseData['error']['message'] ?? $response;
 
-            // تنظيف التوكنات البايظة
+            $errorCode = $responseData['error']['details'][0]['errorCode'] ?? null;
+
+            echo "❌ Push failed [{$httpCode}]: {$errorMessage}\n";
+
+            // remove invalid tokens
             if (in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'])) {
                 \App\Models\User::where('device_token', $deviceToken)
                     ->update(['device_token' => null]);
@@ -183,6 +209,9 @@ private function sendPushNotification(string $deviceToken, array $data): void
         echo "❌ sendPushNotification exception: " . $e->getMessage() . "\n";
     }
 }
+///////////////////////////////////////////////////////////////////////////////////////
+
+
 private function getFirebaseAccessToken(): ?string
 {
     if ($this->cachedAccessToken && time() < $this->tokenExpiresAt - 60) {
