@@ -29,6 +29,8 @@ class Chat implements MessageComponentInterface
     protected $firebaseService;
     protected $messaging;
     private $clientUserIdMap;
+    private $cachedAccessToken = null;
+private $tokenExpiresAt = 0;
 
     public function __construct($loop)
     {
@@ -85,17 +87,18 @@ private function sendPushNotification(string $deviceToken, array $data): void
     if (empty(trim($deviceToken))) return;
 
     try {
-        $stringData = array_map('strval', $data);
+        $accessToken = $this->getFirebaseAccessToken();
+        if (!$accessToken) {
+            echo "❌ No access token available\n";
+            return;
+        }
 
-        $credentialsData = json_decode(file_get_contents(storage_path('firebase_credentials.json')), true);
-        $projectId       = $credentialsData['project_id'];
-
-        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . storage_path('firebase_credentials.json'));
-        $credentials = \Google\Auth\ApplicationDefaultCredentials::getCredentials(
-            'https://www.googleapis.com/auth/firebase.messaging'
+        $credentialsData = json_decode(
+            file_get_contents(storage_path('firebase_credentials.json')), true
         );
-        $token       = $credentials->fetchAuthToken();
-        $accessToken = $token['access_token'];
+        $projectId = $credentialsData['project_id'];
+
+        $stringData = array_map('strval', $data);
 
         $payload = [
             'message' => [
@@ -115,6 +118,8 @@ private function sendPushNotification(string $deviceToken, array $data): void
             ],
         ];
 
+        echo "🔔 Sending push to: {$deviceToken}\n";
+
         $ch = curl_init("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $accessToken,
@@ -123,6 +128,7 @@ private function sendPushNotification(string $deviceToken, array $data): void
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -148,6 +154,31 @@ private function sendPushNotification(string $deviceToken, array $data): void
         echo "❌ sendPushNotification exception: " . $e->getMessage() . "\n";
     }
 }
+
+private function getFirebaseAccessToken(): ?string
+{
+    if ($this->cachedAccessToken && time() < $this->tokenExpiresAt - 60) {
+        return $this->cachedAccessToken;
+    }
+
+    try {
+        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . storage_path('firebase_credentials.json'));
+        $credentials = \Google\Auth\ApplicationDefaultCredentials::getCredentials(
+            'https://www.googleapis.com/auth/firebase.messaging'
+        );
+        $token = $credentials->fetchAuthToken();
+
+        $this->cachedAccessToken = $token['access_token'];
+        $this->tokenExpiresAt = time() + ($token['expires_in'] ?? 3600);
+
+        return $this->cachedAccessToken;
+    } catch (\Exception $e) {
+        echo "❌ Token fetch failed: " . $e->getMessage() . "\n";
+        return null;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////////////
     public function driverArrivingBroadcast($data)
@@ -558,7 +589,7 @@ private function sendPushNotification(string $deviceToken, array $data): void
                         ->get()
                         ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
+                            return $response['distance_in_km'] <= 3
                         });
 
                     $eligibleDriverIds = [];
