@@ -80,32 +80,74 @@ try {
         });
     }
 ///////////////////////////////////////////////////////////////////////////////////////
-/*
-private function sendPushNotification($deviceToken, $title, $body, $data = [])
+private function sendPushNotification(string $deviceToken, array $data): void
 {
+    if (empty(trim($deviceToken))) return;
+
     try {
-        $message = \Kreait\Firebase\Messaging\CloudMessage::withTarget('token', $deviceToken)
-            ->withNotification(\Kreait\Firebase\Messaging\Notification::create($title, $body))
-            ->withData($data);
+        $stringData = array_map('strval', $data);
 
-        $this->messaging->send($message);
-        echo "✅ Push sent to: {$deviceToken}\n";
-    } catch (\Exception $e) {
-        echo "❌ Push failed: " . $e->getMessage() . "\n";
+        $credentialsData = json_decode(file_get_contents(storage_path('firebase_credentials.json')), true);
+        $projectId       = $credentialsData['project_id'];
 
-        if (str_contains($e->getMessage(), 'not-registered')) {
-            // delete token from DB
-            $user = User::where('device_token', $deviceToken)->first();
-            if ($user) {
-                $user->device_token = null;
-                $user->save();
-                echo "🧹 Removed invalid FCM token\n";
+        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . storage_path('firebase_credentials.json'));
+        $credentials = \Google\Auth\ApplicationDefaultCredentials::getCredentials(
+            'https://www.googleapis.com/auth/firebase.messaging'
+        );
+        $token       = $credentials->fetchAuthToken();
+        $accessToken = $token['access_token'];
+
+        $payload = [
+            'message' => [
+                'token' => $deviceToken,
+                'data'  => $stringData,
+                'android' => [
+                    'priority' => 'high',
+                ],
+                'apns' => [
+                    'payload' => [
+                        'aps' => [
+                            'sound'             => 'default',
+                            'content-available' => 1,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $ch = curl_init("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Type: application/json',
+        ]);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $responseData = json_decode($response, true);
+
+        if ($httpCode !== 200) {
+            $errorCode = $responseData['error']['details'][0]['errorCode'] ?? '';
+            echo "❌ Push failed [{$httpCode}]: " . ($responseData['error']['message'] ?? $response) . "\n";
+
+            if (in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'])) {
+                \App\Models\User::where('device_token', $deviceToken)
+                    ->update(['device_token' => null]);
+                echo "🧹 Cleared invalid FCM token\n";
             }
+            return;
         }
+
+        echo "✅ Push sent to: {$deviceToken}\n";
+
+    } catch (\Exception $e) {
+        echo "❌ sendPushNotification exception: " . $e->getMessage() . "\n";
     }
 }
-
-*/
 
     ///////////////////////////////////////////////////////////////////////////////////////
     public function driverArrivingBroadcast($data)
@@ -527,21 +569,14 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                             $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->firebaseService->sendDataNotification(
-                                token: $car->owner->device_token,
-                                data: [
-                                    'screen'   => 'new_trip',
-                                    'ID'       => (string) $trip->id,
-
-                                    'title_en' => 'New Trip Near You',
-                                    'title_ar' => 'رحلة جديدة بالقرب منك',
-
-                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
-                                ],
-                                androidPriority: 'high',
-                                apnsSound: 'default',
-                            );
+                            $this->sendPushNotification($car->owner->device_token, [
+                                'screen'   => 'new_trip',
+                                'ID'       => (string) $trip->id,
+                                'title_en' => 'New Trip Near You',
+                                'title_ar' => 'رحلة جديدة بالقرب منك',
+                                'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                                'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                            ]);
                         }
                     }
                     if (count($eligibleDriverIds) > 0) {
@@ -614,21 +649,14 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                             $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->firebaseService->sendDataNotification(
-                                token: $car->owner->device_token,
-                                data: [
-                                    'screen'   => 'new_trip',
-                                    'ID'       => (string) $trip->id,
-
-                                    'title_en' => 'New Trip Near You',
-                                    'title_ar' => 'رحلة جديدة بالقرب منك',
-
-                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
-                                ],
-                                androidPriority: 'high',
-                                apnsSound: 'default',
-                            );
+                            $this->sendPushNotification($car->owner->device_token, [
+                                'screen'   => 'new_trip',
+                                'ID'       => (string) $trip->id,
+                                'title_en' => 'New Trip Near You',
+                                'title_ar' => 'رحلة جديدة بالقرب منك',
+                                'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                                'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                            ]);
                         }
                     }
                     if (count($eligibleDriverIds) > 0) {
@@ -692,21 +720,14 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                             $response2 = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->firebaseService->sendDataNotification(
-                                token: $scooter->owner->device_token,
-                                data: [
-                                    'screen'   => 'new_trip',
-                                    'ID'       => (string) $trip->id,
-
-                                    'title_en' => 'New Trip Near You',
-                                    'title_ar' => 'رحلة جديدة بالقرب منك',
-
-                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
-                                ],
-                                androidPriority: 'high',
-                                apnsSound: 'default',
-                            );
+                            $this->sendPushNotification($scooter->owner->device_token, [
+                                'screen'   => 'new_trip',
+                                'ID'       => (string) $trip->id,
+                                'title_en' => 'New Trip Near You',
+                                'title_ar' => 'رحلة جديدة بالقرب منك',
+                                'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                                'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                            ]);
                         }
                     }
                     if (count($eligibleDriverIds) > 0) {
