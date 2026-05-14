@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use React\EventLoop\TimerInterface;
+use App\Services\FirebaseService;
 
 class Chat implements MessageComponentInterface
 {
@@ -34,14 +35,17 @@ class Chat implements MessageComponentInterface
         $this->clients = new \SplObjectStorage();
         $this->loop    = $loop;
         // ADD THIS after $this->loop = $loop;
+        $this->firebaseService = new FirebaseService();
+        /*
 try {
     $firebase        = (new \Kreait\Firebase\Factory)->withServiceAccount(storage_path('firebase_credentials.json'));
     $this->messaging = $firebase->createMessaging();
     echo "✅ Firebase initialized\n";
 } catch (\Exception $e) {
     echo "❌ Firebase initialization failed: " . $e->getMessage() . "\n";
-}
 
+}
+*/
         $this->clientUserIdMap = [];
         $factory               = new Factory($loop);
         $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
@@ -76,6 +80,7 @@ try {
         });
     }
 ///////////////////////////////////////////////////////////////////////////////////////
+/*
 private function sendPushNotification($deviceToken, $title, $body, $data = [])
 {
     try {
@@ -100,6 +105,7 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
     }
 }
 
+*/
 
     ///////////////////////////////////////////////////////////////////////////////////////
     public function driverArrivingBroadcast($data)
@@ -521,18 +527,20 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                             $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushNotification(
-                                $car->owner->device_token,
-                                'Lady Driver',
-                                'New Trip Near You',
-                                [
-                                    'screen'   => 'New Trip',
+                            $this->firebaseService->sendDataNotification(
+                                token: $car->owner->device_token,
+                                data: [
+                                    'screen'   => 'new_trip',
                                     'ID'       => (string) $trip->id,
-                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+
                                     'title_en' => 'New Trip Near You',
-                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
-                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
-                                ]
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                                ],
+                                androidPriority: 'high',
+                                apnsSound: 'default',
                             );
                         }
                     }
@@ -606,18 +614,20 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                             $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushNotification(
-                                $car->owner->device_token,
-                                'Lady Driver',
-                                'New Trip Near You',
-                                [
-                                    'screen'   => 'New Trip',
+                            $this->firebaseService->sendDataNotification(
+                                token: $car->owner->device_token,
+                                data: [
+                                    'screen'   => 'new_trip',
                                     'ID'       => (string) $trip->id,
-                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+
                                     'title_en' => 'New Trip Near You',
-                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
-                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
-                                ]
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                                ],
+                                androidPriority: 'high',
+                                apnsSound: 'default',
                             );
                         }
                     }
@@ -682,18 +692,20 @@ private function sendPushNotification($deviceToken, $title, $body, $data = [])
                             $response2 = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushNotification(
-                                $scooter->owner->device_token,
-                                'Lady Driver',
-                                'New Trip Near You',
-                                [
-                                    'screen'   => 'New Trip',
+                            $this->firebaseService->sendDataNotification(
+                                token: $scooter->owner->device_token,
+                                data: [
+                                    'screen'   => 'new_trip',
                                     'ID'       => (string) $trip->id,
-                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+
                                     'title_en' => 'New Trip Near You',
-                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم منك (' . $duration2 . ' دقيقة) من ' . $trip->address1 . ' إلى ' . ($data['address2'] ?? ''),
-                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min) from ' . $trip->address1 . ' to ' . ($data['address2'] ?? ''),
-                                ]
+                                    'title_ar' => 'رحلة جديدة بالقرب منك',
+
+                                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                                ],
+                                androidPriority: 'high',
+                                apnsSound: 'default',
                             );
                         }
                     }
