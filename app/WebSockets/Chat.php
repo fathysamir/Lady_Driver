@@ -111,11 +111,11 @@ private function sendPushNotification(string $deviceToken, array $data): void
 
 
                 'notification' => [
-                    'title' => $data['title'] ?? 'Notification',
-                    'body'  => $data['body'] ?? 'You have a new update',
+                    'title' => $data['title'] ?? 'New Trip',
+                    'body'  => $data['body'] ?? 'New Trip Near to You',
                 ],
 
-                //  data payload (للتطبيق فقط)
+
                 'data' => $stringData,
 
                 // Android settings
