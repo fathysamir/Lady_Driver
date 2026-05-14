@@ -84,18 +84,23 @@ try {
 ///////////////////////////////////////////////////////////////////////////////////////
 private function sendPushNotification(string $deviceToken, array $data): void
 {
-    if (empty(trim($deviceToken))) return;
+    if (empty(trim($deviceToken))) {
+        return;
+    }
 
     try {
         $accessToken = $this->getFirebaseAccessToken();
+
         if (!$accessToken) {
             echo "❌ No access token available\n";
             return;
         }
 
         $credentialsData = json_decode(
-            file_get_contents(storage_path('firebase_credentials.json')), true
+            file_get_contents(storage_path('firebase_credentials.json')),
+            true
         );
+
         $projectId = $credentialsData['project_id'];
 
         $stringData = array_map('strval', $data);
@@ -103,14 +108,30 @@ private function sendPushNotification(string $deviceToken, array $data): void
         $payload = [
             'message' => [
                 'token' => $deviceToken,
-                'data'  => $stringData,
+
+
+                'notification' => [
+                    'title' => $data['title'] ?? 'Notification',
+                    'body'  => $data['body'] ?? 'You have a new update',
+                ],
+
+                //  data payload (للتطبيق فقط)
+                'data' => $stringData,
+
+                // Android settings
                 'android' => [
                     'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => 'default',
+                        'sound' => 'default',
+                    ],
                 ],
+
+                // iOS settings
                 'apns' => [
                     'payload' => [
                         'aps' => [
-                            'sound'             => 'default',
+                            'sound' => 'default',
                             'content-available' => 1,
                         ],
                     ],
@@ -121,40 +142,47 @@ private function sendPushNotification(string $deviceToken, array $data): void
         echo "🔔 Sending push to: {$deviceToken}\n";
 
         $ch = curl_init("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
+
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $accessToken,
             'Content-Type: application/json',
         ]);
+
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
         curl_close($ch);
 
         $responseData = json_decode($response, true);
 
         if ($httpCode !== 200) {
             $errorCode = $responseData['error']['details'][0]['errorCode'] ?? '';
-            echo "❌ Push failed [{$httpCode}]: " . ($responseData['error']['message'] ?? $response) . "\n";
 
+            echo "❌ Push failed [{$httpCode}]: " .
+                ($responseData['error']['message'] ?? $response) . "\n";
+
+            // تنظيف التوكنات البايظة
             if (in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'])) {
                 \App\Models\User::where('device_token', $deviceToken)
                     ->update(['device_token' => null]);
+
                 echo "🧹 Cleared invalid FCM token\n";
             }
+
             return;
         }
 
-        echo "✅ Push sent to: {$deviceToken}\n";
+        echo "✅ Push sent successfully\n";
 
     } catch (\Exception $e) {
         echo "❌ sendPushNotification exception: " . $e->getMessage() . "\n";
     }
 }
-
 private function getFirebaseAccessToken(): ?string
 {
     if ($this->cachedAccessToken && time() < $this->tokenExpiresAt - 60) {
@@ -601,11 +629,13 @@ private function getFirebaseAccessToken(): ?string
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
                             $this->sendPushNotification($car->owner->device_token, [
-                                'screen'   => 'new_trip',
-                                'ID'       => (string) $trip->id,
+                                'screen' => 'new_trip',
+                                'id' => (string) $trip->id,
+
                                 'title_en' => 'New Trip Near You',
-                                'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+
+                                'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
                             ]);
                         }
@@ -681,11 +711,13 @@ private function getFirebaseAccessToken(): ?string
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
                             $this->sendPushNotification($car->owner->device_token, [
-                                'screen'   => 'new_trip',
-                                'ID'       => (string) $trip->id,
+                                'screen' => 'new_trip',
+                                'id' => (string) $trip->id,
+
                                 'title_en' => 'New Trip Near You',
-                                'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+
+                                'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
                             ]);
                         }
@@ -752,11 +784,13 @@ private function getFirebaseAccessToken(): ?string
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
                             $this->sendPushNotification($scooter->owner->device_token, [
-                                'screen'   => 'new_trip',
-                                'ID'       => (string) $trip->id,
+                                'screen' => 'new_trip',
+                                'id' => (string) $trip->id,
+
                                 'title_en' => 'New Trip Near You',
-                                'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+
+                                'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
                             ]);
                         }
