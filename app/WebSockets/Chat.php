@@ -82,6 +82,33 @@ try {
         });
     }
 ///////////////////////////////////////////////////////////////////////////////////////
+private function getUserFcmTokens($user): array
+{
+    return $user->tokens()
+        ->where('name', 'like', 'fcm::%')
+        ->pluck('name')
+        ->map(fn($name) => str_replace('fcm::', '', $name))
+        ->filter(fn($token) => $token && $token !== 'no-device')
+        ->values()
+        ->toArray();
+}
+
+private function sendPushToUser($user, array $data): void
+{
+    $tokens = $this->getUserFcmTokens($user);
+
+    // fallback to device_token column if no fcm:: tokens yet (old users)
+    if (empty($tokens) && $user->device_token) {
+        $tokens = [$user->device_token];
+    }
+
+    foreach ($tokens as $token) {
+        $this->sendPushNotification($token, $data);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 private function sendPushNotification(string $deviceToken, array $data): void
 {
     if (empty(trim($deviceToken))) {
@@ -657,13 +684,11 @@ private function getFirebaseAccessToken(): ?string
                             $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushNotification($car->owner->device_token, [
-                                'screen' => 'new_trip',
-                                'id' => (string) $trip->id,
-
+                            $this->sendPushToUser($car->owner, [
+                                'screen'   => 'new_trip',
+                                'id'       => (string) $trip->id,
                                 'title_en' => 'New Trip Near You',
                                 'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-
                                 'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
                             ]);
@@ -739,13 +764,11 @@ private function getFirebaseAccessToken(): ?string
                             $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushNotification($car->owner->device_token, [
-                                'screen' => 'new_trip',
-                                'id' => (string) $trip->id,
-
+                            $this->sendPushToUser($car->owner, [
+                                'screen'   => 'new_trip',
+                                'id'       => (string) $trip->id,
                                 'title_en' => 'New Trip Near You',
                                 'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-
                                 'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
                             ]);
@@ -812,13 +835,11 @@ private function getFirebaseAccessToken(): ?string
                             $response2 = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             $distance2 = round($response2['distance_in_km'], 1);
                             $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushNotification($scooter->owner->device_token, [
-                                'screen' => 'new_trip',
-                                'id' => (string) $trip->id,
-
+                            $this->sendPushToUser($scooter->owner, [
+                                'screen'   => 'new_trip',
+                                'id'       => (string) $trip->id,
                                 'title_en' => 'New Trip Near You',
                                 'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-
                                 'title_ar' => 'رحلة جديدة بالقرب منك',
                                 'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
                             ]);

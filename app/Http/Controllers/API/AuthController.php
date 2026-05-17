@@ -992,8 +992,10 @@ class AuthController extends ApiController
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
         $user->save();
-
-        $user->token        = $user->createToken('api')->plainTextToken;
+        if ($request->device_token) {
+            $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
+        }
+        $user->token = $user->createToken('fcm::' . ($request->device_token ?? 'no-device'))->plainTextToken;
         $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
         $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
         $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
@@ -1073,8 +1075,10 @@ class AuthController extends ApiController
             $invitation_code_owner->wallet = $invitation_code_owner->wallet + floatval($invitation_exchange);
             $invitation_code_owner->save();
         }
-
-        $user->token        = $user->createToken('api')->plainTextToken;
+        if ($request->device_token) {
+            $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
+        }
+        $user->token = $user->createToken('fcm::' . ($request->device_token ?? 'no-device'))->plainTextToken;
         $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
         $user->verification = '1';
 

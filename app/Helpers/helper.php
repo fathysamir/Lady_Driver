@@ -351,3 +351,14 @@ function getTripSettings($category, $level = 1)
             'application_commission' => (float) ($commission->value ?? 0),
         ];
 }
+
+function getUserFcmTokens($user): array
+{
+    return $user->tokens()
+        ->where('name', 'like', 'fcm::%')
+        ->pluck('name')
+        ->map(fn($name) => str_replace('fcm::', '', $name))
+        ->filter(fn($token) => $token && $token !== 'no-device')
+        ->values()
+        ->toArray();
+}
