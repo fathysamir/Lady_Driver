@@ -15,6 +15,8 @@ class Scooter extends Model
     public $PlateImageCollection = 'plate_image';
     public $LicenseFrontImageCollection = 'license_front_image';
     public $LicenseBackImageCollection = 'license_back_image';
+    public $ScooterInspectionImageCollection = 'scooter-inspection_image';
+
 
     protected $fillable = [
         'code',
@@ -26,6 +28,7 @@ class Scooter extends Model
         'scooter_plate',
         'lat',
         'lng',
+        'scooter_inspection_date',
         'status',
         'license_expire_date',
     ];
