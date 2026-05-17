@@ -674,6 +674,61 @@ class DriverController extends ApiController
             'status'               => $car->status,
         ], 'Car inspection saved successfully', 200);
     }
+    public function add_scooter_inspection(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'Scooter_inspection_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'inspection_date' => [
+            'required',
+            'date_format:Y-m-d',
+            'before_or_equal:today',
+        ],
+    ]);
+
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
+    }
+
+    $scooter = Scooter::where('user_id', auth()->user()->id)->first();
+
+    if (!$scooter) {
+        return $this->sendError(null, 'Make sure the scooter is registered', 400);
+    }
+
+    // update inspection date
+    $scooter->scooter_inspection_date = date('Y-m-d', strtotime($request->inspection_date));
+
+    // handle image upload
+    if ($request->hasFile('Scooter_inspection_image')) {
+
+        $oldImage = getFirstMediaUrl($scooter, $scooter->ScooterInspectionImageCollection);
+
+        if ($oldImage) {
+            deleteMedia($scooter, $scooter->ScooterInspectionImageCollection);
+        }
+
+        uploadMedia(
+            $request->file('Scooter_inspection_image'),
+            $scooter->ScooterInspectionImageCollection,
+            $scooter
+        );
+
+        $scooter->status = 'pending';
+
+        $user = auth()->user();
+        $user->status = 'pending';
+        $user->save();
+    }
+
+    $scooter->save();
+
+    return $this->sendResponse([
+        'inspection_date' => $scooter->scooter_inspection_date,
+        'Scooter_inspection_image' => getFirstMediaUrl($scooter, $scooter->ScooterInspectionImageCollection),
+        'status' => $scooter->status,
+    ], 'Scooter inspection saved successfully', 200);
+}
 
     public function medical_examination(Request $request)
     {
