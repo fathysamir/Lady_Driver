@@ -9,7 +9,7 @@ class UserController extends Controller
 {
     public function getAllUsers(Request $request)
     {
-        $perPage = $request->per_page ?? 10;
+        $perPage = $request->per_page ?? 500;
 
         $users = User::paginate($perPage);
 
