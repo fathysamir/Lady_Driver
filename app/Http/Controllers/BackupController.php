@@ -10,32 +10,36 @@ class BackupController extends Controller
     {
         $filename = 'db-backup-' . date('Y-m-d_H-i-s') . '.sql';
 
-        $tables = DB::select('SHOW TABLES');
-        $dbName = env('DB_DATABASE');
-        $key = "Tables_in_$dbName";
+        return response()->streamDownload(function () {
 
-        return response()->streamDownload(function () use ($tables, $key) {
+            $dbName = env('DB_DATABASE');
 
-            $output = "-- Database Backup\n";
-            $output .= "-- Date: " . date('Y-m-d H:i:s') . "\n\n\n";
+            // ✅ get ALL tables correctly
+            $tables = DB::select("
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = ?
+            ", [$dbName]);
+
+            echo "-- Database Backup\n";
+            echo "-- Date: " . date('Y-m-d H:i:s') . "\n\n\n";
 
             foreach ($tables as $table) {
 
-                $tableName = $table->$key;
+                $tableName = $table->table_name;
 
-                // structure
+                echo "\n\n-- Table: $tableName\n";
+
+                // DROP + CREATE
                 $create = DB::select("SHOW CREATE TABLE `$tableName`")[0];
-                $output .= "\n-- Table: $tableName\n";
-                $output .= "DROP TABLE IF EXISTS `$tableName`;\n";
-                $output .= $create->{'Create Table'} . ";\n\n";
+                echo "DROP TABLE IF EXISTS `$tableName`;\n";
+                echo $create->{'Create Table'} . ";\n\n";
 
-                echo $output;
-                $output = "";
-
-                // DATA (IMPORTANT: chunk instead of get)
-                DB::table($tableName)->orderBy('id')->chunk(500, function ($rows) use ($tableName) {
+                // DATA (safe chunking)
+                DB::table($tableName)->orderByRaw('1')->chunk(500, function ($rows) use ($tableName) {
 
                     foreach ($rows as $row) {
+
                         $values = [];
 
                         foreach ($row as $value) {
