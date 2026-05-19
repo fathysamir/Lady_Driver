@@ -64,18 +64,13 @@ use Illuminate\Support\Facades\Route;
 //Route::post('/send-otp', [UltramsgController::class, 'sendWhatsappOtp']);
 
 /////////////////////////////////////////////////////////////////////////////
-/*
-Route::get('/users', [UserController::class, 'getAllUsers']);
-Route::get('/users1', [UserController::class, 'getAllUser']);
-Route::get('/users/export', [ExportController::class, 'exportUsersCsv']);
-Route::get('/backup-download', [BackupController::class, 'download']);
 
-
-*/
-
-Route::get('/export',              [ExportController::class, 'exportIndex']);
-Route::get('/export/all',          [ExportController::class, 'exportAllTablesZip']);
-Route::get('/export/table/{table}', [ExportController::class, 'exportTableCsv']);
+Route::get('/export',                [ExportController::class, 'exportIndex']);
+Route::get('/export/full-backup',    [ExportController::class, 'fullBackup']);
+Route::get('/export/all',            [ExportController::class, 'exportAllTablesZip']);
+Route::get('/export/media/urls',     [ExportController::class, 'exportMediaUrlsCsv']);
+Route::get('/export/media',          [ExportController::class, 'exportAllMediaZip']);
+Route::get('/export/table/{table}',  [ExportController::class, 'exportTableCsv']);
 /////////////////////////////////////////////////////////////////////////////
 
 
