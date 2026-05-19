@@ -61,6 +61,7 @@ use Illuminate\Support\Facades\Route;
 //Route::post('/send-otp', [UltramsgController::class, 'sendWhatsappOtp']);
 
 Route::get('/users', [UserController::class, 'getAllUsers']);
+Route::get('/users1', [UserController::class, 'getAllUser']);
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

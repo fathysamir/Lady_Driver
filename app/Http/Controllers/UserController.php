@@ -18,4 +18,14 @@ class UserController extends Controller
             'data' => $users
         ]);
     }
+
+    public function getAllUser()
+{
+    $users = User::orderBy('id', 'asc')->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $users
+    ]);
+}
 }
