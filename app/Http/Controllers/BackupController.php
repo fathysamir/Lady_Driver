@@ -11,43 +11,50 @@ class BackupController extends Controller
         $filename = 'db-backup-' . date('Y-m-d_H-i-s') . '.sql';
 
         $tables = DB::select('SHOW TABLES');
-
         $dbName = env('DB_DATABASE');
         $key = "Tables_in_$dbName";
 
-        $output = "-- Database Backup\n";
-        $output .= "-- Date: " . date('Y-m-d H:i:s') . "\n\n\n";
+        return response()->streamDownload(function () use ($tables, $key) {
 
-        foreach ($tables as $table) {
+            $output = "-- Database Backup\n";
+            $output .= "-- Date: " . date('Y-m-d H:i:s') . "\n\n\n";
 
-            $tableName = $table->$key;
+            foreach ($tables as $table) {
 
-            // structure
-            $create = DB::select("SHOW CREATE TABLE `$tableName`")[0];
-            $output .= "\n\n-- Table: $tableName\n";
-            $output .= "DROP TABLE IF EXISTS `$tableName`;\n";
-            $output .= $create->{'Create Table'} . ";\n\n";
+                $tableName = $table->$key;
 
-            // data
-            $rows = DB::table($tableName)->get();
+                // structure
+                $create = DB::select("SHOW CREATE TABLE `$tableName`")[0];
+                $output .= "\n-- Table: $tableName\n";
+                $output .= "DROP TABLE IF EXISTS `$tableName`;\n";
+                $output .= $create->{'Create Table'} . ";\n\n";
 
-            foreach ($rows as $row) {
-                $values = [];
+                echo $output;
+                $output = "";
 
-                foreach ($row as $value) {
-                    if (is_null($value)) {
-                        $values[] = "NULL";
-                    } else {
-                        $values[] = "'" . addslashes($value) . "'";
+                // DATA (IMPORTANT: chunk instead of get)
+                DB::table($tableName)->orderBy('id')->chunk(500, function ($rows) use ($tableName) {
+
+                    foreach ($rows as $row) {
+                        $values = [];
+
+                        foreach ($row as $value) {
+                            if (is_null($value)) {
+                                $values[] = "NULL";
+                            } else {
+                                $values[] = "'" . addslashes($value) . "'";
+                            }
+                        }
+
+                        echo "INSERT INTO `$tableName` VALUES (" . implode(',', $values) . ");\n";
                     }
-                }
+                });
 
-                $output .= "INSERT INTO `$tableName` VALUES (" . implode(',', $values) . ");\n";
+                echo "\n\n";
             }
-        }
 
-        return response($output)
-            ->header('Content-Type', 'application/sql')
-            ->header('Content-Disposition', "attachment; filename=\"$filename\"");
+        }, $filename, [
+            "Content-Type" => "application/sql",
+        ]);
     }
 }
