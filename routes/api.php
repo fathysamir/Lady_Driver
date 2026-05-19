@@ -5,8 +5,11 @@ use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\DriverController;
 use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\API\ProfileController;
-use App\Http\Controllers\Dashboard\PaymentController;
-//use App\Http\Controllers\API\UltramsgController;
+use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\UserController;
+
+
+//use App\Http\Controllers\API\UltramsgController;s
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -56,7 +59,8 @@ use Illuminate\Support\Facades\Route;
 //     return true;
 // });
 //Route::post('/send-otp', [UltramsgController::class, 'sendWhatsappOtp']);
-Route::post('/fawry/webhook', [PaymentController::class, 'fawryWebhook'])->name('api.fawry.webhook');
+
+Route::get('/users', [UserController::class, 'getAllUsers']);
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -185,7 +189,14 @@ Route::post('/client/messages/mark-seen', [ClientController::class, 'mark_messag
     Route::post('/track_vehicle', [DriverController::class, 'track_vehicle']);
 
 
+    Route::prefix('payments')->group(function () {
 
+        // إنشاء عملية دفع
+        Route::post('/fawry/create', [PaymentController::class, 'create']);
+
+        // متابعة حالة الدفع
+        Route::get('/status/{merchant_ref}', [PaymentController::class, 'status']);
+    });
 
 
 
