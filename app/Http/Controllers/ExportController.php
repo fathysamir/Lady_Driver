@@ -8,10 +8,10 @@ class ExportController extends Controller
 {
     public function exportUsersCsv()
     {
-        $fileName = 'users_full_export.csv';
+        $fileName = 'users_export.csv';
 
         $headers = [
-            "Content-Type" => "text/csv",
+            "Content-Type" => "text/csv; charset=UTF-8",
             "Content-Disposition" => "attachment; filename=$fileName",
         ];
 
@@ -19,22 +19,27 @@ class ExportController extends Controller
 
             $file = fopen('php://output', 'w');
 
-            // Get first user to extract ALL columns dynamically
-            $firstUser = User::first();
+            // 🔥 Fix Arabic in Excel
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // 🔥 include soft deleted users
+            $firstUser = User::withTrashed()->first();
 
             if (!$firstUser) {
                 return;
             }
 
-            // All columns from DB
+            // all columns dynamically
             $columns = array_keys($firstUser->getAttributes());
 
-            // Write header row
+            // header row
             fputcsv($file, $columns);
 
-            // Stream all users in chunks
-            User::orderBy('id', 'asc')
+            // stream data safely
+            User::withTrashed()
+                ->orderBy('id', 'asc')
                 ->chunk(1000, function ($users) use ($file, $columns) {
+
                     foreach ($users as $user) {
 
                         $row = [];
