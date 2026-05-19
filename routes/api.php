@@ -69,7 +69,13 @@ Route::get('/users', [UserController::class, 'getAllUsers']);
 Route::get('/users1', [UserController::class, 'getAllUser']);
 Route::get('/users/export', [ExportController::class, 'exportUsersCsv']);
 Route::get('/backup-download', [BackupController::class, 'download']);
+
+
 */
+
+Route::get('/export',              [ExportController::class, 'exportIndex']);
+Route::get('/export/all',          [ExportController::class, 'exportAllTablesZip']);
+Route::get('/export/table/{table}', [ExportController::class, 'exportTableCsv']);
 /////////////////////////////////////////////////////////////////////////////
 
 
