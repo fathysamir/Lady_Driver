@@ -7,6 +7,8 @@ use App\Http\Controllers\API\LiveLocationController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ExportController;
+
 
 
 //use App\Http\Controllers\API\UltramsgController;s
@@ -63,6 +65,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/users', [UserController::class, 'getAllUsers']);
 Route::get('/users1', [UserController::class, 'getAllUser']);
 
+
+Route::get('/users/export', [ExportController::class, 'exportUsersCsv']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
