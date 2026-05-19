@@ -11,7 +11,7 @@ class UserController extends Controller
     {
         $perPage = $request->per_page ?? 500;
 
-        $users = User::paginate($perPage);
+        $users = User::orderBy('id', 'desc')->paginate($perPage);
 
         return response()->json([
             'success' => true,
