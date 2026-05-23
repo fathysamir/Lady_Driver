@@ -113,6 +113,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
     Route::any('/archived-drivers', [DriverController::class, 'index_archives'])->name('archived_drivers');
     Route::any('/driver/restore/{id}', [DriverController::class, 'restore'])->name('restore.driver');
+    Route::get('/drivers/export', [DriverController::class, 'exportCsv'])->name('drivers.export');
     //////////////////////////////////////////////////
     Route::any('/cities', [CityController::class, 'index'])->name('cities');
     Route::get('/cities/create', [CityController::class, 'create'])->name('add.city');
