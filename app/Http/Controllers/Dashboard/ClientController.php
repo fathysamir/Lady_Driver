@@ -13,7 +13,7 @@ use Image;
 
 class ClientController extends Controller
 { //done
-   
+
     public function index(Request $request)
 {
     $query = User::where('mode', 'client')->where('is_verified','1')->with('city:id,name');
@@ -31,7 +31,7 @@ class ClientController extends Controller
         $title = 'Clients';
     }
 
-    
+
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function ($q) use ($search) {
@@ -48,7 +48,7 @@ class ClientController extends Controller
     $query->orderBy('created_at', 'desc')
           ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
-    $all_users = $query->paginate(15)->withQueryString();
+    $all_users = $query->paginate(25)->withQueryString();
     $count = $all_users->total();
 
     // Transform collection For image adding
@@ -72,7 +72,7 @@ class ClientController extends Controller
 public function index_archives(Request $request)
 {
     $type = $request->query('type');
-    
+
     $query = User::withTrashed()->where('mode', 'client')->whereNotNull('deleted_at');
 
     if ($type === 'students') {
@@ -97,7 +97,7 @@ public function index_archives(Request $request)
     $query->orderBy('created_at', 'desc')
           ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
-    $all_users = $query->paginate(12)->withQueryString();
+    $all_users = $query->paginate(25)->withQueryString();
     $count = $all_users->total();
 
     // Transform collection For image adding
@@ -184,7 +184,7 @@ public function index_archives(Request $request)
         $user->tokens()->delete();
         $user->delete();
         return redirect()->route('clients', $request->query())
-        ->with('success', 'Client deleted successfully.');   
+        ->with('success', 'Client deleted successfully.');
     }
     public function restore($id)
     {
