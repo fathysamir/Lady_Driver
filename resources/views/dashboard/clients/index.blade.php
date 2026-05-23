@@ -127,20 +127,20 @@
                                             <div class="export-dropdown">
                                                 <button class="btn btn-light px-3" type="button"
                                                     style="width: 170px;">
-                                                    Export CSV ▾
+                                                    Export CSV
                                                 </button>
                                                 <div class="export-dropdown-menu">
                                                     <a href="{{ route('clients.export', array_merge(
                                                             ['type' => $type, 'export_scope' => 'all'],
                                                             array_filter(['search' => request('search'), 'status' => request('status')])
                                                         )) }}">
-                                                        ⬇ Export All
+                                                        Export All Clients
                                                     </a>
                                                     <a href="{{ route('clients.export', array_merge(
                                                             ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
                                                             array_filter(['search' => request('search'), 'status' => request('status')])
                                                         )) }}">
-                                                        📄 Export Current Page
+                                                        Export Current Page
                                                     </a>
                                                 </div>
                                             </div>
