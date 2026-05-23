@@ -53,7 +53,7 @@ class DriverController extends Controller
             $all_users->where('level', $request->level);
         }
         $count     = $all_users->count();
-        $all_users = $all_users->paginate(15);
+        $all_users = $all_users->paginate(25);
 
         $all_users->getCollection()->transform(function ($user) {
             // Add the 'image' key based on some condition
@@ -99,7 +99,7 @@ class DriverController extends Controller
         $all_users->whereNotNull('deleted_at');
         $count = $all_users->count();
         // Paginate the results
-        $all_users = $all_users->paginate(12);
+        $all_users = $all_users->paginate(25);
 
         // Transform the user collection to add the 'image' key
         $all_users->getCollection()->transform(function ($user) {
