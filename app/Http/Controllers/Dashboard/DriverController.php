@@ -206,4 +206,66 @@ class DriverController extends Controller
         User::withTrashed()->where('id', $id)->update(['deleted_at' => null]);
         return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
     }
+    public function exportCsv(Request $request)
+    {
+        $type    = $request->query('type', 'cars');
+        $search  = $request->query('search');
+        $status  = $request->query('status');
+        $city    = $request->query('city');
+        $level   = $request->query('level');
+        $scope   = $request->query('export_scope', 'all');
+        $page    = $request->query('page', 1);
+        $perPage = 25;
+
+        $query = User::where('mode', 'driver');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('phone', 'LIKE', "%{$search}%")
+                  ->orWhere('id', $search);
+            });
+        }
+
+        if (!empty($status)) $query->where('status', $status);
+        if (!empty($city))   $query->where('city_id', $city);
+        if (!empty($level))  $query->where('level', $level);
+
+        $query->orderBy('created_at', 'desc');
+
+        if ($scope === 'page') {
+            $users = $query->forPage($page, $perPage)->get();
+        } else {
+            $users = $query->get();
+        }
+
+        $filename = 'drivers_' . $scope . '_' . now()->format('Y_m_d_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($users) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Level', 'Join Date']);
+            $counter = 1;
+            foreach ($users as $user) {
+                fputcsv($file, [
+                    $counter++,
+                    $user->name,
+                    $user->email,
+                    "\t" . $user->country_code . $user->phone,
+                    $user->status,
+                    'LV ' . $user->level,
+                    $user->created_at->format('d.M.Y h:i a'),
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
