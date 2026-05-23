@@ -4,7 +4,7 @@
     <style>
         .pagination {
             display: inline-flex;
-                }
+        }
 
         .user-status {
             position: absolute;
@@ -24,8 +24,6 @@
             background-color: gray;
         }
 
-
-        /* Popup styles */
         .user-profile {
             position: relative;
         }
@@ -35,14 +33,12 @@
             height: 40px;
             cursor: pointer;
             position: relative;
-
         }
 
         .avatar-preview {
             display: none;
             position: fixed;
             justify-content: center;
-            /* Center horizontally */
             align-items: center;
             top: 50%;
             left: 50%;
@@ -57,7 +53,6 @@
         }
 
         .avatar-preview img {
-
             width: 100%;
             height: 100%;
             border-radius: 5px;
@@ -67,7 +62,43 @@
             display: block;
         }
 
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+            margin: 0% 0% 1% 1%;
+        }
+
+        .export-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 999;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 170px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .export-dropdown-menu a {
+            display: block;
+            padding: 8px 16px;
+            color: #333;
+            text-decoration: none;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .export-dropdown-menu a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .export-dropdown:hover .export-dropdown-menu {
+            display: block;
+        }
     </style>
+
     <div class="content-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -75,9 +106,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div>
-
                                 <form id="searchForm" class="search-bar"
-                                    style="margin-bottom:1%;margin-right:20px;margin-left:0px;"method="post"
+                                    style="margin-bottom:1%;margin-right:20px;margin-left:0px;" method="post"
                                     action="{{ route('clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
@@ -88,60 +118,55 @@
                                         </h5>
 
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
+
                                             <a class="btn btn-light px-3" type="button"
                                                 href="{{ route('archived_clients', ['type' => $type]) }}"
                                                 style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
 
-                                            {{-- Export CSV — same shape as btn-light, no layout change --}}
-                                            <select class="form-control"
-                                                style="width:150px; margin:0% 0% 1% 1%; cursor:pointer;"
-                                                onchange="if(this.value){ window.location.href=this.value; this.selectedIndex=0; }">
-                                                <option value="" disabled selected>Export CSV</option>
-                                                <option value="{{ route('clients.export', array_merge(
-                                                        ['type' => $type, 'export_scope' => 'all'],
-                                                        array_filter(['search' => request('search'), 'status' => request('status'), 'city' => request('city')])
-                                                    )) }}">Export All</option>
-                                                <option value="{{ route('clients.export', array_merge(
-                                                        ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
-                                                        array_filter(['search' => request('search'), 'status' => request('status'), 'city' => request('city')])
-                                                    )) }}">Export Current Page</option>
-                                            </select>
+                                            {{-- Export Dropdown --}}
+                                            <div class="export-dropdown">
+                                                <button class="btn btn-light px-3" type="button"
+                                                    style="width: 170px;">
+                                                    Export CSV ▾
+                                                </button>
+                                                <div class="export-dropdown-menu">
+                                                    <a href="{{ route('clients.export', array_merge(
+                                                            ['type' => $type, 'export_scope' => 'all'],
+                                                            array_filter(['search' => request('search'), 'status' => request('status')])
+                                                        )) }}">
+                                                        ⬇ Export All
+                                                    </a>
+                                                    <a href="{{ route('clients.export', array_merge(
+                                                            ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
+                                                            array_filter(['search' => request('search'), 'status' => request('status')])
+                                                        )) }}">
+                                                        📄 Export Current Page
+                                                    </a>
+                                                </div>
+                                            </div>
 
                                             <button class="btn btn-light px-3" type="button"
-                                                onclick="toggleFilters()"style="margin:0% 1% 1% 1%; ">Filter</button>
+                                                onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
                                             <input type="text" class="form-control" placeholder="Enter keywords"
-                                                name="search"  style="display:flex;" value="{{ request('search') }}">
+                                                name="search" style="display:flex;" value="{{ request('search') }}">
                                             <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                         </div>
 
                                     </div>
 
-
                                     <div id="filterOptions" style="display: none; text-align:center;">
                                         <div style="display: flex;justify-content: center;">
-                                            <select class="form-control"style="width: 32%;margin: 0% 2% 0% 0%;"
+                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option
-                                                    value="pending"{{ request('status') == 'pending' ? 'selected' : '' }}>
-                                                    Pending</option>
-                                                <option
-                                                    value="confirmed"{{ request('status') == 'confirmed' ? 'selected' : '' }}>
-                                                    Confirmed</option>
-                                                <option value="banned"{{ request('status') == 'banned' ? 'selected' : '' }}>
-                                                    Banned</option>
-                                                <option
-                                                    value="blocked"{{ request('status') == 'blocked' ? 'selected' : '' }}>
-                                                    Blocked</option>
+                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                                <option value="banned" {{ request('status') == 'banned' ? 'selected' : '' }}>Banned</option>
+                                                <option value="blocked" {{ request('status') == 'blocked' ? 'selected' : '' }}>Blocked</option>
                                             </select>
-
                                         </div>
-
-
-                                        <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply
-                                            Filters</button>
+                                        <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
                                     </div>
-
                                 </form>
                             </div>
 
@@ -170,26 +195,19 @@
                                                     <td>
                                                         <span class="user-profile">
                                                             <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
-                                          @else
-                                              src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                                @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
-                                                                <span
-                                                                class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
+                                                            <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
                                                                 <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
-                                              @else
-                                                  src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                                    @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
                                                                     alt="Avatar Preview">
                                                             </div>
                                                         </span>
-
                                                         {!! highlight($user->name, $search ?? '') !!}
                                                     </td>
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
-
                                                     <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
-
-
                                                     <td>
                                                         @if ($user->status == 'pending')
                                                             <span class="badge badge-secondary"
@@ -205,24 +223,17 @@
                                                                 style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
                                                         @endif
                                                     </td>
-
                                                     <td>{{ $user->created_at->format('d.M.Y h:i a') }}</td>
                                                     <td>
-
-
                                                         @can('clients.edit')
                                                             <a href="{{ route('edit.client', ['id' => $user->id] + request()->query()) }}"
                                                                 style="margin-right: 1rem;">
-                                                                <span class="bi bi-pen"
-                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                                <span class="bi bi-pen" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
-
                                                         @can('clients.delete')
-
-                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/client/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
-                                                                <span class="bi bi-trash"
-                                                                    style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                            <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/client/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                                <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
                                                     </td>
@@ -237,10 +248,10 @@
                                 </table>
                                 <div style="text-align: center;">
                                     {!! $all_users->appends([
-                                            'search' => request('search'),
-                                            'status' => request('status'),
-                                            'city' => request('city'),
-                                        ])->links('pagination::bootstrap-4') !!}
+                                        'search' => request('search'),
+                                        'status' => request('status'),
+                                        'city'   => request('city'),
+                                    ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
                         </div>
@@ -250,8 +261,10 @@
             <div class="overlay toggle-menu"></div>
         </div>
     </div>
-    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
-        aria-hidden="true">
+
+    {{-- Delete Confirmation Modal --}}
+    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -263,32 +276,32 @@
                 </div>
                 <div class="modal-body" style="color:black;">
                     <div class="form-group">
-                        <div style="width: 100%;  display: flex;justify-content: center;">
+                        <div style="width: 100%; display: flex;justify-content: center;">
                             <img id="deletedUserAvatar" src="{{ asset('dashboard/logo.png') }}" class="logo-icon"
                                 alt="logo icon" style="width:100px;height:100px; border-radius: 50%;">
                         </div>
-                        <div style="width: 100%;  display: flex;justify-content: center;">
-                            <h5 class="logo-text"style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
-
+                        <div style="width: 100%; display: flex;justify-content: center;">
+                            <h5 class="logo-text" style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
                         </div>
                     </div>
-                    <button
-                        onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
-                    <button
-                        onclick="deleteUser()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
-                            class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>
-
+                    <button onclick="hideConfirmationPopup()"
+                        style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;">
+                        <span class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel
+                    </button>
+                    <button onclick="deleteUser()"
+                        style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;">
+                        <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function showConfirmationPopup(deleteUrl, name, imgSrc) {
-
             document.getElementById('deletedNameInput').textContent = name;
             document.getElementById('deletedUserAvatar').src = imgSrc;
             const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
@@ -297,7 +310,6 @@
         }
 
         function hideConfirmationPopup() {
-
             var modal = document.getElementById('confirmationPopup');
             modal.classList.remove('show');
             modal.style.display = 'none';
