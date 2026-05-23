@@ -191,4 +191,59 @@ public function index_archives(Request $request)
         User::withTrashed()->where('id', $id)->update(['deleted_at' => null]);
         return redirect('/admin-dashboard/archived-clients');
     }
+
+    public function exportCsv(Request $request)
+    {
+        $type        = $request->query('type');
+        $search      = $request->query('search');
+        $status      = $request->query('status');
+        $scope       = $request->query('export_scope', 'all'); // 'all' or 'page'
+        $page        = $request->query('page', 1);
+        $perPage     = 25;
+
+        $query = User::where('type', $type)
+            ->when($search, function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('email', 'like', "%$search%")
+                  ->orWhere('phone', 'like', "%$search%");
+            })
+            ->when($status, function ($q) use ($status) {
+                $q->where('status', $status);
+            });
+
+        // Export current page only
+        if ($scope === 'page') {
+            $users = $query->forPage($page, $perPage)->get();
+        } else {
+            $users = $query->get();
+        }
+
+        $filename = ($type === 'students' ? 'students' : 'clients')
+            . '_' . $scope
+            . '_' . now()->format('Y_m_d_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($users) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Join Date']);
+            $counter = 1;
+            foreach ($users as $user) {
+                fputcsv($file, [
+                    $counter++,
+                    $user->name,
+                    $user->email,
+                    $user->country_code . $user->phone,
+                    $user->status,
+                    $user->created_at->format('d.M.Y h:i a'),
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
