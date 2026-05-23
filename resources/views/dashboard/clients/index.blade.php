@@ -97,7 +97,7 @@
     }
 
     .export-dropdown-menu a:hover {
-        background-color: #1a3c2e ;
+        background-color: #f0f0f0 !important;
         color: #212529;
         text-decoration: none;
     }
