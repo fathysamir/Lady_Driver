@@ -1,103 +1,111 @@
 @extends('dashboard.layout.app')
 @section('title', 'Dashboard - ' . (request()->query('type') === 'students' ? 'Students' : 'Clients'))
 @section('content')
-    <style>
-        .pagination {
-            display: inline-flex;
-        }
+<style>
+    .pagination {
+        display: inline-flex;
+    }
 
-        .user-status {
-            position: absolute;
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-left: -25%;
-            margin-bottom: 8%;
-        }
+    .user-status {
+        position: absolute;
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-left: -25%;
+        margin-bottom: 8%;
+    }
 
-        .online {
-            background-color: green;
-        }
+    .online {
+        background-color: green;
+    }
 
-        .offline {
-            background-color: gray;
-        }
+    .offline {
+        background-color: gray;
+    }
 
-        .user-profile {
-            position: relative;
-        }
+    .user-profile {
+        position: relative;
+    }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            position: relative;
-        }
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        position: relative;
+    }
 
-        .avatar-preview {
-            display: none;
-            position: fixed;
-            justify-content: center;
-            align-items: center;
-            top: 50%;
-            left: 50%;
-            height: 600px;
-            width: 800px;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+    .avatar-preview {
+        display: none;
+        position: fixed;
+        justify-content: center;
+        align-items: center;
+        top: 50%;
+        left: 50%;
+        height: 600px;
+        width: 800px;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
-        .avatar-preview img {
-            width: 100%;
-            height: 100%;
-            border-radius: 5px;
-        }
+    .avatar-preview img {
+        width: 100%;
+        height: 100%;
+        border-radius: 5px;
+    }
 
-        .user-profile:hover .avatar-preview {
-            display: block;
-        }
+    .user-profile:hover .avatar-preview {
+        display: block;
+    }
 
-        .export-dropdown {
-            position: relative;
-            display: inline-block;
-            margin: 0% 0% 1% 1%;
-        }
+    .export-dropdown {
+        position: relative;
+        display: inline-block;
+        margin: 0% 0% 1% 1%;
+    }
 
-        .export-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 999;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-width: 170px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
+    .export-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 999;
+        min-width: 170px;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
 
-        .export-dropdown-menu a {
-            display: block;
-            padding: 8px 16px;
-            color: #333;
-            text-decoration: none;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
+    .export-dropdown-menu a {
+        display: block;
+        padding: 8px 16px;
+        background-color: #f8f9fa;
+        color: #212529;
+        text-decoration: none;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        border: 1px solid rgba(0,0,0,.125);
+        border-top: none;
+    }
 
-        .export-dropdown-menu a:hover {
-            background-color: #f5f5f5;
-        }
+    .export-dropdown-menu a:first-child {
+        border-top: 1px solid rgba(0,0,0,.125);
+    }
 
-        .export-dropdown:hover .export-dropdown-menu {
-            display: block;
-        }
-    </style>
+    .export-dropdown-menu a:hover {
+        background-color: #e2e6ea;
+        color: #212529;
+        text-decoration: none;
+    }
+
+    .export-dropdown:hover .export-dropdown-menu {
+        display: block;
+    }
+</style>
 
     <div class="content-wrapper">
         <div class="container-fluid">
