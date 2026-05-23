@@ -253,7 +253,7 @@ public function index_archives(Request $request)
                     $counter++,
                     $user->name,
                     $user->email,
-                    $user->country_code . $user->phone,
+                    "\t" . $user->country_code . $user->phone,
                     $user->status,
                     $user->created_at->format('d.M.Y h:i a'),
                 ]);
