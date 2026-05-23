@@ -83,7 +83,7 @@
     .export-dropdown-menu a {
         display: block;
         padding: 8px 16px;
-        background-color: #f8f9fa;
+        background-color: #1a3c2e;
         color: #212529;
         text-decoration: none;
         font-size: 0.875rem;
@@ -97,7 +97,7 @@
     }
 
     .export-dropdown-menu a:hover {
-        background-color: #e2e6ea;
+        background-color: #14502e;
         color: #212529;
         text-decoration: none;
     }
