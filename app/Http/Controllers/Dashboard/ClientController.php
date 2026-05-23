@@ -194,24 +194,37 @@ public function index_archives(Request $request)
 
     public function exportCsv(Request $request)
     {
-        $type        = $request->query('type');
-        $search      = $request->query('search');
-        $status      = $request->query('status');
-        $scope       = $request->query('export_scope', 'all'); // 'all' or 'page'
-        $page        = $request->query('page', 1);
-        $perPage     = 25;
+        $type    = $request->query('type');
+        $search  = $request->query('search');
+        $status  = $request->query('status');
+        $city    = $request->query('city');
+        $scope   = $request->query('export_scope', 'all');
+        $page    = $request->query('page', 1);
+        $perPage = 25;
 
-        $query = User::where('type', $type)
-            ->when($search, function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                  ->orWhere('email', 'like', "%$search%")
-                  ->orWhere('phone', 'like', "%$search%");
-            })
-            ->when($status, function ($q) use ($status) {
-                $q->where('status', $status);
+        $query = User::where('mode', 'client')->where('is_verified', '1');
+
+        if ($type === 'students') {
+            $query->whereNotNull('student_code');
+        } else {
+            $query->whereNull('student_code');
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('phone', 'LIKE', "%{$search}%")
+                  ->orWhere('id', $search);
             });
+        }
 
-        // Export current page only
+        if (!empty($status)) $query->where('status', $status);
+        if (!empty($city))   $query->where('city_id', $city);
+
+        $query->orderBy('created_at', 'desc')
+              ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+
         if ($scope === 'page') {
             $users = $query->forPage($page, $perPage)->get();
         } else {

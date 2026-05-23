@@ -61,42 +61,6 @@
         .user-profile:hover .avatar-preview {
             display: block;
         }
-
-        .export-dropdown {
-            position: relative;
-            display: inline-block;
-            margin: 0% 0% 1% 1%;
-        }
-
-        .export-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 999;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-width: 170px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .export-dropdown-menu a {
-            display: block;
-            padding: 8px 16px;
-            color: #333;
-            text-decoration: none;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .export-dropdown-menu a:hover {
-            background-color: #f5f5f5;
-        }
-
-        .export-dropdown:hover .export-dropdown-menu {
-            display: block;
-        }
     </style>
 
     <div class="content-wrapper">
@@ -117,33 +81,38 @@
                                             {{ $count }}
                                         </h5>
 
-                                        <div style="display:flex;margin-bottom:1%;margin-left:0px;">
+                                        <div style="display:flex;margin-bottom:1%;margin-left:0px;align-items:center;">
 
                                             <a class="btn btn-light px-3" type="button"
                                                 href="{{ route('archived_clients', ['type' => $type]) }}"
                                                 style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
 
-                                            {{-- Export Dropdown --}}
-                                            <div class="export-dropdown">
-                                                <button class="btn btn-light px-3" type="button"
-                                                    style="width: 170px;">
-                                                    Export CSV ▾
-                                                </button>
-                                                <div class="export-dropdown-menu">
-                                                    <a href="{{ route('clients.export', array_merge(
-                                                            ['type' => $type, 'export_scope' => 'all'],
-                                                            array_filter(['search' => request('search'), 'status' => request('status')])
-                                                        )) }}">
-                                                        ⬇ Export All
-                                                    </a>
-                                                    <a href="{{ route('clients.export', array_merge(
-                                                            ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
-                                                            array_filter(['search' => request('search'), 'status' => request('status')])
-                                                        )) }}">
-                                                        📄 Export Current Page
-                                                    </a>
-                                                </div>
-                                            </div>
+                                            {{-- Export CSV styled exactly like Select Status --}}
+                                            <select class="form-control"
+                                                style="width: 170px; margin: 0% 0% 1% 1%; cursor: pointer;"
+                                                onchange="if(this.value){ window.location.href=this.value; this.selectedIndex=0; }">
+                                                <option value="" disabled selected>Export CSV</option>
+                                                <option value="{{ route('clients.export', array_merge(
+                                                        ['type' => $type, 'export_scope' => 'all'],
+                                                        array_filter([
+                                                            'search' => request('search'),
+                                                            'status' => request('status'),
+                                                            'city'   => request('city'),
+                                                        ])
+                                                    )) }}">
+                                                    Export All
+                                                </option>
+                                                <option value="{{ route('clients.export', array_merge(
+                                                        ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
+                                                        array_filter([
+                                                            'search' => request('search'),
+                                                            'status' => request('status'),
+                                                            'city'   => request('city'),
+                                                        ])
+                                                    )) }}">
+                                                    Export Current Page
+                                                </option>
+                                            </select>
 
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
