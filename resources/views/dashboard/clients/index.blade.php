@@ -83,7 +83,7 @@
     .export-dropdown-menu a {
         display: block;
         padding: 8px 16px;
-        background-color: #000000;
+        background-color: #ffffff;
         color: #212529;
         text-decoration: none;
         font-size: 0.875rem;
