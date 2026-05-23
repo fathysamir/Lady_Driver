@@ -222,8 +222,7 @@ public function index_archives(Request $request)
         if (!empty($status)) $query->where('status', $status);
         if (!empty($city))   $query->where('city_id', $city);
 
-        $query->orderBy('created_at', 'desc')
-              ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+        $query->orderBy('created_at', 'desc');
 
         if ($scope === 'page') {
             $users = $query->forPage($page, $perPage)->get();
@@ -236,13 +235,18 @@ public function index_archives(Request $request)
             . '_' . now()->format('Y_m_d_His') . '.csv';
 
         $headers = [
-            'Content-Type'        => 'text/csv',
+            'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
         $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
+
+            // UTF-8 BOM — makes Excel open Arabic correctly
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
             fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Join Date']);
+
             $counter = 1;
             foreach ($users as $user) {
                 fputcsv($file, [
@@ -254,6 +258,7 @@ public function index_archives(Request $request)
                     $user->created_at->format('d.M.Y h:i a'),
                 ]);
             }
+
             fclose($file);
         };
 
