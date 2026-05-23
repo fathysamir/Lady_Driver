@@ -105,6 +105,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::any('/archived-clients', [ClientController::class, 'index_archives'])->name('archived_clients');
     Route::any('/archived-students', [ClientController::class, 'index_archives'])->name('archived_students');
     Route::get('/client/restore/{id}', [ClientController::class, 'restore'])->name('restore.client');
+    Route::get('/clients/export', [ClientController::class, 'exportCsv'])->name('clients.export');
     /////////////////////////////////////////
     Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');
     Route::get('/driver/edit/{id}', [DriverController::class, 'edit'])->name('edit.driver');
@@ -217,6 +218,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/ratingtripsettings/edit/{id}', [RatingTripSettingsController::class, 'edit'])->name('edit.rating');
     Route::put('/ratingtripsettings/edit/{id}', [RatingTripSettingsController::class, 'update'])->name('rate-trip-settings.update');
     Route::delete('/ratingtripsettings/delete/{id}', [RatingTripSettingsController::class, 'destroy'])->name('delete.rating');
+
+
 //////////////////////////////////////////////////
     Route::any('/roles', [RoleController::class, 'index'])->name('roles.index');
     Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
