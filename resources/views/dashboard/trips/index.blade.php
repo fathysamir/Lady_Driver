@@ -189,7 +189,7 @@
                                                         <img src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}"
                                                              class="img-circle"
                                                              alt="user avatar"
-                                                             onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
+                                                             onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
                                                     </span>
                                                     {!! highlight($trip->user->name, $search ?? '') !!}
                                                 </td>
@@ -202,7 +202,7 @@
                                                             <img src="{{ ($trip->scooter && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection)) ? getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
                                                                  class="img-circle"
                                                                  alt="user avatar"
-                                                                 onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
+                                                                 onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
                                                         </span>
                                                         {!! $trip->scooter ? highlight($trip->scooter->owner->name, $search ?? '') : 'N/A' !!}
                                                     </td>
@@ -222,7 +222,7 @@
                                                             <img src="{{ ($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection)) ? getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
                                                                  class="img-circle"
                                                                  alt="user avatar"
-                                                                 onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
+                                                                 onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
                                                         </span>
                                                         {!! $trip->car ? highlight($trip->car->owner->name, $search ?? '') : 'N/A' !!}
                                                     </td>
@@ -293,13 +293,39 @@
             $('#searchForm').submit();
         });
 
+        // Filter names that should be wiped when switching tabs or time filters
+        const FILTER_PARAMS = [
+            'user', 'driver', 'status', 'payment_status',
+            'mark', 'model', 'created_date', 'air_conditioned', 'trip_type', 'search'
+        ];
+
+        function clearFilterInputs() {
+            const form = document.getElementById('searchForm');
+            FILTER_PARAMS.forEach(function (name) {
+                const els = form.querySelectorAll('[name="' + name + '"]');
+                els.forEach(function (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = false;
+                    } else {
+                        el.value = '';
+                    }
+                });
+            });
+            // Also hide the model select
+            const modelSelect = document.getElementById('modelSelect');
+            modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
+            modelSelect.style.display = 'none';
+        }
+
         function switchTab(tripType) {
+            clearFilterInputs();
             document.getElementById('type_input').value        = tripType;
             document.getElementById('time_filter_input').value = 'current';
             submitWithoutPage();
         }
 
         function switchTimeTab(timeFilter) {
+            clearFilterInputs();
             document.getElementById('time_filter_input').value = timeFilter;
             submitWithoutPage();
         }
