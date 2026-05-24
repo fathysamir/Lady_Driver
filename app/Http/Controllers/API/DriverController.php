@@ -376,49 +376,47 @@ class DriverController extends ApiController
     }
 
     public function edit_scooter(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'scooter_id' => [
-            'required',
-            Rule::exists('scooters', 'id'),
-        ],
-        'color'      => 'required|string|max:255',
-        'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'scooter_id'       => ['required', Rule::exists('scooters', 'id')],
+            'color'            => 'required|string|max:255',
+            'scooter_mark_id'  => ['required', Rule::exists('motorcycle_marks', 'id')],
+            'scooter_model_id' => ['required', Rule::exists('motorcycle_models', 'id')],
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
 
-    if ($validator->fails()) {
-        $errors = implode(" / ", $validator->errors()->all());
-        return $this->sendError(null, $errors, 400);
-    }
-
-    Car::where('id', $request->scooter_id)->update([
-        'color'  => $request->color,
-        'status' => 'pending',
-    ]);
-
-    // Null check on Car before handling image upload
-    $car = Car::find($request->scooter_id);
-    if ($car && $request->file('image')) {
-        $image = getFirstMediaUrl($car, $car->avatarCollection);
-        if ($image != null) {
-            deleteMedia($car, $car->avatarCollection);
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
         }
-        uploadMedia($request->image, $car->avatarCollection, $car);
+
+        Scooter::where('id', $request->scooter_id)->update([
+            'color'            => $request->color,
+            'scooter_mark_id'  => $request->scooter_mark_id,
+            'scooter_model_id' => $request->scooter_model_id,
+            'status'           => 'pending',
+        ]);
+
+        $scooter = Scooter::find($request->scooter_id);
+        if (!$scooter) {
+            return $this->sendError(null, 'Scooter not found.', 404);
+        }
+
+        if ($request->file('image')) {
+            $existing = getFirstMediaUrl($scooter, $scooter->avatarCollection);
+            if ($existing != null) {
+                deleteMedia($scooter, $scooter->avatarCollection);
+            }
+            uploadMedia($request->image, $scooter->avatarCollection, $scooter);
+        }
+
+        $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
+        $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
+        $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
+        $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
+
+        return $this->sendResponse($scooter, 'Scooter Updated Successfully.', 200);
     }
-
-    // Null check on Scooter before building response
-    $scooter = Scooter::find($request->scooter_id);
-    if (!$scooter) {
-        return $this->sendError(null, 'Scooter not found.', 404);
-    }
-
-    $scooter->image               = getFirstMediaUrl($scooter, $scooter->avatarCollection);
-    $scooter->plate_image         = getFirstMediaUrl($scooter, $scooter->PlateImageCollection);
-    $scooter->license_front_image = getFirstMediaUrl($scooter, $scooter->LicenseFrontImageCollection);
-    $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
-
-    return $this->sendResponse($scooter, 'Scooter Updated Successfully.', 200);
-}
 
     public function scooter(Request $request)
     {
