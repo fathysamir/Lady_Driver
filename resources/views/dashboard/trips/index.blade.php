@@ -309,9 +309,12 @@
                     } else {
                         el.value = '';
                     }
+                    // Disable so the field is excluded from the GET URL entirely.
+                    // request()->hasAny() then returns false on reload and the
+                    // filter panel stays closed.
+                    el.disabled = true;
                 });
             });
-            // Also hide the model select
             const modelSelect = document.getElementById('modelSelect');
             modelSelect.innerHTML = '<option value="">Select Vehicle Model</option>';
             modelSelect.style.display = 'none';
