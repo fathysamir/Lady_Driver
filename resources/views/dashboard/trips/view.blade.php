@@ -62,9 +62,10 @@
                                         <label>Client : <a
                                                 href="{{ url('/admin-dashboard/user/edit/' . $trip->user->id) }}">
                                                 <span class="user-profile"><img
-                                                        @if (getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                        src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}"
                                                         class="img-circle" alt="user avatar"
-                                                        style="width: 22px;height: 22px;"></span>
+                                                        style="width: 22px;height: 22px;"
+                                                        onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;"></span>
                                                 {{ ucwords($trip->user->name) }}</a>
                                             @if ($trip->student_trip == '1')
                                                 (<span style="color:rgb(255, 215, 16)">Student</span>)
@@ -77,21 +78,19 @@
                                                 <a
                                                     href="{{ url('/admin-dashboard/user/edit/' . $trip->scooter->owner->id) }}">
                                                     <span class="user-profile"><img
-                                                            @if (getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) }}"
-                                                        @else
-                                                            src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                            src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) ?? asset('dashboard/user_avatar.png') }}"
                                                             class="img-circle" alt="user avatar"
-                                                            style="width: 22px;height: 22px;"></span>
+                                                            style="width: 22px;height: 22px;"
+                                                            onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;"></span>
                                                     {{ ucwords($trip->scooter->owner->name) }}
                                                 </a>
                                             @elseif ($trip->car)
                                                 <a href="{{ url('/admin-dashboard/user/edit/' . $trip->car->owner->id) }}">
                                                     <span class="user-profile"><img
-                                                            @if (getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null) src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}"
-                                                        @else
-                                                            src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                            src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) ?? asset('dashboard/user_avatar.png') }}"
                                                             class="img-circle" alt="user avatar"
-                                                            style="width: 22px;height: 22px;"></span>
+                                                            style="width: 22px;height: 22px;"
+                                                            onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;"></span>
                                                     {{ ucwords($trip->car->owner->name) }}
                                                 </a>
                                             @else

@@ -222,19 +222,21 @@
                                                 $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
                                             @endphp
                                             @foreach ($all_users as $user)
+                                                @php $avatarUrl = getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png'); @endphp
                                                 <tr onclick="window.location='{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
-                                                                @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                                                class="img-circle user-avatar" alt="user avatar">
+                                                            <img src="{{ $avatarUrl }}"
+                                                                class="img-circle user-avatar"
+                                                                alt="user avatar"
+                                                                onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
                                                             <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
-                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
-                                                                    @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                                                    alt="Avatar Preview">
+                                                                <img src="{{ $avatarUrl }}"
+                                                                    alt="Avatar Preview"
+                                                                    onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
                                                             </div>
                                                         </span>
                                                         {!! highlight($user->name, $search ?? '') !!}
@@ -290,7 +292,7 @@
                                                             </a>
                                                         @endcan
                                                         @can($delete_per[$type??'cars'])
-                                                            <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
+                                                            <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/driver/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ $avatarUrl }}")'>
                                                                 <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
@@ -337,7 +339,8 @@
                     <div class="form-group">
                         <div style="width: 100%; display: flex;justify-content: center;">
                             <img id="deletedUserAvatar" src="{{ asset('dashboard/logo.png') }}" class="logo-icon"
-                                alt="logo icon" style="width:100px;height:100px; border-radius: 50%;">
+                                alt="logo icon" style="width:100px;height:100px; border-radius: 50%;"
+                                onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
                         </div>
                         <div style="width: 100%; display: flex;justify-content: center;">
                             <h5 class="logo-text" style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
