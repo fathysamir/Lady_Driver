@@ -1,7 +1,7 @@
-<footer class="footer">
+<footer class="footer" style="position: static; margin-top: auto;">
     <div class="container">
         <div class="text-center">
-            Copyright © 2024 Dashboard Admin
+            Copyright © 2026 Dashboard Admin
         </div>
     </div>
 </footer>

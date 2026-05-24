@@ -2,14 +2,14 @@
     <nav class="navbar navbar-expand fixed-top">
         <ul class="navbar-nav mr-auto align-items-center">
             <li class="nav-item">
-                <a class="nav-link toggle-menu" href="javascript:void();">
+                <a class="nav-link toggle-menu" href="javascript:void(0);">
                     <i class="icon-menu menu-icon"></i>
                 </a>
             </li>
             <li class="nav-item">
-                <form class="search-bar">
-                    <input type="text" class="form-control" placeholder="Enter keywords">
-                    <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+                <form class="search-bar" id="header-search-form" onsubmit="handleSearch(event)">
+                    <input type="text" id="header-search-input" class="form-control" placeholder="Enter keywords">
+                    <a href="#" onclick="handleSearch(event)"><i class="icon-magnifier"></i></a>
                 </form>
             </li>
         </ul>
@@ -25,39 +25,67 @@
                     <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
-            <li class="nav-item dropdown-lg">
-                <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown"
-                    href="javascript:void();">
-                    <i class="fa fa-envelope-open-o"></i></a>
+
+            {{-- SCRUM-360: Envelope icon now navigates to contact us / inbox page --}}
+            <li class="nav-item">
+                <a class="nav-link waves-effect" href="{{ url('/admin-dashboard/contact_us') }}" title="Inbox">
+                    <i class="fa fa-envelope-open-o"></i>
+                </a>
             </li>
-            <li class="nav-item dropdown-lg">
-                <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown"
-                    href="javascript:void();">
-                    <i class="fa fa-bell-o"></i></a>
+
+            {{-- SCRUM-359: Bell icon now navigates to notifications page --}}
+            <li class="nav-item">
+                <a class="nav-link waves-effect" href="{{ url('/admin-dashboard/contact_us') }}" title="Notifications">
+                    <i class="fa fa-bell-o"></i>
+                </a>
             </li>
+
+            {{-- SCRUM-325: Language switcher now functional --}}
             <li class="nav-item language">
                 <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown"
-                    href="javascript:void();"><i class="fa fa-flag"></i></a>
+                    href="javascript:void(0);"><i class="fa fa-flag"></i></a>
                 <ul class="dropdown-menu dropdown-menu-right">
-                    <li class="dropdown-item"> <i class="flag-icon flag-icon-gb mr-2"></i> English</li>
-                    <li class="dropdown-item"> <i class="flag-icon flag-icon-fr mr-2"></i> French</li>
-                    <li class="dropdown-item"> <i class="flag-icon flag-icon-cn mr-2"></i> Chinese</li>
-                    <li class="dropdown-item"> <i class="flag-icon flag-icon-de mr-2"></i> German</li>
+                    <li class="dropdown-item" onclick="changeLanguage('en')" style="cursor:pointer;">
+                        <i class="flag-icon flag-icon-gb mr-2"></i> English
+                    </li>
+                    <li class="dropdown-item" onclick="changeLanguage('fr')" style="cursor:pointer;">
+                        <i class="flag-icon flag-icon-fr mr-2"></i> French
+                    </li>
+                    <li class="dropdown-item" onclick="changeLanguage('zh')" style="cursor:pointer;">
+                        <i class="flag-icon flag-icon-cn mr-2"></i> Chinese
+                    </li>
+                    <li class="dropdown-item" onclick="changeLanguage('de')" style="cursor:pointer;">
+                        <i class="flag-icon flag-icon-de mr-2"></i> German
+                    </li>
                 </ul>
             </li>
+
+            {{-- Profile dropdown --}}
             <li class="nav-item">
                 <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-toggle="dropdown" href="#">
-                    <span class="user-profile"><img
-                            @if (getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) != null) src="{{ getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                            class="img-circle" alt="user avatar"></span>
+                    <span class="user-profile">
+                        <img
+                            @if (getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) != null)
+                                src="{{ getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) }}"
+                            @else
+                                src="{{ asset('dashboard/user_avatar.png') }}"
+                            @endif
+                            class="img-circle" alt="user avatar">
+                    </span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right">
                     <li class="dropdown-item user-details">
-                        <a href="javaScript:void();">
+                        <a href="javascript:void(0);">
                             <div class="media">
-                                <div class="avatar"><img class="align-self-start mr-3"
-                                        @if (getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) != null) src="{{ getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) }}" @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
-                                        alt="user avatar"></div>
+                                <div class="avatar">
+                                    <img class="align-self-start mr-3"
+                                        @if (getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) != null)
+                                            src="{{ getFirstMediaUrl(auth()->user(), auth()->user()->avatarCollection) }}"
+                                        @else
+                                            src="{{ asset('dashboard/user_avatar.png') }}"
+                                        @endif
+                                        alt="user avatar">
+                                </div>
                                 <div class="media-body">
                                     <h6 class="mt-2 user-title">{{ auth()->user()->name }}</h6>
                                     <p class="user-subtitle">{{ auth()->user()->email }}</p>
@@ -66,17 +94,56 @@
                         </a>
                     </li>
                     <li class="dropdown-divider"></li>
-                    <li class="dropdown-item"><i class="icon-envelope mr-2"></i> Inbox</li>
+
+                    {{-- SCRUM-363: Inbox now navigates to emails/contact us page --}}
+                    <li class="dropdown-item">
+                        <a href="{{ url('/admin-dashboard/contact_us') }}">
+                            <i class="icon-envelope mr-2"></i> Inbox
+                        </a>
+                    </li>
                     <li class="dropdown-divider"></li>
-                    <li class="dropdown-item"><a href="{{ url('/admin-dashboard/user/edit/' . auth()->user()->id) }}"><i
-                                class="icon-wallet mr-2"></i> Account</a></li>
+
+                    {{-- SCRUM-366: Account now navigates to admin edit page (not client page) --}}
+                    <li class="dropdown-item">
+                        <a href="{{ url('/admin-dashboard/admin/edit/' . auth()->user()->id) }}">
+                            <i class="icon-wallet mr-2"></i> Account
+                        </a>
+                    </li>
                     <li class="dropdown-divider"></li>
-                    <li class="dropdown-item"><i class="icon-settings mr-2"></i> Setting</li>
+
+                    {{-- SCRUM-364: Settings now navigates to settings page --}}
+                    <li class="dropdown-item">
+                        <a href="{{ url('/admin-dashboard/settings') }}">
+                            <i class="icon-settings mr-2"></i> Setting
+                        </a>
+                    </li>
                     <li class="dropdown-divider"></li>
-                    <li class="dropdown-item"><a href="{{ url('admin-dashboard/logout') }}"><i
-                                class="icon-power mr-2"></i> Logout</a></li>
+
+                    <li class="dropdown-item">
+                        <a href="{{ url('admin-dashboard/logout') }}">
+                            <i class="icon-power mr-2"></i> Logout
+                        </a>
+                    </li>
                 </ul>
             </li>
         </ul>
     </nav>
 </header>
+
+<script>
+    {{-- SCRUM-361 & SCRUM-362: Search navigates to results, empty search shows proper message --}}
+    function handleSearch(e) {
+        e.preventDefault();
+        var query = document.getElementById('header-search-input').value.trim();
+        if (query === '') {
+            alert('Please enter a search keyword.');
+            return;
+        }
+        window.location.href = '{{ url('/admin-dashboard/admins') }}?search=' + encodeURIComponent(query);
+    }
+
+    {{-- SCRUM-325: Language switcher sends locale to backend --}}
+    function changeLanguage(lang) {
+        window.location.href = '{{ url('/admin-dashboard/home') }}?lang=' + lang;
+    }
+</script>

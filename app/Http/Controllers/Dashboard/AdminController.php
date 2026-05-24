@@ -52,7 +52,12 @@ class AdminController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'name'            => ['required', 'string', 'max:191'],
+            'name' => [
+    'required',
+    'string',
+    'max:191',
+    Rule::unique('users')->whereNull('deleted_at'),
+],
             'email'           => [
                 'required',
                 'string',
@@ -63,13 +68,14 @@ class AdminController extends Controller
             'password'        => ['required', 'string', 'min:8', 'confirmed'],
             'second_password' => ['required', 'string', 'min:8', 'confirmed'],
             'country_code'    => 'required',
-            'phone'           => [
-                'required',
-                Rule::unique('users')->where(function ($query) use ($request) {
-                    return $query->where('country_code', $request->country_code)
-                        ->whereNull('deleted_at');
-                }),
-            ],
+           'phone' => [
+    'required',
+    'digits_between:7,15',
+    Rule::unique('users')->where(function ($query) use ($request) {
+        return $query->where('country_code', $request->country_code)
+            ->whereNull('deleted_at');
+    }),
+],
             'role'            => [
                 'required',
                 'integer',
@@ -121,9 +127,18 @@ class AdminController extends Controller
 
     public function update(Request $request, $id)
     {
+        $admin = User::findOrFail($id);
+        if ($admin->hasRole('Super Admin')) {
+            return redirect()->back()->with('error', 'Super Admin cannot be edited.');
+        }
 
         $validator = Validator::make($request->all(), [
-            'name'            => ['required', 'string', 'max:191'],
+'name' => [
+    'required',
+    'string',
+    'max:191',
+    Rule::unique('users')->ignore($id)->whereNull('deleted_at'),
+],
             'email'           => [
                 'required',
                 'string',
@@ -135,13 +150,14 @@ class AdminController extends Controller
             'second_password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'country_code'    => 'required',
 
-            'phone'           => [
-                'required',
-                Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
-                    return $query->where('country_code', $request->country_code)
-                        ->whereNull('deleted_at');
-                }),
-            ],
+            'phone' => [
+    'required',
+    'digits_between:7,15',
+    Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
+        return $query->where('country_code', $request->country_code)
+            ->whereNull('deleted_at');
+    }),
+],
             'role'            => [
                 'required',
                 'integer',
@@ -183,6 +199,11 @@ class AdminController extends Controller
             return redirect()->back()
                 ->with('error', 'You cannot delete yourself.');
         }
+
+    // Prevent deleting Super Admin
+    if ($admin->hasRole('Super Admin')) {
+        return redirect()->back()->with('error', 'Super Admin cannot be deleted.');
+    }
 
         try {
             $admin->delete();

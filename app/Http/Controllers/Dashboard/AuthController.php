@@ -69,8 +69,12 @@ class AuthController extends Controller
         return redirect('/admin-dashboard/login');
     }
 
-    public function home()
+    public function home(Request $request)
     {
+        if ($request->has('lang')) {
+            App::setLocale($request->lang);
+            session(['locale' => $request->lang]);
+        }
         return view('dashboard.home');
     }
     public function change_theme(Request $request)
@@ -89,7 +93,7 @@ class AuthController extends Controller
                 ->first();
 
     $title = $lang == 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy';
-    $content = $privacy ? $privacy->value : ''; 
+    $content = $privacy ? $privacy->value : '';
 
     return view('Website.privacy_policy', compact('privacy','title', 'content'));
 }
@@ -101,7 +105,7 @@ public function terms_conditions($lang)
                 ->first();
 
     $title = $lang == 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions';
-    $content = $terms ? $terms->value : ''; 
+    $content = $terms ? $terms->value : '';
 
     return view('Website.terms-conditions', compact('terms','title', 'content'));
 }

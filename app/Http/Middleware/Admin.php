@@ -6,6 +6,8 @@ use App\Providers\RouteServiceProvider;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\App;
+
 
 class Admin
 {
@@ -32,14 +34,18 @@ class Admin
         {
             $blockedRoles = ['Client', 'Driver'];
             if(auth()->user()->roles()->whereIn('name', $blockedRoles)->exists())
-            {   
+            {
                  Auth::logout();
 
                 return redirect('admin-dashboard/login')->withErrors(['msg' => 'Please verify that your information is correct']);
             }
         }
 
+        if (session('locale')) {
+            App::setLocale(session('locale'));
+        }
+
     return $next($request);
-       
+
     }
 }
