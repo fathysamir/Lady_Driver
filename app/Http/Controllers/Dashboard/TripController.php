@@ -28,132 +28,115 @@ class TripController extends Controller
 {
     public function index(Request $request)
     {
-        $all_trips = Trip::orderBy('id', 'desc')
-            ->whereIn('status', ['scheduled', 'pending', 'in_progress', 'completed', 'cancelled']);
+        // ── Resolve active tab state ──────────────────────────────
+        $type        = $request->input('type', 'car');           // car | comfort_car | scooter
+        $time_filter = $request->input('time_filter', 'current'); // scheduled | current | past
 
-        if ($request->filled('type')) {
-            $all_trips->where('type', $request->type);
-        }
+        // ── Base query ────────────────────────────────────────────
+        $query = Trip::orderBy('id', 'desc')
+            ->where('type', $type);
 
-        if ($request->filled('time_filter')) {
-            $time = $request->time_filter;
-
-            if ($time === 'scheduled') {
-                $all_trips->whereIn('status', ['pending', 'scheduled']);
-            } elseif ($time === 'current') {
-                $all_trips->where('status', 'in_progress');
-            } elseif ($time === 'past') {
-                $all_trips->whereIn('status', ['completed', 'cancelled']);
-            }
-        }
-
-      // Search
-if ($request->filled('search')) {
-    $search = $request->search;
-
-    $all_trips->where(function ($query) use ($search, $request) {
-
-        $query->where('code', 'LIKE', '%' . $search . '%')
-            ->orWhereHas('user', function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('phone', 'LIKE', '%' . $search . '%');
-            });
-
-        // Search depending on type
-        if ($request->type === 'scooter') {
-            $query->orWhereHas('scooter.owner', function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('phone', 'LIKE', '%' . $search . '%');
-            });
+        // ── Time filter maps to status ────────────────────────────
+        if ($time_filter === 'scheduled') {
+            $query->whereIn('status', ['pending', 'scheduled']);
+        } elseif ($time_filter === 'current') {
+            $query->where('status', 'in_progress');
+        } elseif ($time_filter === 'past') {
+            $query->whereIn('status', ['completed', 'cancelled']);
         } else {
-            $query->orWhereHas('car.owner', function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%')
-                  ->orWhere('phone', 'LIKE', '%' . $search . '%');
+            $query->whereIn('status', ['scheduled', 'pending', 'in_progress', 'completed', 'cancelled']);
+        }
+
+        // ── Search ────────────────────────────────────────────────
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search, $type) {
+                $q->where('code', 'LIKE', '%' . $search . '%')
+                  ->orWhereHas('user', function ($q2) use ($search) {
+                      $q2->where('name', 'LIKE', '%' . $search . '%')
+                         ->orWhere('phone', 'LIKE', '%' . $search . '%');
+                  });
+
+                if ($type === 'scooter') {
+                    $q->orWhereHas('scooter.owner', function ($q2) use ($search) {
+                        $q2->where('name', 'LIKE', '%' . $search . '%')
+                           ->orWhere('phone', 'LIKE', '%' . $search . '%');
+                    });
+                } else {
+                    $q->orWhereHas('car.owner', function ($q2) use ($search) {
+                        $q2->where('name', 'LIKE', '%' . $search . '%')
+                           ->orWhere('phone', 'LIKE', '%' . $search . '%');
+                    });
+                }
             });
         }
 
-    });
-}
-
-        // Client filter
+        // ── Extra filters ─────────────────────────────────────────
         if ($request->filled('user')) {
-            $all_trips->where('user_id', $request->user);
+            $query->where('user_id', $request->user);
         }
 
-        // Created date
         if ($request->filled('created_date')) {
-            $all_trips->whereDate('created_at', $request->created_date);
+            $query->whereDate('created_at', $request->created_date);
         }
 
-        // Payment status
         if ($request->filled('payment_status')) {
-            $all_trips->where('payment_status', $request->payment_status);
+            $query->where('payment_status', $request->payment_status);
         }
 
-        // Status dropdown
         if ($request->filled('status')) {
-            $all_trips->where('status', $request->status);
+            $query->where('status', $request->status);
         }
 
-        // Air conditioned (only for cars)
-        if ($request->filled('air_conditioned') && $request->type !== 'scooter') {
-            $all_trips->where('air_conditioned', '1');
+        if ($request->filled('air_conditioned') && $type !== 'scooter') {
+            $query->where('air_conditioned', '1');
         }
 
-        // Driver filter
         if ($request->filled('driver')) {
-            if ($request->type === 'scooter') {
-                $all_trips->whereHas('scooter', function ($query) use ($request) {
-                    $query->where('user_id', $request->driver);
-                });
+            if ($type === 'scooter') {
+                $query->whereHas('scooter', fn($q) => $q->where('user_id', $request->driver));
             } else {
-                $all_trips->whereHas('car', function ($query) use ($request) {
-                    $query->where('user_id', $request->driver);
-                });
+                $query->whereHas('car', fn($q) => $q->where('user_id', $request->driver));
             }
         }
 
-        // Mark filter (car or motorcycle)
         if ($request->filled('mark')) {
-            if ($request->type === 'scooter') {
-                $all_trips->whereHas('scooter', function ($query) use ($request) {
-                    $query->where('motorcycle_mark_id', $request->mark);
-                });
+            if ($type === 'scooter') {
+                $query->whereHas('scooter', fn($q) => $q->where('motorcycle_mark_id', $request->mark));
             } else {
-                $all_trips->whereHas('car', function ($query) use ($request) {
-                    $query->where('car_mark_id', $request->mark);
-                });
+                $query->whereHas('car', fn($q) => $q->where('car_mark_id', $request->mark));
             }
         }
 
-        // Model filter (car or motorcycle)
         if ($request->filled('model')) {
-            if ($request->type === 'scooter') {
-                $all_trips->whereHas('scooter', function ($query) use ($request) {
-                    $query->where('motorcycle_model_id', $request->model);
-                });
+            if ($type === 'scooter') {
+                $query->whereHas('scooter', fn($q) => $q->where('motorcycle_model_id', $request->model));
             } else {
-                $all_trips->whereHas('car', function ($query) use ($request) {
-                    $query->where('car_model_id', $request->model);
-                });
+                $query->whereHas('car', fn($q) => $q->where('car_model_id', $request->model));
             }
         }
 
-        $all_trips = $all_trips->paginate(12)->withQueryString();
+        // ── Paginate (25 per page, preserve all query params) ─────
+        $all_trips = $query->paginate(25)->withQueryString();
 
-        $drivers = User::whereHas('roles', function ($query) {
-            $query->where('roles.name', 'Driver');
-        })->get();
+        // ── Supporting data for filters ───────────────────────────
+        $drivers = User::whereHas('roles', fn($q) => $q->where('roles.name', 'Driver'))->get();
+        $users   = User::whereHas('roles', fn($q) => $q->where('roles.name', 'Client'))->get();
 
-        $users = User::whereHas('roles', function ($query) {
-            $query->where('roles.name', 'Client');
-        })->get();
-
-        $car_marks = CarMark::all();
+        $car_marks        = CarMark::all();
         $motorcycle_marks = MotorcycleMark::all();
-        $search = $request->search;
+        $search           = $request->search;
 
-        return view('dashboard.trips.index', compact('all_trips', 'drivers', 'users', 'car_marks', 'motorcycle_marks', 'search'));
+        return view('dashboard.trips.index', compact(
+            'all_trips',
+            'drivers',
+            'users',
+            'car_marks',
+            'motorcycle_marks',
+            'search',
+            'type',
+            'time_filter'
+        ));
     }
 
     public function view($id)
@@ -161,7 +144,6 @@ if ($request->filled('search')) {
         $trip = Trip::where('id', $id)->first();
         $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
 
-        // Handle both car and scooter
         if ($trip->type === 'scooter' && $trip->scooter) {
             $trip->scooter->image = getFirstMediaUrl($trip->scooter, $trip->scooter->avatarCollection);
             $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
@@ -169,91 +151,89 @@ if ($request->filled('search')) {
             $trip->car->image = getFirstMediaUrl($trip->car, $trip->car->avatarCollection);
             $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
         }
-        $destinations=$trip->finalDestination;
+        $destinations = $trip->finalDestination;
 
-        return view('dashboard.trips.view', compact('trip','destinations'));
+        return view('dashboard.trips.view', compact('trip', 'destinations'));
     }
-
 
     public function getMotorcycleModels(Request $request)
     {
         $models = MotorcycleModel::where('motorcycle_mark_id', $request->markId)->get();
         return response()->json($models);
     }
+
     public function getScooterLocation($id)
-{
-    $scooter = Scooter::find($id);
-    if ($scooter) {
-        return response()->json([
-            'lat' => $scooter->lat,
-            'lng' => $scooter->lng
+    {
+        $scooter = Scooter::find($id);
+        if ($scooter) {
+            return response()->json([
+                'lat' => $scooter->lat,
+                'lng' => $scooter->lng
+            ]);
+        }
+        return response()->json(['error' => 'Scooter not found'], 404);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:created,scheduled,pending,in_progress,completed,cancelled,expired'
         ]);
-    }
-    return response()->json(['error' => 'Scooter not found'], 404);
-}
-public function updateStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|in:created,scheduled,pending,in_progress,completed,cancelled,expired'
-    ]);
 
-    $trip = Trip::findOrFail($id);
-    $trip->status = $request->status;
-    $trip->save();
-    $trip->load(['user', 'car', 'scooter']);
+        $trip = Trip::findOrFail($id);
+        $trip->status = $request->status;
+        $trip->save();
+        $trip->load(['user', 'car', 'scooter']);
 
-    $driverUserId = null;
-    if ($trip->car_id && $trip->car) {
-        $driverUserId = $trip->car->user_id;
-    } elseif ($trip->scooter_id && $trip->scooter) {
-        $driverUserId = $trip->scooter->user_id;
-    }
+        $driverUserId = null;
+        if ($trip->car_id && $trip->car) {
+            $driverUserId = $trip->car->user_id;
+        } elseif ($trip->scooter_id && $trip->scooter) {
+            $driverUserId = $trip->scooter->user_id;
+        }
 
-    switch ($request->status) {
+        switch ($request->status) {
+            case 'in_progress':
+                event(new \App\Events\TripStarted($trip, $trip->user_id));
+                if ($driverUserId) event(new \App\Events\TripStarted($trip, $driverUserId));
+                break;
 
-        //Laravel Broadcast Events
-        case 'in_progress':
-            event(new \App\Events\TripStarted($trip, $trip->user_id));
-            if ($driverUserId) event(new \App\Events\TripStarted($trip, $driverUserId));
-            break;
+            case 'completed':
+                event(new \App\Events\TripEnded($trip, $trip->user_id));
+                if ($driverUserId) event(new \App\Events\TripEnded($trip, $driverUserId));
+                break;
 
-        case 'completed':
-            event(new \App\Events\TripEnded($trip, $trip->user_id));
-            if ($driverUserId) event(new \App\Events\TripEnded($trip, $driverUserId));
-            break;
+            default:
+                $payload = [
+                    'type'    => $this->resolveSocketType($request->status),
+                    'data'    => $trip,
+                    'message' => 'Trip status updated by admin',
+                ];
+                $this->publishToRedis($trip->user_id, $payload);
+                if ($driverUserId) $this->publishToRedis($driverUserId, $payload);
+                break;
+        }
 
-        //  Redis directly like Chat.php
-        default:
-            $payload = [
-                'type'    => $this->resolveSocketType($request->status),
-                'data'    => $trip,
-                'message' => 'Trip status updated by admin',
-            ];
-            $this->publishToRedis($trip->user_id, $payload);
-            if ($driverUserId) $this->publishToRedis($driverUserId, $payload);
-            break;
+        return back()->with('success', 'Status updated and socket sent.');
     }
 
-    return back()->with('success', 'Status updated and socket sent.');
-}
+    private function resolveSocketType(string $status): string
+    {
+        return match($status) {
+            'cancelled' => 'canceled_trip',
+            'pending'   => 'accepted_offer',
+            'expired'   => 'expired_trip',
+            default     => 'trip_status_updated',
+        };
+    }
 
-private function resolveSocketType(string $status): string
-{
-    return match($status) {
-        'cancelled' => 'canceled_trip',
-        'pending'   => 'accepted_offer',
-        'expired'   => 'expired_trip',
-        default     => 'trip_status_updated',
-    };
-}
-
-private function publishToRedis(int $userId, array $payload): void
-{
-    $redis = \Illuminate\Support\Facades\Redis::connection();
-    $channel = "trip.status.{$userId}";
-    $redis->publish($channel, json_encode([
-        'event' => $payload['type'],
-        'data'  => $payload,
-    ]));
-}
+    private function publishToRedis(int $userId, array $payload): void
+    {
+        $redis   = \Illuminate\Support\Facades\Redis::connection();
+        $channel = "trip.status.{$userId}";
+        $redis->publish($channel, json_encode([
+            'event' => $payload['type'],
+            'data'  => $payload,
+        ]));
+    }
 }
