@@ -28,11 +28,12 @@
                                 $type['comfort_car'] = 'Comfort Trip';
                                 $type['scooter'] = 'Scooter Trip';
 
-                                /* ── Payment breakdown (from v2) ── */
-                                $totalPrice = (float) $trip->total_price;
-                                $delayCost  = (float) ($trip->delay_cost ?? 0);
-                                $discount   = (float) ($trip->discount   ?? 0);
-                                $tip        = (float) ($trip->tip        ?? 0);
+                                /* ── Payment breakdown ── */
+                                $totalPrice           = (float) $trip->total_price;
+                                $totalBeforeDiscount  = (float) ($trip->total_cost_before_discount ?? $totalPrice);
+                                $delayCost            = (float) ($trip->delay_cost ?? 0);
+                                $discount             = (float) ($trip->discount   ?? 0);
+                                $tip                  = (float) ($trip->tip        ?? 0);
 
                                 $category = match($trip->type) {
                                     'comfort_car' => 'Comfort Trips',
@@ -49,15 +50,19 @@
                                 $taxes = getTripSettings($category, $driverLevel);
 
                                 $vatRate          = ($taxes['vat_percentage'] ?? 14) / 100;
-                                $basePrice        = round($totalPrice / (1 + $vatRate), 2);
-                                $vatAmount        = round($basePrice * $vatRate, 2);
+                                $vatAmount        = round($totalPrice * $vatRate / (1 + $vatRate), 2);
                                 $priceWithoutVat  = round($totalPrice - $vatAmount, 2);
                                 $commissionRate   = $taxes['application_commission'] ?? 25;
                                 $commissionAmount = round($priceWithoutVat * ($commissionRate / 100), 2);
                                 $driverBeforeTax  = round($priceWithoutVat - $commissionAmount, 2);
                                 $incomeTaxRate    = $taxes['income_tax_percentage'] ?? 5;
-                                $incomeTaxAmount  = round($basePrice * ($incomeTaxRate / 100), 2);
-                                $driverRemaining  = round(($driverBeforeTax - $incomeTaxAmount) + $delayCost, 2);
+                                $incomeTaxAmount  = round($priceWithoutVat * ($incomeTaxRate / 100), 2);
+                                $driverEarnings   = round(($driverBeforeTax - $incomeTaxAmount) + $delayCost, 2);
+
+                                /* ── Payment status label ── */
+                                $isPaid = in_array($trip->status, ['completed']) ||
+                                          in_array($trip->payment_status, ['cash paid', 'online paid', 'paid']);
+                                $paymentStatusLabel = $isPaid ? 'Paid' : ucwords($trip->payment_status ?? 'Unpaid');
 
                                 /* ── Status colors (from v2) ── */
                                 $statusColors = [
@@ -268,47 +273,99 @@
                                 <hr style="flex: 1; margin: 0;">
                             </div>
 
-                            <div class="form-group">
-                                <label>Distance : {{ $trip->distance }} KM</label>
+                            {{-- Payment & Method badges --}}
+                            <div class="form-group" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+                                <span style="
+                                    display:inline-flex; align-items:center; gap:6px;
+                                    background:{{ $isPaid ? 'rgba(50,134,50,.18)' : 'rgba(200,40,40,.18)' }};
+                                    color:{{ $isPaid ? '#7ecf7e' : '#f07070' }};
+                                    border:1px solid {{ $isPaid ? '#3a7a3a' : '#7a3a3a' }};
+                                    border-radius:20px; padding:4px 14px; font-size:13px; font-weight:600;">
+                                    <i class="fa {{ $isPaid ? 'fa-check-circle' : 'fa-clock' }}"></i>
+                                    {{ $paymentStatusLabel }}
+                                </span>
+                                <span style="
+                                    display:inline-flex; align-items:center; gap:6px;
+                                    background:rgba(100,100,100,.18);
+                                    color:#ccc;
+                                    border:1px solid #555;
+                                    border-radius:20px; padding:4px 14px; font-size:13px; font-weight:600;">
+                                    <i class="fa {{ $trip->payment_method === 'cash' ? 'fa-money-bill-wave' : 'fa-credit-card' }}"></i>
+                                    {{ ucwords($trip->payment_method ?? 'N/A') }}
+                                </span>
+                                <span style="
+                                    display:inline-flex; align-items:center; gap:6px;
+                                    background:rgba(80,80,180,.18);
+                                    color:#aab4e8;
+                                    border:1px solid #44449a;
+                                    border-radius:20px; padding:4px 14px; font-size:13px; font-weight:600;">
+                                    <i class="fa fa-road"></i>
+                                    {{ $trip->distance ?? '—' }} KM
+                                </span>
                             </div>
-                            <div class="form-group">
-                                <label>Base Price (excl. VAT) : {{ number_format($basePrice, 2) }} LE</label>
-                            </div>
-                            @if($delayCost > 0)
-                            <div class="form-group">
-                                <label>Delay Cost : {{ number_format($delayCost, 2) }} LE</label>
-                            </div>
-                            @endif
-                            <div class="form-group">
-                                <label>VAT ({{ $taxes['vat_percentage'] ?? 14 }}%) : {{ number_format($vatAmount, 2) }} LE</label>
-                            </div>
-                            @if($discount > 0)
-                            <div class="form-group">
-                                <label>Discount : &minus; {{ number_format($discount, 2) }} LE</label>
-                            </div>
-                            @endif
-                            <div class="form-group">
-                                <label>Total Price : {{ number_format($totalPrice, 2) }} LE</label>
-                            </div>
-                            @if($tip > 0)
-                            <div class="form-group">
-                                <label>Tip : {{ number_format($tip, 2) }} LE</label>
-                            </div>
-                            @endif
-                            <div class="form-group">
-                                <label>App Commission ({{ $commissionRate }}%) : {{ number_format($commissionAmount, 2) }} LE</label>
-                            </div>
-                            <div class="form-group">
-                                <label>Income Tax ({{ $incomeTaxRate }}%) : {{ number_format($incomeTaxAmount, 2) }} LE</label>
-                            </div>
-                            <div class="form-group">
-                                <label>Driver Earnings : {{ number_format($driverRemaining, 2) }} LE</label>
-                            </div>
-                            <div class="form-group">
-                                <label>Payment Status : {{ ucwords($trip->payment_status ?? 'N/A') }}</label>
-                            </div>
-                            <div class="form-group">
-                                <label>Payment Method : {{ ucwords($trip->payment_method ?? 'N/A') }}</label>
+
+                            {{-- Price breakdown table --}}
+                            <div style="max-width:520px; border:1px solid rgba(255,255,255,.1); border-radius:8px; overflow:hidden; font-size:14px;">
+
+                                {{-- Section: Client Charges --}}
+                                <div style="background:rgba(255,255,255,.06); padding:7px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#888;">
+                                    Client Charges
+                                </div>
+
+                                @if($discount > 0)
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;">Price Before Discount</span>
+                                    <span style="color:#ddd;">{{ number_format($totalBeforeDiscount, 2) }} LE</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;"><i class="fa fa-tag" style="color:#f07070;margin-right:4px;"></i>Discount</span>
+                                    <span style="color:#f07070;">&minus; {{ number_format($discount, 2) }} LE</span>
+                                </div>
+                                @endif
+
+                                @if($delayCost > 0)
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;"><i class="fa fa-hourglass-half" style="color:#f0b429;margin-right:4px;"></i>Delay Cost</span>
+                                    <span style="color:#f0b429;">+ {{ number_format($delayCost, 2) }} LE</span>
+                                </div>
+                                @endif
+
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;">VAT ({{ $taxes['vat_percentage'] ?? 14 }}%) <small style="color:#666;">(included)</small></span>
+                                    <span style="color:#ddd;">{{ number_format($vatAmount, 2) }} LE</span>
+                                </div>
+
+                                @if($tip > 0)
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;"><i class="fa fa-gift" style="color:#4fc3f7;margin-right:4px;"></i>Tip</span>
+                                    <span style="color:#4fc3f7;">{{ number_format($tip, 2) }} LE</span>
+                                </div>
+                                @endif
+
+                                <div style="display:flex; justify-content:space-between; padding:11px 16px; background:rgba(149,196,8,.1);">
+                                    <span style="color:#fff; font-weight:700; font-size:15px;">Total Paid by Client</span>
+                                    <span style="color:#95c408; font-weight:700; font-size:15px;">{{ number_format($totalPrice + $tip, 2) }} LE</span>
+                                </div>
+
+                                {{-- Section: Revenue Split --}}
+                                <div style="background:rgba(255,255,255,.06); padding:7px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#888; border-top:2px solid rgba(255,255,255,.08);">
+                                    Revenue Split
+                                </div>
+
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;">App Commission ({{ $commissionRate }}%)</span>
+                                    <span style="color:#ddd;">{{ number_format($commissionAmount, 2) }} LE</span>
+                                </div>
+
+                                <div style="display:flex; justify-content:space-between; padding:9px 16px; border-bottom:1px solid rgba(255,255,255,.06);">
+                                    <span style="color:#aaa;">Income Tax ({{ $incomeTaxRate }}%)</span>
+                                    <span style="color:#ddd;">{{ number_format($incomeTaxAmount, 2) }} LE</span>
+                                </div>
+
+                                <div style="display:flex; justify-content:space-between; padding:11px 16px; background:rgba(52,40,223,.12);">
+                                    <span style="color:#fff; font-weight:700; font-size:15px;"><i class="fa fa-user" style="margin-right:6px;color:#aab4e8;"></i>Driver Earnings</span>
+                                    <span style="color:#aab4e8; font-weight:700; font-size:15px;">{{ number_format($driverEarnings, 2) }} LE</span>
+                                </div>
                             </div>
 
                             @if ($trip->cancelled_by_id != null)
