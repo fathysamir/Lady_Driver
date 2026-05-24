@@ -16,7 +16,6 @@
                                       method="GET"
                                       action="{{ route('trips') }}">
 
-                                    {{-- Tab state is always sent as real query params --}}
                                     <input type="hidden" name="type"        id="type_input"        value="{{ $type }}">
                                     <input type="hidden" name="time_filter" id="time_filter_input"  value="{{ $time_filter }}">
 
@@ -187,12 +186,10 @@
                                                 {{-- Client --}}
                                                 <td>
                                                     <span class="user-profile">
-                                                        <img @if(getFirstMediaUrl($trip->user, $trip->user->avatarCollection) != null)
-                                                                 src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) }}"
-                                                             @else
-                                                                 src="{{ asset('dashboard/user_avatar.png') }}"
-                                                             @endif
-                                                             class="img-circle" alt="user avatar">
+                                                        <img src="{{ getFirstMediaUrl($trip->user, $trip->user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}"
+                                                             class="img-circle"
+                                                             alt="user avatar"
+                                                             onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
                                                     </span>
                                                     {!! highlight($trip->user->name, $search ?? '') !!}
                                                 </td>
@@ -202,12 +199,10 @@
                                                 @if ($type === 'scooter')
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if($trip->scooter && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) != null)
-                                                                     src="{{ getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) }}"
-                                                                 @else
-                                                                     src="{{ asset('dashboard/user_avatar.png') }}"
-                                                                 @endif
-                                                                 class="img-circle" alt="user avatar">
+                                                            <img src="{{ ($trip->scooter && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection)) ? getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
+                                                                 class="img-circle"
+                                                                 alt="user avatar"
+                                                                 onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
                                                         </span>
                                                         {!! $trip->scooter ? highlight($trip->scooter->owner->name, $search ?? '') : 'N/A' !!}
                                                     </td>
@@ -224,12 +219,10 @@
                                                 @else
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) != null)
-                                                                     src="{{ getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) }}"
-                                                                 @else
-                                                                     src="{{ asset('dashboard/user_avatar.png') }}"
-                                                                 @endif
-                                                                 class="img-circle" alt="user avatar">
+                                                            <img src="{{ ($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection)) ? getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
+                                                                 class="img-circle"
+                                                                 alt="user avatar"
+                                                                 onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
                                                         </span>
                                                         {!! $trip->car ? highlight($trip->car->owner->name, $search ?? '') : 'N/A' !!}
                                                     </td>
@@ -263,7 +256,7 @@
                                                     </span>
                                                 </td>
 
-                                                <td>{{ $trip->payment_status }}</td>
+                                                <td>{{ $trip->status === 'completed' ? 'Paid' : ucwords($trip->payment_status ?? 'Unpaid') }}</td>
 
                                                 <td>
                                                     <a href="{{ url('/admin-dashboard/trip/view/' . $trip->id) }}"
@@ -280,7 +273,6 @@
                                     </tbody>
                                 </table>
 
-                                {{-- Pagination — withQueryString() already appended type & time_filter --}}
                                 <div style="text-align:center;">
                                     {!! $all_trips->links('pagination::bootstrap-4') !!}
                                 </div>
@@ -301,29 +293,18 @@
             $('#searchForm').submit();
         });
 
-        /**
-         * Switch vehicle type tab — resets to page 1.
-         */
         function switchTab(tripType) {
             document.getElementById('type_input').value        = tripType;
-            document.getElementById('time_filter_input').value = 'current'; // reset sub-tab
-            // Strip 'page' so we go back to page 1
+            document.getElementById('time_filter_input').value = 'current';
             submitWithoutPage();
         }
 
-        /**
-         * Switch time filter (scheduled / current / past) — resets to page 1.
-         */
         function switchTimeTab(timeFilter) {
             document.getElementById('time_filter_input').value = timeFilter;
             submitWithoutPage();
         }
 
-        /**
-         * Submit the form but strip the page parameter so results start at page 1.
-         */
         function submitWithoutPage() {
-            // Remove any existing page input so pagination resets
             const existing = document.querySelector('#searchForm input[name="page"]');
             if (existing) existing.remove();
             document.getElementById('searchForm').submit();
@@ -334,7 +315,6 @@
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Mark dropdown (fetch models via AJAX when a mark is selected)
         document.getElementById('markSelect').addEventListener('change', function () {
             const markId      = this.value;
             const modelSelect = document.getElementById('modelSelect');
