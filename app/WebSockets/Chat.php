@@ -457,431 +457,531 @@ private function getFirebaseAccessToken(): ?string
         });
     }
     private function create_trip_and_find_drivers(ConnectionInterface $from, $AuthUserID, $tripRequest)
-    {
-        $data = json_decode($tripRequest, true);
-        $type = $data['type'];
-        switch ($type) {
-            case 'car':
-                $maximum_distance_long_trip = floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
-                $newTrip["car_id"]          = null;
-                break;
+{
+    $data = json_decode($tripRequest, true);
+    $type = $data['type'];
 
-            case 'comfort_car':
-                $maximum_distance_long_trip = floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
-                $newTrip["car_id"]          = null;
-                break;
-
-            case 'scooter':
-                $maximum_distance_long_trip = floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
-                $newTrip["scooter_id"]      = null;
-
-                break;
-
-            default:
-
-                $maximum_distance_long_trip = 0;
-
-                break;
-        }
-        $distance   = (float) $data['distance'];
-        $duration   = (int) $data['duration'];
-        $total_cost = (float) $data['total_cost'];
-        $discount   = (float) $data['discount'];
-        if ($distance > $maximum_distance_long_trip) {
-            $from->send(json_encode(['type' => 'error', 'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km)."], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-        } else {
-            if ($data['start_date'] == null || $data['start_time'] == null) {
-                $start_date = now()->toDateString(); // e.g., '2025-07-05'
-                $start_time = now()->format('H:i');
-                $scheduled  = '0';
-                $TripStatus = 'created';
-            } elseif ($data['start_date'] != null && $data['start_time'] != null) {
-                $start_date = date('Y-m-d', strtotime($data['start_date']));
-                $start_time = date('H:i', strtotime($data['start_time']));
-                $scheduled  = '1';
-                $TripStatus = 'scheduled';
-            }
-
-            $student = Student::where('user_id', $AuthUserID)->where('status', 'confirmed')->where('student_discount_service', '1')->first();
-            if ($student) {
-                $student_trips_count = Trip::where('user_id', $AuthUserID)->where('student_trip', '1')->where('status', 'completed')->where('start_date', $start_date)->count();
-                if ($student_trips_count < 3) {
-
-                    $student_trip = '1';
-                } else {
-
-                    $student_trip = '0';
-                }
-            } else {
-
-                $student_trip = '0';
-            }
-
-            $lastTrip = Trip::orderBy('id', 'desc')->first();
-
-            if ($lastTrip) {
-                $lastCode = $lastTrip->code;
-                $code     = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 12, '0', STR_PAD_LEFT);
-            } else {
-                $code = 'TRP-000000000001';
-            }
-            do {
-                $barcode = Str::uuid();
-            } while (Trip::where('barcode', $barcode)->exists());
-            $trip = Trip::create(['user_id' => $AuthUserID,
-                'code'                          => $code,
-                'barcode'                       => $barcode,
-                'start_lat'                     => floatval($data['start_lat']),
-                'start_lng'                     => floatval($data['start_lng']),
-                'address1'                      => $data['address1'],
-                'total_price'                   => $total_cost,
-                'distance'                      => $distance,
-                'duration'                      => $duration,
-                'type'                          => $data['type'],
-                'start_date'                    => $start_date,
-                'start_time'                    => $start_time,
-                'scheduled'                     => $scheduled,
-                'status'                        => $TripStatus,
-                'payment_method'                => $data['payment_method'],
-                'remaining_amount'              => $total_cost,
-                'discount'                      => $discount,
-                'student_trip'                  => $student_trip,
-            ]);
-
-            $p = barcodeImage($trip->id);
-
-            $u                           = User::findOrFail($AuthUserID);
-            $user_image                  = getFirstMedia($u, $u->avatarCollection) ? 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection) : null;
-            $newTrip['id']               = $trip->id;
-            $newTrip['code']             = $code;
-            $newTrip['barcode']          = 'https://api.lady-driver.com' . getFirstMedia($trip, $trip->barcodeImageCollection);
-            $newTrip['user_id']          = intval($AuthUserID);
-            $newTrip["start_date"]       = $start_date;
-            $newTrip["end_date"]         = null;
-            $newTrip["start_time"]       = $start_time;
-            $newTrip["end_time"]         = null;
-            $newTrip['start_lat']        = floatval($data['start_lat']);
-            $newTrip['start_lng']        = floatval($data['start_lng']);
-            $newTrip['address1']         = $data['address1'];
-            $newTrip['total_price']      = $total_cost;
-            $newTrip['app_rate']         = 0.00;
-            $newTrip['driver_rate']      = 0.00;
-            $newTrip['discount']         = $discount;
-            $newTrip['paid_amount']      = 0.00;
-            $newTrip['remaining_amount'] = $total_cost;
-            $newTrip['distance']         = $distance;
-            $newTrip['duration']         = $duration;
-            $newTrip['scheduled']        = $scheduled;
-            $newTrip['type']             = $data['type'];
-            $newTrip["status"]           = $TripStatus;
-            $newTrip['payment_method']   = $data['payment_method'];
-
-            if ($data['air_conditioned'] == '1') {
-                $trip->air_conditioned      = '1';
-                $newTrip['air_conditioned'] = '1';
-            } else {
-                $trip->air_conditioned      = '0';
-                $newTrip['air_conditioned'] = '0';
-            }
-
-            if ($data['animals'] == '1') {
-                $trip->animals      = '1';
-                $newTrip['animals'] = '1';
-            } else {
-                $trip->animals      = '0';
-                $newTrip['animals'] = '0';
-            }
-            if ($data['bags'] == '1') {
-                $trip->bags      = '1';
-                $newTrip['bags'] = '1';
-            } else {
-                $trip->bags      = '0';
-                $newTrip['bags'] = '0';
-            }
-            $trip->save();
-
-            TripDestination::create(['trip_id' => $trip->id, 'lat' => $data['end_lat_1'], 'lng' => $data['end_lng_1'], 'address' => $data['address2']]);
-            $newTrip['end_lat_1'] = $data['end_lat_1'];
-            $newTrip['end_lng_1'] = $data['end_lng_1'];
-            $newTrip['address2']  = $data['address2'];
-            if ($data['end_lat_2'] != null && $data['end_lng_2'] != null) {
-                TripDestination::create(['trip_id' => $trip->id, 'lat' => $data['end_lat_2'], 'lng' => $data['end_lng_2'], 'address' => $data['address3']]);
-                $newTrip['end_lat_2'] = $data['end_lat_2'];
-                $newTrip['end_lng_2'] = $data['end_lng_2'];
-                $newTrip['address3']  = $data['address3'];
-            }
-            if ($data['end_lat_3'] != null && $data['end_lng_3'] != null) {
-                TripDestination::create(['trip_id' => $trip->id, 'lat' => $data['end_lat_3'], 'lng' => $data['end_lng_3'], 'address' => $data['address4']]);
-                $newTrip['end_lat_3'] = $data['end_lat_3'];
-                $newTrip['end_lng_3'] = $data['end_lng_3'];
-                $newTrip['address4']  = $data['address4'];
-            }
-            $newTrip['seen_count']['count'] = 0;
-
-            $newTrip['seen_count']['images'] = [];
-            $from->send(json_encode(['type' => 'created_trip', 'data' => $newTrip, 'message' => 'Trip Created Successfully'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION));
-            $date_time = date('Y-m-d h:i:s a');
-            echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
-            $newTrip["client_stare_rate"]         = 0;
-            $newTrip["client_comment"]            = null;
-            $newTrip["cancelled_by_id"]           = null;
-            $newTrip["trip_cancelling_reason_id"] = null;
-            $newTrip["driver_stare_rate"]         = 0;
-            $newTrip["student_trip"]              = $student_trip;
-            $newTrip["driver_comment"]            = null;
-            $newTrip["driver_arrived"]            = null;
-            $newTrip["payment_status"]            = "unpaid";
-            $newTrip["current_offer"]             = null;
-            $newTrip['created_at']                = $trip->created_at;
-            $newTrip['updated_at']                = $trip->updated_at;
-            $newTrip['user']['id']                = intval($AuthUserID);
-            $newTrip['user']['name']              = $u->name;
-            $newTrip['user']['country_code']      = $u->country_code;
-            $newTrip ['user']['phone']            = $u->phone;
-            $newTrip['user']['image']             = $user_image;
-            $newTrip['user']['rate']              = Trip::where('user_id', $AuthUserID)->where('status', 'completed')->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 5.00;
-            switch ($type) {
-                case 'car':
-                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
-                    $decimalPlaces          = 2;
-                    $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '0')
-
-                        ->whereHas('owner', function ($query) {
-                            $query->where('is_online', '1')
-                                ->where('status', 'confirmed');
-                        })
-                        ->where(function ($query) use ($trip) {
-                            if ($trip->air_conditioned == '1') {
-                                $query->where('air_conditioned', '1');
-                            }
-                            if ($trip->animals == '1') {
-                                $query->where('animals', '1');
-                            }
-                            if ($trip->user->gendor == 'Male') {
-                                $query->where('passenger_type', 'male_female');
-                            }
-                        })
-                        ->select('*')
-                        ->selectRaw(
-                            "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                            [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                        )
-                        ->having('distance', '<=', 3)
-                        ->get()
-                        ->filter(function ($car) use ($trip) {
-                            $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
-                        });
-
-                    $eligibleDriverIds = [];
-
-                    foreach ($eligibleCars as $car) {
-                        $eligibleDriverIds[] = $car->user_id;
-                        if ($car->owner->device_token) {
-                            $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            $distance2 = round($response2['distance_in_km'], 1);
-                            $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushToUser($car->owner, [
-                                'screen'   => 'new_trip',
-                                'id'       => (string) $trip->id,
-                                'title_en' => 'New Trip Near You',
-                                'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-                                'title_ar' => 'رحلة جديدة بالقرب منك',
-                                'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
-                            ]);
-                        }
-                    }
-                    if (count($eligibleDriverIds) > 0) {
-                        foreach ($eligibleDriverIds as $eligibleDriverId) {
-                            $client = $this->getClientByUserId($eligibleDriverId);
-                            if ($client) {
-                                DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
-                                $driver                               = User::findOrFail($eligibleDriverId);
-                                $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
-                                $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
-                                $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                                $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
-                                $distance2                            = $response2['distance_in_km'];
-                                $duration2                            = $response2['duration_in_M'];
-                                $newTrip['client_location_distance']  = $distance2;
-                                $newTrip['client_location_duration']  = $duration2;
-                                $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-
-                                $data2['type'] = 'new_trip';
-                                $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
-
-                                $client->send($message);
-                                $date_time = date('Y-m-d h:i:s a');
-                                echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
-                            }
-                        }
-                    }
-                    break;
-
-                case 'comfort_car':
-                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
-                    $decimalPlaces          = 2;
-                    $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '1')
-
-                        ->whereHas('owner', function ($query) {
-                            $query->where('is_online', '1')
-                                ->where('status', 'confirmed');
-                        })
-                        ->where(function ($query) use ($trip) {
-
-                            if ($trip->animals == '1') {
-                                $query->where('animals', '1');
-                            }
-                            if ($trip->user->gendor == 'Male') {
-                                $query->where('passenger_type', 'male_female');
-                            }
-                        })
-                        ->select('*')
-                        ->selectRaw(
-                            "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                            [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                        )
-                        ->having('distance', '<=', 3)
-                        ->get();
-                     /*   ->filter(function ($car) use ($trip) {
-                            $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
-                        });*/
-
-                    $eligibleDriverIds = [];
-
-                    foreach ($eligibleCars as $car) {
-                        $eligibleDriverIds[] = $car->user_id;
-                        if ($car->owner->device_token) {
-                            $response2 = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            $distance2 = round($response2['distance_in_km'], 1);
-                            $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushToUser($car->owner, [
-                                'screen'   => 'new_trip',
-                                'id'       => (string) $trip->id,
-                                'title_en' => 'New Trip Near You',
-                                'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-                                'title_ar' => 'رحلة جديدة بالقرب منك',
-                                'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
-                            ]);
-                        }
-                    }
-                    if (count($eligibleDriverIds) > 0) {
-                        foreach ($eligibleDriverIds as $eligibleDriverId) {
-                            $client = $this->getClientByUserId($eligibleDriverId);
-                            if ($client) {
-                                DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
-                                $driver                               = User::findOrFail($eligibleDriverId);
-                                $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
-                                $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
-                                $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                                $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
-                                $distance2                            = $response2['distance_in_km'];
-                                $duration2                            = $response2['duration_in_M'];
-                                $newTrip['client_location_distance']  = $distance2;
-                                $newTrip['client_location_duration']  = $duration2;
-                                $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-
-                                $data2['type'] = 'new_trip';
-                                $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
-
-                                $client->send($message);
-                                $date_time = date('Y-m-d h:i:s a');
-                                echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
-                            }
-                        }
-                    }
-                    break;
-
-                case 'scooter':
-                    $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
-                    $decimalPlaces          = 2;
-                    $eligibleScooters       = Scooter::where('status', 'confirmed')
-
-                        ->whereHas('owner', function ($query) {
-                            $query->where('is_online', '1')
-                                ->where('status', 'confirmed');
-                        })
-
-                        ->select('*')
-                        ->selectRaw(
-                            "
-                    ROUND(
-                        ( 6371 * acos( cos( radians(?) ) * cos( radians(lat) ) * cos( radians(lng) - radians(?) ) + sin( radians(?) ) * sin( radians(lat) ) ) ), ?
-                    ) AS distance",
-                            [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
-                        )
-                        ->having('distance', '<=', 3)
-                        ->get();
-                     /*   ->filter(function ($scooter) use ($trip) {
-                            $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
-                        });*/
-                    $eligibleDriverIds = [];
-
-                    foreach ($eligibleScooters as $scooter) {
-                        $eligibleDriverIds[] = $scooter->user_id;
-                        if ($scooter->owner->device_token) {
-                            $response2 = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
-                            $distance2 = round($response2['distance_in_km'], 1);
-                            $duration2 = intval($response2['duration_in_M']);
-                            $this->sendPushToUser($scooter->owner, [
-                                'screen'   => 'new_trip',
-                                'id'       => (string) $trip->id,
-                                'title_en' => 'New Trip Near You',
-                                'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
-                                'title_ar' => 'رحلة جديدة بالقرب منك',
-                                'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
-                            ]);
-                        }
-                    }
-                    if (count($eligibleDriverIds) > 0) {
-                        foreach ($eligibleDriverIds as $eligibleDriverId) {
-                            $client = $this->getClientByUserId($eligibleDriverId);
-                            if ($client) {
-                                DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
-                                $driver                               = User::findOrFail($eligibleDriverId);
-                                $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-                                $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
-                                $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
-                                $scooter2                             = Scooter::where('user_id', $eligibleDriverId)->first();
-                                $response2                            = calculate_distance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
-                                $distance2                            = $response2['distance_in_km'];
-                                $duration2                            = $response2['duration_in_M'];
-                                $newTrip['client_location_distance']  = $distance2;
-                                $newTrip['client_location_duration']  = $duration2;
-                                $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
-
-                                $data2['type'] = 'new_trip';
-                                $data2['data'] = $newTrip;
-                                $message       = json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
-
-                                $client->send($message);
-                                $date_time = date('Y-m-d h:i:s a');
-                                echo sprintf('[ %s ],New Trip "%s" sent to user %d' . "\n", $date_time, $message, $eligibleDriverId);
-                            }
-                        }
-                    }
-                    break;
-
-                default:
-
-                    break;
-            }
-            $this->startTripBroadcast($trip, $newTrip, $type);
-        }
-
+    switch ($type) {
+        case 'car':
+            $maximum_distance_long_trip = floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->where('type', 'number')->first()->value);
+            $newTrip["car_id"] = null;
+            break;
+        case 'comfort_car':
+            $maximum_distance_long_trip = floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->where('type', 'number')->first()->value);
+            $newTrip["car_id"] = null;
+            break;
+        case 'scooter':
+            $maximum_distance_long_trip = floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->where('type', 'number')->first()->value);
+            $newTrip["scooter_id"] = null;
+            break;
+        default:
+            $maximum_distance_long_trip = 0;
+            break;
     }
+
+    $distance = (float) $data['distance'];
+    $duration = (int) $data['duration'];
+
+    // ── Peak time detection ──
+    $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
+    $peakTimes = json_decode($peakJson, true);
+
+    if (empty($data['start_date']) || empty($data['start_time'])) {
+        $start_date = now()->toDateString();
+        $start_time = now()->format('H:i');
+        $scheduled  = '0';
+        $TripStatus = 'created';
+    } else {
+        $start_date = date('Y-m-d', strtotime($data['start_date']));
+        $start_time = date('H:i', strtotime($data['start_time']));
+        $scheduled  = '1';
+        $TripStatus = 'scheduled';
+    }
+
+    $day    = date('l', strtotime($start_date));
+    $isPeak = false;
+    if (isset($peakTimes[$day])) {
+        foreach ($peakTimes[$day] as $period) {
+            if ($start_time >= $period['from'] && $start_time <= $period['to']) {
+                $isPeak = true;
+                break;
+            }
+        }
+    }
+
+    // ── Student check ──
+    $student = Student::where('user_id', $AuthUserID)
+        ->where('status', 'confirmed')
+        ->where('student_discount_service', '1')
+        ->first();
+
+    $student_trips_count = Trip::where('user_id', $AuthUserID)
+        ->where('student_trip', '1')
+        ->where('status', 'completed')
+        ->where('start_date', $start_date)
+        ->count();
+
+    $is_student   = $student && $student_trips_count < 3;
+    $student_trip = $is_student ? '1' : '0';
+
+    // ── Price calculator ──
+    $calcPrice = function (
+        $distance,
+        $km_short, $km_medium, $km_long,
+        $max_short, $max_medium, $max_long,
+        $less_cost,
+        $peak_rate,
+        $student_discount,
+        $air_conditioning_rate,
+        $air_conditioned,
+        $isPeak,
+        $is_student
+    ) {
+        $base = 0;
+
+        if ($distance >= $max_short) {
+            $base += $km_short * $max_short;
+        } else {
+            $base += $km_short * $distance;
+        }
+
+        if ($distance >= $max_medium) {
+            $base += $km_medium * ($max_medium - $max_short);
+        } elseif ($distance > $max_short) {
+            $base += $km_medium * ($distance - $max_short);
+        }
+
+        if ($distance >= $max_long) {
+            $base += $km_long * ($max_long - $max_medium);
+        } elseif ($distance > $max_medium) {
+            $base += $km_long * ($distance - $max_medium);
+        }
+
+        $air_cost = 0;
+        if ($air_conditioning_rate > 0 && $air_conditioned) {
+            $air_cost = round($base * ($air_conditioning_rate / 100), 2);
+        }
+
+        $peak_cost = 0;
+        if ($isPeak && $peak_rate > 0) {
+            $peak_cost = round($base * ($peak_rate / 100), 2);
+        }
+
+        $total_before_discount = ceil($base + $air_cost + $peak_cost);
+
+        if ($total_before_discount < $less_cost) {
+            $total_before_discount = $less_cost;
+        }
+
+        $discount = 0;
+        if ($is_student) {
+            $discount = round($total_before_discount * ($student_discount / 100), 2);
+        }
+
+        $total_cost = $total_before_discount - $discount;
+
+        if ($total_cost < $less_cost) {
+            $total_cost = $less_cost;
+            $discount   = $total_before_discount - $less_cost;
+        }
+
+        return [
+            'total_cost_before_discount' => (float) $total_before_discount,
+            'discount'                   => (float) $discount,
+            'total_cost'                 => (float) $total_cost,
+        ];
+    };
+
+    // ── Server-side price calculation per type ──
+    switch ($type) {
+        case 'car':
+            $priceResult = $calcPrice(
+                $distance,
+                floatval(Setting::where('key', 'kilometer_price_car_short_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'kilometer_price_car_medium_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'kilometer_price_car_long_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_car_short_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_car_medium_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'less_cost_for_car_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'increase_rate_peak_time_car_trip')->where('category', 'Car Trips')->first()->value),
+                floatval(Setting::where('key', 'student_discount')->where('category', 'Car Trips')->first()->value),
+                0,
+                $data['air_conditioned'] == '1',
+                $isPeak,
+                $is_student
+            );
+            break;
+
+        case 'comfort_car':
+            $priceResult = $calcPrice(
+                $distance,
+                floatval(Setting::where('key', 'kilometer_price_comfort_short_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'kilometer_price_comfort_medium_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'kilometer_price_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_comfort_short_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_comfort_medium_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'increase_rate_peak_time_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->first()->value),
+                floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Car Trips')->first()->value),
+                true,
+                $isPeak,
+                $is_student
+            );
+            break;
+
+        case 'scooter':
+            $priceResult = $calcPrice(
+                $distance,
+                floatval(Setting::where('key', 'kilometer_price_scooter_short_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'kilometer_price_scooter_medium_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'kilometer_price_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_scooter_short_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_scooter_medium_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->first()->value),
+                floatval(Setting::where('key', 'student_discount')->where('category', 'Scooter Trips')->first()->value),
+                0,
+                false,
+                $isPeak,
+                $is_student
+            );
+            break;
+
+        default:
+            $priceResult = ['total_cost' => 0, 'discount' => 0];
+            break;
+    }
+
+    // ✅ Server-calculated — client values ignored
+    $total_cost = $priceResult['total_cost'];
+    $discount   = $priceResult['discount'];
+
+    if ($distance > $maximum_distance_long_trip) {
+        $from->send(json_encode([
+            'type'    => 'error',
+            'message' => "The trip distance ($distance km) exceeds the maximum allowed ($maximum_distance_long_trip km).",
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        return;
+    }
+
+    $lastTrip = Trip::orderBy('id', 'desc')->first();
+    if ($lastTrip) {
+        $lastCode = $lastTrip->code;
+        $code     = 'TRP-' . str_pad((int) substr($lastCode, 4) + 1, 12, '0', STR_PAD_LEFT);
+    } else {
+        $code = 'TRP-000000000001';
+    }
+
+    do {
+        $barcode = Str::uuid();
+    } while (Trip::where('barcode', $barcode)->exists());
+
+    $trip = Trip::create([
+        'user_id'          => $AuthUserID,
+        'code'             => $code,
+        'barcode'          => $barcode,
+        'start_lat'        => floatval($data['start_lat']),
+        'start_lng'        => floatval($data['start_lng']),
+        'address1'         => $data['address1'],
+        'total_price'      => $total_cost,
+        'distance'         => $distance,
+        'duration'         => $duration,
+        'type'             => $data['type'],
+        'start_date'       => $start_date,
+        'start_time'       => $start_time,
+        'scheduled'        => $scheduled,
+        'payment_method'   => $data['payment_method'],
+        'remaining_amount' => $total_cost,
+        'discount'         => $discount,
+        'student_trip'     => $student_trip,
+    ]);
+
+    // Set separately (not in fillable or need explicit control)
+    $trip->status          = $TripStatus;
+    $trip->air_conditioned = ($type === 'comfort_car' || $data['air_conditioned'] == '1') ? '1' : '0';
+    $trip->animals         = $data['animals'] == '1' ? '1' : '0';
+    $trip->bags            = $data['bags'] == '1' ? '1' : '0';
+    $trip->save();
+
+    $p = barcodeImage($trip->id);
+
+    $u          = User::findOrFail($AuthUserID);
+    $user_image = getFirstMedia($u, $u->avatarCollection)
+        ? 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection)
+        : null;
+
+    $newTrip['id']               = $trip->id;
+    $newTrip['code']             = $code;
+    $newTrip['barcode']          = 'https://api.lady-driver.com' . getFirstMedia($trip, $trip->barcodeImageCollection);
+    $newTrip['user_id']          = intval($AuthUserID);
+    $newTrip['start_date']       = $start_date;
+    $newTrip['end_date']         = null;
+    $newTrip['start_time']       = $start_time;
+    $newTrip['end_time']         = null;
+    $newTrip['start_lat']        = floatval($data['start_lat']);
+    $newTrip['start_lng']        = floatval($data['start_lng']);
+    $newTrip['address1']         = $data['address1'];
+    $newTrip['total_price']      = $total_cost;
+    $newTrip['app_rate']         = 0.00;
+    $newTrip['driver_rate']      = 0.00;
+    $newTrip['discount']         = $discount;
+    $newTrip['paid_amount']      = 0.00;
+    $newTrip['remaining_amount'] = $total_cost;
+    $newTrip['distance']         = $distance;
+    $newTrip['duration']         = $duration;
+    $newTrip['scheduled']        = $scheduled;
+    $newTrip['type']             = $data['type'];
+    $newTrip['status']           = $TripStatus;
+    $newTrip['payment_method']   = $data['payment_method'];
+    $newTrip['air_conditioned']  = $trip->air_conditioned;
+    $newTrip['animals']          = $trip->animals;
+    $newTrip['bags']             = $trip->bags;
+    $newTrip['seen_count']       = ['count' => 0, 'images' => []];
+
+    $from->send(json_encode([
+        'type'    => 'created_trip',
+        'data'    => $newTrip,
+        'message' => 'Trip Created Successfully',
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+
+    $date_time = date('Y-m-d h:i:s a');
+    echo sprintf('[ %s ],created trip message has been sent to user %d' . "\n", $date_time, $AuthUserID);
+
+    $newTrip['client_stare_rate']         = 0;
+    $newTrip['client_comment']            = null;
+    $newTrip['cancelled_by_id']           = null;
+    $newTrip['trip_cancelling_reason_id'] = null;
+    $newTrip['driver_stare_rate']         = 0;
+    $newTrip['student_trip']              = $student_trip;
+    $newTrip['driver_comment']            = null;
+    $newTrip['driver_arrived']            = null;
+    $newTrip['payment_status']            = 'unpaid';
+    $newTrip['current_offer']             = null;
+    $newTrip['created_at']                = $trip->created_at;
+    $newTrip['updated_at']                = $trip->updated_at;
+    $newTrip['user']['id']                = intval($AuthUserID);
+    $newTrip['user']['name']              = $u->name;
+    $newTrip['user']['country_code']      = $u->country_code;
+    $newTrip['user']['phone']             = $u->phone;
+    $newTrip['user']['image']             = $user_image;
+    $newTrip['user']['rate']              = Trip::where('user_id', $AuthUserID)
+        ->where('status', 'completed')
+        ->where('driver_stare_rate', '>', 0)
+        ->avg('driver_stare_rate') ?? 5.00;
+
+    TripDestination::create([
+        'trip_id' => $trip->id,
+        'lat'     => $data['end_lat_1'],
+        'lng'     => $data['end_lng_1'],
+        'address' => $data['address2'],
+    ]);
+    $newTrip['end_lat_1'] = $data['end_lat_1'];
+    $newTrip['end_lng_1'] = $data['end_lng_1'];
+    $newTrip['address2']  = $data['address2'];
+
+    if (!empty($data['end_lat_2']) && !empty($data['end_lng_2'])) {
+        TripDestination::create([
+            'trip_id' => $trip->id,
+            'lat'     => $data['end_lat_2'],
+            'lng'     => $data['end_lng_2'],
+            'address' => $data['address3'],
+        ]);
+        $newTrip['end_lat_2'] = $data['end_lat_2'];
+        $newTrip['end_lng_2'] = $data['end_lng_2'];
+        $newTrip['address3']  = $data['address3'];
+    }
+
+    if (!empty($data['end_lat_3']) && !empty($data['end_lng_3'])) {
+        TripDestination::create([
+            'trip_id' => $trip->id,
+            'lat'     => $data['end_lat_3'],
+            'lng'     => $data['end_lng_3'],
+            'address' => $data['address4'],
+        ]);
+        $newTrip['end_lat_3'] = $data['end_lat_3'];
+        $newTrip['end_lng_3'] = $data['end_lng_3'];
+        $newTrip['address4']  = $data['address4'];
+    }
+
+    switch ($type) {
+        case 'car':
+            $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
+            $decimalPlaces          = 2;
+            $eligibleCars           = Car::where('status', 'confirmed')
+                ->where('is_comfort', '0')
+                ->whereHas('owner', function ($query) {
+                    $query->where('is_online', '1')->where('status', 'confirmed');
+                })
+                ->where(function ($query) use ($trip) {
+                    if ($trip->air_conditioned == '1') $query->where('air_conditioned', '1');
+                    if ($trip->animals == '1') $query->where('animals', '1');
+                    if ($trip->user->gendor == 'Male') $query->where('passenger_type', 'male_female');
+                })
+                ->select('*')
+                ->selectRaw(
+                    "ROUND((6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))), ?) AS distance",
+                    [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                )
+                ->having('distance', '<=', 3)
+                ->get()
+                ->filter(function ($car) use ($trip) {
+                    $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                    return $response['distance_in_km'] <= 3;
+                });
+
+            $eligibleDriverIds = [];
+            foreach ($eligibleCars as $car) {
+                $eligibleDriverIds[] = $car->user_id;
+                $response2           = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                $distance2           = round($response2['distance_in_km'], 1);
+                $duration2           = intval($response2['duration_in_M']);
+                $this->sendPushToUser($car->owner, [
+                    'screen'   => 'new_trip',
+                    'id'       => (string) $trip->id,
+                    'title_en' => 'New Trip Near You',
+                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                ]);
+            }
+
+            foreach ($eligibleDriverIds as $eligibleDriverId) {
+                $client = $this->getClientByUserId($eligibleDriverId);
+                if ($client) {
+                    DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
+                    $driver                               = User::findOrFail($eligibleDriverId);
+                    $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                    $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
+                    $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
+                    $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
+                    $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                    $newTrip['client_location_distance']  = $response2['distance_in_km'];
+                    $newTrip['client_location_duration']  = $response2['duration_in_M'];
+                    $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                    $data2 = ['type' => 'new_trip', 'data' => $newTrip];
+                    $client->send(json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ],New Trip sent to user %d' . "\n", $date_time, $eligibleDriverId);
+                }
+            }
+            break;
+
+        case 'comfort_car':
+            $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
+            $decimalPlaces          = 2;
+            $eligibleCars           = Car::where('status', 'confirmed')
+                ->where('is_comfort', '1')
+                ->whereHas('owner', function ($query) {
+                    $query->where('is_online', '1')->where('status', 'confirmed');
+                })
+                ->where(function ($query) use ($trip) {
+                    if ($trip->animals == '1') $query->where('animals', '1');
+                    if ($trip->user->gendor == 'Male') $query->where('passenger_type', 'male_female');
+                })
+                ->select('*')
+                ->selectRaw(
+                    "ROUND((6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))), ?) AS distance",
+                    [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                )
+                ->having('distance', '<=', 3)
+                ->get();
+
+            $eligibleDriverIds = [];
+            foreach ($eligibleCars as $car) {
+                $eligibleDriverIds[] = $car->user_id;
+                $response2           = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                $distance2           = round($response2['distance_in_km'], 1);
+                $duration2           = intval($response2['duration_in_M']);
+                $this->sendPushToUser($car->owner, [
+                    'screen'   => 'new_trip',
+                    'id'       => (string) $trip->id,
+                    'title_en' => 'New Trip Near You',
+                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                ]);
+            }
+
+            foreach ($eligibleDriverIds as $eligibleDriverId) {
+                $client = $this->getClientByUserId($eligibleDriverId);
+                if ($client) {
+                    DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
+                    $driver                               = User::findOrFail($eligibleDriverId);
+                    $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                    $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
+                    $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
+                    $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
+                    $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                    $newTrip['client_location_distance']  = $response2['distance_in_km'];
+                    $newTrip['client_location_duration']  = $response2['duration_in_M'];
+                    $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                    $data2 = ['type' => 'new_trip', 'data' => $newTrip];
+                    $client->send(json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ],New Trip sent to user %d' . "\n", $date_time, $eligibleDriverId);
+                }
+            }
+            break;
+
+        case 'scooter':
+            $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
+            $decimalPlaces          = 2;
+            $eligibleScooters       = Scooter::where('status', 'confirmed')
+                ->whereHas('owner', function ($query) {
+                    $query->where('is_online', '1')->where('status', 'confirmed');
+                })
+                ->select('*')
+                ->selectRaw(
+                    "ROUND((6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))), ?) AS distance",
+                    [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
+                )
+                ->having('distance', '<=', 3)
+                ->get();
+
+            $eligibleDriverIds = [];
+            foreach ($eligibleScooters as $scooter) {
+                $eligibleDriverIds[] = $scooter->user_id;
+                $response2           = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
+                $distance2           = round($response2['distance_in_km'], 1);
+                $duration2           = intval($response2['duration_in_M']);
+                $this->sendPushToUser($scooter->owner, [
+                    'screen'   => 'new_trip',
+                    'id'       => (string) $trip->id,
+                    'title_en' => 'New Trip Near You',
+                    'body_en'  => 'There is a trip ' . $distance2 . ' km away (' . $duration2 . ' min)',
+                    'title_ar' => 'رحلة جديدة بالقرب منك',
+                    'body_ar'  => 'يوجد رحلة على بُعد ' . $distance2 . ' كم (' . $duration2 . ' دقيقة)',
+                ]);
+            }
+
+            foreach ($eligibleDriverIds as $eligibleDriverId) {
+                $client = $this->getClientByUserId($eligibleDriverId);
+                if ($client) {
+                    DB::table('drivers_trips')->insert(['driver_id' => $eligibleDriverId, 'trip_id' => $trip->id]);
+                    $driver                               = User::findOrFail($eligibleDriverId);
+                    $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                    $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
+                    $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
+                    $scooter2                             = Scooter::where('user_id', $eligibleDriverId)->first();
+                    $response2                            = calculate_distance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
+                    $newTrip['client_location_distance']  = $response2['distance_in_km'];
+                    $newTrip['client_location_duration']  = $response2['duration_in_M'];
+                    $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
+                    $data2 = ['type' => 'new_trip', 'data' => $newTrip];
+                    $client->send(json_encode($data2, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+                    $date_time = date('Y-m-d h:i:s a');
+                    echo sprintf('[ %s ],New Trip sent to user %d' . "\n", $date_time, $eligibleDriverId);
+                }
+            }
+            break;
+    }
+
+    $this->startTripBroadcast($trip, $newTrip, $type);
+}
     private function startTripBroadcast($trip, $newTrip, $type)
     {
                             // Broadcast trip every 5 seconds for max 3 minutes
