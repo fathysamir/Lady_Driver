@@ -417,7 +417,7 @@ class DriverController extends ApiController
         $scooter->license_back_image  = getFirstMediaUrl($scooter, $scooter->LicenseBackImageCollection);
 
         return $this->sendResponse($scooter, 'Scooter Updated Successfully.', 200);
-    }s
+    }
 
     public function scooter(Request $request)
     {
