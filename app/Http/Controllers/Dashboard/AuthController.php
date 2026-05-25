@@ -26,48 +26,59 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
+{
+    $validator = Validator::make($request->all(), [
+        'email'           => ['required', 'string', 'email'],
+        'password'        => ['required', 'string', 'min:8'],
+        'second_password' => ['required', 'string', 'min:8'],
+    ]);
 
-            'email'           => ['required', 'string', 'email'],
-            'password'        => ['required', 'string', 'min:8'],
-            'second_password' => ['required', 'string', 'min:8'],
-
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
-
-            return Redirect::back()->withErrors($validator)->withInput($request->all());
-        }
-        if (Auth::attempt(['email' => request('email'), 'password' => request('password')], $request->has('remember'))) {
-            $user = Auth::user();
-            if (! Hash::check(request('second_password'), $user->password2)) {
-                Auth::logout();
-                return back()->withErrors(['msg' => 'Second password is incorrect.']);
-            }
-            $user            = auth()->user();
-            $user->is_online = '1';
-            $user->save();
-            return redirect('/admin-dashboard/home');
-        } else {
-
-            return back()->withErrors(['msg' => 'There is something wrong']);
-        }
-
+    if ($validator->fails()) {
+        return Redirect::back()->withErrors($validator)->withInput($request->all());
     }
+
+    // Attempt with first password only — do NOT pass remember yet
+    if (! Auth::attempt(['email' => request('email'), 'password' => request('password')])) {
+        return back()->withErrors(['msg' => 'There is something wrong']);
+    }
+
+    $user = Auth::user();
+
+    // Verify second password — if it fails, log back out immediately
+    if (! Hash::check(request('second_password'), $user->password2)) {
+        Auth::logout();
+        return back()->withErrors(['msg' => 'Second password is incorrect.'])->withInput($request->only('email'));
+    }
+
+    // Both passwords passed — now regenerate session and apply remember-me
+    $request->session()->regenerate();
+
+    if ($request->has('remember')) {
+        Auth::login($user, true); // sets the remember_token cookie
+    }
+
+    $user->is_online = '1';
+    $user->save();
+
+    return redirect('/admin-dashboard/home');
+}
 
     ///////////////////////////////////////////  Logout  ///////////////////////////////////////////
 
-    public function logout()
-    {
-        $user            = auth()->user();
-        $user->is_online = '0';
-        $user->save();
-        Auth::logout();
+    public function logout(Request $request)
+{
+    $user            = auth()->user();
+    $user->is_online = '0';
+    $user->save();
 
-        // auth()->guard('admin')->logout();
-        return redirect('/admin-dashboard/login');
-    }
+    Auth::logout();
+
+    // Invalidate session and regenerate token to prevent session fixation
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/admin-dashboard/login');
+}
 
     public function home(Request $request)
     {
