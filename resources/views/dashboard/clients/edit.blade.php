@@ -159,7 +159,8 @@
                         <div class="card-body">
                             <div class="card-title">Update Client</div>
                             <hr>
-                            <form method="post" action="{{ route('update.client', ['id' => $user->id] + $queryString) }}"
+                            <form method="post" action="{{ route('update.client', $user->id) }}?{{ http_build_query($queryString) }}"
+
                                 enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
