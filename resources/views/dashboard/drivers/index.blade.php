@@ -146,7 +146,17 @@
                                                         )) }}">
                                                         Export All Drivers
                                                     </a>
-
+                                                    <a href="{{ route('drivers.export', array_merge(
+                                                            ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
+                                                            array_filter([
+                                                                'search' => request('search'),
+                                                                'status' => request('status'),
+                                                                'city'   => request('city'),
+                                                                'online' => request('online'),
+                                                            ], fn($v) => $v !== null && $v !== '')
+                                                        )) }}">
+                                                        Export Current Page
+                                                    </a>
                                                     <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
                                                         Export by Date Range
                                                     </a>
