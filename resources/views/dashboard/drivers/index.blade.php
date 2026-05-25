@@ -78,7 +78,7 @@
         top: 100%;
         left: 0;
         z-index: 999;
-        min-width: 170px;
+        min-width: 200px;
         border-radius: 4px;
         overflow: hidden;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
@@ -156,6 +156,9 @@
                                                             ])
                                                         )) }}">
                                                         Export Current Page
+                                                    </a>
+                                                    <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
+                                                        Export by Date Range
                                                     </a>
                                                 </div>
                                             </div>
@@ -324,6 +327,7 @@
         </div>
     </div>
 
+    {{-- Delete Confirmation Modal --}}
     <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog"
         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -358,6 +362,68 @@
             </div>
         </div>
     </div>
+
+    {{-- Date Range Export Modal --}}
+    <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius:12px; border:none; overflow:hidden;">
+                <div style="display:flex; align-items:center; justify-content:space-between;
+                            padding:16px 20px; border-bottom:1px solid #e5e7eb; background:#fff;">
+                    <span style="font-size:15px; font-weight:500; color:#111;">Export by date range</span>
+                    <button type="button" onclick="closeDateRangeModal()" aria-label="Close"
+                        style="background:none; border:none; cursor:pointer; font-size:20px;
+                               color:#6b7280; line-height:1; padding:0;">
+                        &times;
+                    </button>
+                </div>
+                <div style="padding:20px; background:#fff;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                        <div>
+                            <label for="exportDateFrom"
+                                style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px;">
+                                From
+                            </label>
+                            <input type="date" id="exportDateFrom"
+                                style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px;
+                                       color:#111; background:#fff; border:1px solid #d1d5db;
+                                       border-radius:8px; outline:none;">
+                        </div>
+                        <div>
+                            <label for="exportDateTo"
+                                style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px;">
+                                To
+                            </label>
+                            <input type="date" id="exportDateTo"
+                                style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px;
+                                       color:#111; background:#fff; border:1px solid #d1d5db;
+                                       border-radius:8px; outline:none;">
+                        </div>
+                    </div>
+                    <p id="dateRangeError"
+                        style="display:none; font-size:12px; color:#dc2626; margin:0 0 14px;">
+                        Please select both dates.
+                    </p>
+                    <p id="dateRangeOrderError"
+                        style="display:none; font-size:12px; color:#dc2626; margin:0 0 14px;">
+                        "From" date must be before or equal to "To" date.
+                    </p>
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button type="button" onclick="closeDateRangeModal()"
+                            style="padding:8px 18px; border-radius:8px; border:1px solid #d1d5db;
+                                   background:#fff; color:#374151; font-size:14px; cursor:pointer;">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="submitDateRangeExport()"
+                            style="padding:8px 18px; border-radius:8px; border:1px solid #d1d5db;
+                                   background:#fff; color:#374151; font-size:14px; cursor:pointer;">
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
@@ -399,6 +465,63 @@
             } else {
                 filterOptions.style.display = "none";
             }
+        }
+    </script>
+    <script>
+        function openDateRangeModal() {
+            document.getElementById('exportDateFrom').value = '';
+            document.getElementById('exportDateTo').value = '';
+            document.getElementById('dateRangeError').style.display = 'none';
+            document.getElementById('dateRangeOrderError').style.display = 'none';
+            const modal = new bootstrap.Modal(document.getElementById('dateRangeModal'), {});
+            modal.show();
+        }
+
+        function closeDateRangeModal() {
+            const modalEl = document.getElementById('dateRangeModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        function submitDateRangeExport() {
+            const from = document.getElementById('exportDateFrom').value;
+            const to   = document.getElementById('exportDateTo').value;
+
+            document.getElementById('dateRangeError').style.display      = 'none';
+            document.getElementById('dateRangeOrderError').style.display = 'none';
+
+            if (!from || !to) {
+                document.getElementById('dateRangeError').style.display = 'block';
+                return;
+            }
+
+            if (new Date(from) > new Date(to)) {
+                document.getElementById('dateRangeOrderError').style.display = 'block';
+                return;
+            }
+
+            const params = new URLSearchParams({
+                type:         '{{ $type }}',
+                export_scope: 'date_range',
+                date_from:    from,
+                date_to:      to,
+            });
+
+            @if(request('search'))
+                params.append('search', '{{ request('search') }}');
+            @endif
+            @if(request('status'))
+                params.append('status', '{{ request('status') }}');
+            @endif
+            @if(request('city'))
+                params.append('city', '{{ request('city') }}');
+            @endif
+            @if(request('level'))
+                params.append('level', '{{ request('level') }}');
+            @endif
+
+            closeDateRangeModal();
+            window.location.href = '{{ route('drivers.export') }}?' + params.toString();
         }
     </script>
 @endpush

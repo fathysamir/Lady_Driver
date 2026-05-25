@@ -207,65 +207,98 @@ class DriverController extends Controller
         return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
     }
     public function exportCsv(Request $request)
-    {
-        $type    = $request->query('type', 'cars');
-        $search  = $request->query('search');
-        $status  = $request->query('status');
-        $city    = $request->query('city');
-        $level   = $request->query('level');
-        $scope   = $request->query('export_scope', 'all');
-        $page    = $request->query('page', 1);
-        $perPage = 25;
+{
+    $type     = $request->query('type', 'cars');
+    $search   = $request->query('search');
+    $status   = $request->query('status');
+    $city     = $request->query('city');
+    $level    = $request->query('level');
+    $scope    = $request->query('export_scope', 'all');
+    $page     = $request->query('page', 1);
+    $perPage  = 25;
+    $dateFrom = $request->query('date_from');
+    $dateTo   = $request->query('date_to');
 
-        $query = User::where('mode', 'driver');
+    $query = User::where('mode', 'driver')->where('is_verified', '1');
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhere('phone', 'LIKE', "%{$search}%")
-                  ->orWhere('id', $search);
-            });
-        }
-
-        if (!empty($status)) $query->where('status', $status);
-        if (!empty($city))   $query->where('city_id', $city);
-        if (!empty($level))  $query->where('level', $level);
-
-        $query->orderBy('created_at', 'desc');
-
-        if ($scope === 'page') {
-            $users = $query->forPage($page, $perPage)->get();
-        } else {
-            $users = $query->get();
-        }
-
-        $filename = 'drivers_' . $scope . '_' . now()->format('Y_m_d_His') . '.csv';
-
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function () use ($users) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Level', 'Join Date']);
-            $counter = 1;
-            foreach ($users as $user) {
-                fputcsv($file, [
-                    $counter++,
-                    $user->name,
-                    $user->email,
-                    "\t" . $user->country_code . $user->phone,
-                    $user->status,
-                    'LV ' . $user->level,
-                    $user->created_at->format('d.M.Y h:i a'),
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+    if ($type === 'cars') {
+        $query->where('driver_type', 'car');
+    } elseif ($type === 'comfort_cars') {
+        $query->where('driver_type', 'comfort_car');
+    } elseif ($type === 'scooters') {
+        $query->where('driver_type', 'scooter');
     }
+
+    if (!empty($search)) {
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%")
+              ->orWhere('phone', 'LIKE', "%{$search}%")
+              ->orWhere('id', $search);
+        });
+    }
+
+    if (!empty($status)) $query->where('status', $status);
+    if (!empty($city))   $query->where('city_id', $city);
+    if (!empty($level))  $query->where('level', $level);
+
+    $query->orderBy('created_at', 'desc');
+
+    if ($scope === 'page') {
+
+        $users = $query->forPage($page, $perPage)->get();
+
+    } elseif ($scope === 'date_range') {
+
+        if (empty($dateFrom) || empty($dateTo)) {
+            return redirect()->back()->with('error', 'Please provide both a start and end date for the date range export.');
+        }
+
+        $from = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+        $to   = \Carbon\Carbon::parse($dateTo)->endOfDay();
+
+        if ($from->gt($to)) {
+            return redirect()->back()->with('error', '"From" date must be before or equal to "To" date.');
+        }
+
+        $users = $query->whereBetween('created_at', [$from, $to])->get();
+
+    } else {
+
+        $users = $query->get();
+
+    }
+
+    $datePart = $scope === 'date_range'
+        ? "_{$dateFrom}_to_{$dateTo}"
+        : ($scope === 'page' ? "_page{$page}" : '');
+
+    $filename = "drivers_{$type}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
+
+    $headers = [
+        'Content-Type'        => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+    ];
+
+    $callback = function () use ($users) {
+        $file = fopen('php://output', 'w');
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Level', 'Join Date']);
+        $counter = 1;
+        foreach ($users as $user) {
+            fputcsv($file, [
+                $counter++,
+                $user->name,
+                $user->email,
+                "\t" . $user->country_code . $user->phone,
+                $user->status,
+                'LV ' . $user->level,
+                $user->created_at->format('d.M.Y h:i a'),
+            ]);
+        }
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }
