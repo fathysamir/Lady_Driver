@@ -212,19 +212,22 @@ class DriverController extends Controller
 
     public function exportCsv(Request $request)
     {
-        $type     = $request->query('type', 'cars');
+        // FIX: Removed the default 'cars' fallback so it exports ALL drivers if type is empty
+        $type     = $request->query('type');
         $search   = $request->query('search');
         $status   = $request->query('status');
         $city     = $request->query('city');
-        $online   = $request->query('online');   // replaces 'level'
+        $online   = $request->query('online');
         $scope    = $request->query('export_scope', 'all');
         $page     = $request->query('page', 1);
         $perPage  = 25;
         $dateFrom = $request->query('date_from');
         $dateTo   = $request->query('date_to');
 
+        // Only verified drivers
         $query = User::where('mode', 'driver')->where('is_verified', '1');
 
+        // Apply vehicle type filter ONLY if a specific type was requested
         if ($type === 'cars') {
             $query->where('driver_type', 'car');
         } elseif ($type === 'comfort_cars') {
@@ -250,7 +253,6 @@ class DriverController extends Controller
             $query->where('city_id', $city);
         }
 
-        // Use !== null so that online=0 (offline) is not skipped
         if ($online !== null && $online !== '') {
             $query->where('is_online', $online);
         }
@@ -282,11 +284,12 @@ class DriverController extends Controller
 
         }
 
-        $datePart = $scope === 'date_range'
+        $typeLabel = $type ? $type : 'all';
+        $datePart  = $scope === 'date_range'
             ? "_{$dateFrom}_to_{$dateTo}"
             : ($scope === 'page' ? "_page{$page}" : '');
 
-        $filename = "drivers_{$type}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
+        $filename = "drivers_{$typeLabel}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -295,8 +298,12 @@ class DriverController extends Controller
 
         $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
+
+            // UTF-8 BOM — makes Excel open Arabic correctly
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
             fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Online', 'Join Date']);
+
             $counter = 1;
             foreach ($users as $user) {
                 fputcsv($file, [
