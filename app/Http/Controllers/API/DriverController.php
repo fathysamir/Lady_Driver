@@ -406,7 +406,7 @@ class DriverController extends ApiController
         if ($request->file('image')) {
             $existing = getFirstMediaUrl($scooter, $scooter->avatarCollection);
             if ($existing != null) {
-                deleteMedia($scooter, $scooter->avatarCollection);
+                deleteMedia($scooter, $scooter->avatarCollection); //
             }
             uploadMedia($request->image, $scooter->avatarCollection, $scooter);
         }
