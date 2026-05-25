@@ -141,8 +141,8 @@
                                                                 'search' => request('search'),
                                                                 'status' => request('status'),
                                                                 'city'   => request('city'),
-                                                                'level'  => request('level'),
-                                                            ])
+                                                                'online' => request('online'),
+                                                            ], fn($v) => $v !== null && $v !== '')
                                                         )) }}">
                                                         Export All Drivers
                                                     </a>
@@ -152,8 +152,8 @@
                                                                 'search' => request('search'),
                                                                 'status' => request('status'),
                                                                 'city'   => request('city'),
-                                                                'level'  => request('level'),
-                                                            ])
+                                                                'online' => request('online'),
+                                                            ], fn($v) => $v !== null && $v !== '')
                                                         )) }}">
                                                         Export Current Page
                                                     </a>
@@ -176,10 +176,10 @@
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned" {{ request('status') == 'banned' ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked" {{ request('status') == 'blocked' ? 'selected' : '' }}>Blocked</option>
+                                                <option value="pending"   {{ request('status') == 'pending'    ? 'selected' : '' }}>Pending</option>
+                                                <option value="confirmed" {{ request('status') == 'confirmed'  ? 'selected' : '' }}>Confirmed</option>
+                                                <option value="banned"    {{ request('status') == 'banned'     ? 'selected' : '' }}>Banned</option>
+                                                <option value="blocked"   {{ request('status') == 'blocked'    ? 'selected' : '' }}>Blocked</option>
                                             </select>
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="city">
@@ -190,13 +190,10 @@
                                                 @endforeach
                                             </select>
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
-                                                name="level">
-                                                <option value="">Select Level</option>
-                                                <option value="1" {{ request('level') == '1' ? 'selected' : '' }}>Level 1</option>
-                                                <option value="2" {{ request('level') == '2' ? 'selected' : '' }}>Level 2</option>
-                                                <option value="3" {{ request('level') == '3' ? 'selected' : '' }}>Level 3</option>
-                                                <option value="4" {{ request('level') == '4' ? 'selected' : '' }}>Level 4</option>
-                                                <option value="5" {{ request('level') == '5' ? 'selected' : '' }}>Level 5</option>
+                                                name="online">
+                                                <option value="">Select Online Status</option>
+                                                <option value="1" {{ request('online') === '1' ? 'selected' : '' }}>Online</option>
+                                                <option value="0" {{ request('online') === '0' ? 'selected' : '' }}>Offline</option>
                                             </select>
                                         </div>
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
@@ -278,14 +275,14 @@
                                                     <td>
                                                         @php
                                                             $edit_per = [
-                                                                'cars' => 'drivers.standard.car.edit',
+                                                                'cars'         => 'drivers.standard.car.edit',
                                                                 'comfort_cars' => 'drivers.comfort.car.edit',
-                                                                'scooters' => 'drivers.scooter.edit',
+                                                                'scooters'     => 'drivers.scooter.edit',
                                                             ];
                                                             $delete_per = [
-                                                                'cars' => 'drivers.standard.car.delete',
+                                                                'cars'         => 'drivers.standard.car.delete',
                                                                 'comfort_cars' => 'drivers.comfort.car.delete',
-                                                                'scooters' => 'drivers.scooter.delete',
+                                                                'scooters'     => 'drivers.scooter.delete',
                                                             ];
                                                         @endphp
                                                         @can($edit_per[$type??'cars'])
@@ -314,7 +311,7 @@
                                         'search' => request('search'),
                                         'status' => request('status'),
                                         'city'   => request('city'),
-                                        'level'  => request('level'),
+                                        'online' => request('online'),
                                         'type'   => request('type'),
                                     ])->links('pagination::bootstrap-4') !!}
                                 </div>
@@ -516,8 +513,8 @@
             @if(request('city'))
                 params.append('city', '{{ request('city') }}');
             @endif
-            @if(request('level'))
-                params.append('level', '{{ request('level') }}');
+            @if(request()->filled('online'))
+                params.append('online', '{{ request('online') }}');
             @endif
 
             closeDateRangeModal();
