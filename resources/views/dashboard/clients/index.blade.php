@@ -74,7 +74,7 @@
         top: 100%;
         left: 0;
         z-index: 999;
-        min-width: 170px;
+        min-width: 200px;
         border-radius: 4px;
         overflow: hidden;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
@@ -149,6 +149,9 @@
                                                             array_filter(['search' => request('search'), 'status' => request('status')])
                                                         )) }}">
                                                         Export Current Page
+                                                    </a>
+                                                    <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
+                                                        Export by Date Range
                                                     </a>
                                                 </div>
                                             </div>
@@ -304,6 +307,41 @@
             </div>
         </div>
     </div>
+
+    {{-- Date Range Export Modal --}}
+    <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:black;">Export by Date Range</h5>
+                    <button type="button" class="close" onclick="closeDateRangeModal()" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="color:black;">
+                    <div class="form-group">
+                        <label for="exportDateFrom">From</label>
+                        <input type="date" id="exportDateFrom" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="exportDateTo">To</label>
+                        <input type="date" id="exportDateTo" class="form-control">
+                    </div>
+                    <div id="dateRangeError" style="color:red; font-size:0.85rem; display:none; margin-top: 6px;">
+                        Please select both a start and end date.
+                    </div>
+                    <div id="dateRangeOrderError" style="color:red; font-size:0.85rem; display:none; margin-top: 6px;">
+                        "From" date must be before or equal to "To" date.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDateRangeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitDateRangeExport()">Export CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
@@ -345,6 +383,60 @@
             } else {
                 filterOptions.style.display = "none";
             }
+        }
+    </script>
+    <script>
+        function openDateRangeModal() {
+            document.getElementById('exportDateFrom').value = '';
+            document.getElementById('exportDateTo').value = '';
+            document.getElementById('dateRangeError').style.display = 'none';
+            document.getElementById('dateRangeOrderError').style.display = 'none';
+            const modal = new bootstrap.Modal(document.getElementById('dateRangeModal'), {});
+            modal.show();
+        }
+
+        function closeDateRangeModal() {
+            const modalEl = document.getElementById('dateRangeModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        function submitDateRangeExport() {
+            const from = document.getElementById('exportDateFrom').value;
+            const to   = document.getElementById('exportDateTo').value;
+
+            document.getElementById('dateRangeError').style.display      = 'none';
+            document.getElementById('dateRangeOrderError').style.display = 'none';
+
+            if (!from || !to) {
+                document.getElementById('dateRangeError').style.display = 'block';
+                return;
+            }
+
+            if (new Date(from) > new Date(to)) {
+                document.getElementById('dateRangeOrderError').style.display = 'block';
+                return;
+            }
+
+            const params = new URLSearchParams({
+                type:         '{{ $type }}',
+                export_scope: 'date_range',
+                date_from:    from,
+                date_to:      to,
+            });
+
+            @if(request('search'))
+                params.append('search', '{{ request('search') }}');
+            @endif
+            @if(request('status'))
+                params.append('status', '{{ request('status') }}');
+            @endif
+            @if(request('city'))
+                params.append('city', '{{ request('city') }}');
+            @endif
+
+            closeDateRangeModal();
+            window.location.href = '{{ route('clients.export') }}?' + params.toString();
         }
     </script>
 @endpush
