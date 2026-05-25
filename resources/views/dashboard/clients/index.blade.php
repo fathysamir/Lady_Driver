@@ -308,64 +308,66 @@
         </div>
     </div>
 
-    {{-- Date Range Export Modal --}}
-    <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content" style="background:#fff !important; color:#212529 !important;">
-                <div class="modal-header" style="border-bottom: 1px solid #dee2e6; padding: 16px 20px;">
-                    <h5 class="modal-title" style="color:#212529 !important; font-weight:600; margin:0;">Export by Date Range</h5>
-                    <button type="button" onclick="closeDateRangeModal()" aria-label="Close"
-                        style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#212529; line-height:1; padding:0; margin-left:auto;">
-                        &times;
-                    </button>
-                </div>
-                <div class="modal-body" style="padding: 24px 20px;">
-                    <div style="margin-bottom: 18px;">
+   {{-- Date Range Export Modal --}}
+<div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius:12px; border:none; overflow:hidden;">
+            <div style="display:flex; align-items:center; justify-content:space-between;
+                        padding:16px 20px; border-bottom:1px solid #e5e7eb; background:#fff;">
+                <span style="font-size:15px; font-weight:500; color:#111;">Export by date range</span>
+                <button type="button" onclick="closeDateRangeModal()" aria-label="Close"
+                    style="background:none; border:none; cursor:pointer; font-size:20px;
+                           color:#6b7280; line-height:1; padding:0;">
+                    &times;
+                </button>
+            </div>
+            <div style="padding:20px; background:#fff;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                    <div>
                         <label for="exportDateFrom"
-                            style="display:block !important; visibility:visible !important; font-weight:500; margin-bottom:7px; color:#212529 !important; font-size:0.9rem;">
+                            style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px;">
                             From
                         </label>
                         <input type="date" id="exportDateFrom"
-                            style="display:block !important; visibility:visible !important; width:100%; padding:9px 12px;
-                                   border:1px solid #ced4da; border-radius:6px; font-size:0.95rem;
-                                   color:#212529 !important; background-color:#fff !important;
-                                   outline:none; box-sizing:border-box; height:auto !important;">
+                            style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px;
+                                   color:#111; background:#fff; border:1px solid #d1d5db;
+                                   border-radius:8px; outline:none;">
                     </div>
-                    <div style="margin-bottom: 8px;">
+                    <div>
                         <label for="exportDateTo"
-                            style="display:block !important; visibility:visible !important; font-weight:500; margin-bottom:7px; color:#212529 !important; font-size:0.9rem;">
+                            style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px;">
                             To
                         </label>
                         <input type="date" id="exportDateTo"
-                            style="display:block !important; visibility:visible !important; width:100%; padding:9px 12px;
-                                   border:1px solid #ced4da; border-radius:6px; font-size:0.95rem;
-                                   color:#212529 !important; background-color:#fff !important;
-                                   outline:none; box-sizing:border-box; height:auto !important;">
+                            style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px;
+                                   color:#111; background:#fff; border:1px solid #d1d5db;
+                                   border-radius:8px; outline:none;">
                     </div>
-                    <p id="dateRangeError"
-                        style="color:#dc3545; font-size:0.83rem; display:none; margin-top:10px; margin-bottom:0;">
-                        Please select both a start and end date.
-                    </p>
-                    <p id="dateRangeOrderError"
-                        style="color:#dc3545; font-size:0.83rem; display:none; margin-top:10px; margin-bottom:0;">
-                        "From" date must be before or equal to "To" date.
-                    </p>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid #dee2e6; padding: 14px 20px; gap: 8px;">
+                <p id="dateRangeError"
+                    style="display:none; font-size:12px; color:#dc2626; margin:0 0 14px;">
+                    Please select both dates.
+                </p>
+                <p id="dateRangeOrderError"
+                    style="display:none; font-size:12px; color:#dc2626; margin:0 0 14px;">
+                    "From" date must be before or equal to "To" date.
+                </p>
+                <div style="display:flex; gap:8px; justify-content:flex-end;">
                     <button type="button" onclick="closeDateRangeModal()"
-                        style="padding:8px 22px; border-radius:6px; border:1px solid #6c757d;
-                               background:#6c757d; color:#fff; cursor:pointer; font-size:0.9rem;">
+                        style="padding:8px 18px; border-radius:8px; border:1px solid #d1d5db;
+                               background:#fff; color:#374151; font-size:14px; cursor:pointer;">
                         Cancel
                     </button>
                     <button type="button" onclick="submitDateRangeExport()"
-                        style="padding:8px 22px; border-radius:6px; border:none;
-                               background:#6f42c1; color:#fff; cursor:pointer; font-size:0.9rem;">
+                        style="padding:8px 18px; border-radius:8px; border:1px solid #d1d5db;
+                               background:#fff; color:#374151; font-size:14px; cursor:pointer;">
                         Export CSV
                     </button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 @endsection
 
