@@ -311,32 +311,57 @@
     {{-- Date Range Export Modal --}}
     <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" style="color:black;">Export by Date Range</h5>
-                    <button type="button" class="close" onclick="closeDateRangeModal()" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+            <div class="modal-content" style="background:#fff !important; color:#212529 !important;">
+                <div class="modal-header" style="border-bottom: 1px solid #dee2e6; padding: 16px 20px;">
+                    <h5 class="modal-title" style="color:#212529 !important; font-weight:600; margin:0;">Export by Date Range</h5>
+                    <button type="button" onclick="closeDateRangeModal()" aria-label="Close"
+                        style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#212529; line-height:1; padding:0; margin-left:auto;">
+                        &times;
                     </button>
                 </div>
-                <div class="modal-body" style="color:black;">
-                    <div class="form-group">
-                        <label for="exportDateFrom">From</label>
-                        <input type="date" id="exportDateFrom" class="form-control">
+                <div class="modal-body" style="padding: 24px 20px;">
+                    <div style="margin-bottom: 18px;">
+                        <label for="exportDateFrom"
+                            style="display:block !important; visibility:visible !important; font-weight:500; margin-bottom:7px; color:#212529 !important; font-size:0.9rem;">
+                            From
+                        </label>
+                        <input type="date" id="exportDateFrom"
+                            style="display:block !important; visibility:visible !important; width:100%; padding:9px 12px;
+                                   border:1px solid #ced4da; border-radius:6px; font-size:0.95rem;
+                                   color:#212529 !important; background-color:#fff !important;
+                                   outline:none; box-sizing:border-box; height:auto !important;">
                     </div>
-                    <div class="form-group">
-                        <label for="exportDateTo">To</label>
-                        <input type="date" id="exportDateTo" class="form-control">
+                    <div style="margin-bottom: 8px;">
+                        <label for="exportDateTo"
+                            style="display:block !important; visibility:visible !important; font-weight:500; margin-bottom:7px; color:#212529 !important; font-size:0.9rem;">
+                            To
+                        </label>
+                        <input type="date" id="exportDateTo"
+                            style="display:block !important; visibility:visible !important; width:100%; padding:9px 12px;
+                                   border:1px solid #ced4da; border-radius:6px; font-size:0.95rem;
+                                   color:#212529 !important; background-color:#fff !important;
+                                   outline:none; box-sizing:border-box; height:auto !important;">
                     </div>
-                    <div id="dateRangeError" style="color:red; font-size:0.85rem; display:none; margin-top: 6px;">
+                    <p id="dateRangeError"
+                        style="color:#dc3545; font-size:0.83rem; display:none; margin-top:10px; margin-bottom:0;">
                         Please select both a start and end date.
-                    </div>
-                    <div id="dateRangeOrderError" style="color:red; font-size:0.85rem; display:none; margin-top: 6px;">
+                    </p>
+                    <p id="dateRangeOrderError"
+                        style="color:#dc3545; font-size:0.83rem; display:none; margin-top:10px; margin-bottom:0;">
                         "From" date must be before or equal to "To" date.
-                    </div>
+                    </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeDateRangeModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="submitDateRangeExport()">Export CSV</button>
+                <div class="modal-footer" style="border-top: 1px solid #dee2e6; padding: 14px 20px; gap: 8px;">
+                    <button type="button" onclick="closeDateRangeModal()"
+                        style="padding:8px 22px; border-radius:6px; border:1px solid #6c757d;
+                               background:#6c757d; color:#fff; cursor:pointer; font-size:0.9rem;">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="submitDateRangeExport()"
+                        style="padding:8px 22px; border-radius:6px; border:none;
+                               background:#6f42c1; color:#fff; cursor:pointer; font-size:0.9rem;">
+                        Export CSV
+                    </button>
                 </div>
             </div>
         </div>
