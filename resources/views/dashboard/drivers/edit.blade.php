@@ -590,7 +590,7 @@
                                     </div>
                                 @elseif($user->scooter)
                                     <div class="form-group">
-                                        <label>Car : you can show scooter from <a style="color: blue"
+                                        <label>Scooter : you can show scooter from <a style="color: blue"
                                                 href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">hear</a></label>
                                     </div>
                                 @else
