@@ -166,7 +166,7 @@
                                 $avatarFallback = asset('dashboard/user_avatar.png');
                                 $imageFallback  = asset('dashboard/image_placeholder.png');
                             @endphp
-                           <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                           <div style="display: flex; gap: 10px; margin-bottom: 16px; justify-content: center;">
                             <a href="{{ url('/admin-dashboard/trips?type=' . ($user->driver_type === 'scooter' ? 'scooter' : ($user->driver_type === 'comfort_car' ? 'comfort_car' : 'car')) . '&time_filter=current&driver=' . $user->id) }}"
                                class="btn btn-light px-4">
                                 Current Trip
