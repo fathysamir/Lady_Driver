@@ -97,6 +97,7 @@ Route::post('/driver_register', [AuthController::class, 'driver_register'])->nam
 Route::post('/client_register', [AuthController::class, 'client_register'])->name('client_register');
 Route::post('/register2', [AuthController::class, 'register2'])->name('register2');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
 Route::post('/careers', [AuthController::class, 'careers'])->name('career.apply');
 Route::get('/about_us', [AuthController::class, 'about_us'])->name('about_us');
@@ -106,7 +107,6 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name
 Route::post('/reset-password', [AuthController::class, 'resetpassword'])->name('reset-password');
 Route::get('/live-location/data/{token}', [LiveLocationController::class, 'getLocation']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/device_tocken', [AuthController::class, 'device_tocken'])->name('device_tocken');
     Route::get('/user_notification', [AuthController::class, 'user_notification'])->name('user_notification');
     Route::post('/seen_notification', [AuthController::class, 'seen_notification'])->name('seen_notification');
