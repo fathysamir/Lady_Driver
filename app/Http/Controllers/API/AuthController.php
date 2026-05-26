@@ -1055,6 +1055,9 @@ class AuthController extends ApiController
         $user->is_online    = '1';
         if ($user->is_verified == '0') {
             $user->is_verified = '1';
+            if ($user->mode == 'client') {
+                $user->status = 'confirmed';
+            }
             $user->save();
             $acceptLang = request()->header('Accept-Language');
             //$locale = substr($acceptLang, 0, 2);
