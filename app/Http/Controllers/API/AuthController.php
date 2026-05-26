@@ -1116,28 +1116,19 @@ class AuthController extends ApiController
 
     public function logout(Request $request)
     {
-        $user = $request->user();
+        // Manually find token without auth middleware
+        $token = PersonalAccessToken::findToken($request->bearerToken());
 
-        // Guard: if no authenticated user (deleted account / invalid token)
-        if (!$user) {
-            // Still invalidate the token at the bearer level if possible
-            $token = PersonalAccessToken::findToken($request->bearerToken());
-            if ($token) {
-                $token->delete();
+        if ($token) {
+            $user = $token->tokenable; // get user from token
+            if ($user) {
+                $user->is_online = '0';
+                $user->save();
             }
-
-            return $this->sendResponse(null, 'logout successfully', 200);
+            $token->delete(); // delete token from DB
         }
 
-        $currentToken = $user->currentAccessToken();
-
-        $user->is_online = '0';
-        $user->save();
-
-        if ($currentToken) {
-            $currentToken->delete();
-        }
-
+        // Always return 200 no matter what
         return $this->sendResponse(null, 'logout successfully', 200);
     }
 
