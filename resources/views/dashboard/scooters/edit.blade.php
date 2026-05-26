@@ -119,7 +119,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Client Scooter</div>
+                            <div class="card-title">Driver Scooter</div>
                             <hr>
 
                                 <div class="form-group"style="text-align: center;">

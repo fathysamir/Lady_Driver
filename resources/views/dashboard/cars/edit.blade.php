@@ -119,7 +119,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Client Car</div>
+                            <div class="card-title">Driver Car</div>
                             <hr>
 
                                 <div class="form-group"style="text-align: center;">
@@ -138,7 +138,7 @@
                                             href="{{ url('/admin-dashboard/driver/edit/' . $car->owner->id) }}">{{ ucwords($car->owner->name) }}</a></label>
                                 </div>
                                 <div class="form-group">
-                                    <label>Car Plate : {{ $car->car_plate }}</label>
+                                    <label style="font-size: 1.4rem;">Car Plate : {{ $car->car_plate }}</label>
                                 </div>
                                 <div class="form-group">
                                     <label>Car Color : {{ $car->color }}</label>
