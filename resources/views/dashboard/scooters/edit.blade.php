@@ -133,12 +133,12 @@
                                         ({{ $scooter->year }})</h3>
                                 </div>
 
-                                div class="form-group">
-                                <label>Driver :
-                                        href="{{ url('/admin-dashboard/driver/edit/' . $scooter->owner->id) }}">{{ ucwords($scooter->owner->name) }}</a></label>
-                            </div>
                                 <div class="form-group">
-                                    <label style="font-size: 1.2rem;">Scooter Plate : {{ $scooter->scooter_plate }}</label>
+                                    <label>Driver : <a
+                                            href="{{ url('/admin-dashboard/driver/edit/' . $scooter->owner->id) }}">{{ ucwords($scooter->owner->name) }}</a></label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Scooter Plate : {{ $scooter->scooter_plate }}</label>
                                 </div>
                                 <div class="form-group">
                                     <label>Scooter Color : {{ $scooter->color }}</label>
