@@ -66,13 +66,14 @@ use Illuminate\Support\Facades\Route;
 /////////////////////////////////////////////////////////////////////////////
 
 
-
+/*
 Route::get('/export',                [ExportController::class, 'exportIndex']);
 Route::get('/export/full-backup',    [ExportController::class, 'fullBackup']);
 Route::get('/export/all',            [ExportController::class, 'exportAllTablesZip']);
 Route::get('/export/media/urls',     [ExportController::class, 'exportMediaUrlsCsv']);
 Route::get('/export/media',          [ExportController::class, 'exportAllMediaZip']);
 Route::get('/export/table/{table}',  [ExportController::class, 'exportTableCsv']);
+*/
 
 /////////////////////////////////////////////////////////////////////////////
 
