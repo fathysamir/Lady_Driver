@@ -32,9 +32,10 @@ class CustomLogoServiceProvider extends ServiceProvider
             return $new_clients_count;
         });
         $this->app->bind('new_drivers_count', function () {
-            // Logic to determine the path to the logo image
-            //$logo=url(Setting::where('key','logo')->where('category','website')->where('type','file')->first()->value);
-            $new_drivers_count=User::where('seen','0')->where('mode','driver')->count();
+            $new_drivers_count = User::where('seen', '0')
+                ->where('mode', 'driver')
+                ->where('created_at', '>=', now()->subDays(15))
+                ->count();
             return $new_drivers_count;
         });
         $this->app->bind('new_cars_count', function () {
