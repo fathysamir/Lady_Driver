@@ -127,8 +127,10 @@
                                                 Comfort Drivers
                                             @elseif($type == 'scooters')
                                                 Scooters
-                                            @else
-                                                Drivers
+                                                @elseif($type == 'cars')
+                                               Original Drivers
+                                               @else
+                                               Drivers
                                             @endif
                                             - {{ $count }}
                                         </h5>
