@@ -112,8 +112,8 @@ class DriverController extends Controller
 
     public function edit($id, Request $request)
     {
-        $user       = User::where('id', $id)->first();
-        $user->seen = '1';
+        $user                          = User::where('id', $id)->first();
+        $user->seen                    = '1';
         $user->save();
         $user->image                   = getFirstMediaUrl($user, $user->avatarCollection);
         $user->IDfrontImage            = getFirstMediaUrl($user, $user->IDfrontImageCollection);
@@ -121,7 +121,6 @@ class DriverController extends Controller
         $user->PassportImage           = getFirstMediaUrl($user, $user->passportImageCollection);
         $user->medicalExaminationImage = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
         $user->criminalRecordImage     = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
-        $user->trips_count             = Trip::where('user_id', $id)->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
         $user->driving_license         = DriverLicense::where('user_id', $user->id)->first();
         $user->car                     = Car::where('user_id', $user->id)->first();
 
@@ -130,13 +129,16 @@ class DriverController extends Controller
             $user->driving_license->back_image  = getFirstMediaUrl($user->driving_license, $user->driving_license->LicenseBackImageCollection);
         }
 
-        $user->rate = round(Trip::whereHas('car', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->where('status', 'completed')->where('client_stare_rate', '>', 0)->avg('client_stare_rate')) ?? 5.00;
+        $driverTrips = Trip::where(function ($query) use ($user) {
+            $query->whereHas('car', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->orWhereHas('scooter', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        })->where('status', 'completed');
 
-        $user->trips_count = Trip::whereHas('car', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->whereIn('status', ['pending', 'in_progress', 'completed'])->count();
+        $user->rate        = round($driverTrips->clone()->where('client_stare_rate', '>', 0)->avg('client_stare_rate')) ?? 5.00;
+        $user->trips_count = $driverTrips->count();
 
         $cities      = City::all();
         $queryString = $request->query();
