@@ -411,7 +411,7 @@
                                         style="background-color: rgba(255, 255, 255, 0.2);"
                                         placeholder="Enter Birth Date" value="{{ old('birth_date', $user->birth_date) }}">
                                 </div>
-//
+
 @if ($user->national_id || $user->IDfrontImage)
 {{-- Show National ID section --}}
 <div class="form-group">
@@ -484,7 +484,7 @@
     <label style="color: #ff7272">No identity document has been provided.</label>
 </div>
 @endif
-//
+
                                 <div class="form-group" style="display: flex;">
                                     <label>Medical Examination Image : </label>
                                     @if ($user->medicalExaminationImage)
