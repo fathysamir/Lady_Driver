@@ -411,72 +411,80 @@
                                         style="background-color: rgba(255, 255, 255, 0.2);"
                                         placeholder="Enter Birth Date" value="{{ old('birth_date', $user->birth_date) }}">
                                 </div>
+//
+@if ($user->national_id || $user->IDfrontImage)
+{{-- Show National ID section --}}
+<div class="form-group">
+    <label>National ID</label>
+    <input type="number" class="form-control" name="national_id"
+        placeholder="National ID" value="{{ old('national_id', $user->national_id) }}">
+</div>
 
-                                <div class="form-group">
-                                    <label>National ID</label>
-                                    <input type="number" class="form-control" name="national_id"
-                                        placeholder="National ID" value="{{ old('national_id', $user->national_id) }}">
-                                </div>
+@if ($user->national_id_expire_date)
+    <div class="form-group" style="display: flex;">
+        <label>
+            National ID Expiration Date :
+            <span style="color: {{ \Carbon\Carbon::parse($user->national_id_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                {{ \Carbon\Carbon::parse($user->national_id_expire_date)->format('d M Y') }}
+            </span>
+        </label>
+    </div>
+@endif
 
-                                @if ($user->national_id_expire_date)
-                                    <div class="form-group" style="display: flex;">
-                                        <label>
-                                            National ID Expiration Date :
-                                            <span style="color: {{ \Carbon\Carbon::parse($user->national_id_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
-                                                {{ \Carbon\Carbon::parse($user->national_id_expire_date)->format('d M Y') }}
-                                            </span>
-                                        </label>
-                                    </div>
-                                @endif
+<div class="form-group" style="display: flex;">
+    <label>Id Images : </label>
+    @if ($user->IDfrontImage)
+        <img width="400" height="250" style="margin: 0px 10px 0px 10px; border-radius:10px;"
+            src="{{ $user->IDfrontImage }}"
+            onerror="this.onerror=null; this.src='{{ $imageFallback }}';"
+            class="zoomable-image">
+        <img width="400" height="250" style="margin: 0px 10px 0px 10px; border-radius:10px;"
+            src="{{ $user->IDbackImage }}"
+            onerror="this.onerror=null; this.src='{{ $imageFallback }}';"
+            class="zoomable-image">
+    @else
+        <label style="color: #ff7272">There is no National ID image.</label>
+    @endif
+</div>
 
-                                <div class="form-group" style="display: flex;">
-                                    <label>Id Images : </label>
-                                    @if ($user->IDfrontImage)
-                                        <img width="400" height="250"
-                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
-                                            src="{{ $user->IDfrontImage }}"
-                                            onerror="this.onerror=null; this.src='{{ $imageFallback }}';"
-                                            class="zoomable-image">
-                                        <img width="400" height="250"
-                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
-                                            src="{{ $user->IDbackImage }}"
-                                            onerror="this.onerror=null; this.src='{{ $imageFallback }}';"
-                                            class="zoomable-image">
-                                    @else
-                                        <label style="color: #ff7272">There is no National ID.</label>
-                                    @endif
-                                </div>
+@elseif ($user->passport_id || $user->PassportImage)
+{{-- Show Passport section --}}
+<div class="form-group">
+    <label>Passport ID</label>
+    <input type="text" class="form-control" name="passport_id"
+        placeholder="Passport ID" value="{{ old('passport_id', $user->passport_id) }}">
+</div>
 
-                                <div class="form-group">
-                                    <label>Passport ID</label>
-                                    <input type="text" class="form-control" name="passport_id"
-                                        placeholder="Passport ID" value="{{ old('passport_id', $user->passport_id) }}">
-                                </div>
+@if ($user->passport_expire_date)
+    <div class="form-group" style="display: flex;">
+        <label>
+            Passport Expiration Date :
+            <span style="color: {{ \Carbon\Carbon::parse($user->passport_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
+                {{ \Carbon\Carbon::parse($user->passport_expire_date)->format('d M Y') }}
+            </span>
+        </label>
+    </div>
+@endif
 
-                                @if ($user->passport_expire_date)
-                                    <div class="form-group" style="display: flex;">
-                                        <label>
-                                            Passport Expiration Date :
-                                            <span style="color: {{ \Carbon\Carbon::parse($user->passport_expire_date)->isFuture() ? '#56ec60' : '#ff5f5f' }}">
-                                                {{ \Carbon\Carbon::parse($user->passport_expire_date)->format('d M Y') }}
-                                            </span>
-                                        </label>
-                                    </div>
-                                @endif
+<div class="form-group" style="display: flex;">
+    <label>Passport Image : </label>
+    @if ($user->PassportImage)
+        <img width="400" height="250" style="margin: 0px 10px 0px 10px; border-radius:10px;"
+            src="{{ $user->PassportImage }}"
+            onerror="this.onerror=null; this.src='{{ $imageFallback }}';"
+            class="zoomable-image">
+    @else
+        <label style="color: #ff7272">There is no passport image.</label>
+    @endif
+</div>
 
-                                <div class="form-group" style="display: flex;">
-                                    <label>Passport Image : </label>
-                                    @if ($user->PassportImage)
-                                        <img width="400" height="250"
-                                            style="margin: 0px 10px 0px 10px; border-radius:10px;"
-                                            src="{{ $user->PassportImage }}"
-                                            onerror="this.onerror=null; this.src='{{ $imageFallback }}';"
-                                            class="zoomable-image">
-                                    @else
-                                        <label style="color: #ff7272"> There is no passport.</label>
-                                    @endif
-                                </div>
-
+@else
+{{-- Neither chosen --}}
+<div class="form-group">
+    <label style="color: #ff7272">No identity document has been provided.</label>
+</div>
+@endif
+//
                                 <div class="form-group" style="display: flex;">
                                     <label>Medical Examination Image : </label>
                                     @if ($user->medicalExaminationImage)
