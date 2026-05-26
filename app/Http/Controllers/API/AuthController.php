@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\ApiController;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\SendOTP;
+use Laravel\Sanctum\PersonalAccessToken;
 use App\Models\AboutUs;
 use App\Models\Car;
 use App\Models\Careers;
@@ -992,8 +993,8 @@ class AuthController extends ApiController
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
         $user->save();
-        if ($request->device_token) {
-            $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
+            if ($request->device_token) {
+                $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
         }
         $user->token = $user->createToken('fcm::' . ($request->device_token ?? 'no-device'))->plainTextToken;
         $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
@@ -1115,15 +1116,29 @@ class AuthController extends ApiController
 
     public function logout(Request $request)
     {
-        $user         = $request->user();
+        $user = $request->user();
+
+        // Guard: if no authenticated user (deleted account / invalid token)
+        if (!$user) {
+            // Still invalidate the token at the bearer level if possible
+            $token = PersonalAccessToken::findToken($request->bearerToken());
+            if ($token) {
+                $token->delete();
+            }
+
+            return $this->sendResponse(null, 'logout successfully', 200);
+        }
+
         $currentToken = $user->currentAccessToken();
-        // Revoke the token of the current device
+
         $user->is_online = '0';
         $user->save();
-        $currentToken->delete();
 
-        return $this->sendResponse(null, 'logout successfuly', 200);
+        if ($currentToken) {
+            $currentToken->delete();
+        }
 
+        return $this->sendResponse(null, 'logout successfully', 200);
     }
 
     public function profile($id)
