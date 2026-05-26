@@ -166,8 +166,17 @@
                                 $avatarFallback = asset('dashboard/user_avatar.png');
                                 $imageFallback  = asset('dashboard/image_placeholder.png');
                             @endphp
-                            <div class="card-title">Update Driver - {{ $arr[$user->driver_type] }} Account</div>
-                            <hr>
+                           <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                            <a href="{{ url('/admin-dashboard/trips?type=' . ($user->driver_type === 'scooter' ? 'scooter' : ($user->driver_type === 'comfort_car' ? 'comfort_car' : 'car')) . '&time_filter=current&driver=' . $user->id) }}"
+                               class="btn btn-light px-4">
+                                Current Trip
+                            </a>
+                            <a href="{{ url('/admin-dashboard/trips?type=' . ($user->driver_type === 'scooter' ? 'scooter' : ($user->driver_type === 'comfort_car' ? 'comfort_car' : 'car')) . '&time_filter=past&driver=' . $user->id) }}"
+                               class="btn btn-light px-4">
+                                Trips History
+                            </a>
+                        </div>
+                        <hr>
                             <form method="post" action="{{ route('update.driver', ['id' => $user->id] + $queryString) }}"
                                 enctype="multipart/form-data">
                                 @csrf
