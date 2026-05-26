@@ -122,7 +122,16 @@
                                     action="{{ route('drivers') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 55%;">Drivers - {{ $count }}</h5>
+                                        <h5 class="card-title" style="width: 55%;">
+                                            @if($type == 'comfort_cars')
+                                                Comfort Drivers
+                                            @elseif($type == 'scooters')
+                                                Scooters
+                                            @else
+                                                Drivers
+                                            @endif
+                                            - {{ $count }}
+                                        </h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
                                             <a class="btn btn-light px-3" type="button"
                                                 href="{{ url('/admin-dashboard/archived-drivers?type=' . $type) }}"
