@@ -134,11 +134,11 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Driver : <a
+                                    <label style="font-size: 1.4rem;">Driver :
                                             href="{{ url('/admin-dashboard/driver/edit/' . $scooter->owner->id) }}">{{ ucwords($scooter->owner->name) }}</a></label>
                                 </div>
                                 <div class="form-group">
-                                    <label>Scooter Plate : {{ $scooter->scooter_plate }}</label>
+                                    <label style="font-size: 1.4rem;">Scooter Plate : {{ $scooter->scooter_plate }}</label>
                                 </div>
                                 <div class="form-group">
                                     <label>Scooter Color : {{ $scooter->color }}</label>
@@ -218,7 +218,7 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es"></script>
-    
+
     <script>
         var map, marker, previousLocation;
 
