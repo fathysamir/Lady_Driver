@@ -34,7 +34,7 @@ class CustomLogoServiceProvider extends ServiceProvider
         $this->app->bind('new_drivers_count', function () {
             $new_drivers_count = User::where('seen', '0')
                 ->where('mode', 'driver')
-                ->where('created_at', '>=', now()->subDays(15))
+                ->where('created_at', '>', now()->subDays(15)->startOfDay())
                 ->count();
             return $new_drivers_count;
         });
