@@ -448,7 +448,7 @@
 </div>
 
 @elseif ($user->passport_id || $user->PassportImage)
-{{-- Show Passport section --}}
+{{-- Show Passport sections--}}
 <div class="form-group">
     <label>Passport ID</label>
     <input type="text" class="form-control" name="passport_id"
