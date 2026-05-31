@@ -16,57 +16,65 @@ use Image;
 class DriverController extends Controller
 {
     public function index(Request $request)
-    {
-        $all_users = User::where('mode', 'driver')->where('is_verified', '1');
+{
+    $all_users = User::where('mode', 'driver')->where('is_verified', '1');
 
-        if ($request->type == 'cars') {
-            $all_users->where('driver_type', 'car');
-        } elseif ($request->type == 'comfort_cars') {
-            $all_users->where('driver_type', 'comfort_car');
-        } elseif ($request->type == 'scooters') {
-            $all_users->where('driver_type', 'scooter');
-        }
+    // Alexandria (city_id = 3)
+    if (auth()->user()->hasRole('Supervisor')) {
+        $all_users->where('city_id', 3);
+    }
 
-        $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+    if ($request->type == 'cars') {
+        $all_users->where('driver_type', 'car');
+    } elseif ($request->type == 'comfort_cars') {
+        $all_users->where('driver_type', 'comfort_car');
+    } elseif ($request->type == 'scooters') {
+        $all_users->where('driver_type', 'scooter');
+    }
 
-        if ($request->has('search') && $request->search != null) {
-            $all_users->where(function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
-            });
-        }
+    $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
-        if ($request->has('status') && $request->status != null) {
-            $all_users->where('status', $request->status);
-        }
+    if ($request->has('search') && $request->search != null) {
+        $all_users->where(function ($query) use ($request) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%')
+                ->orWhere('email', 'LIKE', '%' . $request->search . '%')
+                ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                ->orWhere('id', 'LIKE', '%' . $request->search . '%');
+        });
+    }
 
+    if ($request->has('status') && $request->status != null) {
+        $all_users->where('status', $request->status);
+    }
+
+    // Supervisor cannot change city filter — always locked to Alexandria
+    if (!auth()->user()->hasRole('Supervisor')) {
         if ($request->has('city') && $request->city != null) {
             $all_users->where('city_id', $request->city);
         }
-
-        if ($request->filled('online') && $request->online !== null) {
-            $all_users->where('is_online', $request->online);
-        }
-
-        $count     = $all_users->count();
-        $all_users = $all_users->paginate(25);
-
-        $all_users->getCollection()->transform(function ($user) {
-            $user->image = getFirstMediaUrl($user, $user->avatarCollection);
-            return $user;
-        });
-
-        $cities = City::all();
-        $search = $request->search;
-        $status = $request->status;
-        $city   = $request->city;
-        $online = $request->online;
-        $type   = $request->type;
-
-        return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type'));
     }
+
+    if ($request->filled('online') && $request->online !== null) {
+        $all_users->where('is_online', $request->online);
+    }
+
+    $count     = $all_users->count();
+    $all_users = $all_users->paginate(25);
+
+    $all_users->getCollection()->transform(function ($user) {
+        $user->image = getFirstMediaUrl($user, $user->avatarCollection);
+        return $user;
+    });
+
+    $cities = City::all();
+    $search = $request->search;
+    $status = $request->status;
+    $city   = auth()->user()->hasRole('Supervisor') ? 3 : $request->city;
+    $online = $request->online;
+    $type   = $request->type;
+
+    return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type'));
+}
 
     public function index_archives(Request $request)
     {
@@ -213,114 +221,100 @@ class DriverController extends Controller
     }
 
     public function exportCsv(Request $request)
-    {
-        // FIX: Removed the default 'cars' fallback so it exports ALL drivers if type is empty
-        $type     = $request->query('type');
-        $search   = $request->query('search');
-        $status   = $request->query('status');
-        $city     = $request->query('city');
-        $online   = $request->query('online');
-        $scope    = $request->query('export_scope', 'all');
-        $page     = $request->query('page', 1);
-        $perPage  = 25;
-        $dateFrom = $request->query('date_from');
-        $dateTo   = $request->query('date_to');
+{
+    $type     = $request->query('type');
+    $search   = $request->query('search');
+    $status   = $request->query('status');
+    $city     = $request->query('city');
+    $online   = $request->query('online');
+    $scope    = $request->query('export_scope', 'all');
+    $page     = $request->query('page', 1);
+    $perPage  = 25;
+    $dateFrom = $request->query('date_from');
+    $dateTo   = $request->query('date_to');
 
-        // Only verified drivers
-        $query = User::where('mode', 'driver')->where('is_verified', '1');
+    $query = User::where('mode', 'driver')->where('is_verified', '1');
 
-        // Apply vehicle type filter ONLY if a specific type was requested
-        if ($type === 'cars') {
-            $query->where('driver_type', 'car');
-        } elseif ($type === 'comfort_cars') {
-            $query->where('driver_type', 'comfort_car');
-        } elseif ($type === 'scooters') {
-            $query->where('driver_type', 'scooter');
-        }
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhere('phone', 'LIKE', "%{$search}%")
-                  ->orWhere('id', $search);
-            });
-        }
-
-        if (!empty($status)) {
-            $query->where('status', $status);
-        }
-
-        if (!empty($city)) {
-            $query->where('city_id', $city);
-        }
-
-        if ($online !== null && $online !== '') {
-            $query->where('is_online', $online);
-        }
-
-        $query->orderBy('created_at', 'desc');
-
-        if ($scope === 'page') {
-
-            $users = $query->forPage($page, $perPage)->get();
-
-        } elseif ($scope === 'date_range') {
-
-            if (empty($dateFrom) || empty($dateTo)) {
-                return redirect()->back()->with('error', 'Please provide both a start and end date for the date range export.');
-            }
-
-            $from = \Carbon\Carbon::parse($dateFrom)->startOfDay();
-            $to   = \Carbon\Carbon::parse($dateTo)->endOfDay();
-
-            if ($from->gt($to)) {
-                return redirect()->back()->with('error', '"From" date must be before or equal to "To" date.');
-            }
-
-            $users = $query->whereBetween('created_at', [$from, $to])->get();
-
-        } else {
-
-            $users = $query->get();
-
-        }
-
-        $typeLabel = $type ? $type : 'all';
-        $datePart  = $scope === 'date_range'
-            ? "_{$dateFrom}_to_{$dateTo}"
-            : ($scope === 'page' ? "_page{$page}" : '');
-
-        $filename = "drivers_{$typeLabel}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
-
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($users) {
-            $file = fopen('php://output', 'w');
-
-            // UTF-8 BOM — makes Excel open Arabic correctly
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Online', 'Join Date']);
-
-            $counter = 1;
-            foreach ($users as $user) {
-                fputcsv($file, [
-                    $counter++,
-                    $user->name,
-                    $user->email,
-                    "\t" . $user->country_code . $user->phone,
-                    $user->status,
-                    $user->is_online ? 'Online' : 'Offline',
-                    $user->created_at->format('d.M.Y h:i a'),
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+    // Supervisor: force Alexandria only
+    if (auth()->user()->hasRole('Supervisor')) {
+        $query->where('city_id', 3);
     }
+
+    if ($type === 'cars') {
+        $query->where('driver_type', 'car');
+    } elseif ($type === 'comfort_cars') {
+        $query->where('driver_type', 'comfort_car');
+    } elseif ($type === 'scooters') {
+        $query->where('driver_type', 'scooter');
+    }
+
+    if (!empty($search)) {
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('email', 'LIKE', "%{$search}%")
+              ->orWhere('phone', 'LIKE', "%{$search}%")
+              ->orWhere('id', $search);
+        });
+    }
+
+    if (!empty($status)) $query->where('status', $status);
+
+    // Supervisor city filter is already forced above, skip request city
+    if (!auth()->user()->hasRole('Supervisor') && !empty($city)) {
+        $query->where('city_id', $city);
+    }
+
+    if ($online !== null && $online !== '') $query->where('is_online', $online);
+
+    $query->orderBy('created_at', 'desc');
+
+    if ($scope === 'page') {
+        $users = $query->forPage($page, $perPage)->get();
+    } elseif ($scope === 'date_range') {
+        if (empty($dateFrom) || empty($dateTo)) {
+            return redirect()->back()->with('error', 'Please provide both a start and end date.');
+        }
+        $from = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+        $to   = \Carbon\Carbon::parse($dateTo)->endOfDay();
+        if ($from->gt($to)) {
+            return redirect()->back()->with('error', '"From" date must be before or equal to "To" date.');
+        }
+        $users = $query->whereBetween('created_at', [$from, $to])->get();
+    } else {
+        $users = $query->get();
+    }
+
+    $typeLabel = $type ? $type : 'all';
+    $datePart  = $scope === 'date_range'
+        ? "_{$dateFrom}_to_{$dateTo}"
+        : ($scope === 'page' ? "_page{$page}" : '');
+
+    $filename = "drivers_{$typeLabel}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
+
+    $headers = [
+        'Content-Type'        => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+    ];
+
+    $callback = function () use ($users) {
+        $file = fopen('php://output', 'w');
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        fputcsv($file, ['#', 'Name', 'Email', 'Phone', 'Status', 'Online', 'Join Date']);
+        $counter = 1;
+        foreach ($users as $user) {
+            fputcsv($file, [
+                $counter++,
+                $user->name,
+                $user->email,
+                "\t" . $user->country_code . $user->phone,
+                $user->status,
+                $user->is_online ? 'Online' : 'Offline',
+                $user->created_at->format('d.M.Y h:i a'),
+            ]);
+        }
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }
