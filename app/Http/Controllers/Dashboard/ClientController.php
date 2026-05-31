@@ -181,7 +181,6 @@ class ClientController extends Controller
 
         return redirect('/admin-dashboard/archived-clients');
     }
-
     public function exportCsv(Request $request)
     {
         $type     = $request->query('type');
@@ -193,6 +192,15 @@ class ClientController extends Controller
         $perPage  = 25;
         $dateFrom = $request->query('date_from');
         $dateTo   = $request->query('date_to');
+
+        $isSupervisor = auth()->user()->hasRole('Supervisor');
+
+        // Supervisor: force last 2 months only, ignore whatever the request sends
+        if ($isSupervisor) {
+            $scope    = 'date_range';
+            $dateFrom = \Carbon\Carbon::now()->subMonths(2)->startOfDay()->toDateString();
+            $dateTo   = \Carbon\Carbon::now()->toDateString();
+        }
 
         $query = User::where('mode', 'client')->where('is_verified', '1');
 
@@ -218,18 +226,25 @@ class ClientController extends Controller
 
         if ($scope === 'page') {
 
+            // Supervisor can never reach here (scope is forced above)
             $users = $query->forPage($page, $perPage)->get();
 
         } elseif ($scope === 'date_range') {
 
-            // Validate that both dates are provided and well-formed
             if (empty($dateFrom) || empty($dateTo)) {
                 return redirect()->back()->with('error', 'Please provide both a start and end date for the date range export.');
             }
 
-            // Parse and clamp: date_to covers the full end day (up to 23:59:59)
             $from = \Carbon\Carbon::parse($dateFrom)->startOfDay();
             $to   = \Carbon\Carbon::parse($dateTo)->endOfDay();
+
+            // Extra safety: if supervisor somehow sends an earlier date, clamp it
+            if ($isSupervisor) {
+                $limit = \Carbon\Carbon::now()->subMonths(2)->startOfDay();
+                if ($from->lt($limit)) {
+                    $from = $limit;
+                }
+            }
 
             if ($from->gt($to)) {
                 return redirect()->back()->with('error', '"From" date must be before or equal to "To" date.');
@@ -239,11 +254,11 @@ class ClientController extends Controller
 
         } else {
 
+            // 'all' scope — supervisors never reach here
             $users = $query->get();
 
         }
 
-        // Build a descriptive filename
         $label    = $type === 'students' ? 'students' : 'clients';
         $datePart = $scope === 'date_range'
             ? "_{$dateFrom}_to_{$dateTo}"
