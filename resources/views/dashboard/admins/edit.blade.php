@@ -222,7 +222,8 @@
                                 <div class="form-group">
                                     <label>Role</label>
                                     <select id="role_id" name="role" class="form-control"
-                                        {{ $admin->hasRole('Super Admin') ? 'disabled' : '' }}>
+                                    {{ $admin->role === 'Super Admin' ? 'disabled' : '' }}
+                                    >
                                         <option value="" disabled selected>Please Select Role</option>
                                         @foreach ($roles as $role)
                                             <option value="{{ $role->id }}"
@@ -231,7 +232,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    @if($admin->hasRole('Super Admin'))
+                                    @if($admin->role === 'Super Admin')
                                         {{-- keep the value submitted even though select is disabled --}}
                                         <input type="hidden" name="role" value="{{ $roles->firstWhere('name', $admin->role)->id ?? '' }}">
                                     @endif
@@ -243,7 +244,7 @@
                                 {{-- Permissions --}}
                                 <div class="form-group mb-3">
                                     <label>Assign Permissions</label>
-                                    @if($admin->hasRole('Super Admin'))
+                                    @if($admin->role === 'Super Admin')
                                         <div class="alert alert-info" style="font-size:14px; margin-top:6px;">
                                             Super Admin has all permissions and they cannot be modified.
                                         </div>
@@ -340,7 +341,7 @@
                 isFormDirty = false;
             });
 
-            @unless($admin->hasRole('Super Admin'))
+            @unless($admin->role === 'Super Admin')
             document.getElementById("role_id").addEventListener("change", function() {
                 const roleId = this.value;
                 fetch(`/admin-dashboard/roles/${roleId}/permissions`)
