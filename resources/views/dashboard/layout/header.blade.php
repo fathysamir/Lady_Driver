@@ -14,37 +14,12 @@
             </li>
         </ul>
 
-        <ul class="navbar-nav align-items-center right-nav-link">
-            <li class="nav-item">
-                <a class="nav-link" onclick="goBack()" role="button" title="Back">
-                    <i class="fa fa-arrow-left"></i>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="goNext()" role="button" title="Next">
-                    <i class="fa fa-arrow-right"></i>
-                </a>
-            </li>
+        {{-- SCRUM-359: Bell icon now navigates to notifications page --}}
 
-            {{-- SCRUM-360: Envelope icon now navigates to contact us / inbox page --}}
-            <li class="nav-item">
-                <a class="nav-link waves-effect" href="{{ url('/admin-dashboard/contact_us') }}" title="Inbox">
-                    <i class="fa fa-envelope-open-o"></i>
-                </a>
-            </li>
+        {{-- SCRUM-325: Language switcher now functional --}}
 
-            {{-- SCRUM-359: Bell icon now navigates to notifications page --}}
-            <li class="nav-item">
-                <a class="nav-link waves-effect" href="{{ url('/admin-dashboard/contact_us') }}" title="Notifications">
-                    <i class="fa fa-bell-o"></i>
-                </a>
-            </li>
-
-            {{-- SCRUM-325: Language switcher now functional --}}
-
-
-
-            {{-- Profile dropdown --}}
+        {{-- Profile dropdown --}}
+        <ul class="navbar-nav ml-auto align-items-center">
             <li class="nav-item">
                 <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-toggle="dropdown" href="#">
                     <span class="user-profile">
@@ -82,7 +57,7 @@
                     {{-- SCRUM-363: Inbox now navigates to emails/contact us page --}}
                     <li class="dropdown-item">
                         <a href="{{ url('/admin-dashboard/contact_us') }}">
-                            <i class="icon-envelope mr-2"></i> Inbox
+                            <i class="icon-envelope mr-2"></i> Contact Us
                         </a>
                     </li>
                     <li class="dropdown-divider"></li>
@@ -111,6 +86,7 @@
                 </ul>
             </li>
         </ul>
+
     </nav>
 </header>
 
