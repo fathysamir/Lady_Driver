@@ -65,7 +65,7 @@
                     {{-- SCRUM-366: Account now navigates to admin edit page (not client page) --}}
                     <li class="dropdown-item">
                         <a href="{{ url('/admin-dashboard/admin/edit/' . auth()->user()->id) }}">
-                            <i class="icon-wallet mr-2"></i> Account
+                            <i class="bi bi-person"></i> Account
                         </a>
                     </li>
                     <li class="dropdown-divider"></li>
