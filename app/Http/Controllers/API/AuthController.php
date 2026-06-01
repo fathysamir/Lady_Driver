@@ -1028,7 +1028,6 @@ class AuthController extends ApiController
 
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
-        $user->last_seen_at = now();
         $user->save();
             if ($request->device_token) {
                 $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
@@ -1041,7 +1040,7 @@ class AuthController extends ApiController
 
         return $this->sendResponse($user, null, 200);
     }
-
+/*
     public function heartbeat(Request $request)
 {
     $user = auth()->user();
@@ -1055,6 +1054,7 @@ class AuthController extends ApiController
 
     return $this->sendResponse(null, 'ok', 200);
 }
+    */
     public function device_tocken(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -1103,7 +1103,8 @@ class AuthController extends ApiController
         }
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
-        $user->last_seen_at = now();
+       // $user->last_seen_at = now();
+
         if ($user->is_verified == '0') {
             $user->is_verified = '1';
             if ($user->mode == 'client') {
@@ -1177,7 +1178,8 @@ class AuthController extends ApiController
             $user = $token->tokenable; // get user from token
             if ($user) {
                 $user->is_online = '0';
-                $user->last_seen_at = now();
+              //  $user->last_seen_at = now();
+
                 $user->save();
             }
             $token->delete(); // delete token from DB
