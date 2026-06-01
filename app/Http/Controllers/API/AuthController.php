@@ -273,8 +273,26 @@ class AuthController extends ApiController
         ]);
         // dd($request->all());
         if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
+            $errors = $validator->errors();
+
+            if ($errors->has('email') && $errors->has('phone')) {
+                // both wrong — show email first, then phone separately
+                return $this->sendError(null, [
+                    'email' => $errors->first('email'),
+                    'phone' => $errors->first('phone'),
+                ], 400);
+            }
+
+            if ($errors->has('email')) {
+                return $this->sendError(null, $errors->first('email'), 400);
+            }
+
+            if ($errors->has('phone')) {
+                return $this->sendError(null, $errors->first('phone'), 400);
+            }
+
+            // any other field error
+            return $this->sendError(null, $errors->first(), 400);
         }
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
@@ -508,8 +526,26 @@ class AuthController extends ApiController
         ]);
         // dd($request->all());
         if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
+            $errors = $validator->errors();
+
+            if ($errors->has('email') && $errors->has('phone')) {
+                // both wrong — show email first, then phone separately
+                return $this->sendError(null, [
+                    'email' => $errors->first('email'),
+                    'phone' => $errors->first('phone'),
+                ], 400);
+            }
+
+            if ($errors->has('email')) {
+                return $this->sendError(null, $errors->first('email'), 400);
+            }
+
+            if ($errors->has('phone')) {
+                return $this->sendError(null, $errors->first('phone'), 400);
+            }
+
+            // any other field error
+            return $this->sendError(null, $errors->first(), 400);
         }
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
@@ -992,6 +1028,7 @@ class AuthController extends ApiController
 
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
+        $user->last_seen_at = now();
         $user->save();
             if ($request->device_token) {
                 $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
@@ -1005,6 +1042,19 @@ class AuthController extends ApiController
         return $this->sendResponse($user, null, 200);
     }
 
+    public function heartbeat(Request $request)
+{
+    $user = auth()->user();
+    if (!$user) {
+        return $this->sendError(null, 'Unauthenticated', 401);
+    }
+
+    $user->is_online    = '1';
+    $user->last_seen_at = now();
+    $user->save();
+
+    return $this->sendResponse(null, 'ok', 200);
+}
     public function device_tocken(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -1053,6 +1103,7 @@ class AuthController extends ApiController
         }
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
+        $user->last_seen_at = now();
         if ($user->is_verified == '0') {
             $user->is_verified = '1';
             if ($user->mode == 'client') {
@@ -1126,6 +1177,7 @@ class AuthController extends ApiController
             $user = $token->tokenable; // get user from token
             if ($user) {
                 $user->is_online = '0';
+                $user->last_seen_at = now();
                 $user->save();
             }
             $token->delete(); // delete token from DB
