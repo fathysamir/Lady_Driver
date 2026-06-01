@@ -70,7 +70,7 @@ class AdminController extends Controller
             'country_code'    => 'required',
            'phone' => [
     'required',
-    'digits_between:7,15',
+    'digits:11',
     Rule::unique('users')->where(function ($query) use ($request) {
         return $query->where('country_code', $request->country_code)
             ->whereNull('deleted_at');
@@ -152,7 +152,7 @@ class AdminController extends Controller
 
             'phone' => [
     'required',
-    'digits_between:7,15',
+    'digits:11',
     Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
         return $query->where('country_code', $request->country_code)
             ->whereNull('deleted_at');
