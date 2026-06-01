@@ -1777,8 +1777,131 @@ public function mark_messages_seen(Request $request)
         }
 
         try {
-            // ✅ Never go below the already saved price in DB
-            $newPrice = max(floatval($trip->total_price), floatval($request->price));
+            // ── Resolve category & key prefix from trip type ──
+            $type = $trip->type; // 'car', 'comfort_car', 'scooter'
+            $categoryMap = [
+                'car'         => 'Car Trips',
+                'comfort_car' => 'Comfort Trips',
+                'scooter'     => 'Scooter Trips',
+            ];
+            $category  = $categoryMap[$type];
+            $keyPrefix = $type === 'comfort_car' ? 'comfort' : $type;
+
+            // ── Load settings ──
+            $km_short    = floatval(Setting::where('key', "kilometer_price_{$keyPrefix}_short_trip")->where('category', $category)->first()->value);
+            $km_medium   = floatval(Setting::where('key', "kilometer_price_{$keyPrefix}_medium_trip")->where('category', $category)->first()->value);
+            $km_long     = floatval(Setting::where('key', "kilometer_price_{$keyPrefix}_long_trip")->where('category', $category)->first()->value);
+            $max_short   = floatval(Setting::where('key', "maximum_distance_{$keyPrefix}_short_trip")->where('category', $category)->first()->value);
+            $max_medium  = floatval(Setting::where('key', "maximum_distance_{$keyPrefix}_medium_trip")->where('category', $category)->first()->value);
+            $max_long    = floatval(Setting::where('key', "maximum_distance_{$keyPrefix}_long_trip")->where('category', $category)->first()->value);
+            $peak_rate   = floatval(Setting::where('key', "increase_rate_peak_time_{$keyPrefix}_trip")->where('category', $category)->first()->value);
+            $less_cost   = floatval(Setting::where('key', "less_cost_for_{$keyPrefix}_trip")->where('category', $category)->first()->value);
+            $student_discount_rate = floatval(Setting::where('key', 'student_discount')->where('category', $category)->first()->value);
+            $ac_rate     = $type === 'car'
+                ? floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', $category)->first()->value)
+                : 0;
+
+            // ── Calculate distance from trip's stored destinations ──
+            $destinations = $trip->finalDestination()->orderBy('id')->get();
+            $calc_distance = 0;
+            $calc_duration = 0;
+            $prevLat = $trip->start_lat;
+            $prevLng = $trip->start_lng;
+            $routeType = $type === 'scooter' ? 'scooter' : 'car';
+
+            foreach ($destinations as $dest) {
+                $r = calculate_distance($prevLat, $prevLng, $dest->lat, $dest->lng, $routeType);
+                $calc_distance += $r['distance_in_km'];
+                $calc_duration += $r['duration_in_M'];
+                $prevLat = $dest->lat;
+                $prevLng = $dest->lng;
+            }
+
+            if ($type === 'scooter') {
+                $calc_duration = intval($calc_duration * 0.8);
+            }
+
+            // ── Peak time ──
+            $start_date = $trip->start_date ?? now()->toDateString();
+            $start_time = $trip->start_time ?? now()->format('H:i');
+            $day        = date('l', strtotime($start_date));
+            $peakJson   = Setting::where('key', 'peak_times')->where('category', 'Trips')->first()->value;
+            $peakTimes  = json_decode($peakJson, true);
+            $isPeak     = false;
+
+            if (isset($peakTimes[$day])) {
+                foreach ($peakTimes[$day] as $period) {
+                    if ($start_time >= $period['from'] && $start_time <= $period['to']) {
+                        $isPeak = true;
+                        break;
+                    }
+                }
+            }
+
+            // ── Base price calculation ──
+            $base_price = 0;
+
+            if ($calc_distance >= $max_short) {
+                $base_price += $km_short * $max_short;
+            } else {
+                $base_price += $km_short * $calc_distance;
+            }
+
+            if ($calc_distance >= $max_medium) {
+                $base_price += $km_medium * ($max_medium - $max_short);
+            } elseif ($calc_distance > $max_short) {
+                $base_price += $km_medium * ($calc_distance - $max_short);
+            }
+
+            if ($calc_distance >= $max_long) {
+                $base_price += $km_long * ($max_long - $max_medium);
+            } elseif ($calc_distance > $max_medium) {
+                $base_price += $km_long * ($calc_distance - $max_medium);
+            }
+
+            // ── AC extra ──
+            if ($type === 'car' && $trip->air_conditioned && $ac_rate > 0) {
+                $base_price += round($base_price * ($ac_rate / 100), 2);
+            }
+
+            // ── Peak extra ──
+            if ($isPeak && $peak_rate > 0) {
+                $base_price += round($base_price * ($peak_rate / 100), 2);
+            }
+
+            $server_total = ceil($base_price);
+
+            if ($server_total < $less_cost) {
+                $server_total = $less_cost;
+            }
+
+            // ── Student discount ──
+            $calc_discount = 0;
+            $student = \App\Models\Student::where('user_id', auth()->id())
+                ->where('status', 'confirmed')
+                ->where('student_discount_service', '1')
+                ->first();
+
+            if ($student) {
+                $student_trips_today = Trip::where('user_id', auth()->id())
+                    ->where('student_trip', '1')
+                    ->where('status', 'completed')
+                    ->where('start_date', $start_date)
+                    ->count();
+
+                if ($student_trips_today < 3) {
+                    $calc_discount = round($server_total * ($student_discount_rate / 100), 2);
+                }
+            }
+
+            $price_after_discount = $server_total - $calc_discount;
+            if ($price_after_discount < $less_cost) {
+                $price_after_discount = $less_cost;
+                $calc_discount = $server_total - $less_cost;
+            }
+
+            // ── Never go below the server-calculated price ──
+            $newPrice = max($price_after_discount, floatval($request->price));
 
             if (floatval($trip->total_price) != $newPrice) {
                 DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
@@ -1786,6 +1909,7 @@ public function mark_messages_seen(Request $request)
                 $trip->save();
             }
 
+            // ── Same response shape as before ──
             return $this->sendResponse([
                 'trip_id'     => $trip->id,
                 'total_price' => floatval($trip->total_price),
@@ -1795,7 +1919,6 @@ public function mark_messages_seen(Request $request)
             return $this->sendError(null, 'Failed to update trip price.', 500);
         }
     }
-
     public function get_rate_trip_setting(Request $request)
     {
         $validator = Validator::make($request->all(), [
