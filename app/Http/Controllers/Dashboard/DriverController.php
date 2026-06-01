@@ -317,4 +317,17 @@ class DriverController extends Controller
 
     return response()->stream($callback, 200, $headers);
 }
+public function bulkDestroy(Request $request)
+{
+    $request->validate([
+        'ids'   => 'required|array',
+        'ids.*' => 'integer|exists:users,id',
+    ]);
+
+    User::whereIn('id', $request->ids)->delete();
+
+    return redirect()
+        ->route('drivers', ['type' => $request->type])
+        ->with('success', count($request->ids) . ' driver(s) deleted successfully.');
+}
 }
