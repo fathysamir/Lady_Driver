@@ -296,4 +296,13 @@ class ClientController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+    public function bulkDestroy(Request $request)
+{
+    $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|exists:users,id']);
+
+    User::whereIn('id', $request->ids)->delete(); // soft-delete if you use SoftDeletes
+
+    return redirect()->route('clients', ['type' => $request->type])
+                     ->with('success', count($request->ids) . ' client(s) deleted.');
+}
 }
