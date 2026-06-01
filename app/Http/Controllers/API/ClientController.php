@@ -1768,31 +1768,31 @@ public function mark_messages_seen(Request $request)
             ->where('user_id', auth()->id())
             ->first();
 
-        if (! $trip) {
-
+        if (!$trip) {
             return $this->sendError(null, 'Trip not found or not authorized.', 403);
-
         }
 
-        if (! in_array($trip->status, ['created', 'scheduled'])) {
-
+        if (!in_array($trip->status, ['created', 'scheduled'])) {
             return $this->sendError(null, 'Trip cannot be updated. Invalid status.', 422);
-
         }
+
         try {
             if ($trip->total_price != $request->price) {
                 DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
                 $trip->total_price = $request->price;
                 $trip->save();
-
             }
 
-            return $this->sendResponse(null, 'Trip price updated successfully.', 200);
+            // ✅ Always return the current saved price from DB
+            $trip->refresh();
+
+            return $this->sendResponse([
+                'trip_id'     => $trip->id,
+                'total_price' => floatval($trip->total_price), // ← always the last saved price
+            ], 'Trip price updated successfully.', 200);
 
         } catch (\Exception $e) {
-
             return $this->sendError(null, 'Failed to update trip price.', 500);
-
         }
     }
 
