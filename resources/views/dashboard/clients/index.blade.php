@@ -2,25 +2,21 @@
 @section('title', 'Dashboard - ' . (request()->query('type') === 'students' ? 'Students' : 'Clients'))
 @section('content')
 <style>
-    .pagination {
-        display: inline-flex;
-    }
+    .pagination { display: inline-flex; }
 
     .user-status {
         position: absolute;
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 10px; height: 10px;
         border-radius: 50%;
         margin-left: -25%;
         margin-bottom: 8%;
     }
-
     .online  { background-color: green; }
     .offline { background-color: gray; }
 
-    .user-profile  { position: relative; }
-    .user-avatar   { width: 40px; height: 40px; cursor: pointer; position: relative; }
+    .user-profile { position: relative; }
+    .user-avatar  { width: 40px; height: 40px; cursor: pointer; position: relative; }
 
     .avatar-preview {
         display: none;
@@ -61,7 +57,7 @@
     .export-dropdown-menu a:hover { background-color: #f0f0f0 !important; color: #212529; text-decoration: none; }
     .export-dropdown:hover .export-dropdown-menu { display: block; }
 
-    /* ── Bulk-action bar ── */
+    /* Bulk-action bar */
     #bulkActionBar {
         display: none;
         align-items: center;
@@ -77,29 +73,20 @@
     #bulkActionBar.visible { display: flex; }
     #bulkDeleteBtn {
         padding: 6px 16px;
-        background: #f44336;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
+        background: #f44336; color: #fff;
+        border: none; border-radius: 6px;
+        cursor: pointer; font-size: 14px;
     }
     #bulkDeleteBtn:hover { background: #d32f2f; }
     #deselectAllBtn {
         padding: 6px 16px;
-        background: #6c757d;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
+        background: #6c757d; color: #fff;
+        border: none; border-radius: 6px;
+        cursor: pointer; font-size: 14px;
     }
     #deselectAllBtn:hover { background: #5a6268; }
 
-    /* row highlight when checked */
     tr.row-selected { background-color: rgba(244, 67, 54, 0.07) !important; }
-
-    /* keep checkbox column narrow */
     th.col-check, td.col-check { width: 40px; text-align: center; }
 </style>
 
@@ -115,14 +102,11 @@
                                     action="{{ route('clients') }}" enctype="multipart/form-data">
                                     @csrf
                                     <div style="display:flex;">
-
                                         <h5 class="card-title" style="width: 55%;">
                                             {{ request()->query('type') === 'students' ? 'Students' : 'Clients' }} -
                                             {{ $count }}
                                         </h5>
-
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-
                                             <a class="btn btn-light px-3" type="button"
                                                 href="{{ route('archived_clients', ['type' => $type]) }}"
                                                 style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
@@ -161,10 +145,10 @@
                                         <div style="display: flex;justify-content: center;">
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending"   {{ request('status') == 'pending'    ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed" {{ request('status') == 'confirmed'  ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned"    {{ request('status') == 'banned'     ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked"   {{ request('status') == 'blocked'    ? 'selected' : '' }}>Blocked</option>
+                                                <option value="pending"   {{ request('status') == 'pending'   ? 'selected' : '' }}>Pending</option>
+                                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                                <option value="banned"    {{ request('status') == 'banned'    ? 'selected' : '' }}>Banned</option>
+                                                <option value="blocked"   {{ request('status') == 'blocked'   ? 'selected' : '' }}>Blocked</option>
                                             </select>
                                         </div>
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
@@ -172,7 +156,7 @@
                                 </form>
                             </div>
 
-                            {{-- ── Bulk-action bar ── --}}
+                            {{-- Bulk-action bar --}}
                             <div id="bulkActionBar">
                                 <span id="selectedCount">0</span> client(s) selected
                                 <button id="bulkDeleteBtn" onclick="showBulkConfirmationPopup()">
@@ -290,8 +274,7 @@
     </div>
 
     {{-- Single Delete Confirmation Modal --}}
-    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog"
-        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -313,11 +296,11 @@
                     </div>
                     <button onclick="hideConfirmationPopup()"
                         style="background-color:#5f6360;color:white;padding:10px 20px;border:none;cursor:pointer;width:48%;border-radius:10px;">
-                        <span class="bi bi-x" style="font-size:1rem;color:rgb(255,255,255);"></span> Cancel
+                        <span class="bi bi-x"></span> Cancel
                     </button>
                     <button onclick="deleteUser()"
                         style="background-color:#f44336;color:white;padding:10px 20px;border:none;cursor:pointer;margin-right:10px;width:48%;border-radius:10px;">
-                        <span class="bi bi-trash" style="font-size:1rem;color:rgb(255,255,255);"></span> Delete
+                        <span class="bi bi-trash"></span> Delete
                     </button>
                 </div>
             </div>
@@ -414,198 +397,228 @@
 @endsection
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        // ── Single-row delete ──────────────────────────────────────
-        function showConfirmationPopup(deleteUrl, name, imgSrc) {
-            document.getElementById('deletedNameInput').textContent = name;
-            document.getElementById('deletedUserAvatar').src = imgSrc;
-            const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
-            myModal.show();
-            document.getElementById('confirmationPopup').setAttribute('data-delete-url', deleteUrl);
-        }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // ── Single-row delete ──────────────────────────────────────────────────────
+    function showConfirmationPopup(deleteUrl, name, imgSrc) {
+        document.getElementById('deletedNameInput').textContent = name;
+        document.getElementById('deletedUserAvatar').src = imgSrc;
+        const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
+        myModal.show();
+        document.getElementById('confirmationPopup').setAttribute('data-delete-url', deleteUrl);
+    }
 
-        function hideConfirmationPopup() {
-            var modal = document.getElementById('confirmationPopup');
-            modal.classList.remove('show');
-            modal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            var backdrop = document.getElementsByClassName('modal-backdrop')[0];
-            if (backdrop) backdrop.remove();
-        }
+    function hideConfirmationPopup() {
+        var modal = document.getElementById('confirmationPopup');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        var backdrop = document.getElementsByClassName('modal-backdrop')[0];
+        if (backdrop) backdrop.remove();
+    }
 
-        function deleteUser() {
-            const deleteUrl = document.getElementById('confirmationPopup').getAttribute('data-delete-url');
-            window.location.href = deleteUrl;
-        }
+    function deleteUser() {
+        const deleteUrl = document.getElementById('confirmationPopup').getAttribute('data-delete-url');
+        window.location.href = deleteUrl;
+    }
 
-        // ── Bulk-select logic ──────────────────────────────────────
-        function getSelectedIds() {
-            return Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
-        }
+    // ── Bulk-select (persists across pages via localStorage) ───────────────────
+    const STORAGE_KEY = 'bulk_selected_ids_{{ $type }}';
 
-        function updateBulkBar() {
-            const ids    = getSelectedIds();
-            const bar    = document.getElementById('bulkActionBar');
-            const countEl = document.getElementById('selectedCount');
-            countEl.textContent = ids.length;
-            if (ids.length > 0) {
-                bar.classList.add('visible');
-            } else {
-                bar.classList.remove('visible');
-            }
-            // sync "select all" checkbox state
-            const allBoxes = document.querySelectorAll('.row-checkbox');
-            const selectAll = document.getElementById('selectAllCheckbox');
-            selectAll.indeterminate = ids.length > 0 && ids.length < allBoxes.length;
-            selectAll.checked = ids.length > 0 && ids.length === allBoxes.length;
-        }
+    function getSavedIds() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e) { return []; }
+    }
 
-        function onRowCheckChange(checkbox) {
-            const row = document.getElementById('row-' + checkbox.value);
-            if (checkbox.checked) {
+    function saveIds(ids) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    }
+
+    function getSelectedIds() {
+        return getSavedIds();
+    }
+
+    function onRowCheckChange(checkbox) {
+        let ids = getSavedIds();
+        const id  = checkbox.value;
+        const row = document.getElementById('row-' + id);
+        if (checkbox.checked) {
+            if (!ids.includes(id)) ids.push(id);
+            row.classList.add('row-selected');
+        } else {
+            ids = ids.filter(i => i !== id);
+            row.classList.remove('row-selected');
+        }
+        saveIds(ids);
+        updateBulkBar();
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+        let ids = getSavedIds();
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            const row = document.getElementById('row-' + cb.value);
+            cb.checked = masterCheckbox.checked;
+            if (masterCheckbox.checked) {
+                if (!ids.includes(cb.value)) ids.push(cb.value);
                 row.classList.add('row-selected');
             } else {
+                ids = ids.filter(i => i !== cb.value);
                 row.classList.remove('row-selected');
             }
-            updateBulkBar();
-        }
-
-        function toggleSelectAll(masterCheckbox) {
-            document.querySelectorAll('.row-checkbox').forEach(cb => {
-                cb.checked = masterCheckbox.checked;
-                const row = document.getElementById('row-' + cb.value);
-                if (masterCheckbox.checked) {
-                    row.classList.add('row-selected');
-                } else {
-                    row.classList.remove('row-selected');
-                }
-            });
-            updateBulkBar();
-        }
-
-        function deselectAll() {
-            document.querySelectorAll('.row-checkbox').forEach(cb => {
-                cb.checked = false;
-                const row = document.getElementById('row-' + cb.value);
-                row.classList.remove('row-selected');
-            });
-            document.getElementById('selectAllCheckbox').checked = false;
-            updateBulkBar();
-        }
-
-        // Clicking the row navigates only if the checkbox was NOT the target
-        function handleRowClick(event, id, url) {
-            if (event.target.type === 'checkbox') return;
-            window.location.href = url;
-        }
-
-        // ── Bulk delete modal ──────────────────────────────────────
-        function showBulkConfirmationPopup() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) return;
-            document.getElementById('bulkDeleteCount').textContent = ids.length;
-            const modal = new bootstrap.Modal(document.getElementById('bulkConfirmationPopup'), {});
-            modal.show();
-        }
-
-        function hideBulkConfirmationPopup() {
-            const modalEl = document.getElementById('bulkConfirmationPopup');
-            const modal   = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        }
-
-        function executeBulkDelete() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) return;
-
-            // Build and submit a hidden form with POST + CSRF
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route('clients.bulk_delete') }}';
-
-            const csrf = document.createElement('input');
-            csrf.type  = 'hidden';
-            csrf.name  = '_token';
-            csrf.value = '{{ csrf_token() }}';
-            form.appendChild(csrf);
-
-            const typeInput = document.createElement('input');
-            typeInput.type  = 'hidden';
-            typeInput.name  = 'type';
-            typeInput.value = '{{ $type }}';
-            form.appendChild(typeInput);
-
-            ids.forEach(id => {
-                const input = document.createElement('input');
-                input.type  = 'hidden';
-                input.name  = 'ids[]';
-                input.value = id;
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    </script>
-    <script>
-        $(document).ready(function() {
-            $('#submitForm').on('click', function() {
-                $('#searchForm').submit();
-            });
         });
-    </script>
-    <script>
-        function toggleFilters() {
-            var filterOptions = document.getElementById("filterOptions");
-            filterOptions.style.display = filterOptions.style.display === "none" ? "block" : "none";
-        }
-    </script>
-    <script>
-        const isSupervisor    = {{ auth()->user()->hasRole('Supervisor') ? 'true' : 'false' }};
-        const supervisorMinDate = '{{ \Carbon\Carbon::now()->subMonths(2)->toDateString() }}';
-        const supervisorMaxDate = '{{ now()->toDateString() }}';
+        saveIds(ids);
+        updateBulkBar();
+    }
 
-        function openDateRangeModal() {
-            const fromInput = document.getElementById('exportDateFrom');
-            const toInput   = document.getElementById('exportDateTo');
-            fromInput.value = '';
-            toInput.value   = '';
-            if (isSupervisor) {
-                fromInput.value = supervisorMinDate;
-                toInput.value   = supervisorMaxDate;
+    function deselectAll() {
+        saveIds([]);
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.checked = false;
+            document.getElementById('row-' + cb.value).classList.remove('row-selected');
+        });
+        document.getElementById('selectAllCheckbox').checked = false;
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        const ids     = getSavedIds();
+        const bar     = document.getElementById('bulkActionBar');
+        const countEl = document.getElementById('selectedCount');
+        countEl.textContent = ids.length;
+        ids.length > 0 ? bar.classList.add('visible') : bar.classList.remove('visible');
+
+        const pageBoxes     = document.querySelectorAll('.row-checkbox');
+        const checkedOnPage = Array.from(pageBoxes).filter(cb => ids.includes(cb.value));
+        const selectAll     = document.getElementById('selectAllCheckbox');
+        selectAll.indeterminate = checkedOnPage.length > 0 && checkedOnPage.length < pageBoxes.length;
+        selectAll.checked       = pageBoxes.length > 0 && checkedOnPage.length === pageBoxes.length;
+    }
+
+    // Restore checkmarks on every page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const ids = getSavedIds();
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            if (ids.includes(cb.value)) {
+                cb.checked = true;
+                document.getElementById('row-' + cb.value).classList.add('row-selected');
             }
-            document.getElementById('dateRangeError').style.display      = 'none';
-            document.getElementById('dateRangeOrderError').style.display = 'none';
-            const modal = new bootstrap.Modal(document.getElementById('dateRangeModal'), {});
-            modal.show();
-        }
+        });
+        updateBulkBar();
+    });
 
-        function closeDateRangeModal() {
-            const modalEl = document.getElementById('dateRangeModal');
-            const modal   = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-        }
+    function handleRowClick(event, id, url) {
+        if (event.target.type === 'checkbox') return;
+        window.location.href = url;
+    }
 
-        function submitDateRangeExport() {
-            let from = document.getElementById('exportDateFrom').value;
-            let to   = document.getElementById('exportDateTo').value;
-            document.getElementById('dateRangeError').style.display      = 'none';
-            document.getElementById('dateRangeOrderError').style.display = 'none';
-            if (!from || !to) { document.getElementById('dateRangeError').style.display = 'block'; return; }
-            if (new Date(from) > new Date(to)) { document.getElementById('dateRangeOrderError').style.display = 'block'; return; }
-            if (isSupervisor) {
-                if (from < supervisorMinDate) from = supervisorMinDate;
-                if (to   > supervisorMaxDate) to   = supervisorMaxDate;
-            }
-            const params = new URLSearchParams({
-                type: '{{ $type }}', export_scope: 'date_range', date_from: from, date_to: to,
-            });
-            @if(request('search')) params.append('search', '{{ request('search') }}'); @endif
-            @if(request('status')) params.append('status', '{{ request('status') }}'); @endif
-            @if(request('city'))   params.append('city',   '{{ request('city') }}');   @endif
-            closeDateRangeModal();
-            window.location.href = '{{ route('clients.export') }}?' + params.toString();
+    // ── Bulk delete modal ──────────────────────────────────────────────────────
+    function showBulkConfirmationPopup() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+        document.getElementById('bulkDeleteCount').textContent = ids.length;
+        const modal = new bootstrap.Modal(document.getElementById('bulkConfirmationPopup'), {});
+        modal.show();
+    }
+
+    function hideBulkConfirmationPopup() {
+        const modalEl = document.getElementById('bulkConfirmationPopup');
+        const modal   = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+
+    function executeBulkDelete() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route('clients.bulk_delete') }}';
+
+        const csrf   = document.createElement('input');
+        csrf.type    = 'hidden';
+        csrf.name    = '_token';
+        csrf.value   = '{{ csrf_token() }}';
+        form.appendChild(csrf);
+
+        const typeInput  = document.createElement('input');
+        typeInput.type   = 'hidden';
+        typeInput.name   = 'type';
+        typeInput.value  = '{{ $type }}';
+        form.appendChild(typeInput);
+
+        ids.forEach(id => {
+            const input = document.createElement('input');
+            input.type  = 'hidden';
+            input.name  = 'ids[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+
+        localStorage.removeItem(STORAGE_KEY);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // ── Search ─────────────────────────────────────────────────────────────────
+    $(document).ready(function() {
+        $('#submitForm').on('click', function() {
+            $('#searchForm').submit();
+        });
+    });
+
+    // ── Filters toggle ─────────────────────────────────────────────────────────
+    function toggleFilters() {
+        var filterOptions = document.getElementById("filterOptions");
+        filterOptions.style.display = filterOptions.style.display === "none" ? "block" : "none";
+    }
+
+    // ── Date range export ──────────────────────────────────────────────────────
+    const isSupervisor      = {{ auth()->user()->hasRole('Supervisor') ? 'true' : 'false' }};
+    const supervisorMinDate = '{{ \Carbon\Carbon::now()->subMonths(2)->toDateString() }}';
+    const supervisorMaxDate = '{{ now()->toDateString() }}';
+
+    function openDateRangeModal() {
+        const fromInput = document.getElementById('exportDateFrom');
+        const toInput   = document.getElementById('exportDateTo');
+        fromInput.value = '';
+        toInput.value   = '';
+        if (isSupervisor) {
+            fromInput.value = supervisorMinDate;
+            toInput.value   = supervisorMaxDate;
         }
-    </script>
+        document.getElementById('dateRangeError').style.display      = 'none';
+        document.getElementById('dateRangeOrderError').style.display = 'none';
+        const modal = new bootstrap.Modal(document.getElementById('dateRangeModal'), {});
+        modal.show();
+    }
+
+    function closeDateRangeModal() {
+        const modalEl = document.getElementById('dateRangeModal');
+        const modal   = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+
+    function submitDateRangeExport() {
+        let from = document.getElementById('exportDateFrom').value;
+        let to   = document.getElementById('exportDateTo').value;
+        document.getElementById('dateRangeError').style.display      = 'none';
+        document.getElementById('dateRangeOrderError').style.display = 'none';
+        if (!from || !to) { document.getElementById('dateRangeError').style.display = 'block'; return; }
+        if (new Date(from) > new Date(to)) { document.getElementById('dateRangeOrderError').style.display = 'block'; return; }
+        if (isSupervisor) {
+            if (from < supervisorMinDate) from = supervisorMinDate;
+            if (to   > supervisorMaxDate) to   = supervisorMaxDate;
+        }
+        const params = new URLSearchParams({
+            type: '{{ $type }}', export_scope: 'date_range', date_from: from, date_to: to,
+        });
+        @if(request('search')) params.append('search', '{{ request('search') }}'); @endif
+        @if(request('status')) params.append('status', '{{ request('status') }}'); @endif
+        @if(request('city'))   params.append('city',   '{{ request('city') }}');   @endif
+        closeDateRangeModal();
+        window.location.href = '{{ route('clients.export') }}?' + params.toString();
+    }
+</script>
 @endpush
