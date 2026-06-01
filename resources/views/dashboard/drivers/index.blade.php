@@ -127,10 +127,10 @@
                                                 Comfort Drivers
                                             @elseif($type == 'scooters')
                                                 Scooters
-                                                @elseif($type == 'cars')
-                                               Original Drivers
-                                               @else
-                                               Drivers
+                                            @elseif($type == 'cars')
+                                                Original Drivers
+                                            @else
+                                                Drivers
                                             @endif
                                             - {{ $count }}
                                         </h5>
@@ -187,10 +187,10 @@
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending"   {{ request('status') == 'pending'    ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed" {{ request('status') == 'confirmed'  ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned"    {{ request('status') == 'banned'     ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked"   {{ request('status') == 'blocked'    ? 'selected' : '' }}>Blocked</option>
+                                                <option value="pending"   {{ request('status') == 'pending'   ? 'selected' : '' }}>Pending</option>
+                                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                                <option value="banned"    {{ request('status') == 'banned'    ? 'selected' : '' }}>Banned</option>
+                                                <option value="blocked"   {{ request('status') == 'blocked'   ? 'selected' : '' }}>Blocked</option>
                                             </select>
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
                                                 name="city">
@@ -230,10 +230,14 @@
                                     <tbody>
                                         @if (!empty($all_users) && $all_users->count())
                                             @php
-                                                $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
+                                                $counter        = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
+                                                $onlineThreshold = now()->subMinutes(2); {{-- ✅ calculated once before the loop --}}
                                             @endphp
                                             @foreach ($all_users as $user)
-                                                @php $avatarUrl = getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png'); @endphp
+                                                @php
+                                                    $avatarUrl      = getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png');
+                                                    $isReallyOnline = $user->last_seen_at && $user->last_seen_at->gte($onlineThreshold); {{-- ✅ uses shared threshold --}}
+                                                @endphp
                                                 <tr onclick="window.location='{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
                                                     <td>{{ $counter++ }}</td>
@@ -243,7 +247,8 @@
                                                                 class="img-circle user-avatar"
                                                                 alt="user avatar"
                                                                 onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
-                                                            <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
+                                                            {{-- ✅ single span per driver row --}}
+                                                            <span class="user-status {{ $isReallyOnline ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
                                                                 <img src="{{ $avatarUrl }}"
                                                                     alt="Avatar Preview"

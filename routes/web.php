@@ -106,7 +106,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::any('/archived-students', [ClientController::class, 'index_archives'])->name('archived_students');
     Route::get('/client/restore/{id}', [ClientController::class, 'restore'])->name('restore.client');
     Route::get('/clients/export', [ClientController::class, 'exportCsv'])->name('clients.export');
-    /////////////////////////////////////////
+    Route::post('clients/bulk-delete', [ClientController::class, 'bulkDestroy'])->name('clients.bulk_delete');
+  /////////////////////////////////////////
     Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');
     Route::get('/driver/edit/{id}', [DriverController::class, 'edit'])->name('edit.driver');
     Route::put('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
