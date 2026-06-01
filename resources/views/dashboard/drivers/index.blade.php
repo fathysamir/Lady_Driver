@@ -224,13 +224,11 @@
                                     <tbody>
                                         @if (!empty($all_users) && $all_users->count())
                                             @php
-                                                $counter         = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
-                                                $onlineThreshold = now()->subMinutes(2);
+                                                $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
                                             @endphp
                                             @foreach ($all_users as $user)
                                                 @php
-                                                    $avatarUrl      = getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png');
-                                                    $isReallyOnline = $user->last_seen_at && $user->last_seen_at->gte($onlineThreshold);
+                                                    $avatarUrl = getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png');
                                                 @endphp
                                                 <tr id="row-{{ $user->id }}"
                                                     onclick="handleRowClick(event, {{ $user->id }}, '{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}')"
@@ -248,7 +246,7 @@
                                                                 class="img-circle user-avatar"
                                                                 alt="user avatar"
                                                                 onerror="this.src='{{ asset('dashboard/user_avatar.png') }}'; this.onerror=null;">
-                                                            <span class="user-status {{ $isReallyOnline ? 'online' : 'offline' }}"></span>
+                                                            <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
                                                                 <img src="{{ $avatarUrl }}"
                                                                     alt="Avatar Preview"
