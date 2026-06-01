@@ -16,95 +16,91 @@
         margin-bottom: 8%;
     }
 
-    .online {
-        background-color: green;
-    }
+    .online  { background-color: green; }
+    .offline { background-color: gray; }
 
-    .offline {
-        background-color: gray;
-    }
-
-    .user-profile {
-        position: relative;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        position: relative;
-    }
+    .user-profile  { position: relative; }
+    .user-avatar   { width: 40px; height: 40px; cursor: pointer; position: relative; }
 
     .avatar-preview {
         display: none;
         position: fixed;
         justify-content: center;
         align-items: center;
-        top: 50%;
-        left: 50%;
-        height: 600px;
-        width: 800px;
+        top: 50%; left: 50%;
+        height: 600px; width: 800px;
         transform: translate(-50%, -50%);
         z-index: 1000;
-        background-color: rgba(0, 0, 0, 0.8);
+        background-color: rgba(0,0,0,0.8);
         padding: 10px;
         border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
+    .avatar-preview img { width: 100%; height: 100%; border-radius: 5px; }
+    .user-profile:hover .avatar-preview { display: block; }
 
-    .avatar-preview img {
-        width: 100%;
-        height: 100%;
-        border-radius: 5px;
-    }
-
-    .user-profile:hover .avatar-preview {
-        display: block;
-    }
-
-    .export-dropdown {
-        position: relative;
-        display: inline-block;
-        margin: 0% 0% 1% 1%;
-    }
-
+    .export-dropdown { position: relative; display: inline-block; margin: 0% 0% 1% 1%; }
     .export-dropdown-menu {
         display: none;
         position: absolute;
-        top: 100%;
-        left: 0;
+        top: 100%; left: 0;
         z-index: 999;
         min-width: 200px;
         border-radius: 4px;
         overflow: hidden;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-
     .export-dropdown-menu a {
-        display: block;
-        padding: 8px 16px;
-        background-color: #ffffff;
-        color: #212529;
-        text-decoration: none;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        border: 1px solid rgba(0,0,0,.125);
+        display: block; padding: 8px 16px;
+        background-color: #ffffff; color: #212529;
+        text-decoration: none; font-size: 0.875rem;
+        white-space: nowrap; border: 1px solid rgba(0,0,0,.125);
         border-top: none;
     }
+    .export-dropdown-menu a:first-child { border-top: 1px solid rgba(0,0,0,.125); }
+    .export-dropdown-menu a:hover { background-color: #f0f0f0 !important; color: #212529; text-decoration: none; }
+    .export-dropdown:hover .export-dropdown-menu { display: block; }
 
-    .export-dropdown-menu a:first-child {
-        border-top: 1px solid rgba(0,0,0,.125);
+    /* ── Bulk-action bar ── */
+    #bulkActionBar {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        margin-bottom: 10px;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #333;
     }
+    #bulkActionBar.visible { display: flex; }
+    #bulkDeleteBtn {
+        padding: 6px 16px;
+        background: #f44336;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    #bulkDeleteBtn:hover { background: #d32f2f; }
+    #deselectAllBtn {
+        padding: 6px 16px;
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    #deselectAllBtn:hover { background: #5a6268; }
 
-    .export-dropdown-menu a:hover {
-        background-color: #f0f0f0 !important;
-        color: #212529;
-        text-decoration: none;
-    }
+    /* row highlight when checked */
+    tr.row-selected { background-color: rgba(244, 67, 54, 0.07) !important; }
 
-    .export-dropdown:hover .export-dropdown-menu {
-        display: block;
-    }
+    /* keep checkbox column narrow */
+    th.col-check, td.col-check { width: 40px; text-align: center; }
 </style>
 
     <div class="content-wrapper">
@@ -133,31 +129,23 @@
 
                                             {{-- Export Dropdown --}}
                                             <div class="export-dropdown">
-                                                <button class="btn btn-light px-3" type="button"
-                                                    style="width: 170px;">
+                                                <button class="btn btn-light px-3" type="button" style="width: 170px;">
                                                     Export CSV
                                                 </button>
                                                 <div class="export-dropdown-menu">
-
                                                     @unless(auth()->user()->hasRole('Supervisor'))
                                                         <a href="{{ route('clients.export', array_merge(
                                                                 ['type' => $type, 'export_scope' => 'all'],
                                                                 array_filter(['search' => request('search'), 'status' => request('status')])
-                                                            )) }}">
-                                                            Export All Clients
-                                                        </a>
+                                                            )) }}">Export All Clients</a>
                                                         <a href="{{ route('clients.export', array_merge(
                                                                 ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
                                                                 array_filter(['search' => request('search'), 'status' => request('status')])
-                                                            )) }}">
-                                                            Export Current Page
-                                                        </a>
+                                                            )) }}">Export Current Page</a>
                                                     @endunless
-
                                                     <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
                                                         Export by Date Range
                                                     </a>
-
                                                 </div>
                                             </div>
 
@@ -167,18 +155,16 @@
                                                 name="search" style="display:flex;" value="{{ request('search') }}">
                                             <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                         </div>
-
                                     </div>
 
                                     <div id="filterOptions" style="display: none; text-align:center;">
                                         <div style="display: flex;justify-content: center;">
-                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
-                                                name="status">
+                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="status">
                                                 <option value="">Select Status</option>
-                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned" {{ request('status') == 'banned' ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked" {{ request('status') == 'blocked' ? 'selected' : '' }}>Blocked</option>
+                                                <option value="pending"   {{ request('status') == 'pending'    ? 'selected' : '' }}>Pending</option>
+                                                <option value="confirmed" {{ request('status') == 'confirmed'  ? 'selected' : '' }}>Confirmed</option>
+                                                <option value="banned"    {{ request('status') == 'banned'     ? 'selected' : '' }}>Banned</option>
+                                                <option value="blocked"   {{ request('status') == 'blocked'    ? 'selected' : '' }}>Blocked</option>
                                             </select>
                                         </div>
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
@@ -186,15 +172,31 @@
                                 </form>
                             </div>
 
+                            {{-- ── Bulk-action bar ── --}}
+                            <div id="bulkActionBar">
+                                <span id="selectedCount">0</span> client(s) selected
+                                <button id="bulkDeleteBtn" onclick="showBulkConfirmationPopup()">
+                                    <span class="bi bi-trash"></span> Delete Selected
+                                </button>
+                                <button id="deselectAllBtn" onclick="deselectAll()">
+                                    Deselect All
+                                </button>
+                            </div>
+
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
+                                            <th class="col-check">
+                                                <input type="checkbox" id="selectAllCheckbox"
+                                                    title="Select all on this page"
+                                                    onclick="toggleSelectAll(this)">
+                                            </th>
                                             <th scope="col">#</th>
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
                                             <th scope="col">Phone Number</th>
-                                            <th scope="col">status</th>
+                                            <th scope="col">Status</th>
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
                                         </tr>
@@ -205,18 +207,31 @@
                                                 $counter = ($all_users->currentPage() - 1) * $all_users->perPage() + 1;
                                             @endphp
                                             @foreach ($all_users as $user)
-                                                <tr onclick="window.location='{{ route('edit.client', ['id' => $user->id] + request()->query()) }}';"
+                                                <tr id="row-{{ $user->id }}"
+                                                    onclick="handleRowClick(event, {{ $user->id }}, '{{ route('edit.client', ['id' => $user->id] + request()->query()) }}')"
                                                     style="cursor: pointer;">
+                                                    <td class="col-check" onclick="event.stopPropagation()">
+                                                        <input type="checkbox"
+                                                            class="row-checkbox"
+                                                            value="{{ $user->id }}"
+                                                            onchange="onRowCheckChange(this)">
+                                                    </td>
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
-                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
-                                                                @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                            <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null)
+                                                                    src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                                                 @else
+                                                                    src="{{ asset('dashboard/user_avatar.png') }}"
+                                                                 @endif
                                                                 class="img-circle user-avatar" alt="user avatar">
                                                             <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
                                                             <div class="avatar-preview">
-                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null) src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
-                                                                    @else src="{{ asset('dashboard/user_avatar.png') }}" @endif
+                                                                <img @if (getFirstMediaUrl($user, $user->avatarCollection) != null)
+                                                                        src="{{ getFirstMediaUrl($user, $user->avatarCollection) }}"
+                                                                     @else
+                                                                        src="{{ asset('dashboard/user_avatar.png') }}"
+                                                                     @endif
                                                                     alt="Avatar Preview">
                                                             </div>
                                                         </span>
@@ -226,30 +241,26 @@
                                                     <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
                                                     <td>
                                                         @if ($user->status == 'pending')
-                                                            <span class="badge badge-secondary"
-                                                                style="background-color: rgba(255, 208, 0, 0.862);width:100%;">Pending</span>
+                                                            <span class="badge badge-secondary" style="background-color:rgba(255,208,0,0.862);width:100%;">Pending</span>
                                                         @elseif ($user->status == 'banned')
-                                                            <span class="badge badge-secondary"
-                                                                style="background-color:rgb(61, 27, 255);width:100%;">Banned</span>
-                                                        @elseif($user->status == 'confirmed')
-                                                            <span class="badge badge-secondary"
-                                                                style="background-color:rgb(50, 134, 50);width:100%;">Confirmed</span>
-                                                        @elseif($user->status == 'blocked')
-                                                            <span class="badge badge-secondary"
-                                                                style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
+                                                            <span class="badge badge-secondary" style="background-color:rgb(61,27,255);width:100%;">Banned</span>
+                                                        @elseif ($user->status == 'confirmed')
+                                                            <span class="badge badge-secondary" style="background-color:rgb(50,134,50);width:100%;">Confirmed</span>
+                                                        @elseif ($user->status == 'blocked')
+                                                            <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
                                                         @endif
                                                     </td>
                                                     <td>{{ $user->created_at->format('d.M.Y h:i a') }}</td>
                                                     <td>
                                                         @can('clients.edit')
                                                             <a href="{{ route('edit.client', ['id' => $user->id] + request()->query()) }}"
-                                                                style="margin-right: 1rem;">
-                                                                <span class="bi bi-pen" style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                                style="margin-right: 1rem;" onclick="event.stopPropagation()">
+                                                                <span class="bi bi-pen" style="font-size:1rem;color:rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
                                                         @can('clients.delete')
                                                             <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/client/delete/' . $user->id) . '?' . http_build_query(request()->query()) }}","{{ $user->name }}","{{ getFirstMediaUrl($user, $user->avatarCollection) ?? asset('dashboard/user_avatar.png') }}")'>
-                                                                <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span>
+                                                                <span class="bi bi-trash" style="font-size:1rem;color:rgb(255,255,255);"></span>
                                                             </a>
                                                         @endcan
                                                     </td>
@@ -257,7 +268,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td>There are no Clients.</td>
+                                                <td colspan="8">There are no Clients.</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -278,35 +289,64 @@
         </div>
     </div>
 
-    {{-- Delete Confirmation Modal --}}
+    {{-- Single Delete Confirmation Modal --}}
     <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog"
         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
-                        delete this client?</h5>
+                    <h5 class="modal-title" style="color:black;">Are you sure you want to delete this client?</h5>
                     <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" style="color:black;">
                     <div class="form-group">
-                        <div style="width: 100%; display: flex;justify-content: center;">
-                            <img id="deletedUserAvatar" src="{{ asset('dashboard/logo.png') }}" class="logo-icon"
-                                alt="logo icon" style="width:100px;height:100px; border-radius: 50%;">
+                        <div style="width:100%;display:flex;justify-content:center;">
+                            <img id="deletedUserAvatar" src="{{ asset('dashboard/logo.png') }}"
+                                class="logo-icon" alt="logo icon"
+                                style="width:100px;height:100px;border-radius:50%;">
                         </div>
-                        <div style="width: 100%; display: flex;justify-content: center;">
-                            <h5 class="logo-text" style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
+                        <div style="width:100%;display:flex;justify-content:center;">
+                            <h5 class="logo-text" style="color:black;font-weight:bold;" id="deletedNameInput"></h5>
                         </div>
                     </div>
                     <button onclick="hideConfirmationPopup()"
-                        style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;">
-                        <span class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel
+                        style="background-color:#5f6360;color:white;padding:10px 20px;border:none;cursor:pointer;width:48%;border-radius:10px;">
+                        <span class="bi bi-x" style="font-size:1rem;color:rgb(255,255,255);"></span> Cancel
                     </button>
                     <button onclick="deleteUser()"
-                        style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;">
-                        <span class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete
+                        style="background-color:#f44336;color:white;padding:10px 20px;border:none;cursor:pointer;margin-right:10px;width:48%;border-radius:10px;">
+                        <span class="bi bi-trash" style="font-size:1rem;color:rgb(255,255,255);"></span> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Bulk Delete Confirmation Modal --}}
+    <div class="modal fade" id="bulkConfirmationPopup" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:black;">
+                        Delete <span id="bulkDeleteCount">0</span> selected client(s)?
+                    </h5>
+                    <button type="button" class="close" onclick="hideBulkConfirmationPopup()" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="color:black;">
+                    <p style="margin-bottom:20px;">
+                        This action cannot be undone. All selected clients will be moved to deleted accounts.
+                    </p>
+                    <button onclick="hideBulkConfirmationPopup()"
+                        style="background-color:#5f6360;color:white;padding:10px 20px;border:none;cursor:pointer;width:48%;border-radius:10px;">
+                        <span class="bi bi-x"></span> Cancel
+                    </button>
+                    <button onclick="executeBulkDelete()"
+                        style="background-color:#f44336;color:white;padding:10px 20px;border:none;cursor:pointer;margin-right:10px;width:48%;border-radius:10px;">
+                        <span class="bi bi-trash"></span> Delete All
                     </button>
                 </div>
             </div>
@@ -316,72 +356,53 @@
     {{-- Date Range Export Modal --}}
     <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content" style="border-radius:12px; border:none; overflow:hidden;">
-                <div style="display:flex; align-items:center; justify-content:space-between;
-                            padding:16px 20px; border-bottom:1px solid #e5e7eb; background:#fff;">
-                    <span style="font-size:15px; font-weight:500; color:#111;">Export by date range</span>
+            <div class="modal-content" style="border-radius:12px;border:none;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                            padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#fff;">
+                    <span style="font-size:15px;font-weight:500;color:#111;">Export by date range</span>
                     <button type="button" onclick="closeDateRangeModal()" aria-label="Close"
-                        style="background:none; border:none; cursor:pointer; font-size:20px;
-                               color:#6b7280; line-height:1; padding:0;">
+                        style="background:none;border:none;cursor:pointer;font-size:20px;color:#6b7280;line-height:1;padding:0;">
                         &times;
                     </button>
                 </div>
-                <div style="padding:20px; background:#fff;">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                <div style="padding:20px;background:#fff;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
                         <div>
-                            <label for="exportDateFrom"
-                                style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px;">
-                                From
-                            </label>
+                            <label for="exportDateFrom" style="display:block;font-size:12px;color:#6b7280;margin-bottom:6px;">From</label>
                             <input type="date" id="exportDateFrom"
                                 @if(auth()->user()->hasRole('Supervisor'))
                                     min="{{ \Carbon\Carbon::now()->subMonths(2)->toDateString() }}"
                                     max="{{ now()->toDateString() }}"
                                 @endif
-                                style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px;
-                                       color:#111; background:#fff; border:1px solid #d1d5db;
-                                       border-radius:8px; outline:none;">
+                                style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;
+                                       color:#111;background:#fff;border:1px solid #d1d5db;border-radius:8px;outline:none;">
                         </div>
                         <div>
-                            <label for="exportDateTo"
-                                style="display:block; font-size:12px; color:#6b7280; margin-bottom:6px;">
-                                To
-                            </label>
+                            <label for="exportDateTo" style="display:block;font-size:12px;color:#6b7280;margin-bottom:6px;">To</label>
                             <input type="date" id="exportDateTo"
                                 @if(auth()->user()->hasRole('Supervisor'))
                                     min="{{ \Carbon\Carbon::now()->subMonths(2)->toDateString() }}"
                                     max="{{ now()->toDateString() }}"
                                 @endif
-                                style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px;
-                                       color:#111; background:#fff; border:1px solid #d1d5db;
-                                       border-radius:8px; outline:none;">
+                                style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;
+                                       color:#111;background:#fff;border:1px solid #d1d5db;border-radius:8px;outline:none;">
                         </div>
                     </div>
-
                     @if(auth()->user()->hasRole('Supervisor'))
-                        <p style="font-size:12px; color:#6b7280; margin: -10px 0 14px;">
+                        <p style="font-size:12px;color:#6b7280;margin:-10px 0 14px;">
                             You can only export data from the last 2 months
                             ({{ \Carbon\Carbon::now()->subMonths(2)->format('d M Y') }} – {{ now()->format('d M Y') }}).
                         </p>
                     @endif
-
-                    <p id="dateRangeError"
-                        style="display:none; font-size:12px; color:#dc2626; margin:0 0 14px;">
-                        Please select both dates.
-                    </p>
-                    <p id="dateRangeOrderError"
-                        style="display:none; font-size:12px; color:#dc2626; margin:0 0 14px;">
-                        "From" date must be before or equal to "To" date.
-                    </p>
-                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                    <p id="dateRangeError"      style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">Please select both dates.</p>
+                    <p id="dateRangeOrderError" style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">"From" date must be before or equal to "To" date.</p>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
                         <button type="button" onclick="closeDateRangeModal()"
-                            style="padding:8px 18px; border-radius:8px; border:1px solid #d1d5db;
-                                   background:#fff; color:#374151; font-size:14px; cursor:pointer;">
+                            style="padding:8px 18px;border-radius:8px;border:1px solid #d1d5db;background:#fff;color:#374151;font-size:14px;cursor:pointer;">
                             Cancel
                         </button>
                         <button type="button" onclick="submitDateRangeExport()"
-                            style="padding:8px 18px; border-radius:8px; border:1px solid #d1d5db;
-                                   background:#fff; color:#374151; font-size:14px; cursor:pointer;">
+                            style="padding:8px 18px;border-radius:8px;border:1px solid #d1d5db;background:#fff;color:#374151;font-size:14px;cursor:pointer;">
                             Export CSV
                         </button>
                     </div>
@@ -395,6 +416,7 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // ── Single-row delete ──────────────────────────────────────
         function showConfirmationPopup(deleteUrl, name, imgSrc) {
             document.getElementById('deletedNameInput').textContent = name;
             document.getElementById('deletedUserAvatar').src = imgSrc;
@@ -408,12 +430,122 @@
             modal.classList.remove('show');
             modal.style.display = 'none';
             document.body.classList.remove('modal-open');
-            document.getElementsByClassName('modal-backdrop')[0].remove();
+            var backdrop = document.getElementsByClassName('modal-backdrop')[0];
+            if (backdrop) backdrop.remove();
         }
 
         function deleteUser() {
             const deleteUrl = document.getElementById('confirmationPopup').getAttribute('data-delete-url');
             window.location.href = deleteUrl;
+        }
+
+        // ── Bulk-select logic ──────────────────────────────────────
+        function getSelectedIds() {
+            return Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+        }
+
+        function updateBulkBar() {
+            const ids    = getSelectedIds();
+            const bar    = document.getElementById('bulkActionBar');
+            const countEl = document.getElementById('selectedCount');
+            countEl.textContent = ids.length;
+            if (ids.length > 0) {
+                bar.classList.add('visible');
+            } else {
+                bar.classList.remove('visible');
+            }
+            // sync "select all" checkbox state
+            const allBoxes = document.querySelectorAll('.row-checkbox');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            selectAll.indeterminate = ids.length > 0 && ids.length < allBoxes.length;
+            selectAll.checked = ids.length > 0 && ids.length === allBoxes.length;
+        }
+
+        function onRowCheckChange(checkbox) {
+            const row = document.getElementById('row-' + checkbox.value);
+            if (checkbox.checked) {
+                row.classList.add('row-selected');
+            } else {
+                row.classList.remove('row-selected');
+            }
+            updateBulkBar();
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.checked = masterCheckbox.checked;
+                const row = document.getElementById('row-' + cb.value);
+                if (masterCheckbox.checked) {
+                    row.classList.add('row-selected');
+                } else {
+                    row.classList.remove('row-selected');
+                }
+            });
+            updateBulkBar();
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.checked = false;
+                const row = document.getElementById('row-' + cb.value);
+                row.classList.remove('row-selected');
+            });
+            document.getElementById('selectAllCheckbox').checked = false;
+            updateBulkBar();
+        }
+
+        // Clicking the row navigates only if the checkbox was NOT the target
+        function handleRowClick(event, id, url) {
+            if (event.target.type === 'checkbox') return;
+            window.location.href = url;
+        }
+
+        // ── Bulk delete modal ──────────────────────────────────────
+        function showBulkConfirmationPopup() {
+            const ids = getSelectedIds();
+            if (ids.length === 0) return;
+            document.getElementById('bulkDeleteCount').textContent = ids.length;
+            const modal = new bootstrap.Modal(document.getElementById('bulkConfirmationPopup'), {});
+            modal.show();
+        }
+
+        function hideBulkConfirmationPopup() {
+            const modalEl = document.getElementById('bulkConfirmationPopup');
+            const modal   = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        function executeBulkDelete() {
+            const ids = getSelectedIds();
+            if (ids.length === 0) return;
+
+            // Build and submit a hidden form with POST + CSRF
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('clients.bulk_delete') }}';
+
+            const csrf = document.createElement('input');
+            csrf.type  = 'hidden';
+            csrf.name  = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            form.appendChild(csrf);
+
+            const typeInput = document.createElement('input');
+            typeInput.type  = 'hidden';
+            typeInput.name  = 'type';
+            typeInput.value = '{{ $type }}';
+            form.appendChild(typeInput);
+
+            ids.forEach(id => {
+                const input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = 'ids[]';
+                input.value = id;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
         }
     </script>
     <script>
@@ -426,85 +558,52 @@
     <script>
         function toggleFilters() {
             var filterOptions = document.getElementById("filterOptions");
-            if (filterOptions.style.display === "none") {
-                filterOptions.style.display = "block";
-            } else {
-                filterOptions.style.display = "none";
-            }
+            filterOptions.style.display = filterOptions.style.display === "none" ? "block" : "none";
         }
     </script>
     <script>
-        // Pass the supervisor flag from PHP to JS once — avoids repeated inline checks
-        const isSupervisor = {{ auth()->user()->hasRole('Supervisor') ? 'true' : 'false' }};
+        const isSupervisor    = {{ auth()->user()->hasRole('Supervisor') ? 'true' : 'false' }};
         const supervisorMinDate = '{{ \Carbon\Carbon::now()->subMonths(2)->toDateString() }}';
         const supervisorMaxDate = '{{ now()->toDateString() }}';
 
         function openDateRangeModal() {
             const fromInput = document.getElementById('exportDateFrom');
             const toInput   = document.getElementById('exportDateTo');
-
             fromInput.value = '';
             toInput.value   = '';
-
-            // Pre-fill and lock dates for supervisors
             if (isSupervisor) {
                 fromInput.value = supervisorMinDate;
                 toInput.value   = supervisorMaxDate;
             }
-
             document.getElementById('dateRangeError').style.display      = 'none';
             document.getElementById('dateRangeOrderError').style.display = 'none';
-
             const modal = new bootstrap.Modal(document.getElementById('dateRangeModal'), {});
             modal.show();
         }
 
         function closeDateRangeModal() {
             const modalEl = document.getElementById('dateRangeModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
+            const modal   = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
         }
 
         function submitDateRangeExport() {
             let from = document.getElementById('exportDateFrom').value;
             let to   = document.getElementById('exportDateTo').value;
-
             document.getElementById('dateRangeError').style.display      = 'none';
             document.getElementById('dateRangeOrderError').style.display = 'none';
-
-            if (!from || !to) {
-                document.getElementById('dateRangeError').style.display = 'block';
-                return;
-            }
-
-            if (new Date(from) > new Date(to)) {
-                document.getElementById('dateRangeOrderError').style.display = 'block';
-                return;
-            }
-
-            // Extra JS-side clamp for supervisors (backend also clamps, this is UX only)
+            if (!from || !to) { document.getElementById('dateRangeError').style.display = 'block'; return; }
+            if (new Date(from) > new Date(to)) { document.getElementById('dateRangeOrderError').style.display = 'block'; return; }
             if (isSupervisor) {
                 if (from < supervisorMinDate) from = supervisorMinDate;
                 if (to   > supervisorMaxDate) to   = supervisorMaxDate;
             }
-
             const params = new URLSearchParams({
-                type:         '{{ $type }}',
-                export_scope: 'date_range',
-                date_from:    from,
-                date_to:      to,
+                type: '{{ $type }}', export_scope: 'date_range', date_from: from, date_to: to,
             });
-
-            @if(request('search'))
-                params.append('search', '{{ request('search') }}');
-            @endif
-            @if(request('status'))
-                params.append('status', '{{ request('status') }}');
-            @endif
-            @if(request('city'))
-                params.append('city', '{{ request('city') }}');
-            @endif
-
+            @if(request('search')) params.append('search', '{{ request('search') }}'); @endif
+            @if(request('status')) params.append('status', '{{ request('status') }}'); @endif
+            @if(request('city'))   params.append('city',   '{{ request('city') }}');   @endif
             closeDateRangeModal();
             window.location.href = '{{ route('clients.export') }}?' + params.toString();
         }
