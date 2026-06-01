@@ -1901,7 +1901,8 @@ public function mark_messages_seen(Request $request)
             }
 
             // ── Never go below the server-calculated price ──
-            $newPrice = max($price_after_discount, floatval($request->price));
+            $newPrice = $price_after_discount;
+
 
             if (floatval($trip->total_price) != $newPrice) {
                 DB::table('drivers_trips')->where('trip_id', $trip->id)->delete();
