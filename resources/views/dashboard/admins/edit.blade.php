@@ -245,9 +245,9 @@
                                 <div class="form-group mb-3">
                                     <label>Assign Permissions</label>
                                     @if($admin->role === 'Super Admin')
-                                        <div class="alert alert-info" style="font-size:14px; margin-top:6px;">
-                                            Super Admin has all permissions and they cannot be modified.
-                                        </div>
+                                    <p style="font-size:14px; margin-top:6px; color: inherit;">
+                                        Super Admin has all permissions and they cannot be modified.
+                                    </p>
                                     @else
                                         <div class="border p-2" style="max-height:250px; overflow-y:auto;" id="permissions-box">
                                             @foreach ($permissions as $permission)
