@@ -41,24 +41,8 @@
             </li>
 
             {{-- SCRUM-325: Language switcher now functional --}}
-            <li class="nav-item language">
-                <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown"
-                    href="javascript:void(0);"><i class="fa fa-flag"></i></a>
-                <ul class="dropdown-menu dropdown-menu-right">
-                    <li class="dropdown-item" onclick="changeLanguage('en')" style="cursor:pointer;">
-                        <i class="flag-icon flag-icon-gb mr-2"></i> English
-                    </li>
-                    <li class="dropdown-item" onclick="changeLanguage('fr')" style="cursor:pointer;">
-                        <i class="flag-icon flag-icon-fr mr-2"></i> French
-                    </li>
-                    <li class="dropdown-item" onclick="changeLanguage('zh')" style="cursor:pointer;">
-                        <i class="flag-icon flag-icon-cn mr-2"></i> Chinese
-                    </li>
-                    <li class="dropdown-item" onclick="changeLanguage('de')" style="cursor:pointer;">
-                        <i class="flag-icon flag-icon-de mr-2"></i> German
-                    </li>
-                </ul>
-            </li>
+
+
 
             {{-- Profile dropdown --}}
             <li class="nav-item">
