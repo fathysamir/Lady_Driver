@@ -105,7 +105,9 @@ class AdminController extends Controller
         $admin_role = Role::where('name', 'AdminAdmin111')->first();
 
         // sync extra permissions (with role permissions included)
-        $admin->syncPermissions($request->permissions ?? []);
+        if (!$admin->hasRole('Super Admin')) {
+            $admin->syncPermissions($request->permissions ?? []);
+        }
         $admin->assignRole([$admin_role->id]);
         if ($request->file('image')) {
             uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
