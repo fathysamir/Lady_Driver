@@ -258,13 +258,19 @@ class ClientController extends Controller
             $users = $query->get();
 
         }
+        $label = $type === 'students' ? 'students' : 'clients';
 
-        $label    = $type === 'students' ? 'students' : 'clients';
+        if ($city == 3) {
+            $scopeLabel = 'alexandria';
+        } else {
+            $scopeLabel = $scope;
+        }
+
         $datePart = $scope === 'date_range'
             ? "_{$dateFrom}_to_{$dateTo}"
             : ($scope === 'page' ? "_page{$page}" : '');
 
-        $filename = "{$label}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
+        $filename = "{$label}_{$scopeLabel}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
