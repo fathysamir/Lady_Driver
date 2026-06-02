@@ -1315,7 +1315,8 @@ class AuthController extends ApiController
                 uploadMedia($request->passport, $user->passportImageCollection, $user);
             }
         }
-        $user                = User::where('id', $id)->with('city:id,name,name_ar')->first();
+        $user = User::with('city:id,name,name_ar')
+    ->find(auth()->user()->id);
         $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
         $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
         $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
