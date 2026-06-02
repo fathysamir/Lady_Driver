@@ -1,4 +1,5 @@
 @extends('dashboard.layout.app')
+@php use Illuminate\Support\Facades\Storage; @endphp
 @section('title', 'Dashboard - create driver')
 @section('content')
     <style>
@@ -15,7 +16,6 @@
             flex: 1;
             margin: 0;
         }
-
         #id-type-selector {
             display: flex;
             gap: 12px;
@@ -38,7 +38,6 @@
             border-color: rgb(255, 230, 0);
             color: rgb(255, 230, 0);
         }
-
         #vehicle-type-selector {
             display: flex;
             gap: 12px;
@@ -61,7 +60,6 @@
             border-color: rgb(255, 230, 0);
             color: rgb(255, 230, 0);
         }
-
         .ar {
             font-size: 16px;
             color: rgb(255, 255, 255);
@@ -94,26 +92,20 @@
                                 @csrf
 
                                 {{-- ── ACCOUNT CREDENTIALS ─────────────────────────────── --}}
-                                <div class="section-divider">
-                                    <h4>Account Credentials</h4><hr>
-                                </div>
+                                <div class="section-divider"><h4>Account Credentials</h4><hr></div>
 
                                 <div class="form-group">
                                     <label>Full Name <span class="ar">(الاسم بالكامل)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="name"
                                         placeholder="Enter full name" value="{{ old('name') }}" required>
-                                    @error('name')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('name')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
                                     <label>Email <span class="ar">(البريد الإلكتروني)</span><span style="color:red">*</span></label>
                                     <input type="email" class="form-control" name="email"
                                         placeholder="Enter email address" value="{{ old('email') }}" required>
-                                    @error('email')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('email')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
@@ -126,34 +118,31 @@
                                         Share this password with the driver so they can log in and change it <br>
                                         شارك هذا الرقم السري مع السائق حتى يتمكن من تسجيل الدخول وتغييره
                                     </small>
-                                    @error('password')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('password')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 {{-- ── PERSONAL INFO ───────────────────────────────────── --}}
-                                <div class="section-divider">
-                                    <h4>Personal Information</h4><hr>
-                                </div>
+                                <div class="section-divider"><h4>Personal Information</h4><hr></div>
 
+                                {{-- Profile Image --}}
                                 <div class="form-group">
                                     <label>Profile Image <span class="ar">(الصورة الشخصية)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_image'))
+                                    @if(session('temp_upload_image') && Storage::disk('public')->exists(session('temp_upload_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_image" value="{{ session('temp_upload_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_image') ? '' : 'required' }}>
-                                    @error('image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_image') && Storage::disk('public')->exists(session('temp_upload_image'))) ? '' : 'required' }}>
+                                    @error('image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
+                                {{-- Phone --}}
                                 <div class="form-group">
                                     <label>Phone Number <span class="ar">(رقم الهاتف)</span><span style="color:red">*</span></label>
                                     <div class="input-group">
@@ -216,9 +205,7 @@
                                         <input type="number" name="phone" class="form-control"
                                             placeholder="Phone number" value="{{ old('phone') }}" required>
                                     </div>
-                                    @error('phone')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('phone')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
@@ -226,15 +213,12 @@
                                     <select class="form-control" name="city_id" required>
                                         <option value="">Select City</option>
                                         @foreach ($cities as $city)
-                                            <option value="{{ $city->id }}"
-                                                {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                                            <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
                                                 {{ $city->name }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('city_id')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('city_id')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
@@ -244,9 +228,7 @@
                                         value="{{ old('birth_date') }}"
                                         max="{{ now()->subYears(16)->format('Y-m-d') }}" required>
                                     <small style="color: rgba(255,255,255,0.5);">Driver must be at least 16 years old.</small>
-                                    @error('birth_date')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('birth_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 {{-- ── IDENTITY DOCUMENT ───────────────────────────────── --}}
@@ -270,9 +252,7 @@
                                         <label>National ID Number <span class="ar">(رقم البطاقة الوطنية)</span></label>
                                         <input type="number" class="form-control" name="national_id"
                                             placeholder="14-digit national ID" value="{{ old('national_id') }}">
-                                        @error('national_id')
-                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                        @enderror
+                                        @error('national_id')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                     </div>
                                     <div class="form-group">
                                         <label>National ID Expiration Date <span class="ar">(تاريخ انتهاء البطاقة)</span></label>
@@ -282,35 +262,31 @@
                                     </div>
                                     <div class="form-group">
                                         <label>ID Front Image <span class="ar">(صورة البطاقة - أمامية)</span></label>
-                                        @if(session('temp_upload_ID_front_image'))
+                                        @if(session('temp_upload_ID_front_image') && Storage::disk('public')->exists(session('temp_upload_ID_front_image')))
                                             <div style="margin-bottom:8px;">
                                                 <img src="{{ asset('storage/' . session('temp_upload_ID_front_image')) }}"
-                                                    style="height:80px; border-radius:6px;">
+                                                    style="height:80px; border-radius:6px;"
+                                                    onerror="this.parentElement.style.display='none'">
                                                 <input type="hidden" name="temp_ID_front_image" value="{{ session('temp_upload_ID_front_image') }}">
                                                 <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                             </div>
                                         @endif
-                                        <input type="file" class="form-control" name="ID_front_image"
-                                            accept="image/jpg,image/jpeg,image/png">
-                                        @error('ID_front_image')
-                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                        @enderror
+                                        <input type="file" class="form-control" name="ID_front_image" accept="image/jpg,image/jpeg,image/png">
+                                        @error('ID_front_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                     </div>
                                     <div class="form-group">
                                         <label>ID Back Image <span class="ar">(صورة البطاقة - خلفية)</span></label>
-                                        @if(session('temp_upload_ID_back_image'))
+                                        @if(session('temp_upload_ID_back_image') && Storage::disk('public')->exists(session('temp_upload_ID_back_image')))
                                             <div style="margin-bottom:8px;">
                                                 <img src="{{ asset('storage/' . session('temp_upload_ID_back_image')) }}"
-                                                    style="height:80px; border-radius:6px;">
+                                                    style="height:80px; border-radius:6px;"
+                                                    onerror="this.parentElement.style.display='none'">
                                                 <input type="hidden" name="temp_ID_back_image" value="{{ session('temp_upload_ID_back_image') }}">
                                                 <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                             </div>
                                         @endif
-                                        <input type="file" class="form-control" name="ID_back_image"
-                                            accept="image/jpg,image/jpeg,image/png">
-                                        @error('ID_back_image')
-                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                        @enderror
+                                        <input type="file" class="form-control" name="ID_back_image" accept="image/jpg,image/jpeg,image/png">
+                                        @error('ID_back_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                     </div>
                                 </div>
 
@@ -320,9 +296,7 @@
                                         <label>Passport Number <span class="ar">(رقم جواز السفر)</span></label>
                                         <input type="text" class="form-control" name="passport_id"
                                             placeholder="Passport number" value="{{ old('passport_id') }}">
-                                        @error('passport_id')
-                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                        @enderror
+                                        @error('passport_id')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                     </div>
                                     <div class="form-group">
                                         <label>Passport Expiration Date <span class="ar">(تاريخ انتهاء جواز السفر)</span></label>
@@ -332,19 +306,17 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Passport Image <span class="ar">(صورة جواز السفر)</span></label>
-                                        @if(session('temp_upload_passport_image'))
+                                        @if(session('temp_upload_passport_image') && Storage::disk('public')->exists(session('temp_upload_passport_image')))
                                             <div style="margin-bottom:8px;">
                                                 <img src="{{ asset('storage/' . session('temp_upload_passport_image')) }}"
-                                                    style="height:80px; border-radius:6px;">
+                                                    style="height:80px; border-radius:6px;"
+                                                    onerror="this.parentElement.style.display='none'">
                                                 <input type="hidden" name="temp_passport_image" value="{{ session('temp_upload_passport_image') }}">
                                                 <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                             </div>
                                         @endif
-                                        <input type="file" class="form-control" name="passport_image"
-                                            accept="image/jpg,image/jpeg,image/png">
-                                        @error('passport_image')
-                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                        @enderror
+                                        <input type="file" class="form-control" name="passport_image" accept="image/jpg,image/jpeg,image/png">
+                                        @error('passport_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                     </div>
                                 </div>
 
@@ -357,9 +329,7 @@
                                     <label>License Number <span class="ar">(رقم الرخصة)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="driving_license_number"
                                         placeholder="License number" value="{{ old('driving_license_number') }}" required>
-                                    @error('driving_license_number')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('driving_license_number')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
@@ -368,45 +338,41 @@
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('license_expire_date') }}"
                                         min="{{ now()->format('Y-m-d') }}" required>
-                                    @error('license_expire_date')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('license_expire_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
                                     <label>License Front Image <span class="ar">(صورة الرخصة - أمامية)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_license_front_image'))
+                                    @if(session('temp_upload_license_front_image') && Storage::disk('public')->exists(session('temp_upload_license_front_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_license_front_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_license_front_image" value="{{ session('temp_upload_license_front_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="license_front_image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_license_front_image') ? '' : 'required' }}>
-                                    @error('license_front_image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_license_front_image') && Storage::disk('public')->exists(session('temp_upload_license_front_image'))) ? '' : 'required' }}>
+                                    @error('license_front_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
                                     <label>License Back Image <span class="ar">(صورة الرخصة - خلفية)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_license_back_image'))
+                                    @if(session('temp_upload_license_back_image') && Storage::disk('public')->exists(session('temp_upload_license_back_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_license_back_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_license_back_image" value="{{ session('temp_upload_license_back_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="license_back_image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_license_back_image') ? '' : 'required' }}>
-                                    @error('license_back_image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_license_back_image') && Storage::disk('public')->exists(session('temp_upload_license_back_image'))) ? '' : 'required' }}>
+                                    @error('license_back_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 {{-- ── VEHICLE ─────────────────────────────────────────── --}}
@@ -453,8 +419,7 @@
                                         <select class="form-control" name="car_mark_id" id="car_mark_select">
                                             <option value="">Select Car Mark</option>
                                             @foreach ($carMarks ?? [] as $mark)
-                                                <option value="{{ $mark->id }}"
-                                                    {{ old('car_mark_id') == $mark->id ? 'selected' : '' }}>
+                                                <option value="{{ $mark->id }}" {{ old('car_mark_id') == $mark->id ? 'selected' : '' }}>
                                                     {{ $mark->en_name }}
                                                 </option>
                                             @endforeach
@@ -464,7 +429,7 @@
                                         <label>Car Model <span class="ar">(موديل السيارة)</span></label>
                                         <select class="form-control" name="car_model_id" id="car_model_select">
                                             <option value="">Select Car Model</option>
-                                            {{-- populated via JS --}}
+                                            {{-- populated via JS after mark selection --}}
                                         </select>
                                     </div>
                                 </div>
@@ -476,8 +441,7 @@
                                         <select class="form-control" name="scooter_mark_id" id="scooter_mark_select">
                                             <option value="">Select Scooter Mark</option>
                                             @foreach ($scooterMarks ?? [] as $mark)
-                                                <option value="{{ $mark->id }}"
-                                                    {{ old('scooter_mark_id') == $mark->id ? 'selected' : '' }}>
+                                                <option value="{{ $mark->id }}" {{ old('scooter_mark_id') == $mark->id ? 'selected' : '' }}>
                                                     {{ $mark->en_name }}
                                                 </option>
                                             @endforeach
@@ -487,45 +451,45 @@
                                         <label>Scooter Model <span class="ar">(موديل الدراجة)</span></label>
                                         <select class="form-control" name="scooter_model_id" id="scooter_model_select">
                                             <option value="">Select Scooter Model</option>
-                                            {{-- populated via JS --}}
+                                            {{-- populated via JS after mark selection --}}
                                         </select>
                                     </div>
                                 </div>
 
+                                {{-- Vehicle Image --}}
                                 <div class="form-group">
                                     <label>Vehicle Image <span class="ar">(صورة المركبة)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_vehicle_image'))
+                                    @if(session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_vehicle_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_vehicle_image" value="{{ session('temp_upload_vehicle_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="vehicle_image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_vehicle_image') ? '' : 'required' }}>
-                                    @error('vehicle_image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image'))) ? '' : 'required' }}>
+                                    @error('vehicle_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
+                                {{-- Plate Image --}}
                                 <div class="form-group">
                                     <label>Plate Image <span class="ar">(صورة اللوحة)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_plate_image'))
+                                    @if(session('temp_upload_plate_image') && Storage::disk('public')->exists(session('temp_upload_plate_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_plate_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_plate_image" value="{{ session('temp_upload_plate_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="plate_image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_plate_image') ? '' : 'required' }}>
-                                    @error('plate_image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_plate_image') && Storage::disk('public')->exists(session('temp_upload_plate_image'))) ? '' : 'required' }}>
+                                    @error('plate_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 <div class="form-group">
@@ -534,45 +498,43 @@
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('vehicle_license_expire_date') }}"
                                         min="{{ now()->format('Y-m-d') }}" required>
-                                    @error('vehicle_license_expire_date')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                    @error('vehicle_license_expire_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
+                                {{-- Vehicle License Front --}}
                                 <div class="form-group">
                                     <label>Vehicle License Front Image <span class="ar">(صورة رخصة المركبة - أمامية)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_vehicle_license_front_image'))
+                                    @if(session('temp_upload_vehicle_license_front_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_front_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_vehicle_license_front_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_vehicle_license_front_image" value="{{ session('temp_upload_vehicle_license_front_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="vehicle_license_front_image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_vehicle_license_front_image') ? '' : 'required' }}>
-                                    @error('vehicle_license_front_image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_vehicle_license_front_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_front_image'))) ? '' : 'required' }}>
+                                    @error('vehicle_license_front_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
+                                {{-- Vehicle License Back --}}
                                 <div class="form-group">
                                     <label>Vehicle License Back Image <span class="ar">(صورة رخصة المركبة - خلفية)</span><span style="color:red">*</span></label>
-                                    @if(session('temp_upload_vehicle_license_back_image'))
+                                    @if(session('temp_upload_vehicle_license_back_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_back_image')))
                                         <div style="margin-bottom:8px;">
                                             <img src="{{ asset('storage/' . session('temp_upload_vehicle_license_back_image')) }}"
-                                                style="height:80px; border-radius:6px;">
+                                                style="height:80px; border-radius:6px;"
+                                                onerror="this.parentElement.style.display='none'">
                                             <input type="hidden" name="temp_vehicle_license_back_image" value="{{ session('temp_upload_vehicle_license_back_image') }}">
                                             <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="vehicle_license_back_image"
                                         accept="image/jpg,image/jpeg,image/png"
-                                        {{ session('temp_upload_vehicle_license_back_image') ? '' : 'required' }}>
-                                    @error('vehicle_license_back_image')
-                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
-                                    @enderror
+                                        {{ (session('temp_upload_vehicle_license_back_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_back_image'))) ? '' : 'required' }}>
+                                    @error('vehicle_license_back_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
                                 {{-- ── ACCOUNT STATUS ──────────────────────────────────── --}}
@@ -596,15 +558,12 @@
                                         <i class="icon-user-follow"></i> Create Driver
                                     </button>
 
-                                    {{-- Cancel: clears temp uploads then redirects --}}
+                                    {{-- Cancel: clears all temp uploads from disk+session then redirects --}}
                                     <form method="POST" action="{{ route('drivers.clearTemp') }}"
                                           style="display:inline; margin:0; padding:0;">
                                         @csrf
-                                        <input type="hidden" name="redirect"
-                                               value="{{ route('drivers', request()->query()) }}">
-                                        <button type="submit" class="btn btn-secondary px-5">
-                                            Cancel
-                                        </button>
+                                        <input type="hidden" name="redirect" value="{{ route('drivers', request()->query()) }}">
+                                        <button type="submit" class="btn btn-secondary px-5">Cancel</button>
                                     </form>
                                 </div>
 
@@ -625,8 +584,8 @@
     function switchIdType(type, el) {
         document.getElementById('id_type_hidden').value = type;
         document.getElementById('national-id-section').style.display = type === 'national' ? 'block' : 'none';
-        document.getElementById('passport-section').style.display    = type === 'passport' ? 'block' : 'none';
-        document.querySelectorAll('.id-type-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('passport-section').style.display    = type === 'passport'  ? 'block' : 'none';
+        document.querySelectorAll('.id-type-btn').forEach(function(btn) { btn.classList.remove('active'); });
         el.classList.add('active');
     }
 
@@ -635,60 +594,70 @@
         document.getElementById('vehicle_type_hidden').value = type;
         document.getElementById('car-fields').style.display     = type === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = type === 'scooter' ? 'block' : 'none';
-        document.querySelectorAll('.vehicle-type-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.vehicle-type-btn').forEach(function(btn) { btn.classList.remove('active'); });
         el.classList.add('active');
     }
 
-    // ── Dependent dropdowns helper ────────────────────────────────────────────
-    function loadModels(url, modelSelect, selectedId) {
+    // ── POST to existing API routes to get filtered models ────────────────────
+    // API returns { data: [...], message: null } via sendResponse()
+    function loadModels(url, body, modelSelect, selectedId, defaultText) {
         modelSelect.innerHTML = '<option value="">Loading...</option>';
-        fetch(url)
-            .then(res => res.json())
-            .then(models => {
-                modelSelect.innerHTML = '<option value="">Select Model</option>';
-                models.forEach(model => {
-                    const opt = document.createElement('option');
-                    opt.value = model.id;
-                    opt.textContent = model.en_name;
-                    if (model.id == selectedId) opt.selected = true;
-                    modelSelect.appendChild(opt);
-                });
-            })
-            .catch(() => {
-                modelSelect.innerHTML = '<option value="">Failed to load</option>';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: JSON.stringify(body),
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(response) {
+            modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
+            var models = response.data ?? response;
+            if (!Array.isArray(models)) return;
+            models.forEach(function(model) {
+                var opt = document.createElement('option');
+                opt.value = model.id;
+                opt.textContent = model.en_name;
+                if (String(model.id) === String(selectedId)) opt.selected = true;
+                modelSelect.appendChild(opt);
             });
+        })
+        .catch(function() {
+            modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
 
         // ── Restore toggles after validation error ────────────────────────────
-        const idType      = document.getElementById('id_type_hidden').value;
-        const vehicleType = document.getElementById('vehicle_type_hidden').value;
+        var idType      = document.getElementById('id_type_hidden').value;
+        var vehicleType = document.getElementById('vehicle_type_hidden').value;
 
         document.getElementById('national-id-section').style.display = idType === 'national' ? 'block' : 'none';
         document.getElementById('passport-section').style.display    = idType === 'passport'  ? 'block' : 'none';
-        document.querySelectorAll('.id-type-btn').forEach(btn => {
-            const t = btn.getAttribute('onclick').includes('national') ? 'national' : 'passport';
+        document.querySelectorAll('.id-type-btn').forEach(function(btn) {
+            var t = btn.getAttribute('onclick').includes('national') ? 'national' : 'passport';
             btn.classList.toggle('active', t === idType);
         });
 
         document.getElementById('car-fields').style.display     = vehicleType === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = vehicleType === 'scooter' ? 'block' : 'none';
-        document.querySelectorAll('.vehicle-type-btn').forEach(btn => {
-            const t = btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
+        document.querySelectorAll('.vehicle-type-btn').forEach(function(btn) {
+            var t = btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
             btn.classList.toggle('active', t === vehicleType);
         });
 
         // ── Car mark → model ──────────────────────────────────────────────────
-        const carMarkSelect  = document.getElementById('car_mark_select');
-        const carModelSelect = document.getElementById('car_model_select');
-        const oldCarMark     = "{{ old('car_mark_id') }}";
-        const oldCarModel    = "{{ old('car_model_id') }}";
+        var carMarkSelect  = document.getElementById('car_mark_select');
+        var carModelSelect = document.getElementById('car_model_select');
+        var oldCarMark     = "{{ old('car_mark_id') }}";
+        var oldCarModel    = "{{ old('car_model_id') }}";
 
         // Restore on validation error
         if (oldCarMark) {
-            loadModels(`/api/car-models/${oldCarMark}`, carModelSelect, oldCarModel);
             carMarkSelect.value = oldCarMark;
+            loadModels('/api/models', { car_mark_id: oldCarMark }, carModelSelect, oldCarModel, 'Select Car Model');
         }
 
         carMarkSelect.addEventListener('change', function () {
@@ -696,19 +665,19 @@
                 carModelSelect.innerHTML = '<option value="">Select Car Model</option>';
                 return;
             }
-            loadModels(`/api/car-models/${this.value}`, carModelSelect, null);
+            loadModels('/api/models', { car_mark_id: this.value }, carModelSelect, null, 'Select Car Model');
         });
 
         // ── Scooter mark → model ──────────────────────────────────────────────
-        const scooterMarkSelect  = document.getElementById('scooter_mark_select');
-        const scooterModelSelect = document.getElementById('scooter_model_select');
-        const oldScooterMark     = "{{ old('scooter_mark_id') }}";
-        const oldScooterModel    = "{{ old('scooter_model_id') }}";
+        var scooterMarkSelect  = document.getElementById('scooter_mark_select');
+        var scooterModelSelect = document.getElementById('scooter_model_select');
+        var oldScooterMark     = "{{ old('scooter_mark_id') }}";
+        var oldScooterModel    = "{{ old('scooter_model_id') }}";
 
         // Restore on validation error
         if (oldScooterMark) {
-            loadModels(`/api/scooter-models/${oldScooterMark}`, scooterModelSelect, oldScooterModel);
             scooterMarkSelect.value = oldScooterMark;
+            loadModels('/api/scooter_models', { scooter_mark_id: oldScooterMark }, scooterModelSelect, oldScooterModel, 'Select Scooter Model');
         }
 
         scooterMarkSelect.addEventListener('change', function () {
@@ -716,8 +685,9 @@
                 scooterModelSelect.innerHTML = '<option value="">Select Scooter Model</option>';
                 return;
             }
-            loadModels(`/api/scooter-models/${this.value}`, scooterModelSelect, null);
+            loadModels('/api/scooter_models', { scooter_mark_id: this.value }, scooterModelSelect, null, 'Select Scooter Model');
         });
+
     });
 </script>
 @endpush

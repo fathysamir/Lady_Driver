@@ -119,8 +119,7 @@ Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store
     Route::get('/drivers/export', [DriverController::class, 'exportCsv'])->name('drivers.export');
     Route::post('drivers/bulk-delete', [DriverController::class, 'bulkDestroy'])->name('drivers.bulk_delete');
     Route::post('/drivers/clear-temp', [DriverController::class, 'clearTempUploadsRequest'])->name('drivers.clearTemp');
-    Route::get('/api/car-models/{markId}',     [DriverController::class, 'getCarModels']);
-    Route::get('/api/scooter-models/{markId}', [DriverController::class, 'getScooterModels']);
+
 
 
     //////////////////////////////////////////////////
