@@ -255,10 +255,10 @@
                                 </div>
 
                                 <div id="id-type-selector">
-                                    <button type="button" class="id-type-btn active" onclick="switchIdType('national')">
+                                    <button type="button" class="id-type-btn active" onclick="switchIdType('national', this)">
                                         National ID <span class="ar">(بطاقة وطنية)</span>
                                     </button>
-                                    <button type="button" class="id-type-btn" onclick="switchIdType('passport')">
+                                    <button type="button" class="id-type-btn" onclick="switchIdType('passport', this)">
                                         Passport <span class="ar">(جواز السفر)</span>
                                     </button>
                                 </div>
@@ -415,10 +415,10 @@
                                 </div>
 
                                 <div id="vehicle-type-selector">
-                                    <button type="button" class="vehicle-type-btn active" onclick="switchVehicle('car')">
+                                    <button type="button" class="vehicle-type-btn active" onclick="switchVehicle('car', this)">
                                         Car <span class="ar">(سيارة)</span>
                                     </button>
-                                    <button type="button" class="vehicle-type-btn" onclick="switchVehicle('scooter')">
+                                    <button type="button" class="vehicle-type-btn" onclick="switchVehicle('scooter', this)">
                                         Scooter <span class="ar">(دراجة)</span>
                                     </button>
                                 </div>
@@ -450,7 +450,7 @@
                                 <div id="car-fields">
                                     <div class="form-group">
                                         <label>Car Mark <span class="ar">(ماركة السيارة)</span></label>
-                                        <select class="form-control" name="car_mark_id">
+                                        <select class="form-control" name="car_mark_id" id="car_mark_select">
                                             <option value="">Select Car Mark</option>
                                             @foreach ($carMarks ?? [] as $mark)
                                                 <option value="{{ $mark->id }}"
@@ -462,14 +462,9 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Car Model <span class="ar">(موديل السيارة)</span></label>
-                                        <select class="form-control" name="car_model_id">
+                                        <select class="form-control" name="car_model_id" id="car_model_select">
                                             <option value="">Select Car Model</option>
-                                            @foreach ($carModels ?? [] as $model)
-                                                <option value="{{ $model->id }}"
-                                                    {{ old('car_model_id') == $model->id ? 'selected' : '' }}>
-                                                    {{ $model->en_name }}
-                                                </option>
-                                            @endforeach
+                                            {{-- populated via JS --}}
                                         </select>
                                     </div>
                                 </div>
@@ -478,7 +473,7 @@
                                 <div id="scooter-fields" style="display:none;">
                                     <div class="form-group">
                                         <label>Scooter Mark <span class="ar">(ماركة الدراجة)</span></label>
-                                        <select class="form-control" name="scooter_mark_id">
+                                        <select class="form-control" name="scooter_mark_id" id="scooter_mark_select">
                                             <option value="">Select Scooter Mark</option>
                                             @foreach ($scooterMarks ?? [] as $mark)
                                                 <option value="{{ $mark->id }}"
@@ -490,14 +485,9 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Scooter Model <span class="ar">(موديل الدراجة)</span></label>
-                                        <select class="form-control" name="scooter_model_id">
+                                        <select class="form-control" name="scooter_model_id" id="scooter_model_select">
                                             <option value="">Select Scooter Model</option>
-                                            @foreach ($scooterModels ?? [] as $model)
-                                                <option value="{{ $model->id }}"
-                                                    {{ old('scooter_model_id') == $model->id ? 'selected' : '' }}>
-                                                    {{ $model->en_name }}
-                                                </option>
-                                            @endforeach
+                                            {{-- populated via JS --}}
                                         </select>
                                     </div>
                                 </div>
@@ -605,10 +595,17 @@
                                     <button type="submit" class="btn btn-light px-5">
                                         <i class="icon-user-follow"></i> Create Driver
                                     </button>
-                                    <a href="{{ route('drivers', request()->query()) }}"
-                                        class="btn btn-secondary px-5">
-                                        Cancel
-                                    </a>
+
+                                    {{-- Cancel: clears temp uploads then redirects --}}
+                                    <form method="POST" action="{{ route('drivers.clearTemp') }}"
+                                          style="display:inline; margin:0; padding:0;">
+                                        @csrf
+                                        <input type="hidden" name="redirect"
+                                               value="{{ route('drivers', request()->query()) }}">
+                                        <button type="submit" class="btn btn-secondary px-5">
+                                            Cancel
+                                        </button>
+                                    </form>
                                 </div>
 
                             </form>
@@ -621,40 +618,105 @@
     </div>
 
 @endsection
+
 @push('scripts')
 <script>
-    function switchIdType(type) {
+    // ── ID type toggle ────────────────────────────────────────────────────────
+    function switchIdType(type, el) {
         document.getElementById('id_type_hidden').value = type;
         document.getElementById('national-id-section').style.display = type === 'national' ? 'block' : 'none';
         document.getElementById('passport-section').style.display    = type === 'passport' ? 'block' : 'none';
         document.querySelectorAll('.id-type-btn').forEach(btn => btn.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        el.classList.add('active');
     }
 
-    function switchVehicle(type) {
+    // ── Vehicle type toggle ───────────────────────────────────────────────────
+    function switchVehicle(type, el) {
         document.getElementById('vehicle_type_hidden').value = type;
         document.getElementById('car-fields').style.display     = type === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = type === 'scooter' ? 'block' : 'none';
         document.querySelectorAll('.vehicle-type-btn').forEach(btn => btn.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        el.classList.add('active');
+    }
+
+    // ── Dependent dropdowns helper ────────────────────────────────────────────
+    function loadModels(url, modelSelect, selectedId) {
+        modelSelect.innerHTML = '<option value="">Loading...</option>';
+        fetch(url)
+            .then(res => res.json())
+            .then(models => {
+                modelSelect.innerHTML = '<option value="">Select Model</option>';
+                models.forEach(model => {
+                    const opt = document.createElement('option');
+                    opt.value = model.id;
+                    opt.textContent = model.en_name;
+                    if (model.id == selectedId) opt.selected = true;
+                    modelSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                modelSelect.innerHTML = '<option value="">Failed to load</option>';
+            });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+
+        // ── Restore toggles after validation error ────────────────────────────
         const idType      = document.getElementById('id_type_hidden').value;
         const vehicleType = document.getElementById('vehicle_type_hidden').value;
 
         document.getElementById('national-id-section').style.display = idType === 'national' ? 'block' : 'none';
-        document.getElementById('passport-section').style.display    = idType === 'passport' ? 'block' : 'none';
+        document.getElementById('passport-section').style.display    = idType === 'passport'  ? 'block' : 'none';
         document.querySelectorAll('.id-type-btn').forEach(btn => {
-            const btnType = btn.getAttribute('onclick').includes('national') ? 'national' : 'passport';
-            btn.classList.toggle('active', btnType === idType);
+            const t = btn.getAttribute('onclick').includes('national') ? 'national' : 'passport';
+            btn.classList.toggle('active', t === idType);
         });
 
         document.getElementById('car-fields').style.display     = vehicleType === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = vehicleType === 'scooter' ? 'block' : 'none';
         document.querySelectorAll('.vehicle-type-btn').forEach(btn => {
-            const btnType = btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
-            btn.classList.toggle('active', btnType === vehicleType);
+            const t = btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
+            btn.classList.toggle('active', t === vehicleType);
+        });
+
+        // ── Car mark → model ──────────────────────────────────────────────────
+        const carMarkSelect  = document.getElementById('car_mark_select');
+        const carModelSelect = document.getElementById('car_model_select');
+        const oldCarMark     = "{{ old('car_mark_id') }}";
+        const oldCarModel    = "{{ old('car_model_id') }}";
+
+        // Restore on validation error
+        if (oldCarMark) {
+            loadModels(`/api/car-models/${oldCarMark}`, carModelSelect, oldCarModel);
+            carMarkSelect.value = oldCarMark;
+        }
+
+        carMarkSelect.addEventListener('change', function () {
+            if (!this.value) {
+                carModelSelect.innerHTML = '<option value="">Select Car Model</option>';
+                return;
+            }
+            loadModels(`/api/car-models/${this.value}`, carModelSelect, null);
+        });
+
+        // ── Scooter mark → model ──────────────────────────────────────────────
+        const scooterMarkSelect  = document.getElementById('scooter_mark_select');
+        const scooterModelSelect = document.getElementById('scooter_model_select');
+        const oldScooterMark     = "{{ old('scooter_mark_id') }}";
+        const oldScooterModel    = "{{ old('scooter_model_id') }}";
+
+        // Restore on validation error
+        if (oldScooterMark) {
+            loadModels(`/api/scooter-models/${oldScooterMark}`, scooterModelSelect, oldScooterModel);
+            scooterMarkSelect.value = oldScooterMark;
+        }
+
+        scooterMarkSelect.addEventListener('change', function () {
+            if (!this.value) {
+                scooterModelSelect.innerHTML = '<option value="">Select Scooter Model</option>';
+                return;
+            }
+            loadModels(`/api/scooter-models/${this.value}`, scooterModelSelect, null);
         });
     });
 </script>
