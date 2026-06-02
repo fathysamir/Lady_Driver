@@ -111,27 +111,61 @@
                                                 href="{{ route('archived_clients', ['type' => $type]) }}"
                                                 style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
 
-                                            {{-- Export Dropdown --}}
-                                            <div class="export-dropdown">
-                                                <button class="btn btn-light px-3" type="button" style="width: 170px;">
-                                                    Export CSV
-                                                </button>
-                                                <div class="export-dropdown-menu">
-                                                    @unless(auth()->user()->hasRole('Supervisor'))
-                                                        <a href="{{ route('clients.export', array_merge(
-                                                                ['type' => $type, 'export_scope' => 'all'],
-                                                                array_filter(['search' => request('search'), 'status' => request('status')])
-                                                            )) }}">Export All Clients</a>
-                                                        <a href="{{ route('clients.export', array_merge(
-                                                                ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
-                                                                array_filter(['search' => request('search'), 'status' => request('status')])
-                                                            )) }}">Export Current Page</a>
-                                                    @endunless
-                                                    <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
-                                                        Export by Date Range
-                                                    </a>
-                                                </div>
-                                            </div>
+                                           {{-- Export Dropdown --}}
+<div class="export-dropdown">
+    <button class="btn btn-light px-3" type="button" style="width: 170px;">
+        Export CSV
+    </button>
+
+    <div class="export-dropdown-menu">
+        @unless(auth()->user()->hasRole('Supervisor'))
+
+            <a href="{{ route('clients.export', array_merge(
+                    ['type' => $type, 'export_scope' => 'all'],
+                    array_filter([
+                        'search' => request('search'),
+                        'status' => request('status')
+                    ])
+                )) }}">
+                Export All Clients
+            </a>
+
+            <a href="{{ route('clients.export', array_merge(
+                    [
+                        'type' => $type,
+                        'export_scope' => 'page',
+                        'page' => $all_users->currentPage()
+                    ],
+                    array_filter([
+                        'search' => request('search'),
+                        'status' => request('status')
+                    ])
+                )) }}">
+                Export Current Page
+            </a>
+
+            {{-- Alexandria Only (city_id = 3) --}}
+            <a href="{{ route('clients.export', array_merge(
+                    [
+                        'type' => $type,
+                        'export_scope' => 'all',
+                        'city' => 3
+                    ],
+                    array_filter([
+                        'search' => request('search'),
+                        'status' => request('status')
+                    ])
+                )) }}">
+                Export Alexandria Clients Only
+            </a>
+
+        @endunless
+
+        <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
+            Export by Date Range
+        </a>
+    </div>
+</div>
 
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
