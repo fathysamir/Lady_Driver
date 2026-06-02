@@ -523,7 +523,7 @@ class AuthController extends ApiController
                 'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
                 'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
             ],
-            'city_id' => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
+            'city_id' => ['nullable', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
         ]);
         // dd($request->all());
