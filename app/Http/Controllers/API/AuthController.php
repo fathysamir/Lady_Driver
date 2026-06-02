@@ -1217,112 +1217,110 @@ class AuthController extends ApiController
 
     return $this->sendResponse($user, null, 200);
 }
-    public function edit_personal_info(Request $request)
-    {
-        $rules = [
+public function edit_personal_info(Request $request)
+{
+    $rules = [
+        'name'           => 'required|string|max:255',
+        'email'          => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            Rule::unique('users', 'email')->ignore(auth()->user()->id)->whereNull('deleted_at'),
+        ],
+        'country_code'   => 'required',
+        'phone'          => [
+            'required',
+            Rule::unique('users')->ignore(auth()->user()->id)->where(function ($query) use ($request) {
+                return $query->where('country_code', $request->country_code)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'address'        => 'nullable',
+        'image'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'ID_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'ID_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'lat'            => 'nullable',
+        'lng'            => 'nullable',
+        'city_id'        => [
+            'required',
+            'exists:cities,id',
+        ],
+        'passport'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+    ];
 
-            'name'           => 'required|string|max:255',
-            'email'          => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore(auth()->user()->id)->whereNull('deleted_at'),
-            ],
-            'country_code'   => 'required',
-
-            'phone'          => [
-                'required',
-                Rule::unique('users')->ignore(auth()->user()->id)->where(function ($query) use ($request) {
-                    return $query->where('country_code', $request->country_code)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'address'        => 'nullable',
-            'image'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'ID_back_image'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'lat'            => 'nullable',
-            'lng'            => 'nullable',
-            'city_id'        => [
-                'required',
-                'exists:cities,id',
-            ],
-            'passport'       => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-
+    if (auth()->user()->mode === 'driver') {
+        $rules['birth_date'] = [
+            'required',
+            'date',
+            'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
         ];
-        if (auth()->user()->mode === 'driver') {
-            $rules['birth_date'] = [
-                'required',
-                'date',
-                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-            ];
-
-        }
-        $validator = Validator::make($request->all(), $rules);
-
-        // dd($request->all());
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-
-            return $this->sendError(null, $errors, 400);
-        }
-
-        User::where('id', auth()->user()->id)->update(['name' => $request->name,
-            'email'                                               => $request->email,
-            'phone'                                               => $request->phone,
-            'country_code'                                        => $request->country_code,
-            'birth_date'                                          => $request->birth_date,
-            'address'                                             => $request->address,
-            'lat'                                                 => floatval($request->lat),
-            'lng'                                                 => floatval($request->lng),
-            'city_id'                                             => $request->city_id,
-        ]);
-        $user = auth()->user();
-        if ($request->file('image')) {
-            $image = getFirstMediaUrl($user, $user->avatarCollection);
-            if ($image != null) {
-                deleteMedia($user, $user->avatarCollection);
-                uploadMedia($request->image, $user->avatarCollection, $user);
-            } else {
-                uploadMedia($request->image, $user->avatarCollection, $user);
-            }
-        }
-        if ($request->file('ID_front_image')) {
-            $image2 = getFirstMediaUrl($user, $user->IDfrontImageCollection);
-            if ($image2 != null) {
-                deleteMedia($user, $user->IDfrontImageCollection);
-                uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
-            } else {
-                uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
-            }
-        }
-        if ($request->file('ID_back_image')) {
-            $image3 = getFirstMediaUrl($user, $user->IDbackImageCollection);
-            if ($image3 != null) {
-                deleteMedia($user, $user->IDbackImageCollection);
-                uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
-            } else {
-                uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
-            }
-        }
-        if ($request->file('passport')) {
-            $image4 = getFirstMediaUrl($user, $user->passportImageCollection);
-            if ($image4 != null) {
-                deleteMedia($user, $user->passportImageCollection);
-                uploadMedia($request->passport, $user->passportImageCollection, $user);
-            } else {
-                uploadMedia($request->passport, $user->passportImageCollection, $user);
-            }
-        }
-        $user = User::with('city:id,name,name_ar')
-    ->find(auth()->user()->id);
-        $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
-        $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
-        return $this->sendResponse($user, 'Account Updated Successfuly', 200);
-
     }
+
+    $validator = Validator::make($request->all(), $rules);
+
+    if ($validator->fails()) {
+        $errors = implode(" / ", $validator->errors()->all());
+        return $this->sendError(null, $errors, 400);
+    }
+
+    User::where('id', auth()->user()->id)->update([
+        'name'         => $request->name,
+        'email'        => $request->email,
+        'phone'        => $request->phone,
+        'country_code' => $request->country_code,
+        'birth_date'   => $request->birth_date,
+        'address'      => $request->address,
+        'lat'          => floatval($request->lat),
+        'lng'          => floatval($request->lng),
+        'city_id'      => $request->city_id,
+    ]);
+
+    // Re-fetch user after update to get fresh instance for image operations
+    $user = User::find(auth()->user()->id);
+
+    if ($request->file('image')) {
+        $image = getFirstMediaUrl($user, $user->avatarCollection);
+        if ($image != null) {
+            deleteMedia($user, $user->avatarCollection);
+        }
+        uploadMedia($request->image, $user->avatarCollection, $user);
+    }
+
+    if ($request->file('ID_front_image')) {
+        $image2 = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+        if ($image2 != null) {
+            deleteMedia($user, $user->IDfrontImageCollection);
+        }
+        uploadMedia($request->ID_front_image, $user->IDfrontImageCollection, $user);
+    }
+
+    if ($request->file('ID_back_image')) {
+        $image3 = getFirstMediaUrl($user, $user->IDbackImageCollection);
+        if ($image3 != null) {
+            deleteMedia($user, $user->IDbackImageCollection);
+        }
+        uploadMedia($request->ID_back_image, $user->IDbackImageCollection, $user);
+    }
+
+    if ($request->file('passport')) {
+        $image4 = getFirstMediaUrl($user, $user->passportImageCollection);
+        if ($image4 != null) {
+            deleteMedia($user, $user->passportImageCollection);
+        }
+        uploadMedia($request->passport, $user->passportImageCollection, $user);
+    }
+
+    // Final fresh fetch with relations for response
+    $user = User::with('city:id,name,name_ar')->find(auth()->user()->id)->fresh();
+
+    $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
+    $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+    $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
+    $user->PassportImage = getFirstMediaUrl($user, $user->passportImageCollection);
+
+    return $this->sendResponse($user, 'Account Updated Successfully', 200);
+}
 
     public function update_national_ID_data(Request $request)
     {
