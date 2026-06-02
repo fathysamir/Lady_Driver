@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Image;
+use Illuminate\Support\Facades\Storage;
 
 class DriverController extends Controller
 {
@@ -363,6 +364,22 @@ public function create()
 }
 public function store(Request $request)
 {
+    // ── Temporarily store uploaded files so they survive validation failure ──
+    $tempFields = [
+        'image', 'ID_front_image', 'ID_back_image', 'passport_image',
+        'license_front_image', 'license_back_image',
+        'vehicle_image', 'plate_image',
+        'vehicle_license_front_image', 'vehicle_license_back_image',
+    ];
+
+    foreach ($tempFields as $field) {
+        if ($request->hasFile($field)) {
+            $path = $request->file($field)->store('temp_uploads', 'public');
+            session()->put("temp_upload_{$field}", $path);
+        }
+    }
+
+    // ── Validation ───────────────────────────────────────────────────────────
     $validator = Validator::make($request->all(), [
         'name'                        => 'required|string|max:255',
         'email'                       => [
@@ -391,13 +408,14 @@ public function store(Request $request)
 
         'national_id'                 => 'nullable|digits:14|required_without:passport_id',
         'national_id_expire_date'     => 'nullable|date',
+        'ID_front_image'              => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_ID_front_image',
+        'ID_back_image'               => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_ID_back_image',
+
         'passport_id'                 => 'nullable|required_without:national_id',
         'passport_expire_date'        => 'nullable|date',
+        'passport_image'              => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
 
-        'image'                       => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        'ID_front_image'              => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_with:national_id',
-        'ID_back_image'               => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_with:national_id',
-        'passport_image'              => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_with:passport_id',
+        'image'                       => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_image',
 
         'driving_license_number'      => 'required|string|max:50',
         'license_expire_date'         => [
@@ -406,8 +424,8 @@ public function store(Request $request)
             'after_or_equal:today',
             'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
         ],
-        'license_front_image'         => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        'license_back_image'          => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        'license_front_image'         => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_license_front_image',
+        'license_back_image'          => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_license_back_image',
 
         'vehicle_type'                => ['required', Rule::in(['car', 'scooter'])],
         'car_mark_id'                 => [
@@ -440,10 +458,10 @@ public function store(Request $request)
             'after_or_equal:today',
             'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
         ],
-        'vehicle_image'               => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        'plate_image'                 => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        'vehicle_license_front_image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
-        'vehicle_license_back_image'  => 'required|image|mimes:jpg,jpeg,png|max:5120',
+        'vehicle_image'               => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_vehicle_image',
+        'plate_image'                 => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_plate_image',
+        'vehicle_license_front_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_vehicle_license_front_image',
+        'vehicle_license_back_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:5120|required_without:temp_vehicle_license_back_image',
 
         'status'                      => ['required', Rule::in(['pending', 'confirmed', 'banned', 'blocked'])],
     ]);
@@ -460,7 +478,7 @@ public function store(Request $request)
         $comfort_year = Setting::where('key', 'comfort_car_start_from_year')
             ->where('category', 'General')
             ->where('type', 'number')
-            ->first()->value;
+            ->first()?->value ?? 2020;
 
         if (intval($request->year) >= intval($comfort_year)) {
             $driver_type = 'comfort_car';
@@ -506,22 +524,10 @@ public function store(Request $request)
     $user->assignRole([$role->id]);
 
     // ── User images ──────────────────────────────────────────────────────────
-    if ($request->hasFile('image')) {
-        $user->addMedia($request->file('image'))
-             ->toMediaCollection($user->avatarCollection);
-    }
-    if ($request->hasFile('ID_front_image')) {
-        $user->addMedia($request->file('ID_front_image'))
-             ->toMediaCollection($user->IDfrontImageCollection);
-    }
-    if ($request->hasFile('ID_back_image')) {
-        $user->addMedia($request->file('ID_back_image'))
-             ->toMediaCollection($user->IDbackImageCollection);
-    }
-    if ($request->hasFile('passport_image')) {
-        $user->addMedia($request->file('passport_image'))
-             ->toMediaCollection($user->passportImageCollection);
-    }
+    $this->uploadFileOrTemp($request, $user, 'image', $user->avatarCollection);
+    $this->uploadFileOrTemp($request, $user, 'ID_front_image', $user->IDfrontImageCollection);
+    $this->uploadFileOrTemp($request, $user, 'ID_back_image', $user->IDbackImageCollection);
+    $this->uploadFileOrTemp($request, $user, 'passport_image', $user->passportImageCollection);
 
     // ── Driving license ──────────────────────────────────────────────────────
     $license = DriverLicense::create([
@@ -530,14 +536,8 @@ public function store(Request $request)
         'expire_date' => $request->license_expire_date,
     ]);
 
-    if ($request->hasFile('license_front_image')) {
-        $license->addMedia($request->file('license_front_image'))
-                ->toMediaCollection($license->LicenseFrontImageCollection);
-    }
-    if ($request->hasFile('license_back_image')) {
-        $license->addMedia($request->file('license_back_image'))
-                ->toMediaCollection($license->LicenseBackImageCollection);
-    }
+    $this->uploadFileOrTemp($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
+    $this->uploadFileOrTemp($request, $license, 'license_back_image', $license->LicenseBackImageCollection);
 
     // ── Vehicle ──────────────────────────────────────────────────────────────
     if ($request->vehicle_type == 'car') {
@@ -565,22 +565,10 @@ public function store(Request $request)
             'animals'             => '0',
         ]);
 
-        if ($request->hasFile('vehicle_image')) {
-            $car->addMedia($request->file('vehicle_image'))
-                ->toMediaCollection($car->avatarCollection);
-        }
-        if ($request->hasFile('plate_image')) {
-            $car->addMedia($request->file('plate_image'))
-                ->toMediaCollection($car->PlateImageCollection);
-        }
-        if ($request->hasFile('vehicle_license_front_image')) {
-            $car->addMedia($request->file('vehicle_license_front_image'))
-                ->toMediaCollection($car->LicenseFrontImageCollection);
-        }
-        if ($request->hasFile('vehicle_license_back_image')) {
-            $car->addMedia($request->file('vehicle_license_back_image'))
-                ->toMediaCollection($car->LicenseBackImageCollection);
-        }
+        $this->uploadFileOrTemp($request, $car, 'vehicle_image', $car->avatarCollection);
+        $this->uploadFileOrTemp($request, $car, 'plate_image', $car->PlateImageCollection);
+        $this->uploadFileOrTemp($request, $car, 'vehicle_license_front_image', $car->LicenseFrontImageCollection);
+        $this->uploadFileOrTemp($request, $car, 'vehicle_license_back_image', $car->LicenseBackImageCollection);
 
     } elseif ($request->vehicle_type == 'scooter') {
         $lastScooter = Scooter::orderBy('id', 'desc')->first();
@@ -603,25 +591,33 @@ public function store(Request $request)
             'license_expire_date' => $request->vehicle_license_expire_date,
         ]);
 
-        if ($request->hasFile('vehicle_image')) {
-            $scooter->addMedia($request->file('vehicle_image'))
-                    ->toMediaCollection($scooter->avatarCollection);
-        }
-        if ($request->hasFile('plate_image')) {
-            $scooter->addMedia($request->file('plate_image'))
-                    ->toMediaCollection($scooter->PlateImageCollection);
-        }
-        if ($request->hasFile('vehicle_license_front_image')) {
-            $scooter->addMedia($request->file('vehicle_license_front_image'))
-                    ->toMediaCollection($scooter->LicenseFrontImageCollection);
-        }
-        if ($request->hasFile('vehicle_license_back_image')) {
-            $scooter->addMedia($request->file('vehicle_license_back_image'))
-                    ->toMediaCollection($scooter->LicenseBackImageCollection);
-        }
+        $this->uploadFileOrTemp($request, $scooter, 'vehicle_image', $scooter->avatarCollection);
+        $this->uploadFileOrTemp($request, $scooter, 'plate_image', $scooter->PlateImageCollection);
+        $this->uploadFileOrTemp($request, $scooter, 'vehicle_license_front_image', $scooter->LicenseFrontImageCollection);
+        $this->uploadFileOrTemp($request, $scooter, 'vehicle_license_back_image', $scooter->LicenseBackImageCollection);
+    }
+
+    // ── Clear all temp session files ─────────────────────────────────────────
+    foreach ($tempFields as $field) {
+        session()->forget("temp_upload_{$field}");
     }
 
     return redirect()->route('drivers', request()->query())
         ->with('success', 'Driver account created successfully.');
+}
+
+private function uploadFileOrTemp(Request $request, $model, string $field, string $collection): void
+{
+    if ($request->hasFile($field)) {
+        $model->addMedia($request->file($field))
+              ->toMediaCollection($collection);
+        session()->forget("temp_upload_{$field}");
+
+    } elseif ($request->input("temp_{$field}") && Storage::disk('public')->exists($request->input("temp_{$field}"))) {
+        $tempPath = storage_path('app/public/' . $request->input("temp_{$field}"));
+        $model->addMedia($tempPath)
+              ->toMediaCollection($collection);
+        session()->forget("temp_upload_{$field}");
+    }
 }
 }
