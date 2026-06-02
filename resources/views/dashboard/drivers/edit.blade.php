@@ -598,7 +598,7 @@
                                     <label>
                                         Scooter Details : you can view scooter details from
                                         <a style="color: yellow; font-size: 18px; font-weight: bold;"
-                                           href="{{ url('/admin-dashboard/car/edit/' . $user->scooter->id) }}">
+                                           href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">
                                             Here
                                         </a>
                                     </label>
