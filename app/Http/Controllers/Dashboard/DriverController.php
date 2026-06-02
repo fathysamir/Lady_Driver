@@ -391,7 +391,7 @@ public function store(Request $request)
             'required', 'string', 'email', 'max:255',
             Rule::unique('users')->whereNull('deleted_at'),
         ],
-        'password'     => 'required|string|min:8',
+        'password'     => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$!%*?~])[\S]{8,}$/'],
         'country_code' => 'required|string|max:10',
         'phone'        => [
             'required',
