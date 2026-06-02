@@ -130,19 +130,7 @@
                 Export All Clients
             </a>
 
-            <a href="{{ route('clients.export', array_merge(
-                    [
-                        'type' => $type,
-                        'export_scope' => 'page',
-                        'page' => $all_users->currentPage()
-                    ],
-                    array_filter([
-                        'search' => request('search'),
-                        'status' => request('status')
-                    ])
-                )) }}">
-                Export Current Page
-            </a>
+
 
             {{-- Alexandria Only (city_id = 3) --}}
             <a href="{{ route('clients.export', array_merge(
