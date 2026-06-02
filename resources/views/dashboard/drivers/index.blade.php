@@ -153,6 +153,11 @@
                                                     </a>
                                                 </div>
                                             </div>
+                                            <a class="btn btn-light px-3"
+   href="{{ route('drivers.create', request()->query()) }}"
+   style="margin:0% 0% 1% 1%; width: 170px;">
+    <i class="bi bi-person-plus"></i> Create Driver
+</a>
 
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
