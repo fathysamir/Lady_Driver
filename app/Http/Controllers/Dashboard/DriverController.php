@@ -580,20 +580,36 @@ public function store(Request $request)
 private function attachMedia(Request $request, $model, string $field, string $collection): void
 {
     $sessionKey = "temp_upload_{$field}";
+    $file = null;
 
     if ($request->hasFile($field)) {
-        // Fresh upload — use directly
-        $model->addMedia($request->file($field))
-              ->toMediaCollection($collection);
+        $file = $request->file($field);
+        $inv1 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+        $inv2 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+        $filename = $model->id . $inv1 . $inv2 . time() . '.' . $file->extension();
+        $file->move(public_path('images/'), $filename);
+        $path = '/images/' . $filename;
         session()->forget($sessionKey);
 
     } elseif (session($sessionKey) && Storage::disk('public')->exists(session($sessionKey))) {
-        // Use the temp file that survived validation
-        $fullPath = storage_path('app/public/' . session($sessionKey));
-        $model->addMedia($fullPath)
-              ->toMediaCollection($collection);
+        $tempPath = storage_path('app/public/' . session($sessionKey));
+        $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
+        $inv1 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+        $inv2 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+        $filename = $model->id . $inv1 . $inv2 . time() . '.' . $ext;
+        rename($tempPath, public_path('images/' . $filename));
+        $path = '/images/' . $filename;
         session()->forget($sessionKey);
+    } else {
+        return;
     }
+
+    \DB::table('media')->insert([
+        'attachmentable_type' => get_class($model),
+        'attachmentable_id'   => $model->id,
+        'collection_name'     => $collection,
+        'path'                => $path,
+    ]);
 }
 
 // ── Clear temp uploads from storage + session ─────────────────────────────────
