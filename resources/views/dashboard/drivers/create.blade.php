@@ -16,24 +16,6 @@
             margin: 0;
         }
 
-        .temp-password-notice {
-            background-color: rgba(255, 230, 0, 0.12);
-            border: 1px solid rgba(255, 230, 0, 0.4);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #ffe600;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .temp-password-notice .bi {
-            font-size: 1.1rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
         #id-type-selector {
             display: flex;
             gap: 12px;
@@ -79,6 +61,12 @@
             border-color: rgb(255, 230, 0);
             color: rgb(255, 230, 0);
         }
+
+        .ar {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            margin-right: 4px;
+        }
     </style>
 
     <div class="content-wrapper">
@@ -91,15 +79,6 @@
                             <h5 class="card-title" style="margin-bottom: 20px;">
                                 Create New Driver Account
                             </h5>
-
-                            <div class="temp-password-notice">
-                                <span class="bi bi-info-circle-fill"></span>
-                                <div>
-                                    You are creating this account on behalf of the driver. Set a temporary password —
-                                    the driver should be asked to change it upon first login. Their credentials
-                                    (email + temp password) should be shared with them directly.
-                                </div>
-                            </div>
 
                             @if ($errors->any())
                                 <div class="alert alert-danger" style="margin-bottom: 16px;">
@@ -120,13 +99,16 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Full Name <span style="color:red">*</span></label>
+                                    <label>Full Name <span class="ar">(الاسم بالكامل)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="name"
                                         placeholder="Enter full name" value="{{ old('name') }}" required>
+                                    @error('name')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Email <span style="color:red">*</span></label>
+                                    <label>Email <span class="ar">(البريد الإلكتروني)</span><span style="color:red">*</span></label>
                                     <input type="email" class="form-control" name="email"
                                         placeholder="Enter email address" value="{{ old('email') }}" required>
                                     @error('email')
@@ -135,7 +117,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Temporary Password <span style="color:red">*</span></label>
+                                    <label>Temporary Password <span class="ar">(كلمة المرور المؤقتة)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="password"
                                         placeholder="Set a temporary password (min 8 chars)"
                                         value="{{ old('password') }}" required minlength="8"
@@ -154,16 +136,25 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Profile Image <span style="color:red">*</span></label>
+                                    <label>Profile Image <span class="ar">(الصورة الشخصية)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_image" value="{{ session('temp_upload_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_image') ? '' : 'required' }}>
                                     @error('image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Phone Number <span style="color:red">*</span></label>
+                                    <label>Phone Number <span class="ar">(رقم الهاتف)</span><span style="color:red">*</span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <select name="country_code" class="form-control">
@@ -230,7 +221,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>City <span style="color:red">*</span></label>
+                                    <label>City <span class="ar">(المدينة)</span><span style="color:red">*</span></label>
                                     <select class="form-control" name="city_id" required>
                                         <option value="">Select City</option>
                                         @foreach ($cities as $city)
@@ -246,7 +237,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Birth Date <span style="color:red">*</span></label>
+                                    <label>Birth Date <span class="ar">(تاريخ الميلاد)</span><span style="color:red">*</span></label>
                                     <input type="date" class="form-control" name="birth_date"
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('birth_date') }}"
@@ -259,15 +250,15 @@
 
                                 {{-- ── IDENTITY DOCUMENT ───────────────────────────────── --}}
                                 <div class="section-divider">
-                                    <h4>Identity Document</h4><hr>
+                                    <h4>Identity Document <span class="ar">(وثيقة الهوية)</span></h4><hr>
                                 </div>
 
                                 <div id="id-type-selector">
                                     <button type="button" class="id-type-btn active" onclick="switchIdType('national')">
-                                        National ID
+                                        National ID <span class="ar">(بطاقة وطنية)</span>
                                     </button>
                                     <button type="button" class="id-type-btn" onclick="switchIdType('passport')">
-                                        Passport
+                                        Passport <span class="ar">(جواز السفر)</span>
                                     </button>
                                 </div>
                                 <input type="hidden" name="id_type" id="id_type_hidden" value="{{ old('id_type', 'national') }}">
@@ -275,7 +266,7 @@
                                 {{-- National ID --}}
                                 <div id="national-id-section">
                                     <div class="form-group">
-                                        <label>National ID Number</label>
+                                        <label>National ID Number <span class="ar">(رقم البطاقة الوطنية)</span></label>
                                         <input type="number" class="form-control" name="national_id"
                                             placeholder="14-digit national ID" value="{{ old('national_id') }}">
                                         @error('national_id')
@@ -283,13 +274,21 @@
                                         @enderror
                                     </div>
                                     <div class="form-group">
-                                        <label>National ID Expiration Date</label>
+                                        <label>National ID Expiration Date <span class="ar">(تاريخ انتهاء البطاقة)</span></label>
                                         <input type="date" class="form-control" name="national_id_expire_date"
                                             style="background-color: rgba(255,255,255,0.2);"
                                             value="{{ old('national_id_expire_date') }}">
                                     </div>
                                     <div class="form-group">
-                                        <label>ID Front Image</label>
+                                        <label>ID Front Image <span class="ar">(صورة البطاقة - أمامية)</span></label>
+                                        @if(session('temp_upload_ID_front_image'))
+                                            <div style="margin-bottom:8px;">
+                                                <img src="{{ asset('storage/' . session('temp_upload_ID_front_image')) }}"
+                                                    style="height:80px; border-radius:6px;">
+                                                <input type="hidden" name="temp_ID_front_image" value="{{ session('temp_upload_ID_front_image') }}">
+                                                <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                            </div>
+                                        @endif
                                         <input type="file" class="form-control" name="ID_front_image"
                                             accept="image/jpg,image/jpeg,image/png">
                                         @error('ID_front_image')
@@ -297,7 +296,15 @@
                                         @enderror
                                     </div>
                                     <div class="form-group">
-                                        <label>ID Back Image</label>
+                                        <label>ID Back Image <span class="ar">(صورة البطاقة - خلفية)</span></label>
+                                        @if(session('temp_upload_ID_back_image'))
+                                            <div style="margin-bottom:8px;">
+                                                <img src="{{ asset('storage/' . session('temp_upload_ID_back_image')) }}"
+                                                    style="height:80px; border-radius:6px;">
+                                                <input type="hidden" name="temp_ID_back_image" value="{{ session('temp_upload_ID_back_image') }}">
+                                                <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                            </div>
+                                        @endif
                                         <input type="file" class="form-control" name="ID_back_image"
                                             accept="image/jpg,image/jpeg,image/png">
                                         @error('ID_back_image')
@@ -309,7 +316,7 @@
                                 {{-- Passport --}}
                                 <div id="passport-section" style="display:none;">
                                     <div class="form-group">
-                                        <label>Passport Number</label>
+                                        <label>Passport Number <span class="ar">(رقم جواز السفر)</span></label>
                                         <input type="text" class="form-control" name="passport_id"
                                             placeholder="Passport number" value="{{ old('passport_id') }}">
                                         @error('passport_id')
@@ -317,13 +324,21 @@
                                         @enderror
                                     </div>
                                     <div class="form-group">
-                                        <label>Passport Expiration Date</label>
+                                        <label>Passport Expiration Date <span class="ar">(تاريخ انتهاء جواز السفر)</span></label>
                                         <input type="date" class="form-control" name="passport_expire_date"
                                             style="background-color: rgba(255,255,255,0.2);"
                                             value="{{ old('passport_expire_date') }}">
                                     </div>
                                     <div class="form-group">
-                                        <label>Passport Image</label>
+                                        <label>Passport Image <span class="ar">(صورة جواز السفر)</span></label>
+                                        @if(session('temp_upload_passport_image'))
+                                            <div style="margin-bottom:8px;">
+                                                <img src="{{ asset('storage/' . session('temp_upload_passport_image')) }}"
+                                                    style="height:80px; border-radius:6px;">
+                                                <input type="hidden" name="temp_passport_image" value="{{ session('temp_upload_passport_image') }}">
+                                                <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                            </div>
+                                        @endif
                                         <input type="file" class="form-control" name="passport_image"
                                             accept="image/jpg,image/jpeg,image/png">
                                         @error('passport_image')
@@ -334,11 +349,11 @@
 
                                 {{-- ── DRIVING LICENSE ─────────────────────────────────── --}}
                                 <div class="section-divider">
-                                    <h4>Driving License</h4><hr>
+                                    <h4>Driving License <span class="ar">(رخصة القيادة)</span></h4><hr>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>License Number <span style="color:red">*</span></label>
+                                    <label>License Number <span class="ar">(رقم الرخصة)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="driving_license_number"
                                         placeholder="License number" value="{{ old('driving_license_number') }}" required>
                                     @error('driving_license_number')
@@ -347,7 +362,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>License Expiration Date <span style="color:red">*</span></label>
+                                    <label>License Expiration Date <span class="ar">(تاريخ انتهاء الرخصة)</span><span style="color:red">*</span></label>
                                     <input type="date" class="form-control" name="license_expire_date"
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('license_expire_date') }}"
@@ -358,18 +373,36 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>License Front Image <span style="color:red">*</span></label>
+                                    <label>License Front Image <span class="ar">(صورة الرخصة - أمامية)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_license_front_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_license_front_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_license_front_image" value="{{ session('temp_upload_license_front_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="license_front_image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_license_front_image') ? '' : 'required' }}>
                                     @error('license_front_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="form-group">
-                                    <label>License Back Image <span style="color:red">*</span></label>
+                                    <label>License Back Image <span class="ar">(صورة الرخصة - خلفية)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_license_back_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_license_back_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_license_back_image" value="{{ session('temp_upload_license_back_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="license_back_image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_license_back_image') ? '' : 'required' }}>
                                     @error('license_back_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
@@ -377,27 +410,27 @@
 
                                 {{-- ── VEHICLE ─────────────────────────────────────────── --}}
                                 <div class="section-divider">
-                                    <h4>Vehicle</h4><hr>
+                                    <h4>Vehicle <span class="ar">(المركبة)</span></h4><hr>
                                 </div>
 
                                 <div id="vehicle-type-selector">
                                     <button type="button" class="vehicle-type-btn active" onclick="switchVehicle('car')">
-                                        Car
+                                        Car <span class="ar">(سيارة)</span>
                                     </button>
                                     <button type="button" class="vehicle-type-btn" onclick="switchVehicle('scooter')">
-                                        Scooter
+                                        Scooter <span class="ar">(دراجة)</span>
                                     </button>
                                 </div>
                                 <input type="hidden" name="vehicle_type" id="vehicle_type_hidden" value="{{ old('vehicle_type', 'car') }}">
 
                                 <div class="form-group">
-                                    <label>Color <span style="color:red">*</span></label>
+                                    <label>Color <span class="ar">(اللون)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="color"
                                         placeholder="e.g. White" value="{{ old('color') }}" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Year <span style="color:red">*</span></label>
+                                    <label>Year <span class="ar">(سنة الصنع)</span><span style="color:red">*</span></label>
                                     <input type="number" class="form-control" name="year"
                                         placeholder="e.g. 2020" value="{{ old('year') }}"
                                         min="1990" max="{{ date('Y') }}" required>
@@ -407,7 +440,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Plate Number <span style="color:red">*</span></label>
+                                    <label>Plate Number <span class="ar">(رقم اللوحة)</span><span style="color:red">*</span></label>
                                     <input type="text" class="form-control" name="plate_num"
                                         placeholder="Vehicle plate number" value="{{ old('plate_num') }}" required>
                                 </div>
@@ -415,25 +448,25 @@
                                 {{-- Car fields --}}
                                 <div id="car-fields">
                                     <div class="form-group">
-                                        <label>Car Mark</label>
+                                        <label>Car Mark <span class="ar">(ماركة السيارة)</span></label>
                                         <select class="form-control" name="car_mark_id">
                                             <option value="">Select Car Mark</option>
                                             @foreach ($carMarks ?? [] as $mark)
                                                 <option value="{{ $mark->id }}"
                                                     {{ old('car_mark_id') == $mark->id ? 'selected' : '' }}>
-                                                    {{ $mark->name }}
+                                                    {{ $mark->en_name }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label>Car Model</label>
+                                        <label>Car Model <span class="ar">(موديل السيارة)</span></label>
                                         <select class="form-control" name="car_model_id">
                                             <option value="">Select Car Model</option>
                                             @foreach ($carModels ?? [] as $model)
                                                 <option value="{{ $model->id }}"
                                                     {{ old('car_model_id') == $model->id ? 'selected' : '' }}>
-                                                    {{ $model->name }}
+                                                    {{ $model->en_name }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -443,25 +476,25 @@
                                 {{-- Scooter fields --}}
                                 <div id="scooter-fields" style="display:none;">
                                     <div class="form-group">
-                                        <label>Scooter Mark</label>
+                                        <label>Scooter Mark <span class="ar">(ماركة الدراجة)</span></label>
                                         <select class="form-control" name="scooter_mark_id">
                                             <option value="">Select Scooter Mark</option>
                                             @foreach ($scooterMarks ?? [] as $mark)
                                                 <option value="{{ $mark->id }}"
                                                     {{ old('scooter_mark_id') == $mark->id ? 'selected' : '' }}>
-                                                    {{ $mark->name }}
+                                                    {{ $mark->en_name }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label>Scooter Model</label>
+                                        <label>Scooter Model <span class="ar">(موديل الدراجة)</span></label>
                                         <select class="form-control" name="scooter_model_id">
                                             <option value="">Select Scooter Model</option>
                                             @foreach ($scooterModels ?? [] as $model)
                                                 <option value="{{ $model->id }}"
                                                     {{ old('scooter_model_id') == $model->id ? 'selected' : '' }}>
-                                                    {{ $model->name }}
+                                                    {{ $model->en_name }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -469,25 +502,43 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Vehicle Image <span style="color:red">*</span></label>
+                                    <label>Vehicle Image <span class="ar">(صورة المركبة)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_vehicle_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_vehicle_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_vehicle_image" value="{{ session('temp_upload_vehicle_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="vehicle_image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_vehicle_image') ? '' : 'required' }}>
                                     @error('vehicle_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Plate Image <span style="color:red">*</span></label>
+                                    <label>Plate Image <span class="ar">(صورة اللوحة)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_plate_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_plate_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_plate_image" value="{{ session('temp_upload_plate_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="plate_image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_plate_image') ? '' : 'required' }}>
                                     @error('plate_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Vehicle License Expiration Date <span style="color:red">*</span></label>
+                                    <label>Vehicle License Expiration Date <span class="ar">(تاريخ انتهاء رخصة المركبة)</span><span style="color:red">*</span></label>
                                     <input type="date" class="form-control" name="vehicle_license_expire_date"
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('vehicle_license_expire_date') }}"
@@ -498,18 +549,36 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Vehicle License Front Image <span style="color:red">*</span></label>
+                                    <label>Vehicle License Front Image <span class="ar">(صورة رخصة المركبة - أمامية)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_vehicle_license_front_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_vehicle_license_front_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_vehicle_license_front_image" value="{{ session('temp_upload_vehicle_license_front_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="vehicle_license_front_image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_vehicle_license_front_image') ? '' : 'required' }}>
                                     @error('vehicle_license_front_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Vehicle License Back Image <span style="color:red">*</span></label>
+                                    <label>Vehicle License Back Image <span class="ar">(صورة رخصة المركبة - خلفية)</span><span style="color:red">*</span></label>
+                                    @if(session('temp_upload_vehicle_license_back_image'))
+                                        <div style="margin-bottom:8px;">
+                                            <img src="{{ asset('storage/' . session('temp_upload_vehicle_license_back_image')) }}"
+                                                style="height:80px; border-radius:6px;">
+                                            <input type="hidden" name="temp_vehicle_license_back_image" value="{{ session('temp_upload_vehicle_license_back_image') }}">
+                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        </div>
+                                    @endif
                                     <input type="file" class="form-control" name="vehicle_license_back_image"
-                                        accept="image/jpg,image/jpeg,image/png" required>
+                                        accept="image/jpg,image/jpeg,image/png"
+                                        {{ session('temp_upload_vehicle_license_back_image') ? '' : 'required' }}>
                                     @error('vehicle_license_back_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
@@ -517,16 +586,16 @@
 
                                 {{-- ── ACCOUNT STATUS ──────────────────────────────────── --}}
                                 <div class="section-divider">
-                                    <h4>Account Status</h4><hr>
+                                    <h4>Account Status <span class="ar">(حالة الحساب)</span></h4><hr>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Status <span style="color:red">*</span></label>
+                                    <label>Status <span class="ar">(الحالة)</span><span style="color:red">*</span></label>
                                     <select class="form-control" name="status" required>
-                                        <option value="pending"   {{ old('status','pending')=='pending'   ? 'selected':'' }}>Pending</option>
-                                        <option value="confirmed" {{ old('status')=='confirmed' ? 'selected':'' }}>Confirmed</option>
-                                        <option value="banned"    {{ old('status')=='banned'    ? 'selected':'' }}>Banned</option>
-                                        <option value="blocked"   {{ old('status')=='blocked'   ? 'selected':'' }}>Blocked</option>
+                                        <option value="pending"   {{ old('status','pending')=='pending'   ? 'selected':'' }}>Pending (قيد الانتظار)</option>
+                                        <option value="confirmed" {{ old('status')=='confirmed' ? 'selected':'' }}>Confirmed (مفعّل)</option>
+                                        <option value="banned"    {{ old('status')=='banned'    ? 'selected':'' }}>Banned (محظور)</option>
+                                        <option value="blocked"   {{ old('status')=='blocked'   ? 'selected':'' }}>Blocked (موقوف)</option>
                                     </select>
                                 </div>
 
@@ -583,7 +652,7 @@
         document.getElementById('car-fields').style.display     = vehicleType === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = vehicleType === 'scooter' ? 'block' : 'none';
         document.querySelectorAll('.vehicle-type-btn').forEach(btn => {
-            const btnType = btn.getAttribute('onclick').includes('car') ? 'car' : 'scooter';
+            const btnType = btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
             btn.classList.toggle('active', btnType === vehicleType);
         });
     });
