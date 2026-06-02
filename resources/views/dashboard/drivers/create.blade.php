@@ -601,15 +601,14 @@
     // ── POST to existing API routes to get filtered models ────────────────────
     // API returns { data: [...], message: null } via sendResponse()
     function loadModels(url, body, modelSelect, selectedId, defaultText) {
-        modelSelect.innerHTML = '<option value="">Loading...</option>';
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-            body: JSON.stringify(body),
-        })
+    modelSelect.innerHTML = '<option value="">Loading...</option>';
+    var params = new URLSearchParams(body).toString();
+    fetch(url + '?' + params, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+    })
         .then(function(res) { return res.json(); })
         .then(function(response) {
             modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
