@@ -34,7 +34,6 @@
             margin-top: 1px;
         }
 
-        /* Identity toggle */
         #id-type-selector {
             display: flex;
             gap: 12px;
@@ -58,7 +57,6 @@
             color: rgb(255, 230, 0);
         }
 
-        /* Vehicle toggle */
         #vehicle-type-selector {
             display: flex;
             gap: 12px;
@@ -94,7 +92,6 @@
                                 Create New Driver Account
                             </h5>
 
-                            {{-- Temporary password notice --}}
                             <div class="temp-password-notice">
                                 <span class="bi bi-info-circle-fill"></span>
                                 <div>
@@ -154,6 +151,15 @@
                                 {{-- ── PERSONAL INFO ───────────────────────────────────── --}}
                                 <div class="section-divider">
                                     <h4>Personal Information</h4><hr>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Profile Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('image')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div class="form-group">
@@ -282,6 +288,22 @@
                                             style="background-color: rgba(255,255,255,0.2);"
                                             value="{{ old('national_id_expire_date') }}">
                                     </div>
+                                    <div class="form-group">
+                                        <label>ID Front Image</label>
+                                        <input type="file" class="form-control" name="ID_front_image"
+                                            accept="image/jpg,image/jpeg,image/png">
+                                        @error('ID_front_image')
+                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="form-group">
+                                        <label>ID Back Image</label>
+                                        <input type="file" class="form-control" name="ID_back_image"
+                                            accept="image/jpg,image/jpeg,image/png">
+                                        @error('ID_back_image')
+                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
 
                                 {{-- Passport --}}
@@ -299,6 +321,14 @@
                                         <input type="date" class="form-control" name="passport_expire_date"
                                             style="background-color: rgba(255,255,255,0.2);"
                                             value="{{ old('passport_expire_date') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Passport Image</label>
+                                        <input type="file" class="form-control" name="passport_image"
+                                            accept="image/jpg,image/jpeg,image/png">
+                                        @error('passport_image')
+                                            <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -323,6 +353,24 @@
                                         value="{{ old('license_expire_date') }}"
                                         min="{{ now()->format('Y-m-d') }}" required>
                                     @error('license_expire_date')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label>License Front Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="license_front_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('license_front_image')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label>License Back Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="license_back_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('license_back_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -421,12 +469,48 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label>Vehicle Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="vehicle_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('vehicle_image')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Plate Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="plate_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('plate_image')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
                                     <label>Vehicle License Expiration Date <span style="color:red">*</span></label>
                                     <input type="date" class="form-control" name="vehicle_license_expire_date"
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('vehicle_license_expire_date') }}"
                                         min="{{ now()->format('Y-m-d') }}" required>
                                     @error('vehicle_license_expire_date')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Vehicle License Front Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="vehicle_license_front_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('vehicle_license_front_image')
+                                        <p style="color:red; margin-top:4px;">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Vehicle License Back Image <span style="color:red">*</span></label>
+                                    <input type="file" class="form-control" name="vehicle_license_back_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                    @error('vehicle_license_back_image')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -469,34 +553,26 @@
 @endsection
 @push('scripts')
 <script>
-    // ── Identity type toggle ────────────────────────────────────────────────────
     function switchIdType(type) {
         document.getElementById('id_type_hidden').value = type;
-
         document.getElementById('national-id-section').style.display = type === 'national' ? 'block' : 'none';
         document.getElementById('passport-section').style.display    = type === 'passport' ? 'block' : 'none';
-
         document.querySelectorAll('.id-type-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
     }
 
-    // ── Vehicle type toggle ─────────────────────────────────────────────────────
     function switchVehicle(type) {
         document.getElementById('vehicle_type_hidden').value = type;
-
         document.getElementById('car-fields').style.display     = type === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = type === 'scooter' ? 'block' : 'none';
-
         document.querySelectorAll('.vehicle-type-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
     }
 
-    // ── Restore old() state after validation failure ────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
         const idType      = document.getElementById('id_type_hidden').value;
         const vehicleType = document.getElementById('vehicle_type_hidden').value;
 
-        // restore ID section
         document.getElementById('national-id-section').style.display = idType === 'national' ? 'block' : 'none';
         document.getElementById('passport-section').style.display    = idType === 'passport' ? 'block' : 'none';
         document.querySelectorAll('.id-type-btn').forEach(btn => {
@@ -504,7 +580,6 @@
             btn.classList.toggle('active', btnType === idType);
         });
 
-        // restore vehicle section
         document.getElementById('car-fields').style.display     = vehicleType === 'car'     ? 'block' : 'none';
         document.getElementById('scooter-fields').style.display = vehicleType === 'scooter' ? 'block' : 'none';
         document.querySelectorAll('.vehicle-type-btn').forEach(btn => {

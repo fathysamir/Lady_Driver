@@ -109,6 +109,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::post('clients/bulk-delete', [ClientController::class, 'bulkDestroy'])->name('clients.bulk_delete');
   /////////////////////////////////////////
     Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');
+    Route::get('/drivers/create', [DriverController::class, 'create'])->name('drivers.create');
+Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
     Route::get('/driver/edit/{id}', [DriverController::class, 'edit'])->name('edit.driver');
     Route::put('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
     Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
@@ -116,8 +118,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::any('/driver/restore/{id}', [DriverController::class, 'restore'])->name('restore.driver');
     Route::get('/drivers/export', [DriverController::class, 'exportCsv'])->name('drivers.export');
     Route::post('drivers/bulk-delete', [DriverController::class, 'bulkDestroy'])->name('drivers.bulk_delete');
-    Route::get('/drivers/create', [DriverController::class, 'create'])
-    ->name('drivers.create');
+
     //////////////////////////////////////////////////
     Route::any('/cities', [CityController::class, 'index'])->name('cities');
     Route::get('/cities/create', [CityController::class, 'create'])->name('add.city');
