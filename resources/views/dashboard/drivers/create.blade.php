@@ -227,7 +227,7 @@
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('birth_date') }}"
                                         max="{{ now()->subYears(16)->format('Y-m-d') }}" required>
-                                    <small style="color: rgba(255,255,255,0.5);">Driver must be at least 16 years old.</small>
+                                    <small style="color: rgba(255,255,255,0.5);">Driver must be at least 16 years old. <br> mm شهر <br> dd يوم  <br> yy سنة</small>
                                     @error('birth_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
