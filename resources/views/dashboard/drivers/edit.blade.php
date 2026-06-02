@@ -586,7 +586,7 @@
                                 @if ($user->car)
                                 <div class="form-group">
                                     <label>
-                                        Car : you can show car from
+                                        Car Details : you can view car details from
                                         <a style="color: yellow; font-size: 18px; font-weight: bold;"
                                            href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
                                             Here
@@ -596,7 +596,7 @@
                                 @elseif($user->scooter)
                                 <div class="form-group">
                                     <label>
-                                        Scooter : you can show scooter from
+                                        Scooter Details : you can view scooter details from
                                         <a style="color: yellow; font-size: 18px; font-weight: bold;"
                                            href="{{ url('/admin-dashboard/car/edit/' . $user->scooter->id) }}">
                                             Here
