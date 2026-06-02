@@ -343,14 +343,14 @@ public function bulkDestroy(Request $request)
 public function create()
 {
     $cities        = City::orderBy('name')->get();
-    $carMarks      = CarMark::orderBy('name')->get();
-    $carModels     = CarModel::orderBy('name')->get();
-    $scooterMarks  = MotorcycleMark::orderBy('name')->get();
-    $scooterModels = MotorcycleModel::orderBy('name')->get();
+    $carMarks      = CarMark::orderBy('en_name')->get();
+    $carModels     = CarModel::orderBy('en_name')->get();
+    $scooterMarks  = MotorcycleMark::orderBy('en_name')->get();
+    $scooterModels = MotorcycleModel::orderBy('en_name')->get();
     $comfort_year  = Setting::where('key', 'comfort_car_start_from_year')
                         ->where('category', 'General')
                         ->where('type', 'number')
-                        ->first()->value ?? 2020;
+                        ->first()?->value ?? 2020;
 
     return view('dashboard.drivers.create', compact(
         'cities',
