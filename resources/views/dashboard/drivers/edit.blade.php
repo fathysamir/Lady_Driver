@@ -584,15 +584,25 @@
                                 @endif
 
                                 @if ($user->car)
-                                    <div class="form-group">
-                                        <label>Car : you can show car from <a style="color: blue"
-                                                href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">hear</a></label>
-                                    </div>
+                                <div class="form-group">
+                                    <label>
+                                        Car : you can show car from
+                                        <a style="color: blue; font-size: 18px; font-weight: bold;"
+                                           href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
+                                            Here
+                                        </a>
+                                    </label>
+                                </div>
                                 @elseif($user->scooter)
-                                    <div class="form-group">
-                                        <label>Scooter : you can show scooter from <a style="color: blue"
-                                                href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">hear</a></label>
-                                    </div>
+                                <div class="form-group">
+                                    <label>
+                                        Scooter : you can show scooter from
+                                        <a style="color: blue; font-size: 18px; font-weight: bold;"
+                                           href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
+                                            Here
+                                        </a>
+                                    </label>
+                                </div>
                                 @else
                                     <div class="form-group" style="display: flex;">
                                         <label>No vehicle data has been entered</label>
