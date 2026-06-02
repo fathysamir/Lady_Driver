@@ -587,7 +587,7 @@
                                 <div class="form-group">
                                     <label>
                                         Car : you can show car from
-                                        <a style="color: blue; font-size: 18px; font-weight: bold;"
+                                        <a style="color: yellow; font-size: 18px; font-weight: bold;"
                                            href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
                                             Here
                                         </a>
