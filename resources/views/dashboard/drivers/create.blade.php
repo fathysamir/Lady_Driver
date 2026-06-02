@@ -64,7 +64,7 @@
 
         .ar {
             font-size: 16px;
-            color: rgba(255,255,255,0.45);
+            color: rgb(255, 255, 255);
             margin-right: 4px;
         }
     </style>
