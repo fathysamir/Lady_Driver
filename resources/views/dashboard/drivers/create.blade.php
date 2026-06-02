@@ -123,7 +123,8 @@
                                         value="{{ old('password') }}" required minlength="8"
                                         autocomplete="new-password">
                                     <small style="color: rgba(255,255,255,0.5);">
-                                        Share this password with the driver so they can log in and change it.
+                                        Share this password with the driver so they can log in and change it
+                                        شارك هذا الرقم السري مع السائق حتى يتمكن من تسجيل الدخول وتغييره
                                     </small>
                                     @error('password')
                                         <p style="color:red; margin-top:4px;">{{ $message }}</p>
