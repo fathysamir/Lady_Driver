@@ -190,7 +190,7 @@
                                                 <a class="btn btn-light px-3"
                                                     href="{{ route('drivers.create', request()->query()) }}"
                                                     style="margin:0% 0% 1% 1%; width: 170px;">
-                                                    <i class=></i> Create Driver
+                                                    Create Driver
                                                 </a>
                                             @endif
 
