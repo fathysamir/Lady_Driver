@@ -89,29 +89,6 @@
 
     tr.row-selected { background-color: rgba(244, 67, 54, 0.07) !important; }
     th.col-check, td.col-check { width: 40px; text-align: center; }
-
-    /* Role info alert */
-    .role-info-alert {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
-        margin-bottom: 14px;
-        border-radius: 8px;
-        font-size: 13.5px;
-        font-weight: 500;
-    }
-    .role-info-alert.info {
-        background: #e8f4fd;
-        border: 1px solid #90caf9;
-        color: #1565c0;
-    }
-    .role-info-alert.warning {
-        background: #fff8e1;
-        border: 1px solid #ffe082;
-        color: #e65100;
-    }
-    .role-info-alert .role-icon { font-size: 16px; }
 </style>
 
     <div class="content-wrapper">
@@ -121,9 +98,8 @@
                     <div class="card">
                         <div class="card-body">
 
-                            {{-- ── Role-based Info Message ── --}}
                             @php
-                                $authUser   = auth()->user();
+                                $authUser            = auth()->user();
                                 $isSuperAdmin        = $authUser->hasRole('Super Admin');
                                 $isSupervisor        = $authUser->hasRole('Supervisor');
                                 $isModeratorStandard = $authUser->hasRole('Moderator Standard');
@@ -131,28 +107,7 @@
                                 $isModeratorScooter  = $authUser->hasRole('Moderator Scooter');
                                 $isModeratorClient   = $authUser->hasRole('Moderator Client');
                                 $isAccountant        = $authUser->hasRole('Accountant');
-
-                                // What driver type this role is restricted to
-                                $roleDriverLabel = null;
-                                if ($isModeratorStandard) $roleDriverLabel = 'Original (Standard) Drivers only';
-                                if ($isModeratorComfort)  $roleDriverLabel = 'Comfort Drivers only';
-                                if ($isModeratorScooter)  $roleDriverLabel = 'Scooter Drivers only';
-                                if ($isSupervisor)        $roleDriverLabel = 'Alexandria city drivers only';
                             @endphp
-
-                            @if($roleDriverLabel)
-                                <div class="role-info-alert info">
-                                    <span class="role-icon bi bi-info-circle-fill"></span>
-                                    Your account is restricted to viewing and exporting <strong>{{ $roleDriverLabel }}</strong>.
-                                </div>
-                            @endif
-
-                            @if($isModeratorClient || $isAccountant)
-                                <div class="role-info-alert warning">
-                                    <span class="role-icon bi bi-exclamation-triangle-fill"></span>
-                                    Your account role does not have access to driver management features.
-                                </div>
-                            @endif
 
                             <div>
                                 <form id="searchForm" class="search-bar"
@@ -181,8 +136,8 @@
                                                     style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
                                             @endif
 
-                                            {{-- ── Export CSV Dropdown ── --}}
-                                            @if(!$isModeratorClient && !$isAccountant)
+                                            {{-- ── Export CSV: Super Admin gets full dropdown, Supervisor gets Date Range only ── --}}
+                                            @if($isSuperAdmin)
                                                 <div class="export-dropdown">
                                                     <button class="btn btn-light px-3" type="button" style="width: 170px;">
                                                         Export CSV
@@ -198,17 +153,7 @@
                                                                     'online' => request('online'),
                                                                 ], fn($v) => $v !== null && $v !== '')
                                                             )) }}">
-                                                            @if($isModeratorStandard)
-                                                                Export All Standard Drivers
-                                                            @elseif($isModeratorComfort)
-                                                                Export All Comfort Drivers
-                                                            @elseif($isModeratorScooter)
-                                                                Export All Scooter Drivers
-                                                            @elseif($isSupervisor)
-                                                                Export All Alexandria Drivers
-                                                            @else
-                                                                Export All Drivers
-                                                            @endif
+                                                            Export All Drivers
                                                         </a>
 
                                                         {{-- Export Current Page --}}
@@ -221,17 +166,7 @@
                                                                     'online' => request('online'),
                                                                 ], fn($v) => $v !== null && $v !== '')
                                                             )) }}">
-                                                            @if($isModeratorStandard)
-                                                                Export Current Page (Standard)
-                                                            @elseif($isModeratorComfort)
-                                                                Export Current Page (Comfort)
-                                                            @elseif($isModeratorScooter)
-                                                                Export Current Page (Scooter)
-                                                            @elseif($isSupervisor)
-                                                                Export Current Page (Alexandria)
-                                                            @else
-                                                                Export Current Page
-                                                            @endif
+                                                            Export Current Page
                                                         </a>
 
                                                         {{-- Export by Date Range --}}
@@ -240,7 +175,15 @@
                                                         </a>
                                                     </div>
                                                 </div>
+                                            @elseif($isSupervisor)
+                                                {{-- Supervisor: Date Range export only --}}
+                                                <a class="btn btn-light px-3" href="javascript:void(0);"
+                                                    onclick="openDateRangeModal()"
+                                                    style="margin:0% 0% 1% 1%; width: 200px;">
+                                                    <i class="bi bi-download"></i> Export by Date Range
+                                                </a>
                                             @endif
+                                            {{-- Moderator Standard / Comfort / Scooter: no export button --}}
 
                                             {{-- ── Create Driver: only Super Admin & Supervisor ── --}}
                                             @if($isSuperAdmin || $isSupervisor)
@@ -515,7 +458,8 @@
         </div>
     </div>
 
-    {{-- ── Date Range Export Modal ── --}}
+    {{-- ── Date Range Export Modal (Super Admin + Supervisor) ── --}}
+    @if($isSuperAdmin || $isSupervisor)
     <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content" style="border-radius:12px;border:none;overflow:hidden;">
@@ -523,22 +467,9 @@
                             padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#fff;">
                     <div>
                         <span style="font-size:15px;font-weight:500;color:#111;">Export by date range</span>
-                        {{-- Show role restriction note inside modal --}}
-                        @if($isModeratorStandard)
-                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
-                                <i class="bi bi-info-circle"></i> Standard Drivers only
-                            </div>
-                        @elseif($isModeratorComfort)
-                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
-                                <i class="bi bi-info-circle"></i> Comfort Drivers only
-                            </div>
-                        @elseif($isModeratorScooter)
-                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
-                                <i class="bi bi-info-circle"></i> Scooter Drivers only
-                            </div>
-                        @elseif($isSupervisor)
-                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
-                                <i class="bi bi-info-circle"></i> Alexandria city drivers only
+                        @if($isSupervisor)
+                            <div style="font-size:12px;color:#e65100;margin-top:3px;">
+                                <i class="bi bi-exclamation-circle"></i> Maximum range: 2 months
                             </div>
                         @endif
                     </div>
@@ -562,8 +493,9 @@
                                        color:#111;background:#fff;border:1px solid #d1d5db;border-radius:8px;outline:none;">
                         </div>
                     </div>
-                    <p id="dateRangeError"      style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">Please select both dates.</p>
-                    <p id="dateRangeOrderError" style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">"From" date must be before or equal to "To" date.</p>
+                    <p id="dateRangeError"       style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">Please select both dates.</p>
+                    <p id="dateRangeOrderError"  style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">"From" date must be before or equal to "To" date.</p>
+                    <p id="dateRangeMonthError"  style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">Date range cannot exceed 2 months.</p>
                     <div style="display:flex;gap:8px;justify-content:flex-end;">
                         <button type="button" onclick="closeDateRangeModal()"
                             style="padding:8px 18px;border-radius:8px;border:1px solid #d1d5db;background:#fff;color:#374151;font-size:14px;cursor:pointer;">
@@ -578,6 +510,7 @@
             </div>
         </div>
     </div>
+    @endif
 
 @endsection
 
@@ -671,7 +604,7 @@
     function updateBulkBar() {
         const ids     = getSavedIds();
         const bar     = document.getElementById('bulkActionBar');
-        if (!bar) return; // not rendered for restricted roles
+        if (!bar) return;
         const countEl = document.getElementById('selectedCount');
         countEl.textContent = ids.length;
         ids.length > 0 ? bar.classList.add('visible') : bar.classList.remove('visible');
@@ -764,11 +697,15 @@
     }
 
     // ── Date range export ──────────────────────────────────────────────────────
+    @if($isSuperAdmin || $isSupervisor)
+    const IS_SUPERVISOR = {{ $isSupervisor ? 'true' : 'false' }};
+
     function openDateRangeModal() {
         document.getElementById('exportDateFrom').value = '';
         document.getElementById('exportDateTo').value   = '';
         document.getElementById('dateRangeError').style.display      = 'none';
         document.getElementById('dateRangeOrderError').style.display = 'none';
+        document.getElementById('dateRangeMonthError').style.display = 'none';
         const modal = new bootstrap.Modal(document.getElementById('dateRangeModal'), {});
         modal.show();
     }
@@ -782,10 +719,33 @@
     function submitDateRangeExport() {
         const from = document.getElementById('exportDateFrom').value;
         const to   = document.getElementById('exportDateTo').value;
+
         document.getElementById('dateRangeError').style.display      = 'none';
         document.getElementById('dateRangeOrderError').style.display = 'none';
-        if (!from || !to) { document.getElementById('dateRangeError').style.display = 'block'; return; }
-        if (new Date(from) > new Date(to)) { document.getElementById('dateRangeOrderError').style.display = 'block'; return; }
+        document.getElementById('dateRangeMonthError').style.display = 'none';
+
+        if (!from || !to) {
+            document.getElementById('dateRangeError').style.display = 'block';
+            return;
+        }
+
+        const fromDate = new Date(from);
+        const toDate   = new Date(to);
+
+        if (fromDate > toDate) {
+            document.getElementById('dateRangeOrderError').style.display = 'block';
+            return;
+        }
+
+        // Supervisor: enforce max 2-month range
+        if (IS_SUPERVISOR) {
+            const maxTo = new Date(fromDate);
+            maxTo.setMonth(maxTo.getMonth() + 2);
+            if (toDate > maxTo) {
+                document.getElementById('dateRangeMonthError').style.display = 'block';
+                return;
+            }
+        }
 
         const params = new URLSearchParams({
             type: '{{ $type }}', export_scope: 'date_range', date_from: from, date_to: to,
@@ -798,5 +758,6 @@
         closeDateRangeModal();
         window.location.href = '{{ route('drivers.export') }}?' + params.toString();
     }
+    @endif
 </script>
 @endpush

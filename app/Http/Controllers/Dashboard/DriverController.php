@@ -25,75 +25,31 @@ use Illuminate\Support\Facades\Storage;
 
 class DriverController extends Controller
 {
-    // ─────────────────────────────────────────────────────────────────────────
-    // HELPER: apply role-based driver-type & city scope to any query builder
-    // ─────────────────────────────────────────────────────────────────────────
-    private function applyRoleScope($query): void
-    {
-        $auth = auth()->user();
-
-        // Supervisor → Alexandria only
-        if ($auth->hasRole('Supervisor')) {
-            $query->where('city_id', 3);
-        }
-
-        // Moderator Standard → standard (non-comfort) cars only
-        if ($auth->hasRole('Moderator Standard')) {
-            $query->where('driver_type', 'car');
-        }
-
-        // Moderator Comfort → comfort cars only
-        if ($auth->hasRole('Moderator Comfort')) {
-            $query->where('driver_type', 'comfort_car');
-        }
-
-        // Moderator Scooter → scooters only
-        if ($auth->hasRole('Moderator Scooter')) {
-            $query->where('driver_type', 'scooter');
-        }
-
-        // Moderator Client & Accountant → no driver access at all
-        if ($auth->hasRole('Moderator Client') || $auth->hasRole('Accountant')) {
-            $query->whereRaw('1 = 0'); // return nothing
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // INDEX
-    // ─────────────────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $auth = auth()->user();
-
         $all_users = User::where('mode', 'driver')->where('is_verified', '1');
 
-        // Apply role scope (city + driver_type restrictions)
-        $this->applyRoleScope($all_users);
-
-        // Type filter from URL (only respected if role allows all types)
-        if (
-            !$auth->hasRole('Moderator Standard') &&
-            !$auth->hasRole('Moderator Comfort')  &&
-            !$auth->hasRole('Moderator Scooter')
-        ) {
-            if ($request->type == 'cars') {
-                $all_users->where('driver_type', 'car');
-            } elseif ($request->type == 'comfort_cars') {
-                $all_users->where('driver_type', 'comfort_car');
-            } elseif ($request->type == 'scooters') {
-                $all_users->where('driver_type', 'scooter');
-            }
+        // Alexandria (city_id = 3)
+        if (auth()->user()->hasRole('Supervisor')) {
+            $all_users->where('city_id', 3);
         }
 
-        $all_users->orderBy('created_at', 'desc')
-                  ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+        if ($request->type == 'cars') {
+            $all_users->where('driver_type', 'car');
+        } elseif ($request->type == 'comfort_cars') {
+            $all_users->where('driver_type', 'comfort_car');
+        } elseif ($request->type == 'scooters') {
+            $all_users->where('driver_type', 'scooter');
+        }
+
+        $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
-                $query->where('name',  'LIKE', '%' . $request->search . '%')
-                      ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                      ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                      ->orWhere('id',    'LIKE', '%' . $request->search . '%');
+                $query->where('name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
             });
         }
 
@@ -101,8 +57,8 @@ class DriverController extends Controller
             $all_users->where('status', $request->status);
         }
 
-        // City filter — Supervisor is always locked to Alexandria via applyRoleScope
-        if (!$auth->hasRole('Supervisor')) {
+        // Supervisor cannot change city filter — always locked to Alexandria
+        if (!auth()->user()->hasRole('Supervisor')) {
             if ($request->has('city') && $request->city != null) {
                 $all_users->where('city_id', $request->city);
             }
@@ -123,18 +79,13 @@ class DriverController extends Controller
         $cities = City::all();
         $search = $request->search;
         $status = $request->status;
-        $city   = $auth->hasRole('Supervisor') ? 3 : $request->city;
+        $city   = auth()->user()->hasRole('Supervisor') ? 3 : $request->city;
         $online = $request->online;
         $type   = $request->type;
 
-        return view('dashboard.drivers.index', compact(
-            'all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type'
-        ));
+        return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type'));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // INDEX ARCHIVES
-    // ─────────────────────────────────────────────────────────────────────────
     public function index_archives(Request $request)
     {
         $all_users = User::withTrashed()->where('mode', 'driver');
@@ -151,15 +102,14 @@ class DriverController extends Controller
             $all_users->whereHas('scooter');
         }
 
-        $all_users->orderBy('created_at', 'desc')
-                  ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+        $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
         if ($request->has('search') && $request->search != null) {
             $all_users->where(function ($query) use ($request) {
-                $query->where('name',  'LIKE', '%' . $request->search . '%')
-                      ->orWhere('email', 'LIKE', '%' . $request->search . '%')
-                      ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                      ->orWhere('id',    'LIKE', '%' . $request->search . '%');
+                $query->where('name', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('email', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
             });
         }
 
@@ -178,9 +128,6 @@ class DriverController extends Controller
         return view('dashboard.drivers.index_archives', compact('all_users', 'count', 'search', 'type'));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // EDIT
-    // ─────────────────────────────────────────────────────────────────────────
     public function edit($id, Request $request)
     {
         $user                          = User::where('id', $id)->first();
@@ -217,15 +164,15 @@ class DriverController extends Controller
         return view('dashboard.drivers.edit', compact('user', 'queryString', 'cities'));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // UPDATE
-    // ─────────────────────────────────────────────────────────────────────────
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
             'status'       => ['required'],
             'email'        => [
-                'required', 'string', 'email', 'max:255',
+                'required',
+                'string',
+                'email',
+                'max:255',
                 Rule::unique('users', 'email')->ignore($id)->whereNull('deleted_at'),
             ],
             'country_code' => 'required',
@@ -233,12 +180,15 @@ class DriverController extends Controller
                 'required',
                 Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
                     return $query->where('country_code', $request->country_code)
-                                 ->whereNull('deleted_at');
+                        ->whereNull('deleted_at');
                 }),
             ],
             'birth_date' => 'nullable|date',
             'address'    => 'nullable',
-            'city'       => ['required', 'exists:cities,id'],
+            'city'       => [
+                'required',
+                'exists:cities,id',
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -261,74 +211,32 @@ class DriverController extends Controller
             $car->save();
         }
 
-        $queryParams = $request->except([
-            '_token', '_method', 'status', 'email', 'phone',
-            'country_code', 'birth_date', 'national_id',
-        ]);
-
-        return redirect()->route('drivers', $queryParams)
-                         ->with('success', 'Driver updated successfully!');
+        $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date', 'national_id']);
+        return redirect()->route('drivers', $queryParams)->with('success', 'Driver updated successfully!');
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // DELETE (single)
-    // ─────────────────────────────────────────────────────────────────────────
     public function delete($id, Request $request)
     {
-        $auth = auth()->user();
-        $user = User::findOrFail($id);
-
-        // Moderator Client & Accountant → no access
-        if ($auth->hasRole('Moderator Client') || $auth->hasRole('Accountant')) {
-            abort(403, 'You are not authorized to delete drivers.');
-        }
-
-        // Supervisor → Alexandria only
-        if ($auth->hasRole('Supervisor') && $user->city_id != 3) {
-            abort(403, 'You can only delete Alexandria drivers.');
-        }
-
-        // Moderator Standard → standard cars only
-        if ($auth->hasRole('Moderator Standard') && $user->driver_type !== 'car') {
-            abort(403, 'You can only delete Standard drivers.');
-        }
-
-        // Moderator Comfort → comfort cars only
-        if ($auth->hasRole('Moderator Comfort') && $user->driver_type !== 'comfort_car') {
-            abort(403, 'You can only delete Comfort drivers.');
-        }
-
-        // Moderator Scooter → scooters only
-        if ($auth->hasRole('Moderator Scooter') && $user->driver_type !== 'scooter') {
-            abort(403, 'You can only delete Scooter drivers.');
-        }
-
+        $user = User::where('id', $id)->first();
         $user->tokens()->delete();
         $user->delete();
-
         return redirect()->route('drivers', $request->query())
-                         ->with('success', 'Driver deleted successfully.');
+            ->with('success', 'Driver deleted successfully.');
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RESTORE
-    // ─────────────────────────────────────────────────────────────────────────
     public function restore($id, Request $request)
     {
         User::withTrashed()->where('id', $id)->update(['deleted_at' => null]);
         return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // EXPORT CSV
-    // ─────────────────────────────────────────────────────────────────────────
     public function exportCsv(Request $request)
     {
-        $auth = auth()->user();
+        $authUser = auth()->user();
 
-        // Moderator Client & Accountant → no access
-        if ($auth->hasRole('Moderator Client') || $auth->hasRole('Accountant')) {
-            abort(403, 'You are not authorized to export drivers.');
+        // Only Super Admin and Supervisor can export
+        if (!$authUser->hasRole('Super Admin') && !$authUser->hasRole('Supervisor')) {
+            abort(403, 'You do not have permission to export drivers.');
         }
 
         $type     = $request->query('type');
@@ -342,82 +250,75 @@ class DriverController extends Controller
         $dateFrom = $request->query('date_from');
         $dateTo   = $request->query('date_to');
 
+        // Supervisor: only date_range scope is allowed
+        if ($authUser->hasRole('Supervisor') && $scope !== 'date_range') {
+            return redirect()->back()->with('error', 'Supervisors can only export by date range.');
+        }
+
         $query = User::where('mode', 'driver')->where('is_verified', '1');
 
-        // Apply role scope (city + driver_type)
-        $this->applyRoleScope($query);
+        // Supervisor: force Alexandria only
+        if ($authUser->hasRole('Supervisor')) {
+            $query->where('city_id', 3);
+        }
 
-        // Type filter from URL only if role is not already locked to a type
-        if (
-            !$auth->hasRole('Moderator Standard') &&
-            !$auth->hasRole('Moderator Comfort')  &&
-            !$auth->hasRole('Moderator Scooter')
-        ) {
-            if ($type === 'cars') {
-                $query->where('driver_type', 'car');
-            } elseif ($type === 'comfort_cars') {
-                $query->where('driver_type', 'comfort_car');
-            } elseif ($type === 'scooters') {
-                $query->where('driver_type', 'scooter');
-            }
+        if ($type === 'cars') {
+            $query->where('driver_type', 'car');
+        } elseif ($type === 'comfort_cars') {
+            $query->where('driver_type', 'comfort_car');
+        } elseif ($type === 'scooters') {
+            $query->where('driver_type', 'scooter');
         }
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('name',  'LIKE', "%{$search}%")
+                $q->where('name', 'LIKE', "%{$search}%")
                   ->orWhere('email', 'LIKE', "%{$search}%")
                   ->orWhere('phone', 'LIKE', "%{$search}%")
-                  ->orWhere('id',    $search);
+                  ->orWhere('id', $search);
             });
         }
 
-        if (!empty($status)) {
-            $query->where('status', $status);
-        }
+        if (!empty($status)) $query->where('status', $status);
 
-        // City filter — Supervisor is locked via applyRoleScope, skip request city for them
-        if (!$auth->hasRole('Supervisor') && !empty($city)) {
+        // Supervisor city filter is already forced above, skip request city
+        if (!$authUser->hasRole('Supervisor') && !empty($city)) {
             $query->where('city_id', $city);
         }
 
-        if ($online !== null && $online !== '') {
-            $query->where('is_online', $online);
-        }
+        if ($online !== null && $online !== '') $query->where('is_online', $online);
 
         $query->orderBy('created_at', 'desc');
 
         if ($scope === 'page') {
             $users = $query->forPage($page, $perPage)->get();
-
         } elseif ($scope === 'date_range') {
             if (empty($dateFrom) || empty($dateTo)) {
                 return redirect()->back()->with('error', 'Please provide both a start and end date.');
             }
+
             $from = Carbon::parse($dateFrom)->startOfDay();
             $to   = Carbon::parse($dateTo)->endOfDay();
+
             if ($from->gt($to)) {
                 return redirect()->back()->with('error', '"From" date must be before or equal to "To" date.');
             }
-            $users = $query->whereBetween('created_at', [$from, $to])->get();
 
+            // Supervisor: enforce 2-month maximum range (server-side)
+            if ($authUser->hasRole('Supervisor')) {
+                $maxTo = $from->copy()->addMonths(2);
+                if ($to->gt($maxTo)) {
+                    return redirect()->back()->with('error', 'Date range cannot exceed 2 months for your account.');
+                }
+            }
+
+            $users = $query->whereBetween('created_at', [$from, $to])->get();
         } else {
             $users = $query->get();
         }
 
-        // Build a descriptive filename that reflects the role restriction
-        if ($auth->hasRole('Moderator Standard')) {
-            $typeLabel = 'standard';
-        } elseif ($auth->hasRole('Moderator Comfort')) {
-            $typeLabel = 'comfort';
-        } elseif ($auth->hasRole('Moderator Scooter')) {
-            $typeLabel = 'scooter';
-        } elseif ($auth->hasRole('Supervisor')) {
-            $typeLabel = 'alexandria_' . ($type ?: 'all');
-        } else {
-            $typeLabel = $type ?: 'all';
-        }
-
-        $datePart = $scope === 'date_range'
+        $typeLabel = $type ? $type : 'all';
+        $datePart  = $scope === 'date_range'
             ? "_{$dateFrom}_to_{$dateTo}"
             : ($scope === 'page' ? "_page{$page}" : '');
 
@@ -450,49 +351,13 @@ class DriverController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // BULK DELETE
-    // ─────────────────────────────────────────────────────────────────────────
     public function bulkDestroy(Request $request)
     {
-        $auth = auth()->user();
-
-        // Moderator Client & Accountant → no access
-        if ($auth->hasRole('Moderator Client') || $auth->hasRole('Accountant')) {
-            abort(403, 'You are not authorized to delete drivers.');
-        }
-
         $request->validate([
             'ids'   => 'required|array',
             'ids.*' => 'integer|exists:users,id',
         ]);
 
-        // Fetch the actual users to validate role scope before deleting
-        $users = User::whereIn('id', $request->ids)->get();
-
-        foreach ($users as $user) {
-            // Supervisor → Alexandria only
-            if ($auth->hasRole('Supervisor') && $user->city_id != 3) {
-                abort(403, 'You can only delete Alexandria drivers.');
-            }
-
-            // Moderator Standard → standard cars only
-            if ($auth->hasRole('Moderator Standard') && $user->driver_type !== 'car') {
-                abort(403, 'You can only delete Standard drivers.');
-            }
-
-            // Moderator Comfort → comfort cars only
-            if ($auth->hasRole('Moderator Comfort') && $user->driver_type !== 'comfort_car') {
-                abort(403, 'You can only delete Comfort drivers.');
-            }
-
-            // Moderator Scooter → scooters only
-            if ($auth->hasRole('Moderator Scooter') && $user->driver_type !== 'scooter') {
-                abort(403, 'You can only delete Scooter drivers.');
-            }
-        }
-
-        // All passed — safe to delete
         User::whereIn('id', $request->ids)->delete();
 
         return redirect()
@@ -500,21 +365,8 @@ class DriverController extends Controller
             ->with('success', count($request->ids) . ' driver(s) deleted successfully.');
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CREATE
-    // ─────────────────────────────────────────────────────────────────────────
     public function create()
     {
-        $auth = auth()->user();
-
-        // Only Super Admin and Supervisor can create drivers
-        if (
-            !$auth->hasRole('Super Admin') &&
-            !$auth->hasRole('Supervisor')
-        ) {
-            abort(403, 'You are not authorized to create drivers.');
-        }
-
         $cities        = City::orderBy('name')->get();
         $carMarks      = CarMark::orderBy('en_name')->get();
         $carModels     = CarModel::orderBy('en_name')->get();
@@ -526,27 +378,18 @@ class DriverController extends Controller
                             ->first()?->value ?? 2020;
 
         return view('dashboard.drivers.create', compact(
-            'cities', 'carMarks', 'carModels',
-            'scooterMarks', 'scooterModels', 'comfort_year',
+            'cities',
+            'carMarks',
+            'carModels',
+            'scooterMarks',
+            'scooterModels',
+            'comfort_year',
         ));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // STORE
-    // ─────────────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        $auth = auth()->user();
-
-        // Only Super Admin and Supervisor can store drivers
-        if (
-            !$auth->hasRole('Super Admin') &&
-            !$auth->hasRole('Supervisor')
-        ) {
-            abort(403, 'You are not authorized to create drivers.');
-        }
-
-        // ── Save uploaded files to temp BEFORE validation ─────────────────────
+        // ── Save uploaded files to temp BEFORE validation ────────────────────────
         $tempFields = [
             'image', 'ID_front_image', 'ID_back_image', 'passport_image',
             'license_front_image', 'license_back_image',
@@ -565,7 +408,7 @@ class DriverController extends Controller
             }
         }
 
-        // ── Validation ────────────────────────────────────────────────────────
+        // ── Validation ───────────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
             'email'        => [
@@ -594,8 +437,8 @@ class DriverController extends Controller
             'passport_expire_date'    => 'nullable|date',
 
             'image'          => [session('temp_upload_image')          ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'ID_front_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'ID_back_image'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'ID_front_image' => [session('temp_upload_ID_front_image') ? 'nullable' : 'nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'ID_back_image'  => [session('temp_upload_ID_back_image')  ? 'nullable' : 'nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
             'passport_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
 
             'driving_license_number' => 'required|string|max:50',
@@ -606,11 +449,11 @@ class DriverController extends Controller
             'license_front_image' => [session('temp_upload_license_front_image') ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
             'license_back_image'  => [session('temp_upload_license_back_image')  ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
 
-            'vehicle_type'     => ['required', Rule::in(['car', 'scooter'])],
-            'car_mark_id'      => ['required_if:vehicle_type,car',     'nullable', Rule::exists('car_marks', 'id')],
-            'car_model_id'     => ['required_if:vehicle_type,car',     'nullable', Rule::exists('car_models', 'id')],
-            'scooter_mark_id'  => ['required_if:vehicle_type,scooter', 'nullable', Rule::exists('motorcycle_marks', 'id')],
-            'scooter_model_id' => ['required_if:vehicle_type,scooter', 'nullable', Rule::exists('motorcycle_models', 'id')],
+            'vehicle_type'    => ['required', Rule::in(['car', 'scooter'])],
+            'car_mark_id'     => ['required_if:vehicle_type,car',     'nullable', Rule::exists('car_marks', 'id')],
+            'car_model_id'    => ['required_if:vehicle_type,car',     'nullable', Rule::exists('car_models', 'id')],
+            'scooter_mark_id' => ['required_if:vehicle_type,scooter', 'nullable', Rule::exists('motorcycle_marks', 'id')],
+            'scooter_model_id'=> ['required_if:vehicle_type,scooter', 'nullable', Rule::exists('motorcycle_models', 'id')],
 
             'color'     => 'required|string|max:255',
             'year'      => 'required|integer|min:1990|max:' . date('Y'),
@@ -632,7 +475,7 @@ class DriverController extends Controller
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
-        // ── Driver / vehicle type ─────────────────────────────────────────────
+        // ── Driver / vehicle type ─────────────────────────────────────────────────
         $is_comfort = '0';
         if ($request->vehicle_type == 'car') {
             $comfort_year = Setting::where('key', 'comfort_car_start_from_year')
@@ -650,14 +493,14 @@ class DriverController extends Controller
             $driver_type = 'scooter';
         }
 
-        // ── Username & invitation code ─────────────────────────────────────────
+        // ── Username & invitation code ────────────────────────────────────────────
         $username = username_Generation($request->name);
 
         do {
             $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
         } while (User::where('invitation_code', $invitation_code)->exists());
 
-        // ── Create user ───────────────────────────────────────────────────────
+        // ── Create user ───────────────────────────────────────────────────────────
         $user = User::create([
             'name'            => $request->name,
             'username'        => $username,
@@ -682,13 +525,13 @@ class DriverController extends Controller
         $role = Role::where('name', 'Driver')->first();
         $user->assignRole([$role->id]);
 
-        // ── User images ───────────────────────────────────────────────────────
+        // ── User images ───────────────────────────────────────────────────────────
         $this->attachMedia($request, $user, 'image',          $user->avatarCollection);
         $this->attachMedia($request, $user, 'ID_front_image', $user->IDfrontImageCollection);
         $this->attachMedia($request, $user, 'ID_back_image',  $user->IDbackImageCollection);
         $this->attachMedia($request, $user, 'passport_image', $user->passportImageCollection);
 
-        // ── Driving license ───────────────────────────────────────────────────
+        // ── Driving license ───────────────────────────────────────────────────────
         $license = DriverLicense::create([
             'user_id'     => $user->id,
             'license_num' => $request->driving_license_number,
@@ -698,7 +541,7 @@ class DriverController extends Controller
         $this->attachMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
         $this->attachMedia($request, $license, 'license_back_image',  $license->LicenseBackImageCollection);
 
-        // ── Vehicle ───────────────────────────────────────────────────────────
+        // ── Vehicle ───────────────────────────────────────────────────────────────
         if ($request->vehicle_type == 'car') {
             $lastCar = Car::orderBy('id', 'desc')->first();
             $code    = $lastCar
@@ -749,24 +592,23 @@ class DriverController extends Controller
             $this->attachMedia($request, $scooter, 'vehicle_license_back_image',  $scooter->LicenseBackImageCollection);
         }
 
-        // ── Clear all temp session files ──────────────────────────────────────
+        // ── Clear all temp session files ──────────────────────────────────────────
         $this->clearTempUploads($tempFields);
 
         return redirect()->route('drivers', request()->query())
-                         ->with('success', 'Driver account created successfully.');
+            ->with('success', 'Driver account created successfully.');
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ATTACH MEDIA
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Attach media from new upload OR existing temp file ────────────────────────
     private function attachMedia(Request $request, $model, string $field, string $collection): void
     {
         $sessionKey = "temp_upload_{$field}";
+        $file = null;
 
         if ($request->hasFile($field)) {
-            $file     = $request->file($field);
-            $inv1     = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
-            $inv2     = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+            $file = $request->file($field);
+            $inv1 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+            $inv2 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
             $filename = $model->id . $inv1 . $inv2 . time() . '.' . $file->extension();
             $file->move(public_path('images/'), $filename);
             $path = '/images/' . $filename;
@@ -774,14 +616,13 @@ class DriverController extends Controller
 
         } elseif (session($sessionKey) && Storage::disk('public')->exists(session($sessionKey))) {
             $tempPath = storage_path('app/public/' . session($sessionKey));
-            $ext      = pathinfo($tempPath, PATHINFO_EXTENSION);
-            $inv1     = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
-            $inv2     = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+            $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
+            $inv1 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
+            $inv2 = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'), 0, 12);
             $filename = $model->id . $inv1 . $inv2 . time() . '.' . $ext;
             rename($tempPath, public_path('images/' . $filename));
             $path = '/images/' . $filename;
             session()->forget($sessionKey);
-
         } else {
             return;
         }
@@ -794,9 +635,7 @@ class DriverController extends Controller
         ]);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CLEAR TEMP UPLOADS
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Clear temp uploads from storage + session ─────────────────────────────────
     public function clearTempUploads(array $fields = []): void
     {
         if (empty($fields)) {
@@ -826,9 +665,6 @@ class DriverController extends Controller
         return redirect($request->input('redirect', route('drivers')));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CAR / SCOOTER MODEL AJAX
-    // ─────────────────────────────────────────────────────────────────────────
     public function getCarModels($markId)
     {
         return response()->json(
