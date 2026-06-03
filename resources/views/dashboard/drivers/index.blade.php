@@ -35,8 +35,9 @@
     }
     .avatar-preview img { width: 100%; height: 100%; border-radius: 5px; }
     .user-profile:hover .avatar-preview { display: block; }
+    .export-dropdown { position: relative; display: inline-block; }
 
-    .export-dropdown { position: relative; display: inline-block; margin: 0% 0% 1% 1%; }
+
     .export-dropdown-menu {
         display: none;
         position: absolute;
@@ -114,8 +115,8 @@
                                     style="margin-bottom:1%;margin-right:20px;margin-left:0px;" method="post"
                                     action="{{ route('drivers') }}" enctype="multipart/form-data">
                                     @csrf
-                                    <div style="display:flex;">
-                                        <h5 class="card-title" style="width: 55%;">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                        <h5 class="card-title" style="margin:0;">
                                             @if($type == 'comfort_cars')
                                                 Comfort Drivers
                                             @elseif($type == 'scooters')
@@ -127,81 +128,55 @@
                                             @endif
                                             - {{ $count }}
                                         </h5>
-                                        <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-
-                                            {{-- ── Deleted Accounts: hide from Moderator Client & Accountant ── --}}
-                                            @if(!$isModeratorClient && !$isAccountant)
-                                                <a class="btn btn-light px-3" type="button"
-                                                    href="{{ url('/admin-dashboard/archived-drivers?type=' . $type) }}"
-                                                    style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
-                                            @endif
-
-                                            {{-- ── Export CSV: Super Admin gets full dropdown, Supervisor gets Date Range only ── --}}
-                                            @if($isSuperAdmin)
-                                                <div class="export-dropdown">
-                                                    <button class="btn btn-light px-3" type="button" style="width: 170px;">
-                                                        Export CSV
-                                                    </button>
-                                                    <div class="export-dropdown-menu">
-                                                        {{-- Export All --}}
-                                                        <a href="{{ route('drivers.export', array_merge(
-                                                                ['type' => $type, 'export_scope' => 'all'],
-                                                                array_filter([
-                                                                    'search' => request('search'),
-                                                                    'status' => request('status'),
-                                                                    'city'   => request('city'),
-                                                                    'online' => request('online'),
-                                                                ], fn($v) => $v !== null && $v !== '')
-                                                            )) }}">
-                                                            Export All Drivers
-                                                        </a>
-
-                                                        {{-- Export Current Page --}}
-                                                        <a href="{{ route('drivers.export', array_merge(
-                                                                ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
-                                                                array_filter([
-                                                                    'search' => request('search'),
-                                                                    'status' => request('status'),
-                                                                    'city'   => request('city'),
-                                                                    'online' => request('online'),
-                                                                ], fn($v) => $v !== null && $v !== '')
-                                                            )) }}">
-                                                            Export Current Page
-                                                        </a>
-
-                                                        {{-- Export by Date Range --}}
-                                                        <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
-                                                            Export by Date Range
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            @elseif($isSupervisor)
-                                                {{-- Supervisor: Date Range export only --}}
-                                                <a class="btn btn-light px-3" href="javascript:void(0);"
-                                                    onclick="openDateRangeModal()"
-                                                    style="margin:0% 0% 1% 1%; width: 200px;">
-                                                     Export by Date Range
-                                                </a>
-                                            @endif
-                                            {{-- Moderator Standard / Comfort / Scooter: no export button --}}
-
-                                            {{-- ── Create Driver: only Super Admin & Supervisor ── --}}
-                                            @if($isSuperAdmin || $isSupervisor)
-                                                <a class="btn btn-light px-3"
-                                                    href="{{ route('drivers.create', request()->query()) }}"
-                                                    style="margin:0% 0% 1% 1%; width: 170px;">
-                                                    Create Driver
-                                                </a>
-                                            @endif
-
-                                            <button class="btn btn-light px-3" type="button"
-                                                onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
-                                                <input type="text" class="form-control" placeholder="Enter keywords"
-                                                name="search" style="display:flex;" value="{{ request('search') }}">
-                                            <a href="javascript:void(0);" id="submitForm" style="flex-shrink:0; align-self:center; margin-left:6px;">
-                                                <i class="icon-magnifier"></i>
-                                            </a>
                                     </div>
+
+                                {{-- Action buttons row --}}
+<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+
+    @if(!$isModeratorClient && !$isAccountant)
+        <a class="btn btn-light px-3"
+            href="{{ url('/admin-dashboard/archived-drivers?type=' . $type) }}">
+            Deleted Accounts</a>
+    @endif
+
+    @if($isSuperAdmin)
+        <div class="export-dropdown">
+            <button class="btn btn-light px-3" type="button">Export CSV</button>
+            <div class="export-dropdown-menu">
+                <a href="{{ route('drivers.export', array_merge(
+                        ['type' => $type, 'export_scope' => 'all'],
+                        array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online')], fn($v)=>$v!==null&&$v!=='')
+                    )) }}">Export All Drivers</a>
+                <a href="{{ route('drivers.export', array_merge(
+                        ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
+                        array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online')], fn($v)=>$v!==null&&$v!=='')
+                    )) }}">Export Current Page</a>
+                <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
+                    Export by Date Range</a>
+            </div>
+        </div>
+    @elseif($isSupervisor)
+        <a class="btn btn-light px-3" href="javascript:void(0);"
+            onclick="openDateRangeModal()">Export by Date Range</a>
+    @endif
+
+    @if($isSuperAdmin || $isSupervisor)
+        <a class="btn btn-light px-3"
+            href="{{ route('drivers.create', request()->query()) }}">
+            Create Driver</a>
+    @endif
+
+</div>
+
+                                   {{-- Search row --}}
+<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+    <button class="btn btn-light px-3" type="button" onclick="toggleFilters()">Filter</button>
+    <input type="text" class="form-control" placeholder="Enter keywords"
+        name="search" value="{{ request('search') }}" style="flex:1;">
+    <button class="btn btn-light px-3" type="submit">
+        <i class="bi bi-search"></i>
+    </button>
+</div>
 
                                     <div id="filterOptions" style="display: none; text-align:center;">
                                         <div style="display: flex;">
