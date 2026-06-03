@@ -110,7 +110,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
   /////////////////////////////////////////
     Route::any('/drivers', [DriverController::class, 'index'])->name('drivers');
     Route::get('/drivers/create', [DriverController::class, 'create'])->name('drivers.create');
-Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
+    Route::post('/drivers/store', [DriverController::class, 'store'])->name('drivers.store');
     Route::get('/driver/edit/{id}', [DriverController::class, 'edit'])->name('edit.driver');
     Route::put('/driver/update/{id}', [DriverController::class, 'update'])->name('update.driver');
     Route::get('/driver/delete/{id}', [DriverController::class, 'delete'])->name('delete.driver');
