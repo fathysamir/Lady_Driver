@@ -89,6 +89,29 @@
 
     tr.row-selected { background-color: rgba(244, 67, 54, 0.07) !important; }
     th.col-check, td.col-check { width: 40px; text-align: center; }
+
+    /* Role info alert */
+    .role-info-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        margin-bottom: 14px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 500;
+    }
+    .role-info-alert.info {
+        background: #e8f4fd;
+        border: 1px solid #90caf9;
+        color: #1565c0;
+    }
+    .role-info-alert.warning {
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        color: #e65100;
+    }
+    .role-info-alert .role-icon { font-size: 16px; }
 </style>
 
     <div class="content-wrapper">
@@ -97,6 +120,40 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
+
+                            {{-- ── Role-based Info Message ── --}}
+                            @php
+                                $authUser   = auth()->user();
+                                $isSuperAdmin        = $authUser->hasRole('Super Admin');
+                                $isSupervisor        = $authUser->hasRole('Supervisor');
+                                $isModeratorStandard = $authUser->hasRole('Moderator Standard');
+                                $isModeratorComfort  = $authUser->hasRole('Moderator Comfort');
+                                $isModeratorScooter  = $authUser->hasRole('Moderator Scooter');
+                                $isModeratorClient   = $authUser->hasRole('Moderator Client');
+                                $isAccountant        = $authUser->hasRole('Accountant');
+
+                                // What driver type this role is restricted to
+                                $roleDriverLabel = null;
+                                if ($isModeratorStandard) $roleDriverLabel = 'Original (Standard) Drivers only';
+                                if ($isModeratorComfort)  $roleDriverLabel = 'Comfort Drivers only';
+                                if ($isModeratorScooter)  $roleDriverLabel = 'Scooter Drivers only';
+                                if ($isSupervisor)        $roleDriverLabel = 'Alexandria city drivers only';
+                            @endphp
+
+                            @if($roleDriverLabel)
+                                <div class="role-info-alert info">
+                                    <span class="role-icon bi bi-info-circle-fill"></span>
+                                    Your account is restricted to viewing and exporting <strong>{{ $roleDriverLabel }}</strong>.
+                                </div>
+                            @endif
+
+                            @if($isModeratorClient || $isAccountant)
+                                <div class="role-info-alert warning">
+                                    <span class="role-icon bi bi-exclamation-triangle-fill"></span>
+                                    Your account role does not have access to driver management features.
+                                </div>
+                            @endif
+
                             <div>
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-right:20px;margin-left:0px;" method="post"
@@ -116,48 +173,83 @@
                                             - {{ $count }}
                                         </h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;">
-                                            <a class="btn btn-light px-3" type="button"
-                                                href="{{ url('/admin-dashboard/archived-drivers?type=' . $type) }}"
-                                                style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
 
-                                            {{-- Export Dropdown --}}
-                                            <div class="export-dropdown">
-                                                <button class="btn btn-light px-3" type="button" style="width: 170px;">
-                                                    Export CSV
-                                                </button>
-                                                <div class="export-dropdown-menu">
-                                                    <a href="{{ route('drivers.export', array_merge(
-                                                            ['type' => $type, 'export_scope' => 'all'],
-                                                            array_filter([
-                                                                'search' => request('search'),
-                                                                'status' => request('status'),
-                                                                'city'   => request('city'),
-                                                                'online' => request('online'),
-                                                            ], fn($v) => $v !== null && $v !== '')
-                                                        )) }}">
-                                                        Export All Drivers
-                                                    </a>
-                                                    <a href="{{ route('drivers.export', array_merge(
-                                                            ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
-                                                            array_filter([
-                                                                'search' => request('search'),
-                                                                'status' => request('status'),
-                                                                'city'   => request('city'),
-                                                                'online' => request('online'),
-                                                            ], fn($v) => $v !== null && $v !== '')
-                                                        )) }}">
-                                                        Export Current Page
-                                                    </a>
-                                                    <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
-                                                        Export by Date Range
-                                                    </a>
+                                            {{-- ── Deleted Accounts: hide from Moderator Client & Accountant ── --}}
+                                            @if(!$isModeratorClient && !$isAccountant)
+                                                <a class="btn btn-light px-3" type="button"
+                                                    href="{{ url('/admin-dashboard/archived-drivers?type=' . $type) }}"
+                                                    style="margin:0% 0% 1% 1%; width: 170px;">Deleted Accounts</a>
+                                            @endif
+
+                                            {{-- ── Export CSV Dropdown ── --}}
+                                            @if(!$isModeratorClient && !$isAccountant)
+                                                <div class="export-dropdown">
+                                                    <button class="btn btn-light px-3" type="button" style="width: 170px;">
+                                                        Export CSV
+                                                    </button>
+                                                    <div class="export-dropdown-menu">
+                                                        {{-- Export All --}}
+                                                        <a href="{{ route('drivers.export', array_merge(
+                                                                ['type' => $type, 'export_scope' => 'all'],
+                                                                array_filter([
+                                                                    'search' => request('search'),
+                                                                    'status' => request('status'),
+                                                                    'city'   => request('city'),
+                                                                    'online' => request('online'),
+                                                                ], fn($v) => $v !== null && $v !== '')
+                                                            )) }}">
+                                                            @if($isModeratorStandard)
+                                                                Export All Standard Drivers
+                                                            @elseif($isModeratorComfort)
+                                                                Export All Comfort Drivers
+                                                            @elseif($isModeratorScooter)
+                                                                Export All Scooter Drivers
+                                                            @elseif($isSupervisor)
+                                                                Export All Alexandria Drivers
+                                                            @else
+                                                                Export All Drivers
+                                                            @endif
+                                                        </a>
+
+                                                        {{-- Export Current Page --}}
+                                                        <a href="{{ route('drivers.export', array_merge(
+                                                                ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
+                                                                array_filter([
+                                                                    'search' => request('search'),
+                                                                    'status' => request('status'),
+                                                                    'city'   => request('city'),
+                                                                    'online' => request('online'),
+                                                                ], fn($v) => $v !== null && $v !== '')
+                                                            )) }}">
+                                                            @if($isModeratorStandard)
+                                                                Export Current Page (Standard)
+                                                            @elseif($isModeratorComfort)
+                                                                Export Current Page (Comfort)
+                                                            @elseif($isModeratorScooter)
+                                                                Export Current Page (Scooter)
+                                                            @elseif($isSupervisor)
+                                                                Export Current Page (Alexandria)
+                                                            @else
+                                                                Export Current Page
+                                                            @endif
+                                                        </a>
+
+                                                        {{-- Export by Date Range --}}
+                                                        <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
+                                                            Export by Date Range
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <a class="btn btn-light px-3"
-   href="{{ route('drivers.create', request()->query()) }}"
-   style="margin:0% 0% 1% 1%; width: 170px;">
-    <i class="bi bi-person-plus"></i> Create Driver
-</a>
+                                            @endif
+
+                                            {{-- ── Create Driver: only Super Admin & Supervisor ── --}}
+                                            @if($isSuperAdmin || $isSupervisor)
+                                                <a class="btn btn-light px-3"
+                                                    href="{{ route('drivers.create', request()->query()) }}"
+                                                    style="margin:0% 0% 1% 1%; width: 170px;">
+                                                    <i class="bi bi-person-plus"></i> Create Driver
+                                                </a>
+                                            @endif
 
                                             <button class="btn btn-light px-3" type="button"
                                                 onclick="toggleFilters()" style="margin:0% 1% 1% 1%;">Filter</button>
@@ -176,14 +268,24 @@
                                                 <option value="banned"    {{ request('status') == 'banned'    ? 'selected' : '' }}>Banned</option>
                                                 <option value="blocked"   {{ request('status') == 'blocked'   ? 'selected' : '' }}>Blocked</option>
                                             </select>
-                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="city">
-                                                <option value="">Select City</option>
-                                                @foreach ($cities as $city)
-                                                    <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>
-                                                        {{ $city->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+
+                                            {{-- City filter: hidden for Supervisor (locked to Alexandria) --}}
+                                            @if(!$isSupervisor)
+                                                <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="city">
+                                                    <option value="">Select City</option>
+                                                    @foreach ($cities as $city)
+                                                        <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>
+                                                            {{ $city->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                {{-- Show locked city for Supervisor --}}
+                                                <div class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;background:#2a2e35;color:#aaa;cursor:not-allowed;">
+                                                    <i class="bi bi-lock-fill"></i> Alexandria (locked)
+                                                </div>
+                                            @endif
+
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="online">
                                                 <option value="">Select Online Status</option>
                                                 <option value="1" {{ request('online') === '1' ? 'selected' : '' }}>Online</option>
@@ -195,26 +297,32 @@
                                 </form>
                             </div>
 
-                            {{-- Bulk-action bar --}}
-                            <div id="bulkActionBar">
-                                <span id="selectedCount">0</span> driver(s) selected
-                                <button id="bulkDeleteBtn" onclick="showBulkConfirmationPopup()">
-                                    <span class="bi bi-trash"></span> Delete Selected
-                                </button>
-                                <button id="deselectAllBtn" onclick="deselectAll()">
-                                    Deselect All
-                                </button>
-                            </div>
+                            {{-- ── Bulk-action bar (only for roles that can delete) ── --}}
+                            @if(!$isModeratorClient && !$isAccountant)
+                                <div id="bulkActionBar">
+                                    <span id="selectedCount">0</span> driver(s) selected
+                                    <button id="bulkDeleteBtn" onclick="showBulkConfirmationPopup()">
+                                        <span class="bi bi-trash"></span> Delete Selected
+                                    </button>
+                                    <button id="deselectAllBtn" onclick="deselectAll()">
+                                        Deselect All
+                                    </button>
+                                </div>
+                            @endif
 
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th class="col-check">
-                                                <input type="checkbox" id="selectAllCheckbox"
-                                                    title="Select all on this page"
-                                                    onclick="toggleSelectAll(this)">
-                                            </th>
+                                            @if(!$isModeratorClient && !$isAccountant)
+                                                <th class="col-check">
+                                                    <input type="checkbox" id="selectAllCheckbox"
+                                                        title="Select all on this page"
+                                                        onclick="toggleSelectAll(this)">
+                                                </th>
+                                            @else
+                                                <th class="col-check"></th>
+                                            @endif
                                             <th scope="col">#</th>
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
@@ -238,12 +346,16 @@
                                                 <tr id="row-{{ $user->id }}"
                                                     onclick="handleRowClick(event, {{ $user->id }}, '{{ route('edit.driver', ['id' => $user->id] + request()->query()) }}')"
                                                     style="cursor: pointer;">
+
                                                     <td class="col-check" onclick="event.stopPropagation()">
-                                                        <input type="checkbox"
-                                                            class="row-checkbox"
-                                                            value="{{ $user->id }}"
-                                                            onchange="onRowCheckChange(this)">
+                                                        @if(!$isModeratorClient && !$isAccountant)
+                                                            <input type="checkbox"
+                                                                class="row-checkbox"
+                                                                value="{{ $user->id }}"
+                                                                onchange="onRowCheckChange(this)">
+                                                        @endif
                                                     </td>
+
                                                     <td>{{ $counter++ }}</td>
                                                     <td>
                                                         <span class="user-profile">
@@ -330,6 +442,7 @@
                                     ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -338,7 +451,7 @@
         </div>
     </div>
 
-    {{-- Single Delete Confirmation Modal --}}
+    {{-- ── Single Delete Confirmation Modal ── --}}
     <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -373,7 +486,7 @@
         </div>
     </div>
 
-    {{-- Bulk Delete Confirmation Modal --}}
+    {{-- ── Bulk Delete Confirmation Modal ── --}}
     <div class="modal fade" id="bulkConfirmationPopup" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -402,13 +515,33 @@
         </div>
     </div>
 
-    {{-- Date Range Export Modal --}}
+    {{-- ── Date Range Export Modal ── --}}
     <div class="modal fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content" style="border-radius:12px;border:none;overflow:hidden;">
                 <div style="display:flex;align-items:center;justify-content:space-between;
                             padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#fff;">
-                    <span style="font-size:15px;font-weight:500;color:#111;">Export by date range</span>
+                    <div>
+                        <span style="font-size:15px;font-weight:500;color:#111;">Export by date range</span>
+                        {{-- Show role restriction note inside modal --}}
+                        @if($isModeratorStandard)
+                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
+                                <i class="bi bi-info-circle"></i> Standard Drivers only
+                            </div>
+                        @elseif($isModeratorComfort)
+                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
+                                <i class="bi bi-info-circle"></i> Comfort Drivers only
+                            </div>
+                        @elseif($isModeratorScooter)
+                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
+                                <i class="bi bi-info-circle"></i> Scooter Drivers only
+                            </div>
+                        @elseif($isSupervisor)
+                            <div style="font-size:12px;color:#1565c0;margin-top:3px;">
+                                <i class="bi bi-info-circle"></i> Alexandria city drivers only
+                            </div>
+                        @endif
+                    </div>
                     <button type="button" onclick="closeDateRangeModal()" aria-label="Close"
                         style="background:none;border:none;cursor:pointer;font-size:20px;color:#6b7280;line-height:1;padding:0;">
                         &times;
@@ -530,13 +663,15 @@
             cb.checked = false;
             document.getElementById('row-' + cb.value).classList.remove('row-selected');
         });
-        document.getElementById('selectAllCheckbox').checked = false;
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
         updateBulkBar();
     }
 
     function updateBulkBar() {
         const ids     = getSavedIds();
         const bar     = document.getElementById('bulkActionBar');
+        if (!bar) return; // not rendered for restricted roles
         const countEl = document.getElementById('selectedCount');
         countEl.textContent = ids.length;
         ids.length > 0 ? bar.classList.add('visible') : bar.classList.remove('visible');
@@ -544,8 +679,10 @@
         const pageBoxes     = document.querySelectorAll('.row-checkbox');
         const checkedOnPage = Array.from(pageBoxes).filter(cb => ids.includes(cb.value));
         const selectAll     = document.getElementById('selectAllCheckbox');
-        selectAll.indeterminate = checkedOnPage.length > 0 && checkedOnPage.length < pageBoxes.length;
-        selectAll.checked       = pageBoxes.length > 0 && checkedOnPage.length === pageBoxes.length;
+        if (selectAll) {
+            selectAll.indeterminate = checkedOnPage.length > 0 && checkedOnPage.length < pageBoxes.length;
+            selectAll.checked       = pageBoxes.length > 0 && checkedOnPage.length === pageBoxes.length;
+        }
     }
 
     // Restore checkmarks on every page load
