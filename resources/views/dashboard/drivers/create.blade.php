@@ -65,6 +65,22 @@
             color: rgb(255, 255, 255);
             margin-right: 4px;
         }
+        .generate-btn {
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .generate-btn:hover {
+            background-color: rgba(255, 230, 0, 0.15);
+            border-color: rgb(255, 230, 0);
+            color: rgb(255, 230, 0);
+        }
     </style>
 
     <div class="content-wrapper">
@@ -108,12 +124,20 @@
                                     @error('email')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
 
+                                {{-- ── PASSWORD WITH GENERATE BUTTON ──────────────────── --}}
                                 <div class="form-group">
                                     <label>Temporary Password <span class="ar">(كلمة المرور المؤقتة)</span><span style="color:red">*</span></label>
-                                    <input type="text" class="form-control" name="password"
-                                        placeholder="Set a temporary password (min 8 chars)"
-                                        value="{{ old('password') }}" required minlength="8"
-                                        autocomplete="new-password">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="password" id="password_field"
+                                            placeholder="Click 'Generate' to create a password"
+                                            value="{{ old('password') }}" required minlength="8"
+                                            autocomplete="new-password">
+                                        <div class="input-group-append">
+                                            <button type="button" class="generate-btn" onclick="generatePassword()">
+                                                &#x21BB; Generate
+                                            </button>
+                                        </div>
+                                    </div>
                                     <small style="color: rgba(255,255,255,0.5);">
                                         Share this password with the driver so they can log in and change it <br>
                                         شارك هذا الرقم السري مع السائق حتى يتمكن من تسجيل الدخول وتغييره
@@ -580,6 +604,33 @@
 
 @push('scripts')
 <script>
+    // ── Generate random password ──────────────────────────────────────────────
+    function generatePassword() {
+        var lower   = 'abcdefghijklmnopqrstuvwxyz';
+        var upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var digits  = '0123456789';
+        var special = '@#$!%*?~';
+        var all     = lower + upper + digits + special;
+
+        // Guarantee at least one character from each required group
+        var pwd = [
+            lower  [Math.floor(Math.random() * lower.length)],
+            upper  [Math.floor(Math.random() * upper.length)],
+            digits [Math.floor(Math.random() * digits.length)],
+            special[Math.floor(Math.random() * special.length)],
+        ];
+
+        // Fill remaining 8 characters from the full pool (total length = 12)
+        for (var i = 0; i < 8; i++) {
+            pwd.push(all[Math.floor(Math.random() * all.length)]);
+        }
+
+        // Shuffle so guaranteed chars are not always in the same positions
+        pwd = pwd.sort(function() { return Math.random() - 0.5; });
+
+        document.getElementById('password_field').value = pwd.join('');
+    }
+
     // ── ID type toggle ────────────────────────────────────────────────────────
     function switchIdType(type, el) {
         document.getElementById('id_type_hidden').value = type;
@@ -598,33 +649,32 @@
         el.classList.add('active');
     }
 
-    // ── POST to existing API routes to get filtered models ────────────────────
-    // API returns { data: [...], message: null } via sendResponse()
+    // ── Load models via API ───────────────────────────────────────────────────
     function loadModels(url, body, modelSelect, selectedId, defaultText) {
-    modelSelect.innerHTML = '<option value="">Loading...</option>';
-    var params = new URLSearchParams(body).toString();
-    fetch(url + '?' + params, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
-    })
-        .then(function(res) { return res.json(); })
-        .then(function(response) {
-            modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
-            var models = response.data ?? response;
-            if (!Array.isArray(models)) return;
-            models.forEach(function(model) {
-                var opt = document.createElement('option');
-                opt.value = model.id;
-                opt.textContent = model.en_name;
-                if (String(model.id) === String(selectedId)) opt.selected = true;
-                modelSelect.appendChild(opt);
-            });
+        modelSelect.innerHTML = '<option value="">Loading...</option>';
+        var params = new URLSearchParams(body).toString();
+        fetch(url + '?' + params, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
         })
-        .catch(function() {
-            modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
-        });
+            .then(function(res) { return res.json(); })
+            .then(function(response) {
+                modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
+                var models = response.data ?? response;
+                if (!Array.isArray(models)) return;
+                models.forEach(function(model) {
+                    var opt = document.createElement('option');
+                    opt.value = model.id;
+                    opt.textContent = model.en_name;
+                    if (String(model.id) === String(selectedId)) opt.selected = true;
+                    modelSelect.appendChild(opt);
+                });
+            })
+            .catch(function() {
+                modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
+            });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -653,7 +703,6 @@
         var oldCarMark     = "{{ old('car_mark_id') }}";
         var oldCarModel    = "{{ old('car_model_id') }}";
 
-        // Restore on validation error
         if (oldCarMark) {
             carMarkSelect.value = oldCarMark;
             loadModels('/api/models', { car_mark_id: oldCarMark }, carModelSelect, oldCarModel, 'Select Car Model');
@@ -673,7 +722,6 @@
         var oldScooterMark     = "{{ old('scooter_mark_id') }}";
         var oldScooterModel    = "{{ old('scooter_model_id') }}";
 
-        // Restore on validation error
         if (oldScooterMark) {
             scooterMarkSelect.value = oldScooterMark;
             loadModels('/api/scooter_models', { scooter_mark_id: oldScooterMark }, scooterModelSelect, oldScooterModel, 'Select Scooter Model');
