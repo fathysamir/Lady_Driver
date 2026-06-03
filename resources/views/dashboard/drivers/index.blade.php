@@ -180,7 +180,7 @@
                                                 <a class="btn btn-light px-3" href="javascript:void(0);"
                                                     onclick="openDateRangeModal()"
                                                     style="margin:0% 0% 1% 1%; width: 200px;">
-                                                    <i class="bi bi-download"></i> Export by Date Range
+                                                     Export by Date Range
                                                 </a>
                                             @endif
                                             {{-- Moderator Standard / Comfort / Scooter: no export button --}}
