@@ -49,72 +49,78 @@ class AdminController extends Controller
     }
 
     public function store(Request $request)
-    {
-
-        $validator = Validator::make($request->all(), [
-            'name' => [
-    'required',
-    'string',
-    'max:191',
-    Rule::unique('users')->whereNull('deleted_at'),
-],
-            'email'           => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->whereNull('deleted_at'),
-            ],
-            'password'        => ['required', 'string', 'min:8', 'confirmed'],
-            'second_password' => ['required', 'string', 'min:8', 'confirmed'],
-            'country_code'    => 'required',
-           'phone' => [
-    'required',
-    'digits:11',
-    Rule::unique('users')->where(function ($query) use ($request) {
-        return $query->where('country_code', $request->country_code)
-            ->whereNull('deleted_at');
-    }),
-],
-            'role'            => [
-                'required',
-                'integer',
-                Rule::exists('roles', 'id'), // checks the role exists in the roles table
-            ],
-        ]);
-
-        if ($validator->fails()) {
-            return Redirect::back()->withInput()->withErrors($validator);
-        }
-        $role = Role::find($request->role);
-
-        $admin = User::create([
-            'name'         => $request->name,
-            'email'        => $request->email,
-            'phone'        => $request->phone,
-            'country_code' => $request->country_code,
-            'password'     => Hash::make($request->password),
-            'password2'    => Hash::make($request->second_password),
-            'status'       => 'confirmed',
-            'theme'        => 'theme1',
-            'gendor'       => 'other',
-            'mode'         => 'admin',
-            'role'         => $role->name,
-
-        ]);
-        $admin_role = Role::where('name', 'AdminAdmin111')->first();
-
-        // sync extra permissions (with role permissions included)
-        if ($admin->role !== 'Super Admin') {
-            $admin->syncPermissions($request->permissions ?? []);
-        }
-        $admin->assignRole([$admin_role->id]);
-        if ($request->file('image')) {
-            uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
-        }
-        return redirect('/admin-dashboard/admins');
-
+{
+    // ── Only Super Admin can assign roles & permissions ───────────────────────
+    if (!auth()->user()->can('manage-roles-permissions')) {
+        return Redirect::back()->with('error', 'Only Super Admins can assign roles and permissions.');
     }
+
+    $validator = Validator::make($request->all(), [
+        'name' => [
+            'required',
+            'string',
+            'max:191',
+            Rule::unique('users')->whereNull('deleted_at'),
+        ],
+        'email'           => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            Rule::unique('users')->whereNull('deleted_at'),
+        ],
+        'password'        => ['required', 'string', 'min:8', 'confirmed'],
+        'second_password' => ['required', 'string', 'min:8', 'confirmed'],
+        'country_code'    => 'required',
+        'phone' => [
+            'required',
+            'digits:11',
+            Rule::unique('users')->where(function ($query) use ($request) {
+                return $query->where('country_code', $request->country_code)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'role' => [
+            'required',
+            'integer',
+            Rule::exists('roles', 'id'),
+        ],
+    ]);
+
+    if ($validator->fails()) {
+        return Redirect::back()->withInput()->withErrors($validator);
+    }
+
+    $role = Role::find($request->role);
+
+    $admin = User::create([
+        'name'         => $request->name,
+        'email'        => $request->email,
+        'phone'        => $request->phone,
+        'country_code' => $request->country_code,
+        'password'     => Hash::make($request->password),
+        'password2'    => Hash::make($request->second_password),
+        'status'       => 'confirmed',
+        'theme'        => 'theme1',
+        'gendor'       => 'other',
+        'mode'         => 'admin',
+        'role'         => $role->name,
+    ]);
+
+    $admin_role = Role::where('name', 'AdminAdmin111')->first();
+
+    if ($admin->role !== 'Super Admin') {
+        $admin->syncPermissions($request->permissions ?? []);
+    }
+
+    $admin->assignRole([$admin_role->id]);
+
+    if ($request->file('image')) {
+        uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
+    }
+
+    return redirect('/admin-dashboard/admins');
+}
 
     public function edit($id)
     {
@@ -129,19 +135,24 @@ class AdminController extends Controller
 
     public function update(Request $request, $id)
     {
+        // ── Only Super Admin can change roles & permissions ───────────────────────
+        if (!auth()->user()->can('manage-roles-permissions')) {
+            return Redirect::back()->with('error', 'Only Super Admins can change roles and permissions.');
+        }
+
         $admin = User::findOrFail($id);
         if ($admin->hasRole('Super Admin')) {
             return redirect()->back()->with('error', 'Super Admin cannot be edited.');
         }
 
         $validator = Validator::make($request->all(), [
-'name' => [
-    'required',
-    'string',
-    'max:191',
-    Rule::unique('users')->ignore($id)->whereNull('deleted_at'),
-],
-            'email'           => [
+            'name' => [
+                'required',
+                'string',
+                'max:191',
+                Rule::unique('users')->ignore($id)->whereNull('deleted_at'),
+            ],
+            'email' => [
                 'required',
                 'string',
                 'email',
@@ -151,47 +162,57 @@ class AdminController extends Controller
             'password'        => ['nullable', 'string', 'min:8', 'confirmed'],
             'second_password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'country_code'    => 'required',
-
             'phone' => [
-    'required',
-    'digits:11',
-    Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
-        return $query->where('country_code', $request->country_code)
-            ->whereNull('deleted_at');
-    }),
-],
-            'role'            => [
+                'required',
+                'digits:11',
+                Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
+                    return $query->where('country_code', $request->country_code)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'role' => [
                 'required',
                 'integer',
-                Rule::exists('roles', 'id'), // checks the role exists in the roles table
-            ]]);
+                Rule::exists('roles', 'id'),
+            ],
+        ]);
 
         if ($validator->fails()) {
             return Redirect::back()->withInput()->withErrors($validator);
         }
+
         $role = Role::find($request->role);
 
-        $admin = User::where('id', $id)->update([
+        User::where('id', $id)->update([
             'name'         => $request->name,
             'email'        => $request->email,
             'phone'        => $request->phone,
             'country_code' => $request->country_code,
-            'password'     => Hash::make($request->password),
-            'password2'    => Hash::make($request->second_password),
             'role'         => $role->name,
         ]);
+
         $admin = User::findOrFail($id);
+
+        // ── Update password only if provided ─────────────────────────────────────
         if ($request->password != null) {
-            $admin->password = Hash::make($request->password);
+            $admin->password  = Hash::make($request->password);
+            $admin->password2 = Hash::make($request->second_password);
+            $admin->save();
         }
 
-        // Update permissions (direct permissions)
+        // ── Sync Spatie roles in pivot table ──────────────────────────────────────
+        $admin_role = Role::where('name', 'AdminAdmin111')->first();
+        $admin->syncRoles([$admin_role->id, $role->id]);
+
+        // ── Sync permissions ──────────────────────────────────────────────────────
         $admin->syncPermissions($request->permissions ?? []);
+
+        // ── Update image if provided ──────────────────────────────────────────────
         if ($request->file('image')) {
             uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
         }
-        return redirect('/admin-dashboard/admins');
 
+        return redirect('/admin-dashboard/admins');
     }
 
     public function delete(User $admin)
