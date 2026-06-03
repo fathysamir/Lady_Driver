@@ -1593,9 +1593,9 @@ public function edit_personal_info(Request $request)
             'subject'      => ['required', 'string', 'max:191'],
             'name'         => ['required', 'string', 'max:191'],
             'email'        => ['required', 'string', 'max:191', 'email'],
-            'phone'        => ['required', 'numeric'],
+            'phone'        => ['nullable', 'numeric'],
             'message'      => ['required', 'string'],
-            'country_code' => ['required'],
+            'country_code' => ['nullable'],
         ]);
         // dd($request->all());
         if ($validator->fails()) {
