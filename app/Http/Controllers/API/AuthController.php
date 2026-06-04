@@ -1633,22 +1633,26 @@ public function edit_personal_info(Request $request)
     }
 
     public function remove_account(Request $request)
-    {
-
-        $user = $request->user();
-        if ($user) {
-            $tokens = $user->tokens;
-            foreach ($tokens as $token) {
-                $token->delete();
-            }
-            Car::where('user_id', $user->id)->delete();
+{
+    $user = $request->user();
+    if ($user) {
+        DB::transaction(function () use ($user) {
+            $user->tokens()->delete();
+            $user->car()->delete();
+            $user->scooter()->delete();
+            $user->student()->delete();
+            Notification::where('user_id', $user->id)->delete();
+            FeedBack::where('user_id', $user->id)->delete();
+            DashboardMessage::where('receiver_id', $user->id)->delete();
+            DriverLicense::where('user_id', $user->id)->delete();
+            FawryTransaction::where('user_id', $user->id)->delete();
             $user->delete();
-            return $this->sendResponse(null, 'Account Removed successfuly', 200);
-        } else {
-            // Handle the case when the user is not authenticated
-            return $this->sendError(null, "This Account doesn't existed", 400);
-        }
+        });
+        return $this->sendResponse(null, 'Account Removed successfully', 200);
+    } else {
+        return $this->sendError(null, "This Account doesn't existed", 400);
     }
+}
 
     public function add_feed_back(Request $request)
     {
