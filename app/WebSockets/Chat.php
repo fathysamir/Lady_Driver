@@ -948,6 +948,9 @@ private function getFirebaseAccessToken(): ?string
                 $response2           = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                 $distance2           = round($response2['distance_in_km'], 1);
                 $duration2           = intval($response2['duration_in_M']);
+                $owner = $scooter->owner;
+                $tokens = $this->getUserFcmTokens($owner);
+                echo "🛵 Scooter owner ID: {$owner->id}, device_token: {$owner->device_token}, fcm_tokens: " . json_encode($tokens) . "\n";
                 $this->sendPushToUser($scooter->owner, [
                     'screen'   => 'new_trip',
                     'id'       => (string) $trip->id,
