@@ -941,6 +941,15 @@ private function getFirebaseAccessToken(): ?string
                 )
                 ->having('distance', '<=', 3)
                 ->get();
+                echo "🛵 Eligible scooters count: " . $eligibleScooters->count() . "\n";
+                $allScooters = Scooter::where('status', 'confirmed')
+                    ->whereHas('owner', function ($query) {
+                        $query->where('is_online', '1')->where('status', 'confirmed');
+                    })->get();
+                echo "🛵 All confirmed+online scooters: " . $allScooters->count() . "\n";
+                foreach ($allScooters as $s) {
+                    echo "🛵 Scooter ID: {$s->id}, lat: {$s->lat}, lng: {$s->lng}\n";
+                }
 
             $eligibleDriverIds = [];
             foreach ($eligibleScooters as $scooter) {
