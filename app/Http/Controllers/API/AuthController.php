@@ -1028,6 +1028,12 @@ class AuthController extends ApiController
 
             return $this->sendResponse($user, 'This account is not verified', 200);
         }
+        if ($request->device_token) {
+            DB::table('users')
+                ->where('device_token', $request->device_token)
+                ->where('id', '!=', $user->id)
+                ->update(['device_token' => null]);
+        }
 
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
