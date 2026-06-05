@@ -37,7 +37,7 @@
                                 $appRate       = (float) ($trip->app_rate     ?? 0);
                                 $paymentStatus = $trip->status === 'completed' ? 'Paid' : ucwords($trip->payment_status ?? 'Unpaid');
 
-                                /* ── Status colors (from v2) ── */
+                                /* ── Status colors ── */
                                 $statusColors = [
                                     'pending'     => 'rgb(143, 118, 9)',
                                     'scheduled'   => 'rgb(112, 137, 4)',
@@ -393,7 +393,17 @@
             drawRoutes(previousLocation);
 
             if (TRIP_STATUS === 'in_progress' || TRIP_STATUS === 'pending') {
-                movingMarker = new RotatingMarker({ lat: VEHICLE_LAT, lng: VEHICLE_LNG }, map, VEHICLE_ICON);
+                // FIX: compute initial bearing toward first destination instead of hardcoded 250
+                var initialBearing = computeBearing(
+                    { lat: VEHICLE_LAT, lng: VEHICLE_LNG },
+                    { lat: DESTINATIONS[0].lat, lng: DESTINATIONS[0].lng }
+                );
+                movingMarker = new RotatingMarker(
+                    { lat: VEHICLE_LAT, lng: VEHICLE_LNG },
+                    map,
+                    VEHICLE_ICON,
+                    initialBearing
+                );
                 setInterval(pollVehicleLocation, 3000);
             }
 
@@ -426,7 +436,7 @@
         }
 
         /* ─────────────────────────────────────────────────────────
-           Route drawing (improved logic from v2)
+           Route drawing
         ───────────────────────────────────────────────────────── */
         function drawRoutes(vehiclePos) {
             routeRenderers.forEach(function(r) { r.setMap(null); });
@@ -442,34 +452,52 @@
             });
 
             if (TRIP_STATUS === 'in_progress') {
-                var nearestIdx  = findNearestDestinationIndex(vehiclePos);
-                var vLatLng     = new google.maps.LatLng(vehiclePos.lat, vehiclePos.lng);
+                var nearestIdx    = findNearestDestinationIndex(vehiclePos);
+                var vLatLng       = new google.maps.LatLng(vehiclePos.lat, vehiclePos.lng);
 
+                // The stop the driver is heading toward (nearest unvisited)
+                var nearestLatLng = new google.maps.LatLng(
+                    DESTINATIONS[nearestIdx].lat,
+                    DESTINATIONS[nearestIdx].lng
+                );
+
+                // Waypoints for the already-driven pink segment (stops before nearestIdx)
                 var passedWP = DESTINATIONS.slice(0, nearestIdx).map(function(d) {
                     return { location: new google.maps.LatLng(d.lat, d.lng), stopover: true };
                 });
-                var remainingWP = DESTINATIONS.slice(nearestIdx + 1, -1).map(function(d) {
+
+                // Waypoints for the remaining blue segment (stops after nearestIdx, excluding final)
+                var remainingWP = DESTINATIONS.slice(nearestIdx + 1, DESTINATIONS.length - 1).map(function(d) {
                     return { location: new google.maps.LatLng(d.lat, d.lng), stopover: true };
                 });
 
+                // Pink: start → vehicle (through any already-passed stops)
                 if (nearestIdx > 0) {
                     drawSegment(start, vLatLng, '#fc01f8', passedWP, false);
                 }
-                drawSegment(vLatLng, final, '#0000FF', remainingWP, true);
+
+                // FIX: include nearestLatLng as the first waypoint of the blue segment
+                // so the route correctly passes through the next stop instead of skipping it
+                drawSegment(vLatLng, final, '#0000FF', [
+                    { location: nearestLatLng, stopover: true }
+                ].concat(remainingWP), true);
 
             } else if (TRIP_STATUS === 'completed') {
-                drawSegment(start, final, '#fc01f8', allWaypoints, false);
+                // FIX: pass true so the distance label moves to the route midpoint
+                drawSegment(start, final, '#fc01f8', allWaypoints, true);
 
             } else if (TRIP_STATUS === 'pending') {
                 var vehicleLatLng = new google.maps.LatLng(vehiclePos.lat, vehiclePos.lng);
+                // Orange: vehicle → pickup point (driver approaching)
                 drawSegment(vehicleLatLng, start, '#ff8f00', [], false);
+                // Blue: pickup → final destination (planned route)
                 drawSegment(start, final, '#0000FF', allWaypoints, false);
 
             } else if (TRIP_STATUS === 'cancelled') {
                 drawSegment(start, final, '#FF0000', allWaypoints, false);
 
             } else {
-                // created / scheduled
+                // created / scheduled — show planned route in blue
                 drawSegment(start, final, '#0000FF', allWaypoints, true);
             }
         }
@@ -495,6 +523,7 @@
                 renderer.setDirections(result);
                 routeRenderers.push(renderer);
 
+                // FIX: guard against null distanceLabel before calling setPosition
                 if (updateDistanceLabel && distanceLabel) {
                     var path     = result.routes[0].overview_path;
                     var midpoint = path[Math.floor(path.length / 2)];
@@ -561,10 +590,12 @@
 
         /* ─────────────────────────────────────────────────────────
            Custom rotating overlay marker
+           FIX: accepts initialRotation parameter instead of hardcoding 250
         ───────────────────────────────────────────────────────── */
-        function RotatingMarker(position, map, imageUrl) {
+        function RotatingMarker(position, map, imageUrl, initialRotation) {
             this.position = new google.maps.LatLng(position.lat, position.lng);
-            this.rotation = 250;
+            // FIX: use the passed initialRotation (computed bearing) or fall back to 0 (north)
+            this.rotation = (initialRotation !== undefined) ? initialRotation : 0;
             this.div = document.createElement('div');
             this.div.style.position = 'absolute';
             this.div.style.width = '50px';
