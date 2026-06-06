@@ -2,6 +2,10 @@
 @section('title', 'Dashboard - drivers')
 @section('content')
 <style>
+    #exportCitySelect option {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+}
     .pagination { display: inline-flex; }
 
     .user-status {
@@ -140,25 +144,24 @@
     @endif
 
     @if($isSuperAdmin)
-        <div class="export-dropdown">
-            <button class="btn btn-light px-3" type="button">Export CSV</button>
-            <div class="export-dropdown-menu">
-                <a href="{{ route('drivers.export', array_merge(
-                        ['type' => $type, 'export_scope' => 'all'],
-                        array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online')], fn($v)=>$v!==null&&$v!=='')
-                    )) }}">Export All Drivers</a>
-                <a href="{{ route('drivers.export', array_merge(
-                        ['type' => $type, 'export_scope' => 'page', 'page' => $all_users->currentPage()],
-                        array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online')], fn($v)=>$v!==null&&$v!=='')
-                    )) }}">Export Current Page</a>
-                <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
-                    Export by Date Range</a>
-            </div>
+    <div class="export-dropdown">
+        <button class="btn btn-light px-3" type="button">Export CSV</button>
+        <div class="export-dropdown-menu">
+            <a href="{{ route('drivers.export', array_merge(
+                    ['type' => $type, 'export_scope' => 'all'],
+                    array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online')], fn($v)=>$v!==null&&$v!=='')
+                )) }}">Export All Drivers</a>
+
+            <a href="javascript:void(0);" onclick="openCityExportModal(); event.stopPropagation();">
+                Export by City</a>
+            <a href="javascript:void(0);" onclick="openDateRangeModal(); event.stopPropagation();">
+                Export by Date Range</a>
         </div>
-    @elseif($isSupervisor)
-        <a class="btn btn-light px-3" href="javascript:void(0);"
-            onclick="openDateRangeModal()">Export by Date Range</a>
-    @endif
+    </div>
+@elseif($isSupervisor)
+    <a class="btn btn-light px-3" href="javascript:void(0);"
+        onclick="openDateRangeModal()">Export by Date Range</a>
+@endif
 
     @if($isSuperAdmin || $isSupervisor)
         <a class="btn btn-light px-3"
@@ -488,11 +491,95 @@
     </div>
     @endif
 
+    {{-- ── City Export Modal (Super Admin only) ── --}}
+@if($isSuperAdmin)
+<div class="modal fade" id="cityExportModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius:12px;border:none;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;
+                        padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#fff;">
+                <span style="font-size:15px;font-weight:500;color:#111;">Export by City</span>
+                <button type="button" onclick="closeCityExportModal()" aria-label="Close"
+                    style="background:none;border:none;cursor:pointer;font-size:20px;color:#6b7280;line-height:1;padding:0;">
+                    &times;
+                </button>
+            </div>
+            <div style="padding:20px;background:#fff;">
+                <label for="exportCitySelect" style="display:block;font-size:12px;color:#6b7280;margin-bottom:6px;">
+                    Select City
+                </label>
+                <select id="exportCitySelect"
+                    style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;
+                           color:#111;background:#fff;border:1px solid #d1d5db;border-radius:8px;outline:none;margin-bottom:16px;">
+                    <option value="" style="background:#fff;color:#111;">-- Select a city --</option>
+                    @foreach($cities as $cityItem)
+                        <option value="{{ $cityItem->id }}" style="background:#fff;color:#111;">
+                            {{ $cityItem->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <p id="cityExportError" style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">
+                    Please select a city.
+                </p>
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button type="button" onclick="closeCityExportModal()"
+                        style="padding:8px 18px;border-radius:8px;border:1px solid #d1d5db;background:#fff;color:#374151;font-size:14px;cursor:pointer;">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="submitCityExport()"
+                        style="padding:8px 18px;border-radius:8px;border:1px solid #d1d5db;background:#fff;color:#374151;font-size:14px;cursor:pointer;">
+                        Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // ── City export modal ──────────────────────────────────────────────────────
+function openCityExportModal() {
+    const el = document.getElementById('cityExportModal');
+    if (!el) return;
+    document.getElementById('exportCitySelect').value = '';
+    document.getElementById('cityExportError').style.display = 'none';
+    const modal = new bootstrap.Modal(el, {});
+    modal.show();
+}
+
+function closeCityExportModal() {
+    const modalEl = document.getElementById('cityExportModal');
+    if (!modalEl) return;
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+}
+
+function submitCityExport() {
+    const cityId = document.getElementById('exportCitySelect').value;
+    document.getElementById('cityExportError').style.display = 'none';
+
+    if (!cityId) {
+        document.getElementById('cityExportError').style.display = 'block';
+        return;
+    }
+
+    const params = new URLSearchParams({
+        type:         '{{ $type }}',
+        export_scope: 'all',
+    city:         cityId,
+    });
+    @if(request('search')) params.append('search', '{{ request('search') }}'); @endif
+    @if(request('status')) params.append('status', '{{ request('status') }}'); @endif
+    @if(request()->filled('online')) params.append('online', '{{ request('online') }}'); @endif
+
+    closeCityExportModal();
+    window.location.href = '{{ route('drivers.export') }}?' + params.toString();
+}
     // ── Single-row delete ──────────────────────────────────────────────────────
     function showConfirmationPopup(deleteUrl, name, imgSrc) {
         document.getElementById('deletedNameInput').textContent = name;

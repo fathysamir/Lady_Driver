@@ -166,6 +166,13 @@ class DriverController extends Controller
 
     public function update(Request $request, $id)
     {
+    /*    // Only Super Admin can change roles/permissions
+    if ($request->has('role') || $request->has('permissions')) {
+        if (!auth()->user()->hasRole('Super Admin')) {
+            abort(403, 'Only Super Admins can change roles and permissions.');
+        }
+    }
+        */
         $validator = Validator::make($request->all(), [
             'status'       => ['required'],
             'email'        => [
@@ -318,12 +325,18 @@ class DriverController extends Controller
         }
 
         $typeLabel = $type ? $type : 'all';
-        $datePart  = $scope === 'date_range'
-            ? "_{$dateFrom}_to_{$dateTo}"
-            : ($scope === 'page' ? "_page{$page}" : '');
+$datePart  = $scope === 'date_range'
+    ? "_{$dateFrom}_to_{$dateTo}"
+    : ($scope === 'page' ? "_page{$page}" : '');
 
-        $filename = "drivers_{$typeLabel}_{$scope}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
+if (!empty($city) && $scope === 'all') {
+    $cityName  = \App\Models\City::find($city)?->name ?? 'city';
+    $scopePart = \Illuminate\Support\Str::slug($cityName);
+} else {
+    $scopePart = $scope;
+}
 
+$filename = "drivers_{$typeLabel}_{$scopePart}{$datePart}_" . now()->format('Y_m_d_His') . '.csv';
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
