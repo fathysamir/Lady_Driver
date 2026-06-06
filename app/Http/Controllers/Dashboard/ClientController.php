@@ -259,12 +259,12 @@ class ClientController extends Controller
         }
         $label = $type === 'students' ? 'students' : 'clients';
 
-        if ($city == 3) {
-            $scopeLabel = 'alexandria';
+        if (!empty($city)) {
+            $cityName   = \App\Models\City::find($city)?->name ?? 'city';
+            $scopeLabel = \Illuminate\Support\Str::slug($cityName);
         } else {
             $scopeLabel = $scope;
         }
-
         $datePart = $scope === 'date_range'
             ? "_{$dateFrom}_to_{$dateTo}"
             : ($scope === 'page' ? "_page{$page}" : '');
