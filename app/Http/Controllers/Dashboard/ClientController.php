@@ -160,8 +160,7 @@ class ClientController extends Controller
             $user->tokens()->delete();
         }
 
-        $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date']);
-
+        $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date', 'city']);
         return redirect()->route('clients', $queryParams)->with('success', 'User updated successfully!');
     }
 

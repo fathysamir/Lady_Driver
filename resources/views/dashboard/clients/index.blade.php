@@ -172,6 +172,15 @@
                                                 <option value="banned"    {{ request('status') == 'banned'    ? 'selected' : '' }}>Banned</option>
                                                 <option value="blocked"   {{ request('status') == 'blocked'   ? 'selected' : '' }}>Blocked</option>
                                             </select>
+
+                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="city">
+                                                <option value="">Select City</option>
+                                                @foreach ($cities as $cityItem)
+                                                    <option value="{{ $cityItem->id }}" {{ request('city') == $cityItem->id ? 'selected' : '' }}>
+                                                        {{ $cityItem->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
                                     </div>
