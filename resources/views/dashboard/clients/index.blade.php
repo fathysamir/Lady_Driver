@@ -2,6 +2,11 @@
 @section('title', 'Dashboard - ' . (request()->query('type') === 'students' ? 'Students' : 'Clients'))
 @section('content')
 <style>
+
+#exportCitySelect option {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+}
     .pagination { display: inline-flex; }
 
     .user-status {
@@ -431,13 +436,13 @@
                     Select City
                 </label>
                 <select id="exportCitySelect"
-                    style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;
-                           color:#111;background:#fff;border:1px solid #d1d5db;border-radius:8px;outline:none;margin-bottom:16px;">
-                    <option value="">-- Select a city --</option>
-                    @foreach($cities as $cityItem)
-                        <option value="{{ $cityItem->id }}">{{ $cityItem->name }}</option>
-                    @endforeach
-                </select>
+                style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;
+                       color:#111;background:#fff;border:1px solid #d1d5db;border-radius:8px;outline:none;margin-bottom:16px;">
+                <option value="" style="background:#fff;color:#111;">-- Select a city --</option>
+                @foreach($cities as $cityItem)
+                    <option value="{{ $cityItem->id }}" style="background:#fff;color:#111;">{{ $cityItem->name }}</option>
+                @endforeach
+            </select>
                 <p id="cityExportError" style="display:none;font-size:12px;color:#dc2626;margin:0 0 14px;">
                     Please select a city.
                 </p>
