@@ -182,6 +182,31 @@ class TripController extends Controller
 
         $trip = Trip::findOrFail($id);
         $trip->status = $request->status;
+        switch ($request->status) {
+            case 'in_progress':
+                $trip->start_date = now()->toDateString();
+                $trip->start_time = now()->toTimeString();
+                break;
+
+            case 'completed':
+                $trip->end_date = now()->toDateString();
+                $trip->end_time = now()->toTimeString();
+                break;
+
+            case 'cancelled':
+                $trip->end_date = now()->toDateString();
+                $trip->end_time = now()->toTimeString();
+                $trip->cancelled_by_id = Auth::id();
+                break;
+
+            case 'expired':
+                $trip->end_date = now()->toDateString();
+                $trip->end_time = now()->toTimeString();
+                break;
+
+            // created, scheduled, pending → no timestamp needed
+        }
+
         $trip->save();
         $trip->load(['user', 'car', 'scooter']);
 

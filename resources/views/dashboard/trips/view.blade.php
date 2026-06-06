@@ -118,9 +118,11 @@
                                                 {{ date('h:i a', strtotime($trip->start_time)) }}</span></label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0rem;">
-                                        <label>End At : <span
-                                                style="color: #95c408">{{ date('d M.Y', strtotime($trip->end_date)) }}
-                                                {{ date('h:i a', strtotime($trip->end_time)) }}</span></label>
+                                        <label>End At : <span style="color: #95c408">
+                                            {{ $trip->end_date && $trip->end_time
+                                                ? date('d M.Y', strtotime($trip->end_date)) . ' ' . date('h:i a', strtotime($trip->end_time))
+                                                : 'N/A' }}
+                                        </span></label>
                                     </div>
                                 </div>
                                 <div style="width:50% ;">
