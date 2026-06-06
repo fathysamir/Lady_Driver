@@ -353,9 +353,6 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es&libraries=geometry"></script>
 
     <script>
-        /* ─────────────────────────────────────────────────────────
-           Data from PHP
-        ───────────────────────────────────────────────────────── */
         var TRIP_STATUS  = "{{ $trip->status }}";
         var TRIP_TYPE    = "{{ $trip->type }}";
         var START_LAT    = {{ $trip->start_lat }};
@@ -377,14 +374,60 @@
             ? '/admin-dashboard/scooter-location/' + VEHICLE_ID
             : '/admin-dashboard/car-location/'     + VEHICLE_ID;
 
-        /* ─────────────────────────────────────────────────────────
-           Globals
-        ───────────────────────────────────────────────────────── */
         var map, directionsService;
         var routeRenderers   = [];
         var distanceLabel    = null;
         var movingMarker     = null;
         var previousLocation = { lat: VEHICLE_LAT, lng: VEHICLE_LNG };
+
+        /* ─────────────────────────────────────────────────────────
+           Distance Label Overlay (stays pinned to route on all zoom levels)
+        ───────────────────────────────────────────────────────── */
+        function DistanceOverlay(position, text, map) {
+            this.position_ = new google.maps.LatLng(position.lat(), position.lng());
+            this.text_     = text;
+            this.div_      = null;
+            this.setMap(map);
+        }
+        DistanceOverlay.prototype = new google.maps.OverlayView();
+
+        DistanceOverlay.prototype.onAdd = function () {
+            var div = document.createElement('div');
+            div.style.position   = 'absolute';
+            div.style.background = 'white';
+            div.style.border     = '1px solid #ccc';
+            div.style.borderRadius = '5px';
+            div.style.padding    = '4px 8px';
+            div.style.fontWeight = 'bold';
+            div.style.fontSize   = '13px';
+            div.style.color      = '#000';
+            div.style.whiteSpace = 'nowrap';
+            div.style.boxShadow  = '0 2px 4px rgba(0,0,0,0.3)';
+            div.innerHTML        = this.text_;
+            this.div_            = div;
+            this.getPanes().floatPane.appendChild(div);
+        };
+
+        DistanceOverlay.prototype.draw = function () {
+            var projection = this.getProjection();
+            var pos        = projection.fromLatLngToDivPixel(this.position_);
+            if (pos && this.div_) {
+                this.div_.style.left = (pos.x - this.div_.offsetWidth  / 2) + 'px';
+                this.div_.style.top  = (pos.y - this.div_.offsetHeight / 2) + 'px';
+            }
+        };
+
+        DistanceOverlay.prototype.setPosition = function (latLng) {
+            this.position_ = latLng;
+            this.draw();
+        };
+
+        DistanceOverlay.prototype.onRemove = function () {
+            if (this.div_) {
+                this.div_.parentNode.removeChild(this.div_);
+                this.div_ = null;
+            }
+        };
 
         /* ─────────────────────────────────────────────────────────
            Init
@@ -401,7 +444,6 @@
             drawRoutes(previousLocation);
 
             if (TRIP_STATUS === 'in_progress' || TRIP_STATUS === 'pending') {
-                // FIX: compute initial bearing toward first destination instead of hardcoded 250
                 var initialBearing = computeBearing(
                     { lat: VEHICLE_LAT, lng: VEHICLE_LNG },
                     { lat: DESTINATIONS[0].lat, lng: DESTINATIONS[0].lng }
@@ -462,50 +504,36 @@
             if (TRIP_STATUS === 'in_progress') {
                 var nearestIdx    = findNearestDestinationIndex(vehiclePos);
                 var vLatLng       = new google.maps.LatLng(vehiclePos.lat, vehiclePos.lng);
-
-                // The stop the driver is heading toward (nearest unvisited)
                 var nearestLatLng = new google.maps.LatLng(
                     DESTINATIONS[nearestIdx].lat,
                     DESTINATIONS[nearestIdx].lng
                 );
-
-                // Waypoints for the already-driven pink segment (stops before nearestIdx)
                 var passedWP = DESTINATIONS.slice(0, nearestIdx).map(function(d) {
                     return { location: new google.maps.LatLng(d.lat, d.lng), stopover: true };
                 });
-
-                // Waypoints for the remaining blue segment (stops after nearestIdx, excluding final)
                 var remainingWP = DESTINATIONS.slice(nearestIdx + 1, DESTINATIONS.length - 1).map(function(d) {
                     return { location: new google.maps.LatLng(d.lat, d.lng), stopover: true };
                 });
 
-                // Pink: start → vehicle (through any already-passed stops)
                 if (nearestIdx > 0) {
                     drawSegment(start, vLatLng, '#fc01f8', passedWP, false);
                 }
-
-                // FIX: include nearestLatLng as the first waypoint of the blue segment
-                // so the route correctly passes through the next stop instead of skipping it
                 drawSegment(vLatLng, final, '#0000FF', [
                     { location: nearestLatLng, stopover: true }
                 ].concat(remainingWP), true);
 
             } else if (TRIP_STATUS === 'completed') {
-                // FIX: pass true so the distance label moves to the route midpoint
                 drawSegment(start, final, '#fc01f8', allWaypoints, true);
 
             } else if (TRIP_STATUS === 'pending') {
                 var vehicleLatLng = new google.maps.LatLng(vehiclePos.lat, vehiclePos.lng);
-                // Orange: vehicle → pickup point (driver approaching)
                 drawSegment(vehicleLatLng, start, '#ff8f00', [], false);
-                // Blue: pickup → final destination (planned route)
                 drawSegment(start, final, '#0000FF', allWaypoints, false);
 
             } else if (TRIP_STATUS === 'cancelled') {
                 drawSegment(start, final, '#FF0000', allWaypoints, false);
 
             } else {
-                // created / scheduled — show planned route in blue
                 drawSegment(start, final, '#0000FF', allWaypoints, true);
             }
         }
@@ -531,13 +559,28 @@
                 renderer.setDirections(result);
                 routeRenderers.push(renderer);
 
-                // FIX: guard against null distanceLabel before calling setPosition
-                if (updateDistanceLabel && distanceLabel) {
+                if (updateDistanceLabel) {
                     var path     = result.routes[0].overview_path;
                     var midpoint = path[Math.floor(path.length / 2)];
-                    distanceLabel.setPosition(midpoint);
+
+                    // If label doesn't exist yet, create it; otherwise move it
+                    if (!distanceLabel) {
+                        distanceLabel = new DistanceOverlay(midpoint, '{{ $trip->distance }} km', map);
+                    } else {
+                        distanceLabel.setPosition(midpoint);
+                    }
                 }
             });
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           Add distance label (initial placeholder at map center)
+        ───────────────────────────────────────────────────────── */
+        function addDistanceLabel(map, distanceText) {
+            // Label will be properly positioned once the first route segment
+            // with updateDistanceLabel=true resolves in drawSegment()
+            // We store the text here so drawSegment can create the overlay
+            window._distanceLabelText = distanceText;
         }
 
         /* ─────────────────────────────────────────────────────────
@@ -587,29 +630,18 @@
             return Math.atan2(y, x) * 180 / Math.PI;
         }
 
-        function addDistanceLabel(map, distanceText) {
-            distanceLabel = new google.maps.InfoWindow({
-                content: '<div style="color:#000; border-radius: 5px; font-weight: bold;">' + distanceText + '</div>',
-                position: map.getCenter(),
-                pixelOffset: new google.maps.Size(0, -10)
-            });
-            distanceLabel.open(map);
-        }
-
         /* ─────────────────────────────────────────────────────────
            Custom rotating overlay marker
-           FIX: accepts initialRotation parameter instead of hardcoding 250
         ───────────────────────────────────────────────────────── */
         function RotatingMarker(position, map, imageUrl, initialRotation) {
             this.position = new google.maps.LatLng(position.lat, position.lng);
-            // FIX: use the passed initialRotation (computed bearing) or fall back to 0 (north)
             this.rotation = (initialRotation !== undefined) ? initialRotation : 0;
             this.div = document.createElement('div');
-            this.div.style.position = 'absolute';
-            this.div.style.width = '50px';
-            this.div.style.height = '38px';
-            this.div.style.backgroundImage = 'url(' + imageUrl + ')';
-            this.div.style.backgroundSize = 'contain';
+            this.div.style.position         = 'absolute';
+            this.div.style.width            = '50px';
+            this.div.style.height           = '38px';
+            this.div.style.backgroundImage  = 'url(' + imageUrl + ')';
+            this.div.style.backgroundSize   = 'contain';
             this.div.style.backgroundRepeat = 'no-repeat';
             this.setMap(map);
         }
