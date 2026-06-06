@@ -108,8 +108,14 @@
                                         </label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0.75rem;">
-                                        <label>Driver Arrived at : <span
-                                                style="color: #95c408">{{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}</span>
+                                        <label>Driver Arrived at :
+                                            @if($trip->driver_arrived)
+                                                <span style="color: #95c408">
+                                                    {{ date('d M.Y h:i a', strtotime($trip->driver_arrived)) }}
+                                                </span>
+                                            @else
+                                                <span style="color: #888">N/A</span>
+                                            @endif
                                         </label>
                                     </div>
                                     <div class="form-group"style="margin-bottom: 0.75rem;">

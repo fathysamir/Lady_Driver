@@ -186,6 +186,7 @@ class TripController extends Controller
             case 'in_progress':
                 $trip->start_date = now()->toDateString();
                 $trip->start_time = now()->toTimeString();
+                $trip->driver_arrived = now();
                 break;
 
             case 'completed':
@@ -203,6 +204,7 @@ class TripController extends Controller
                 $trip->end_date = now()->toDateString();
                 $trip->end_time = now()->toTimeString();
                 break;
+
 
             // created, scheduled, pending → no timestamp needed
         }
