@@ -1484,7 +1484,7 @@ public function edit_personal_info(Request $request)
         'name'    => $request->name,
         'email'   => $request->email,
         'message' => $request->message,
-        'seen'    => 0,
+        'seen'    => '0',
     ]);
 
     if ($request->hasFile('attachment')) {
