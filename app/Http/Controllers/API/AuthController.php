@@ -165,6 +165,33 @@ class AuthController extends ApiController
 
     public function driver_register(Request $request)
     {
+
+        $deletedUser = User::withTrashed()
+        ->where('email', $request->email)
+        ->whereNotNull('deleted_at')
+        ->first();
+
+    if ($deletedUser) {
+        $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
+        return $this->sendError(null, [
+            'en' => 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.',
+            'ar' => 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
+        ], 400);
+    }
+
+    $deletedPhone = User::withTrashed()
+        ->where('phone', $request->phone)
+        ->where('country_code', $request->country_code)
+        ->whereNotNull('deleted_at')
+        ->first();
+
+    if ($deletedPhone) {
+        $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
+        return $this->sendError(null, [
+            'en' => 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.',
+            'ar' => 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
+        ], 400);
+    }
       //  App::setLocale($request->header('Accept-Language') ?? 'en');
         $validator = Validator::make($request->all(), [
             'name'                        => 'required|string|max:255',
@@ -291,32 +318,6 @@ class AuthController extends ApiController
             return $this->sendError(null, $errors->first(), 400);
         }
 
-        $deletedUser = User::withTrashed()
-    ->where('email', $request->email)
-    ->whereNotNull('deleted_at')
-    ->first();
-
-if ($deletedUser) {
-    $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
-    return $this->sendError(null, [
-        'en' => 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-        'ar' => 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-    ], 400);
-}
-
-$deletedPhone = User::withTrashed()
-    ->where('phone', $request->phone)
-    ->where('country_code', $request->country_code)
-    ->whereNotNull('deleted_at')
-    ->first();
-
-if ($deletedPhone) {
-    $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
-    return $this->sendError(null, [
-        'en' => 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-        'ar' => 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-    ], 400);
-}
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
         do {
@@ -518,6 +519,33 @@ if ($deletedPhone) {
     }
     public function client_register(Request $request)
     {
+
+        $deletedUser = User::withTrashed()
+    ->where('email', $request->email)
+    ->whereNotNull('deleted_at')
+    ->first();
+
+if ($deletedUser) {
+    $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
+    return $this->sendError(null, [
+        'en' => 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.',
+        'ar' => 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
+    ], 400);
+}
+
+$deletedPhone = User::withTrashed()
+    ->where('phone', $request->phone)
+    ->where('country_code', $request->country_code)
+    ->whereNotNull('deleted_at')
+    ->first();
+
+if ($deletedPhone) {
+    $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
+    return $this->sendError(null, [
+        'en' => 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.',
+        'ar' => 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
+    ], 400);
+}
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
             'email' => [
@@ -568,32 +596,6 @@ if ($deletedPhone) {
             // any other field error
             return $this->sendError(null, $errors->first(), 400);
         }
-        $deletedUser = User::withTrashed()
-    ->where('email', $request->email)
-    ->whereNotNull('deleted_at')
-    ->first();
-
-if ($deletedUser) {
-    $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
-    return $this->sendError(null, [
-        'en' => 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-        'ar' => 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-    ], 400);
-}
-
-$deletedPhone = User::withTrashed()
-    ->where('phone', $request->phone)
-    ->where('country_code', $request->country_code)
-    ->whereNotNull('deleted_at')
-    ->first();
-
-if ($deletedPhone) {
-    $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
-    return $this->sendError(null, [
-        'en' => 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-        'ar' => 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-    ], 400);
-}
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
         do {
