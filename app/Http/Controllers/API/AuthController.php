@@ -168,25 +168,21 @@ class AuthController extends ApiController
       //  App::setLocale($request->header('Accept-Language') ?? 'en');
         $validator = Validator::make($request->all(), [
             'name'                        => 'required|string|max:255',
-            'email'                       => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')
-                    ->whereNull('deleted_at')->where('is_verified', '1'),
-            ],
+'email' => [
+    'required',
+    'string',
+    'email',
+    'max:255',
+    Rule::unique('users', 'email'),
+],
             'password'                    => 'required|string|min:8|confirmed',
             'country_code'                => 'required|string|max:10',
-            'phone'                       => [
-                'required',
-            //    new ValidPhone($request->country_code),
-                Rule::unique('users')
-                    ->where(function ($query) use ($request) {
-                        return $query->where('country_code', $request->country_code)
-                            ->whereNull('deleted_at')->where('is_verified', '1');
-                    }),
-            ],
+            'phone' => [
+    'required',
+    Rule::unique('users')->where(function ($query) use ($request) {
+        return $query->where('country_code', $request->country_code);
+    }),
+],
             'image'                       => [
                 'required', new ValidPublicImage,
             ],
@@ -497,25 +493,21 @@ class AuthController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
-            'email'        => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')
-                    ->whereNull('deleted_at')->where('is_verified', '1'),
-            ],
+            'email' => [
+    'required',
+    'string',
+    'email',
+    'max:255',
+    Rule::unique('users', 'email'),
+],
             'password'     => 'required|string|min:8|confirmed',
             'country_code' => 'required|string|max:10',
-            'phone'        => [
-                'required',
-      //          new ValidPhone($request->country_code),
-                Rule::unique('users')
-                    ->where(function ($query) use ($request) {
-                        return $query->where('country_code', $request->country_code)
-                            ->whereNull('deleted_at')->where('is_verified', '1');
-                    }),
-            ],
+            'phone' => [
+    'required',
+    Rule::unique('users')->where(function ($query) use ($request) {
+        return $query->where('country_code', $request->country_code);
+    }),
+],
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'birth_date'   => [
                 'required',
@@ -1639,9 +1631,13 @@ public function edit_personal_info(Request $request)
     }
 
     public function remove_account(Request $request)
-{
-    $user = $request->user();
-    if ($user) {
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->sendError(null, "This Account doesn't exist", 400);
+        }
+
         DB::transaction(function () use ($user) {
             $user->tokens()->delete();
             $user->car()->delete();
@@ -1652,13 +1648,11 @@ public function edit_personal_info(Request $request)
             DashboardMessage::where('receiver_id', $user->id)->delete();
             DriverLicense::where('user_id', $user->id)->delete();
             FawryTransaction::where('user_id', $user->id)->delete();
-            $user->delete();
+            $user->delete(); // soft delete — email/phone now permanently blocked
         });
+
         return $this->sendResponse(null, 'Account Removed successfully', 200);
-    } else {
-        return $this->sendError(null, "This Account doesn't existed", 400);
     }
-}
 
     public function add_feed_back(Request $request)
     {
