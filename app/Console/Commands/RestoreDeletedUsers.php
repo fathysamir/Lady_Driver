@@ -14,6 +14,7 @@ class RestoreDeletedUsers extends Command
     {
         $count = DB::table('users')
             ->whereNotNull('deleted_at')
+            ->where('status', 'blocked')
             ->where('deleted_at', '<=', now()->subDays(60))
             ->update(['deleted_at' => null]);
 

@@ -1523,28 +1523,32 @@ public function edit_personal_info(Request $request)
     }
 
     public function remove_account(Request $request)
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
 
-        if (!$user) {
-            return $this->sendError(null, "This Account doesn't exist", 400);
-        }
-
-        DB::transaction(function () use ($user) {
-            $user->tokens()->delete();
-            $user->car()->delete();
-            $user->scooter()->delete();
-            $user->student()->delete();
-            Notification::where('user_id', $user->id)->delete();
-            FeedBack::where('user_id', $user->id)->delete();
-            DashboardMessage::where('receiver_id', $user->id)->delete();
-            DriverLicense::where('user_id', $user->id)->delete();
-            FawryTransaction::where('user_id', $user->id)->delete();
-            $user->delete(); // soft delete — email/phone now permanently blocked
-        });
-
-        return $this->sendResponse(null, 'Account Removed successfully', 200);
+    if (!$user) {
+        return $this->sendError(null, "This Account doesn't exist", 400);
     }
+
+    DB::transaction(function () use ($user) {
+        $user->tokens()->delete();
+        $user->car()->delete();
+        $user->scooter()->delete();
+        $user->student()->delete();
+        Notification::where('user_id', $user->id)->delete();
+        FeedBack::where('user_id', $user->id)->delete();
+        DashboardMessage::where('receiver_id', $user->id)->delete();
+        DriverLicense::where('user_id', $user->id)->delete();
+        FawryTransaction::where('user_id', $user->id)->delete();
+
+        $user->status = 'blocked'; // ← mark as blocked before soft delete
+        $user->save();
+
+        $user->delete(); // soft delete
+    });
+
+    return $this->sendResponse(null, 'Account Removed successfully', 200);
+}
 
     public function add_feed_back(Request $request)
     {
