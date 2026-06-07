@@ -1477,23 +1477,31 @@ public function edit_personal_info(Request $request)
 
     public function save_contact_us(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
-
-            'subject'      => ['required', 'string', 'max:191'],
-            'name'         => ['required', 'string', 'max:191'],
-            'email'        => ['required', 'string', 'max:191', 'email'],
-            'phone'        => ['nullable', 'numeric'],
-            'message'      => ['required', 'string'],
-            'country_code' => ['nullable'],
+            'subject'    => ['required', 'string', 'max:191'],
+            'name'       => ['required', 'string', 'max:191'],
+            'email'      => ['required', 'string', 'max:191', 'email'],
+            'message'    => ['required', 'string'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:6144'],
         ]);
-        // dd($request->all());
+
         if ($validator->fails()) {
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
-        ContactUs::create(['subject' => $request->subject, 'name' => $request->name, 'email' => $request->email, 'message' => $request->message, 'phone' => $request->country_code . $request->phone]);
+
+        $contact = ContactUs::create([
+            'subject' => $request->subject,
+            'name'    => $request->name,
+            'email'   => $request->email,
+            'message' => $request->message,
+            'seen'    => 0,
+        ]);
+
+        if ($request->hasFile('attachment')) {
+            uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
+        }
+
         return $this->sendResponse(null, 'Your request has been sent and we will respond to you later.', 200);
     }
     /////////////////////////////// محتاجة نزود الحاجات الناقصة ///////////////////////////
