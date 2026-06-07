@@ -15,13 +15,14 @@
                             <div style="display: flex;">
                                 <h5 class="card-title" style="width: 89%;">Contact Us</h5>
                                 <form id="searchForm" class="search-bar"
-                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
+                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;" method="post"
                                     action="{{ route('contact_us') }}" enctype="multipart/form-data">
                                     @csrf
                                     <input type="text" class="form-control" placeholder="Enter keywords" name="search">
                                     <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
                                 </form>
                             </div>
+
                             @if (session('error'))
                                 <div id="errorAlert" class="alert alert-danger"
                                     style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:brown;border-radius: 20px; color:beige;">
@@ -31,7 +32,7 @@
 
                             @if (session('success'))
                                 <div id="successAlert"
-                                    class="alert alert-success"style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:green;border-radius: 20px; color:beige;">
+                                    class="alert alert-success" style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:green;border-radius: 20px; color:beige;">
                                     {{ session('success') }}
                                 </div>
                             @endif
@@ -43,12 +44,9 @@
                                             <td></td>
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
-                                            <th scope="col">Phone Number</th>
-
                                             <th scope="col">Subject</th>
                                             <th scope="col">Message</th>
                                             <th scope="col">Action</th>
-
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -64,7 +62,6 @@
                                                     </td>
                                                     <td>{!! highlight($contact_us->name, $search ?? '') !!}</td>
                                                     <td>{!! highlight($contact_us->email, $search ?? '') !!}</td>
-                                                    <td>{!! highlight($contact_us->phone, $search ?? '') !!}</td>
                                                     <td>{!! highlight($contact_us->subject, $search ?? '') !!}</td>
                                                     <td>
                                                         @if (strlen($contact_us->message) > 50)
@@ -73,16 +70,13 @@
                                                             {{ $contact_us->message }}
                                                         @endif
                                                     </td>
-
                                                     <td>
-
                                                         <a href="{{ url('/admin-dashboard/contact_us/view/' . $contact_us->id) }}"
                                                             style="margin-right: 1rem;">
                                                             <span class="bi bi-eye"
                                                                 style="font-size: 1rem; color: rgb(255,255,255);"
                                                                 title="View"></span>
                                                         </a>
-
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -105,6 +99,7 @@
         </div>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -115,10 +110,9 @@
         });
     </script>
     <script>
-        // Set a timeout to hide the error or success message after 5 seconds
         setTimeout(function() {
             $('#errorAlert').fadeOut();
             $('#successAlert').fadeOut();
-        }, 4000); // 5000 milliseconds = 5 seconds
+        }, 4000);
     </script>
 @endpush

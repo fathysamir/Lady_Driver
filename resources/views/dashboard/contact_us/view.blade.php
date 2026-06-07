@@ -24,10 +24,6 @@
                                     <input type="text" disabled class="form-control" value="{{ $contact_us->email }}">
                                 </div>
 
-                                <div class="form-group">
-                                    <label>Phone Number</label>
-                                    <input type="text" disabled class="form-control" value="{{ $contact_us->phone }}">
-                                </div>
 
                                 <div class="form-group">
                                     <label>Subject</label>
