@@ -1778,6 +1778,7 @@ public function mark_messages_seen(Request $request)
 
         // Flutter sends the full new price, just save it directly
         $trip->total_price = floatval($request->price);
+        $trip->remaining_amount = floatval($request->price);
         $trip->save();
 
         // Reset driver offers since price changed

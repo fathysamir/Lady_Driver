@@ -1101,7 +1101,13 @@ private function getFirebaseAccessToken(): ?string
                 $this->loop->cancelTimer($timer);
                 return;
             }
-            $newTrip['total_price'] = (float) $trip->total_price;
+
+// Always sync from DB — catches update_trip_price changes
+$newTrip['total_price']      = (float) $trip->total_price;
+$newTrip['remaining_amount'] = (float) $trip->total_price;
+$newTrip['discount']         = (float) $trip->discount;
+
+
             // Re-run driver search (same logic per type)
             switch ($type) {
                 case 'car':
