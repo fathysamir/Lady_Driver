@@ -656,9 +656,13 @@ private function getFirebaseAccessToken(): ?string
             break;
     }
 
-    // ✅ Server-calculated — client values ignored
-    $total_cost = $priceResult['total_cost'];
-    $discount   = $priceResult['discount'];
+   // Server-calculated base price
+$server_total = $priceResult['total_cost'];
+$client_total = floatval($data['total_cost'] ?? 0);
+
+// Allow client to send higher price (from +/- buttons), but never lower than server price
+$total_cost = ($client_total > $server_total) ? $client_total : $server_total;
+$discount   = $priceResult['discount'];
 
     if ($distance > $maximum_distance_long_trip) {
         $from->send(json_encode([
