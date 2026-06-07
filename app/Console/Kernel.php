@@ -16,6 +16,11 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->job(new DeleteUnverifiedUsers)
              ->everyTenMinutes();
+
+          //   $schedule->command('drivers:mark-offline')->everyTwoMinutes();
+
+             $schedule->command('users:restore-deleted')->daily();
+
     }
 
     /**
