@@ -166,32 +166,39 @@ class AuthController extends ApiController
     public function driver_register(Request $request)
     {
 
-        $deletedUser = User::withTrashed()
-        ->where('email', $request->email)
-        ->whereNotNull('deleted_at')
-        ->first();
+      // Get language from header
+$lang = $request->header('Accept-Language', 'en');
 
-    if ($deletedUser) {
-        $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
-        return $this->sendError(null, [
-            'en' => 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-            'ar' => 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-        ], 400);
-    }
+// Deleted email check
+$deletedUser = User::withTrashed()
+    ->where('email', $request->email)
+    ->whereNotNull('deleted_at')
+    ->first();
 
-    $deletedPhone = User::withTrashed()
-        ->where('phone', $request->phone)
-        ->where('country_code', $request->country_code)
-        ->whereNotNull('deleted_at')
-        ->first();
+if ($deletedUser) {
+    $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
+    $message = $lang === 'ar'
+        ? 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.'
+        : 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.';
 
-    if ($deletedPhone) {
-        $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
-        return $this->sendError(null, [
-            'en' => 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-            'ar' => 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-        ], 400);
-    }
+    return $this->sendError(null, $message, 400);
+}
+
+// Deleted phone check
+$deletedPhone = User::withTrashed()
+    ->where('phone', $request->phone)
+    ->where('country_code', $request->country_code)
+    ->whereNotNull('deleted_at')
+    ->first();
+
+if ($deletedPhone) {
+    $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
+    $message = $lang === 'ar'
+        ? 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.'
+        : 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.';
+
+    return $this->sendError(null, $message, 400);
+}
       //  App::setLocale($request->header('Accept-Language') ?? 'en');
         $validator = Validator::make($request->all(), [
             'name'                        => 'required|string|max:255',
@@ -520,19 +527,25 @@ class AuthController extends ApiController
     public function client_register(Request $request)
     {
 
-        $deletedUser = User::withTrashed()
+    // Get language from header
+$lang = $request->header('Accept-Language', 'en');
+
+// Deleted email check
+$deletedUser = User::withTrashed()
     ->where('email', $request->email)
     ->whereNotNull('deleted_at')
     ->first();
 
 if ($deletedUser) {
     $availableAt = $deletedUser->deleted_at->addDays(60)->format('Y-m-d');
-    return $this->sendError(null, [
-        'en' => 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-        'ar' => 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-    ], 400);
+    $message = $lang === 'ar'
+        ? 'هذا البريد الإلكتروني محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.'
+        : 'This email is blocked due to account deletion and will be available again on ' . $availableAt . '.';
+
+    return $this->sendError(null, $message, 400);
 }
 
+// Deleted phone check
 $deletedPhone = User::withTrashed()
     ->where('phone', $request->phone)
     ->where('country_code', $request->country_code)
@@ -541,10 +554,11 @@ $deletedPhone = User::withTrashed()
 
 if ($deletedPhone) {
     $availableAt = $deletedPhone->deleted_at->addDays(60)->format('Y-m-d');
-    return $this->sendError(null, [
-        'en' => 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.',
-        'ar' => 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.',
-    ], 400);
+    $message = $lang === 'ar'
+        ? 'هذا الرقم محظور بسبب حذف الحساب وسيكون متاحاً مجدداً في ' . $availableAt . '.'
+        : 'This phone number is blocked due to account deletion and will be available again on ' . $availableAt . '.';
+
+    return $this->sendError(null, $message, 400);
 }
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
