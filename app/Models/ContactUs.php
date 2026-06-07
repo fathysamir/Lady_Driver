@@ -5,17 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Support\Facades\DB;
 
-class ContactUs extends Model implements HasMedia
+class ContactUs extends Model
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes;
 
-    // ─── Media Collection Names ───────────────────────────────────────────────
     public $attachmentCollection = 'attachment';
 
-    // ─── Table & Fillable ─────────────────────────────────────────────────────
     protected $table = 'contact_us';
 
     protected $fillable = [
@@ -35,23 +32,27 @@ class ContactUs extends Model implements HasMedia
         'updated_at',
     ];
 
-    // ─── Appends ──────────────────────────────────────────────────────────────
     protected $appends = [
         'attachment_files',
     ];
 
-    // ─── Accessors ────────────────────────────────────────────────────────────
-
-
     public function getAttachmentFilesAttribute(): array
     {
-        return $this->getMedia($this->attachmentCollection)
-            ->map(fn($media) => [
-                'url'       => $media->getUrl(),
-                'file_name' => $media->file_name,
-                'mime_type' => $media->mime_type,
-                'extension' => strtolower(pathinfo($media->file_name, PATHINFO_EXTENSION)),
-            ])
-            ->toArray();
+        $rows = DB::table('media')
+            ->where('attachmentable_id', $this->id)
+            ->where('attachmentable_type', get_class($this))
+            ->where('collection_name', $this->attachmentCollection)
+            ->get();
+
+        return $rows->map(function ($row) {
+            $path = $row->path ?? $row->Path ?? null;
+            $fileName = basename($path);
+            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            return [
+                'url'       => asset($path),
+                'file_name' => $fileName,
+                'extension' => $extension,
+            ];
+        })->toArray();
     }
 }
