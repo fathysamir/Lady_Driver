@@ -40,6 +40,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use App\Http\Requests\ClientRegisterRequest;
+use App\Http\Requests\DriverRegisterRequest;
+use App\Http\Requests\LoginRequest;
 //use App\Rules\ValidPhone;
 
 
@@ -163,7 +166,7 @@ class AuthController extends ApiController
 
     }
 
-    public function driver_register(Request $request)
+    public function driver_register(DriverRegisterRequest $request)
     {
 
       // Get language from header
@@ -200,130 +203,7 @@ if ($deletedPhone) {
     return $this->sendError(null, $message, 400);
 }
       //  App::setLocale($request->header('Accept-Language') ?? 'en');
-        $validator = Validator::make($request->all(), [
-            'name'                        => 'required|string|max:255',
-'email' => [
-    'required',
-    'string',
-    'email',
-    'max:255',
-    Rule::unique('users', 'email'),
-],
-            'password'                    => 'required|string|min:8|confirmed',
-            'country_code'                => 'required|string|max:10',
-            'phone' => [
-    'required',
-    Rule::unique('users')->where(function ($query) use ($request) {
-        return $query->where('country_code', $request->country_code);
-    }),
-],
-            'image'                       => [
-                'required', new ValidPublicImage,
-            ],
-            'birth_date'                  => [
-                'required',
-                'date',
-                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'city_id'                     => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
-            'national_ID'                 => 'nullable|digits:14|required_without:passport_ID',
-
-            'ID_front_image'              => [
-                'required_with:national_ID', new ValidPublicImage('national_ID'),
-            ],
-            'ID_back_image'               => [
-                'required_with:national_ID', new ValidPublicImage('national_ID'),
-            ],
-
-            'passport_ID'                 => 'nullable|required_without:national_ID',
-            'passport_image'              => [
-                'required_with:passport_ID', new ValidPublicImage('passport_ID'),
-            ],
-            'driving_license_number'      => 'required|string|max:50',
-            'license_expire_date'         => [
-                'required',
-                'date_format:Y-m-d',
-                'after_or_equal:today',
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'license_front_image'         => [
-                'required', new ValidPublicImage,
-            ],
-            'license_back_image'          => [
-                'required', new ValidPublicImage,
-            ],
-            'vehicle_type'                => ['required', Rule::in(['car', 'scooter'])],
-            'car_mark_id'                 => [
-                'required_if:vehicle_type,car',
-                'nullable',
-                Rule::exists('car_marks', 'id'),
-            ],
-            'car_model_id'                => [
-                'required_if:vehicle_type,car',
-                'nullable',
-                Rule::exists('car_models', 'id'),
-            ],
-            'scooter_mark_id'             => [
-                'required_if:vehicle_type,scooter',
-                'nullable',
-                Rule::exists('motorcycle_marks', 'id'),
-            ],
-            'scooter_model_id'            => [
-                'required_if:vehicle_type,scooter',
-                'nullable',
-                Rule::exists('motorcycle_models', 'id'),
-            ],
-            'air_conditioned'             => 'nullable|boolean',
-            'allow_pets'                  => 'nullable|boolean',
-            'color'                       => 'required|string|max:255',
-            'year'                        => 'required|integer|min:1990|max:' . date('Y'),
-            'plate_num'                   => 'required|string|max:255',
-            'vehicle_image'               => [
-                'required', new ValidPublicImage,
-            ],
-
-            'plate_image'                 => [
-                'required', new ValidPublicImage,
-            ],
-            'vehicle_license_expire_date' => [
-                'required',
-                'date_format:Y-m-d',
-                'after_or_equal:today',
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'vehicle_license_front_image' => [
-                'required', new ValidPublicImage,
-            ],
-            'vehicle_license_back_image'  => [
-                'required', new ValidPublicImage,
-            ],
-            'registration_id'             => 'required',
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-
-            if ($errors->has('email') && $errors->has('phone')) {
-                // both wrong — show email first, then phone separately
-                return $this->sendError(null, [
-                    'email' => $errors->first('email'),
-                    'phone' => $errors->first('phone'),
-                ], 400);
-            }
-
-            if ($errors->has('email')) {
-                return $this->sendError(null, $errors->first('email'), 400);
-            }
-
-            if ($errors->has('phone')) {
-                return $this->sendError(null, $errors->first('phone'), 400);
-            }
-
-            // any other field error
-            return $this->sendError(null, $errors->first(), 400);
-        }
 
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
@@ -524,7 +404,7 @@ if ($deletedPhone) {
         return $this->sendResponse($response, 'Image Uploaded successfully.', 200);
 
     }
-    public function client_register(Request $request)
+    public function client_register(ClientRegisterRequest $request)
     {
 
     // Get language from header
@@ -560,56 +440,7 @@ if ($deletedPhone) {
 
     return $this->sendError(null, $message, 400);
 }
-        $validator = Validator::make($request->all(), [
-            'name'         => 'required|string|max:255',
-            'email' => [
-    'required',
-    'string',
-    'email',
-    'max:255',
-    Rule::unique('users', 'email'),
-],
-            'password'     => 'required|string|min:8|confirmed',
-            'country_code' => 'required|string|max:10',
-            'phone' => [
-    'required',
-    Rule::unique('users')->where(function ($query) use ($request) {
-        return $query->where('country_code', $request->country_code);
-    }),
-],
-            'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'birth_date'   => [
-                'required',
-                'date',
-                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'city_id' => ['nullable', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
-        ]);
-        // dd($request->all());
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-
-            if ($errors->has('email') && $errors->has('phone')) {
-                // both wrong — show email first, then phone separately
-                return $this->sendError(null, [
-                    'email' => $errors->first('email'),
-                    'phone' => $errors->first('phone'),
-                ], 400);
-            }
-
-            if ($errors->has('email')) {
-                return $this->sendError(null, $errors->first('email'), 400);
-            }
-
-            if ($errors->has('phone')) {
-                return $this->sendError(null, $errors->first('phone'), 400);
-            }
-
-            // any other field error
-            return $this->sendError(null, $errors->first(), 400);
-        }
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
         do {
@@ -1003,18 +834,10 @@ if ($deletedPhone) {
 
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email'        => 'required|string',
-            'password'     => 'required|string|min:8',
-            'device_token' => 'nullable',
-        ]);
+        $lang = $request->header('Accept-Language', 'en');
 
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
-        }
 
         $login     = $request->email;
         $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
