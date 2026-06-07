@@ -43,6 +43,8 @@ use Spatie\Permission\Models\Role;
 use App\Http\Requests\ClientRegisterRequest;
 use App\Http\Requests\DriverRegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\SaveContactUsRequest;
+
 //use App\Rules\ValidPhone;
 
 
@@ -1475,35 +1477,26 @@ public function edit_personal_info(Request $request)
         return $this->sendResponse($career, 'Application received', 200);
     }
 
-    public function save_contact_us(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'subject'    => ['required', 'string', 'max:191'],
-            'name'       => ['required', 'string', 'max:191'],
-            'email'      => ['required', 'string', 'max:191', 'email'],
-            'message'    => ['required', 'string'],
-            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:6144'],
-        ]);
+    public function save_contact_us(SaveContactUsRequest $request)
+{
+    $contact = ContactUs::create([
+        'subject' => $request->subject,
+        'name'    => $request->name,
+        'email'   => $request->email,
+        'message' => $request->message,
+        'seen'    => 0,
+    ]);
 
-        if ($validator->fails()) {
-            $errors = implode(" / ", $validator->errors()->all());
-            return $this->sendError(null, $errors, 400);
-        }
-
-        $contact = ContactUs::create([
-            'subject' => $request->subject,
-            'name'    => $request->name,
-            'email'   => $request->email,
-            'message' => $request->message,
-            'seen'    => 0,
-        ]);
-
-        if ($request->hasFile('attachment')) {
-            uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
-        }
-
-        return $this->sendResponse(null, 'Your request has been sent and we will respond to you later.', 200);
+    if ($request->hasFile('attachment')) {
+        uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
     }
+
+    $message = $request->header('Accept-Language') === 'ar'
+        ? 'تم إرسال طلبك وسنرد عليك لاحقاً.'
+        : 'Your request has been sent and we will respond to you later.';
+
+    return $this->sendResponse(null, $message, 200);
+}
     /////////////////////////////// محتاجة نزود الحاجات الناقصة ///////////////////////////
 
     public function about_us()
