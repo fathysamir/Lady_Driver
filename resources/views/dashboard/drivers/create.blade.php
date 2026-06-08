@@ -144,31 +144,25 @@
      * CSS hex values for the visual swatch shown in the <select> label.
      * Keys must match the $colors array above.
      */
-    $colorHex = [
-        'White'      => '#ffffff',
-        'Black'      => '#1a1a1a',
-        'Silver'     => '#c0c0c0',
-        'Gray'       => '#808080',
-        'Dark Gray'  => '#404040',
-        'Red'        => '#e53935',
-        'Dark Red'   => '#7f0000',
-        'Blue'       => '#1e88e5',
-        'Dark Blue'  => '#0d47a1',
-        'Green'      => '#43a047',
-        'Dark Green' => '#1b5e20',
-        'Yellow'     => '#fdd835',
-        'Orange'     => '#fb8c00',
-        'Brown'      => '#6d4c41',
-        'Beige'      => '#f5f5dc',
-        'Gold'       => '#ffc107',
-        'Pearl'      => '#eae6da',
-        'Champagne'  => '#f7e7ce',
-        'Maroon'     => '#800000',
-        'Purple'     => '#8e24aa',
-        'Pink'       => '#e91e63',
-        'Turquoise'  => '#00bcd4',
-        'Other'      => '#9e9e9e',
-    ];
+     $colors = [
+    'White'      => '#ffffff',
+    'Black'      => '#1a1a1a',
+    'Silver'     => '#c0c0c0',
+    'Gray'       => '#808080',
+    'Red'        => '#e53935',
+    'Blue'       => '#1e88e5',
+    'Green'      => '#43a047',
+    'Yellow'     => '#fdd835',
+    'Orange'     => '#fb8c00',
+    'Brown'      => '#6d4c41',
+    'Gold'       => '#ffc107',
+    'Beige'      => '#f5f5dc',
+    'Purple'     => '#8e24aa',
+    'Pink'       => '#e91e63',
+    'Turquoise'  => '#00bcd4',
+    'Maroon'     => '#800000',
+    'Other'      => '#9e9e9e',
+];
 @endphp
 
 <div class="content-wrapper">
@@ -553,11 +547,13 @@
                             <div class="form-group">
                                 <label>Color <span class="ar">(اللون)</span><span style="color:red">*</span></label>
                                 <select class="form-control" name="color" id="color_select" required>
-                                    <option value="">-- Select Color / اختر اللون --</option>
-                                    @foreach ($colors as $en => $ar)
-                                        <option value="{{ $en }}"
-                                            data-hex="{{ $colorHex[$en] ?? '#9e9e9e' }}"
-                                            {{ old('color') === $en ? 'selected' : '' }}>
+                                    <option value="">Select Color</option>
+
+                                    @foreach ($colors as $en => $hex)
+                                        <option
+                                            value="{{ $en }}"
+                                            data-hex="{{ $hex }}"
+                                            {{ old('color') == $en ? 'selected' : '' }}>
                                             {{ $en }}
                                         </option>
                                     @endforeach
