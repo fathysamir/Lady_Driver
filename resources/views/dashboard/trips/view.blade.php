@@ -49,7 +49,7 @@
                                 ];
                             @endphp
 
-                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if (($trip->type === 'car' && $trip->air_conditioned == '1') || $trip->type === 'comfort_car')
+                            <div class="card-title">Trip Code : {{ $trip->code }} ({{ $type[$trip->type] }}) @if ($trip->type === 'car' && $trip->air_conditioned == '1')
                                     <i class="fa fa-snowflake" style="color: rgb(0, 213, 255);"></i>
                                 @endif
                             </div>

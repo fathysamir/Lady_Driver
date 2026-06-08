@@ -88,7 +88,7 @@ class TripController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('air_conditioned') && $type !== 'scooter') {
+        if ($request->filled('air_conditioned') && $type === 'car') {
             $query->where('air_conditioned', '1');
         }
 

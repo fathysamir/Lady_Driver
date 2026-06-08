@@ -78,9 +78,8 @@
                                                 <input type="date" name="created_date" class="form-control"
                                                        style="width:100%;" value="{{ request('created_date') }}">
                                             </div>
-                                            <div class="form-group py-2" style="width:23.5%;margin:0%;"
-                                                 id="airConditionedCheckbox"
-                                                 {{ $type === 'scooter' ? 'style=display:none;' : '' }}>
+                                            <div class="form-group py-2" style="width:23.5%;margin:0%;{{ $type !== 'car' ? 'display:none;' : '' }}"
+     id="airConditionedCheckbox">
                                                 <div class="icheck-material-white">
                                                     <input type="checkbox" name="air_conditioned" id="user-checkbox2"
                                                            {{ request('air_conditioned') ? 'checked' : '' }} />
