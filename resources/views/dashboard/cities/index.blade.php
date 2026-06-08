@@ -120,37 +120,39 @@
                                                         {!! highlight($city->name, $search ?? '') !!}
                                                     </td>
 
-                                                    {{-- Clients Count --}}
-                                                    <td class="no-row-click">
-                                                        @if ($city->clients_count > 0)
-                                                            @can('clients.index')
-                                                                <a href="/admin-dashboard/clients?city={{ $city->id }}"
-                                                                    style="color: inherit; text-decoration: none;">
-                                                                    {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
-                                                                </a>
-                                                            @else
-                                                                {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
-                                                            @endcan
-                                                        @else
-                                                            0 Clients
-                                                        @endif
-                                                    </td>
+                                                 {{-- Clients Count --}}
+<td>  {{-- remove no-row-click --}}
+    @if ($city->clients_count > 0)
+        @can('clients.index')
+            <a href="/admin-dashboard/clients?city={{ $city->id }}"
+                onclick="event.stopPropagation()"  {{-- stop row click, let link work --}}
+                style="color: inherit; text-decoration: none;">
+                {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
+            </a>
+        @else
+            {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
+        @endcan
+    @else
+        0 Clients
+    @endif
+</td>
 
-                                                    {{-- Drivers Count --}}
-                                                    <td class="no-row-click">
-                                                        @if ($city->drivers_count > 0)
-                                                            @can('drivers.index')
-                                                                <a href="/admin-dashboard/drivers?city={{ $city->id }}"
-                                                                    style="color: inherit; text-decoration: none;">
-                                                                    {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
-                                                                </a>
-                                                            @else
-                                                                {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
-                                                            @endcan
-                                                        @else
-                                                            0 Drivers
-                                                        @endif
-                                                    </td>
+{{-- Drivers Count --}}
+<td>  {{-- remove no-row-click --}}
+    @if ($city->drivers_count > 0)
+        @can('drivers.index')
+            <a href="/admin-dashboard/drivers?city={{ $city->id }}"
+                onclick="event.stopPropagation()"  {{-- stop row click, let link work --}}
+                style="color: inherit; text-decoration: none;">
+                {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
+            </a>
+        @else
+            {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
+        @endcan
+    @else
+        0 Drivers
+    @endif
+</td>
 
                                                     {{-- Actions --}}
                                                     <td class="no-row-click">
