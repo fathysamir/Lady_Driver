@@ -159,13 +159,7 @@
 
                                     <div id="filterOptions" style="display: none; text-align:center;">
                                         <div style="display: flex;justify-content: center;">
-                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="status">
-                                                <option value="">Select Status</option>
-                                                <option value="pending"   {{ request('status') == 'pending'   ? 'selected' : '' }}>Pending</option>
-                                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                                <option value="banned"    {{ request('status') == 'banned'    ? 'selected' : '' }}>Banned</option>
-                                                <option value="blocked"   {{ request('status') == 'blocked'   ? 'selected' : '' }}>Blocked</option>
-                                            </select>
+
 
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="city">
                                                 <option value="">Select City</option>
