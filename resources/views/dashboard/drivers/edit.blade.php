@@ -582,29 +582,23 @@
                                         <label>No data was entered for the driver's license</label>
                                     </div>
                                 @endif
-
                                 @if ($user->car)
                                 <div class="form-group" style="text-align: center; margin: 40px 0;">
-                                    <label style="display:block; font-size: 22px; margin-bottom: 12px;">Car Details : You can view car details from</label>
+                                    <span style="font-size: 22px;">Car Details : You can view car details from </span>
                                     <a style="color: yellow; font-size: 36px; font-weight: bold;"
-                                       href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
-                                        Here
-                                    </a>
+                                       href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">Here</a>
                                 </div>
                                 @elseif($user->scooter)
                                 <div class="form-group" style="text-align: center; margin: 40px 0;">
-                                    <label style="display:block; font-size: 22px; margin-bottom: 12px;">Scooter Details : You can view scooter details from</label>
+                                    <span style="font-size: 22px;">Scooter Details : You can view scooter details from </span>
                                     <a style="color: yellow; font-size: 36px; font-weight: bold;"
-                                       href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">
-                                        Here
-                                    </a>
+                                       href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">Here</a>
                                 </div>
                                 @else
                                     <div class="form-group" style="display: flex;">
                                         <label>No vehicle data has been entered</label>
                                     </div>
                                 @endif
-
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <h4 style="margin-right: 10px;">Activities</h4>
                                     <hr style="flex: 1; margin: 0;">
