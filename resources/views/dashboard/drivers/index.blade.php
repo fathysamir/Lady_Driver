@@ -163,11 +163,11 @@
         onclick="openDateRangeModal()">Export by Date Range</a>
 @endif
 
-    @if($isSuperAdmin || $isSupervisor)
-        <a class="btn btn-light px-3"
-            href="{{ route('drivers.create', request()->query()) }}">
-            Create Driver</a>
-    @endif
+@if($isSuperAdmin || $isSupervisor || $isModeratorStandard || $isModeratorComfort || $isModeratorScooter)
+<a class="btn btn-light px-3"
+    href="{{ route('drivers.create', request()->query()) }}">
+    Create Driver</a>
+@endif
 
 </div>
 

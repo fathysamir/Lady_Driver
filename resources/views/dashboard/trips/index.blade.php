@@ -144,7 +144,7 @@
                                         <button type="button" class="btn btn-light time-filter-btn"
                                                 onclick="switchTimeTab('scheduled')" data-filter="scheduled"
                                                 style="width:33.33%;{{ $time_filter === 'scheduled' ? 'background-color:#30638a;color:white;' : '' }}">
-                                            Scheduled Trips
+                                            Pending Trips
                                         </button>
                                         <button type="button" class="btn btn-light time-filter-btn"
                                                 onclick="switchTimeTab('current')" data-filter="current"
