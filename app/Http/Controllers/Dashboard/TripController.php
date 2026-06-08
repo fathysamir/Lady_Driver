@@ -125,24 +125,30 @@ $type = $request->input('type', $defaultType);
         // ── Paginate (25 per page, preserve all query params) ─────
         $all_trips = $query->paginate(25)->withQueryString();
 
-        // ── Supporting data for filters ───────────────────────────
-        $drivers = User::whereHas('roles', fn($q) => $q->where('roles.name', 'Driver'))->get();
-        $users   = User::whereHas('roles', fn($q) => $q->where('roles.name', 'Client'))->get();
+      // ── Supporting data for filters ───────────────────────────
+$drivers = User::whereHas('roles', fn($q) => $q->where('roles.name', 'Driver'))->get();
+$users   = User::whereHas('roles', fn($q) => $q->where('roles.name', 'Client'))->get();
 
-        $car_marks        = CarMark::all();
-        $motorcycle_marks = MotorcycleMark::all();
-        $search           = $request->search;
+$car_marks        = CarMark::all();
+$motorcycle_marks = MotorcycleMark::all();
+$search           = $request->search;
 
-        return view('dashboard.trips.index', compact(
-            'all_trips',
-            'drivers',
-            'users',
-            'car_marks',
-            'motorcycle_marks',
-            'search',
-            'type',
-            'time_filter'
-        ));
+$driverName = null;
+if ($request->filled('driver')) {
+    $driverName = User::find($request->driver)?->name;
+}
+
+return view('dashboard.trips.index', compact(
+    'all_trips',
+    'drivers',
+    'users',
+    'car_marks',
+    'motorcycle_marks',
+    'search',
+    'type',
+    'time_filter',
+    'driverName'
+));
     }
 
     public function view($id)

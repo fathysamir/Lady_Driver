@@ -20,7 +20,13 @@
                                     <input type="hidden" name="time_filter" id="time_filter_input"  value="{{ $time_filter }}">
 
                                     <div style="display:flex;">
-                                        <h5 class="card-title" style="width:60%;text-align:left;">Trips</h5>
+                                        <h5 class="card-title" style="width:60%;text-align:left;">
+                                            @if(request('driver') && isset($driverName))
+                                                {{ $driverName }} - Trips
+                                            @else
+                                                Trips
+                                            @endif
+                                        </h5>
                                         <div style="display:flex;margin-bottom:1%;margin-left:0px;text-align:right;">
                                             <button class="btn btn-light px-5" type="button"
                                                     onclick="toggleFilters()"
@@ -36,7 +42,8 @@
                                     </div>
 
                                     <div id="filterOptions"
-                                         style="display:{{ request()->hasAny(['user','driver','status','payment_status','mark','model','created_date','air_conditioned','trip_type']) ? 'block' : 'none' }};text-align:center;">
+                                    style="display:{{ request()->hasAny(['user','status','payment_status','mark','model','created_date','air_conditioned','trip_type']) ? 'block' : 'none' }};text-align:center;">
+
                                         <div style="display:flex;">
                                             <select class="form-control" style="width:23.5%;margin:0% 1% 0% 1%;" name="status">
                                                 <option value="">Select Status</option>
