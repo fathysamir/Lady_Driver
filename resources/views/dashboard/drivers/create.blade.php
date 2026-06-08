@@ -91,78 +91,64 @@
         vertical-align: middle;
         border: 1px solid rgba(0,0,0,0.25);
     }
+
+    /* ── Temp photo saved banner ──────────────────────────────────────────── */
+    .temp-photo-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        padding: 10px;
+    }
+    .temp-photo-banner img {
+        height: 70px;
+        border-radius: 6px;
+        object-fit: cover;
+    }
+    .temp-photo-saved {
+        color: #56ec60;
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+    .temp-photo-replace {
+        color: rgba(255,230,0,0.8);
+        font-size: 12px;
+        cursor: pointer;
+        margin: 0;
+    }
 </style>
 
 @php
-    /*
-     * Vehicle tab permissions based on the logged-in admin's role.
-     *   Moderator Scooter  → scooter only  (car disabled)
-     *   Moderator Comfort  → car only       (scooter disabled)
-     *   Client role        → car only       (scooter disabled)
-     *   Everyone else      → all tabs
-     */
     $canCar     = $vehiclePerms['car']     ?? true;
     $canScooter = $vehiclePerms['scooter'] ?? true;
 
-    // Default to first allowed type; respect old() on validation replay
     $oldVehicle     = old('vehicle_type');
     $defaultVehicle = $oldVehicle ?: ($canCar ? 'car' : 'scooter');
-    // Clamp: if old value is not allowed for this role, reset
     if ($defaultVehicle === 'car'     && !$canCar)     { $defaultVehicle = 'scooter'; }
     if ($defaultVehicle === 'scooter' && !$canScooter) { $defaultVehicle = 'car'; }
 
-    /*
-     * Vehicle colors list [ 'English' => 'عربي' ]
-     */
     $colors = [
-        'White'       => 'أبيض',
-        'Black'       => 'أسود',
-        'Silver'      => 'فضي',
-        'Gray'        => 'رمادي',
-        'Dark Gray'   => 'رمادي غامق',
-        'Red'         => 'أحمر',
-        'Dark Red'    => 'أحمر غامق',
-        'Blue'        => 'أزرق',
-        'Dark Blue'   => 'أزرق غامق',
-        'Green'       => 'أخضر',
-        'Dark Green'  => 'أخضر غامق',
-        'Yellow'      => 'أصفر',
-        'Orange'      => 'برتقالي',
-        'Brown'       => 'بني',
-        'Beige'       => 'بيج',
-        'Gold'        => 'ذهبي',
-        'Pearl'       => 'لؤلؤي',
-        'Champagne'   => 'شامبانيا',
-        'Maroon'      => 'عنابي',
-        'Purple'      => 'بنفسجي',
-        'Pink'        => 'وردي',
-        'Turquoise'   => 'تركوازي',
-        'Other'       => 'أخرى',
+        'White'      => '#ffffff',
+        'Black'      => '#1a1a1a',
+        'Silver'     => '#c0c0c0',
+        'Gray'       => '#808080',
+        'Red'        => '#e53935',
+        'Blue'       => '#1e88e5',
+        'Green'      => '#43a047',
+        'Yellow'     => '#fdd835',
+        'Orange'     => '#fb8c00',
+        'Brown'      => '#6d4c41',
+        'Gold'       => '#ffc107',
+        'Beige'      => '#f5f5dc',
+        'Purple'     => '#8e24aa',
+        'Pink'       => '#e91e63',
+        'Turquoise'  => '#00bcd4',
+        'Maroon'     => '#800000',
+        'Other'      => '#9e9e9e',
     ];
-
-    /*
-     * CSS hex values for the visual swatch shown in the <select> label.
-     * Keys must match the $colors array above.
-     */
-     $colors = [
-    'White'      => '#ffffff',
-    'Black'      => '#1a1a1a',
-    'Silver'     => '#c0c0c0',
-    'Gray'       => '#808080',
-    'Red'        => '#e53935',
-    'Blue'       => '#1e88e5',
-    'Green'      => '#43a047',
-    'Yellow'     => '#fdd835',
-    'Orange'     => '#fb8c00',
-    'Brown'      => '#6d4c41',
-    'Gold'       => '#ffc107',
-    'Beige'      => '#f5f5dc',
-    'Purple'     => '#8e24aa',
-    'Pink'       => '#e91e63',
-    'Turquoise'  => '#00bcd4',
-    'Maroon'     => '#800000',
-    'Other'      => '#9e9e9e',
-];
 @endphp
 
 <div class="content-wrapper">
@@ -176,7 +162,6 @@
                             Create New Driver Account
                         </h5>
 
-                        {{-- ── Validation errors ───────────────────────────── --}}
                         @if ($errors->any())
                             <div class="alert alert-danger" style="margin-bottom: 16px;">
                                 <ul style="margin:0; padding-left: 18px;">
@@ -187,7 +172,6 @@
                             </div>
                         @endif
 
-                        {{-- ── Session error (e.g. role guard) ────────────── --}}
                         @if (session('error'))
                             <div class="alert alert-danger" style="margin-bottom: 16px;">
                                 {{ session('error') }}
@@ -197,9 +181,7 @@
                         <form method="POST" action="{{ route('drivers.store') }}" enctype="multipart/form-data">
                             @csrf
 
-                            {{-- ════════════════════════════════════════════════
-                                 ACCOUNT CREDENTIALS
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ ACCOUNT CREDENTIALS ════════ --}}
                             <div class="section-divider">
                                 <h4>Account Credentials <span class="ar">(بيانات الحساب)</span></h4><hr>
                             </div>
@@ -218,7 +200,6 @@
                                 @error('email')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- Password with generate button --}}
                             <div class="form-group">
                                 <label>Temporary Password <span class="ar">(كلمة المرور المؤقتة)</span><span style="color:red">*</span></label>
                                 <div class="input-group">
@@ -239,9 +220,7 @@
                                 @error('password')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- ════════════════════════════════════════════════
-                                 PERSONAL INFORMATION
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ PERSONAL INFORMATION ════════ --}}
                             <div class="section-divider">
                                 <h4>Personal Information <span class="ar">(المعلومات الشخصية)</span></h4><hr>
                             </div>
@@ -249,18 +228,26 @@
                             {{-- Profile Image --}}
                             <div class="form-group">
                                 <label>Profile Image <span class="ar">(الصورة الشخصية)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_image') && Storage::disk('public')->exists(session('temp_upload_image')))
-                                    <div style="margin-bottom:8px;">
+                                @php $hasTempImage = session('temp_upload_image') && Storage::disk('public')->exists(session('temp_upload_image')); @endphp
+                                @if($hasTempImage)
+                                    <div class="temp-photo-banner">
                                         <img src="{{ asset('storage/' . session('temp_upload_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
+                                            onerror="this.style.display='none'">
                                         <input type="hidden" name="temp_image" value="{{ session('temp_upload_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        <div>
+                                            <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                            <label class="temp-photo-replace"
+                                                   onclick="document.getElementById('image_input').click()">
+                                                ↺ Click to replace photo
+                                            </label>
+                                        </div>
                                     </div>
+                                    <input type="file" id="image_input" class="form-control" name="image"
+                                        accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                @else
+                                    <input type="file" id="image_input" class="form-control" name="image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
                                 @endif
-                                <input type="file" class="form-control" name="image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_image') && Storage::disk('public')->exists(session('temp_upload_image'))) ? '' : 'required' }}>
                                 @error('image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
@@ -355,14 +342,11 @@
                                     Driver must be at least 16 years old. &nbsp;|&nbsp;
                                     يجب أن يكون السائق على الأقل 16 سنة <br>
                                     mm شهر <br> dd يوم <br> yyyy سنة
-
                                 </small>
                                 @error('birth_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- ════════════════════════════════════════════════
-                                 IDENTITY DOCUMENT
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ IDENTITY DOCUMENT ════════ --}}
                             <div class="section-divider">
                                 <h4>Identity Document <span class="ar">(وثيقة الهوية)</span></h4><hr>
                             </div>
@@ -391,32 +375,56 @@
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('national_id_expire_date') }}">
                                 </div>
+
+                                {{-- ID Front Image --}}
                                 <div class="form-group">
                                     <label>ID Front Image <span class="ar">(صورة البطاقة - أمامية)</span></label>
-                                    @if(session('temp_upload_ID_front_image') && Storage::disk('public')->exists(session('temp_upload_ID_front_image')))
-                                        <div style="margin-bottom:8px;">
+                                    @php $hasTempIDFront = session('temp_upload_ID_front_image') && Storage::disk('public')->exists(session('temp_upload_ID_front_image')); @endphp
+                                    @if($hasTempIDFront)
+                                        <div class="temp-photo-banner">
                                             <img src="{{ asset('storage/' . session('temp_upload_ID_front_image')) }}"
-                                                style="height:80px; border-radius:6px;"
-                                                onerror="this.parentElement.style.display='none'">
+                                                onerror="this.style.display='none'">
                                             <input type="hidden" name="temp_ID_front_image" value="{{ session('temp_upload_ID_front_image') }}">
-                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                            <div>
+                                                <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                                <label class="temp-photo-replace"
+                                                       onclick="document.getElementById('ID_front_image_input').click()">
+                                                    ↺ Click to replace photo
+                                                </label>
+                                            </div>
                                         </div>
+                                        <input type="file" id="ID_front_image_input" class="form-control" name="ID_front_image"
+                                            accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                    @else
+                                        <input type="file" id="ID_front_image_input" class="form-control" name="ID_front_image"
+                                            accept="image/jpg,image/jpeg,image/png">
                                     @endif
-                                    <input type="file" class="form-control" name="ID_front_image" accept="image/jpg,image/jpeg,image/png">
                                     @error('ID_front_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
+
+                                {{-- ID Back Image --}}
                                 <div class="form-group">
                                     <label>ID Back Image <span class="ar">(صورة البطاقة - خلفية)</span></label>
-                                    @if(session('temp_upload_ID_back_image') && Storage::disk('public')->exists(session('temp_upload_ID_back_image')))
-                                        <div style="margin-bottom:8px;">
+                                    @php $hasTempIDBack = session('temp_upload_ID_back_image') && Storage::disk('public')->exists(session('temp_upload_ID_back_image')); @endphp
+                                    @if($hasTempIDBack)
+                                        <div class="temp-photo-banner">
                                             <img src="{{ asset('storage/' . session('temp_upload_ID_back_image')) }}"
-                                                style="height:80px; border-radius:6px;"
-                                                onerror="this.parentElement.style.display='none'">
+                                                onerror="this.style.display='none'">
                                             <input type="hidden" name="temp_ID_back_image" value="{{ session('temp_upload_ID_back_image') }}">
-                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                            <div>
+                                                <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                                <label class="temp-photo-replace"
+                                                       onclick="document.getElementById('ID_back_image_input').click()">
+                                                    ↺ Click to replace photo
+                                                </label>
+                                            </div>
                                         </div>
+                                        <input type="file" id="ID_back_image_input" class="form-control" name="ID_back_image"
+                                            accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                    @else
+                                        <input type="file" id="ID_back_image_input" class="form-control" name="ID_back_image"
+                                            accept="image/jpg,image/jpeg,image/png">
                                     @endif
-                                    <input type="file" class="form-control" name="ID_back_image" accept="image/jpg,image/jpeg,image/png">
                                     @error('ID_back_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
                             </div>
@@ -435,25 +443,35 @@
                                         style="background-color: rgba(255,255,255,0.2);"
                                         value="{{ old('passport_expire_date') }}">
                                 </div>
+
+                                {{-- Passport Image --}}
                                 <div class="form-group">
                                     <label>Passport Image <span class="ar">(صورة جواز السفر)</span></label>
-                                    @if(session('temp_upload_passport_image') && Storage::disk('public')->exists(session('temp_upload_passport_image')))
-                                        <div style="margin-bottom:8px;">
+                                    @php $hasTempPassport = session('temp_upload_passport_image') && Storage::disk('public')->exists(session('temp_upload_passport_image')); @endphp
+                                    @if($hasTempPassport)
+                                        <div class="temp-photo-banner">
                                             <img src="{{ asset('storage/' . session('temp_upload_passport_image')) }}"
-                                                style="height:80px; border-radius:6px;"
-                                                onerror="this.parentElement.style.display='none'">
+                                                onerror="this.style.display='none'">
                                             <input type="hidden" name="temp_passport_image" value="{{ session('temp_upload_passport_image') }}">
-                                            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                            <div>
+                                                <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                                <label class="temp-photo-replace"
+                                                       onclick="document.getElementById('passport_image_input').click()">
+                                                    ↺ Click to replace photo
+                                                </label>
+                                            </div>
                                         </div>
+                                        <input type="file" id="passport_image_input" class="form-control" name="passport_image"
+                                            accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                    @else
+                                        <input type="file" id="passport_image_input" class="form-control" name="passport_image"
+                                            accept="image/jpg,image/jpeg,image/png">
                                     @endif
-                                    <input type="file" class="form-control" name="passport_image" accept="image/jpg,image/jpeg,image/png">
                                     @error('passport_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                                 </div>
                             </div>
 
-                            {{-- ════════════════════════════════════════════════
-                                 DRIVING LICENSE
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ DRIVING LICENSE ════════ --}}
                             <div class="section-divider">
                                 <h4>Driving License <span class="ar">(رخصة القيادة)</span></h4><hr>
                             </div>
@@ -474,51 +492,64 @@
                                 @error('license_expire_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
+                            {{-- License Front Image --}}
                             <div class="form-group">
                                 <label>License Front Image <span class="ar">(صورة الرخصة - أمامية)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_license_front_image') && Storage::disk('public')->exists(session('temp_upload_license_front_image')))
-                                    <div style="margin-bottom:8px;">
+                                @php $hasTempLicFront = session('temp_upload_license_front_image') && Storage::disk('public')->exists(session('temp_upload_license_front_image')); @endphp
+                                @if($hasTempLicFront)
+                                    <div class="temp-photo-banner">
                                         <img src="{{ asset('storage/' . session('temp_upload_license_front_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
+                                            onerror="this.style.display='none'">
                                         <input type="hidden" name="temp_license_front_image" value="{{ session('temp_upload_license_front_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        <div>
+                                            <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                            <label class="temp-photo-replace"
+                                                   onclick="document.getElementById('license_front_image_input').click()">
+                                                ↺ Click to replace photo
+                                            </label>
+                                        </div>
                                     </div>
+                                    <input type="file" id="license_front_image_input" class="form-control" name="license_front_image"
+                                        accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                @else
+                                    <input type="file" id="license_front_image_input" class="form-control" name="license_front_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
                                 @endif
-                                <input type="file" class="form-control" name="license_front_image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_license_front_image') && Storage::disk('public')->exists(session('temp_upload_license_front_image'))) ? '' : 'required' }}>
                                 @error('license_front_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
+                            {{-- License Back Image --}}
                             <div class="form-group">
                                 <label>License Back Image <span class="ar">(صورة الرخصة - خلفية)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_license_back_image') && Storage::disk('public')->exists(session('temp_upload_license_back_image')))
-                                    <div style="margin-bottom:8px;">
+                                @php $hasTempLicBack = session('temp_upload_license_back_image') && Storage::disk('public')->exists(session('temp_upload_license_back_image')); @endphp
+                                @if($hasTempLicBack)
+                                    <div class="temp-photo-banner">
                                         <img src="{{ asset('storage/' . session('temp_upload_license_back_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
+                                            onerror="this.style.display='none'">
                                         <input type="hidden" name="temp_license_back_image" value="{{ session('temp_upload_license_back_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        <div>
+                                            <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                            <label class="temp-photo-replace"
+                                                   onclick="document.getElementById('license_back_image_input').click()">
+                                                ↺ Click to replace photo
+                                            </label>
+                                        </div>
                                     </div>
+                                    <input type="file" id="license_back_image_input" class="form-control" name="license_back_image"
+                                        accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                @else
+                                    <input type="file" id="license_back_image_input" class="form-control" name="license_back_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
                                 @endif
-                                <input type="file" class="form-control" name="license_back_image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_license_back_image') && Storage::disk('public')->exists(session('temp_upload_license_back_image'))) ? '' : 'required' }}>
                                 @error('license_back_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- ════════════════════════════════════════════════
-                                 VEHICLE
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ VEHICLE ════════ --}}
                             <div class="section-divider">
                                 <h4>Vehicle <span class="ar">(المركبة)</span></h4><hr>
                             </div>
 
-                            {{-- Vehicle type tabs (role-restricted) --}}
                             <div id="vehicle-type-selector">
-
-                                {{-- Car tab --}}
                                 <button type="button"
                                     class="vehicle-type-btn {{ $defaultVehicle === 'car' ? 'active' : '' }} {{ !$canCar ? 'disabled-tab' : '' }}"
                                     @if($canCar) onclick="switchVehicle('car', this)" @endif
@@ -529,8 +560,6 @@
                                         <small style="display:block; font-size:10px; margin-top:3px; opacity:.7;">Not allowed</small>
                                     @endif
                                 </button>
-
-                                {{-- Scooter tab --}}
                                 <button type="button"
                                     class="vehicle-type-btn {{ $defaultVehicle === 'scooter' ? 'active' : '' }} {{ !$canScooter ? 'disabled-tab' : '' }}"
                                     @if($canScooter) onclick="switchVehicle('scooter', this)" @endif
@@ -541,26 +570,21 @@
                                         <small style="display:block; font-size:10px; margin-top:3px; opacity:.7;">Not allowed</small>
                                     @endif
                                 </button>
-
                             </div>
                             <input type="hidden" name="vehicle_type" id="vehicle_type_hidden" value="{{ $defaultVehicle }}">
 
-                            {{-- ── COLOR DROPDOWN ───────────────────────────── --}}
+                            {{-- Color --}}
                             <div class="form-group">
                                 <label>Color <span class="ar">(اللون)</span><span style="color:red">*</span></label>
                                 <select class="form-control" name="color" id="color_select" required>
                                     <option value="">Select Color</option>
-
                                     @foreach ($colors as $en => $hex)
-                                        <option
-                                            value="{{ $en }}"
-                                            data-hex="{{ $hex }}"
+                                        <option value="{{ $en }}" data-hex="{{ $hex }}"
                                             {{ old('color') == $en ? 'selected' : '' }}>
                                             {{ $en }}
                                         </option>
                                     @endforeach
                                 </select>
-                                {{-- Live color swatch --}}
                                 <div id="color-preview" style="display:none; margin-top:8px; display:flex; align-items:center; gap:8px;">
                                     <div id="color-swatch"
                                         style="width:28px; height:28px; border-radius:50%; border:2px solid rgba(255,255,255,0.3);
@@ -632,27 +656,32 @@
                                 </div>
                             </div>
 
-                           {{-- Vehicle Image (used for both vehicle_image and plate_image) --}}
-<div class="form-group">
-    <label>Vehicle and Plate Image <span class="ar"> (صورة المركبة واللوحة)</span><span style="color:red">*</span></label>
-    @php
-        $hasVehicleTemp = session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image'));
-    @endphp
-    @if($hasVehicleTemp)
-        <div style="margin-bottom:8px;">
-            <img src="{{ asset('storage/' . session('temp_upload_vehicle_image')) }}"
-                style="height:80px; border-radius:6px;"
-                onerror="this.parentElement.style.display='none'">
-            <input type="hidden" name="temp_vehicle_image" value="{{ session('temp_upload_vehicle_image') }}">
-            <input type="hidden" name="temp_plate_image"   value="{{ session('temp_upload_vehicle_image') }}">
-            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
-        </div>
-    @endif
-    <input type="file" class="form-control" name="vehicle_image"
-        accept="image/jpg,image/jpeg,image/png"
-        {{ $hasVehicleTemp ? '' : 'required' }}>
-    @error('vehicle_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
-</div>
+                            {{-- Vehicle Image --}}
+                            <div class="form-group">
+                                <label>Vehicle and Plate Image <span class="ar">(صورة المركبة واللوحة)</span><span style="color:red">*</span></label>
+                                @php $hasVehicleTemp = session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image')); @endphp
+                                @if($hasVehicleTemp)
+                                    <div class="temp-photo-banner">
+                                        <img src="{{ asset('storage/' . session('temp_upload_vehicle_image')) }}"
+                                            onerror="this.style.display='none'">
+                                        <input type="hidden" name="temp_vehicle_image" value="{{ session('temp_upload_vehicle_image') }}">
+                                        <input type="hidden" name="temp_plate_image"   value="{{ session('temp_upload_vehicle_image') }}">
+                                        <div>
+                                            <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                            <label class="temp-photo-replace"
+                                                   onclick="document.getElementById('vehicle_image_input').click()">
+                                                ↺ Click to replace photo
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="vehicle_image_input" class="form-control" name="vehicle_image"
+                                        accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                @else
+                                    <input type="file" id="vehicle_image_input" class="form-control" name="vehicle_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
+                                @endif
+                                @error('vehicle_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
+                            </div>
 
                             {{-- Vehicle License Expiry --}}
                             <div class="form-group">
@@ -664,45 +693,59 @@
                                 @error('vehicle_license_expire_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- Vehicle License Front --}}
+                            {{-- Vehicle License Front Image --}}
                             <div class="form-group">
                                 <label>Vehicle License Front Image <span class="ar">(صورة رخصة المركبة - أمامية)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_vehicle_license_front_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_front_image')))
-                                    <div style="margin-bottom:8px;">
+                                @php $hasTempVLicFront = session('temp_upload_vehicle_license_front_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_front_image')); @endphp
+                                @if($hasTempVLicFront)
+                                    <div class="temp-photo-banner">
                                         <img src="{{ asset('storage/' . session('temp_upload_vehicle_license_front_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
+                                            onerror="this.style.display='none'">
                                         <input type="hidden" name="temp_vehicle_license_front_image" value="{{ session('temp_upload_vehicle_license_front_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        <div>
+                                            <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                            <label class="temp-photo-replace"
+                                                   onclick="document.getElementById('vehicle_license_front_image_input').click()">
+                                                ↺ Click to replace photo
+                                            </label>
+                                        </div>
                                     </div>
+                                    <input type="file" id="vehicle_license_front_image_input" class="form-control" name="vehicle_license_front_image"
+                                        accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                @else
+                                    <input type="file" id="vehicle_license_front_image_input" class="form-control" name="vehicle_license_front_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
                                 @endif
-                                <input type="file" class="form-control" name="vehicle_license_front_image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_vehicle_license_front_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_front_image'))) ? '' : 'required' }}>
                                 @error('vehicle_license_front_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- Vehicle License Back --}}
+                            {{-- Vehicle License Back Image --}}
                             <div class="form-group">
                                 <label>Vehicle License Back Image <span class="ar">(صورة رخصة المركبة - خلفية)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_vehicle_license_back_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_back_image')))
-                                    <div style="margin-bottom:8px;">
+                                @php $hasTempVLicBack = session('temp_upload_vehicle_license_back_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_back_image')); @endphp
+                                @if($hasTempVLicBack)
+                                    <div class="temp-photo-banner">
                                         <img src="{{ asset('storage/' . session('temp_upload_vehicle_license_back_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
+                                            onerror="this.style.display='none'">
                                         <input type="hidden" name="temp_vehicle_license_back_image" value="{{ session('temp_upload_vehicle_license_back_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+                                        <div>
+                                            <div class="temp-photo-saved">✓ Photo saved — fix other errors and submit again</div>
+                                            <label class="temp-photo-replace"
+                                                   onclick="document.getElementById('vehicle_license_back_image_input').click()">
+                                                ↺ Click to replace photo
+                                            </label>
+                                        </div>
                                     </div>
+                                    <input type="file" id="vehicle_license_back_image_input" class="form-control" name="vehicle_license_back_image"
+                                        accept="image/jpg,image/jpeg,image/png" style="display:none;">
+                                @else
+                                    <input type="file" id="vehicle_license_back_image_input" class="form-control" name="vehicle_license_back_image"
+                                        accept="image/jpg,image/jpeg,image/png" required>
                                 @endif
-                                <input type="file" class="form-control" name="vehicle_license_back_image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_vehicle_license_back_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_license_back_image'))) ? '' : 'required' }}>
                                 @error('vehicle_license_back_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
 
-                            {{-- ════════════════════════════════════════════════
-                                 ACCOUNT STATUS
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ ACCOUNT STATUS ════════ --}}
                             <div class="section-divider">
                                 <h4>Account Status <span class="ar">(حالة الحساب)</span></h4><hr>
                             </div>
@@ -717,9 +760,7 @@
                                 </select>
                             </div>
 
-                            {{-- ════════════════════════════════════════════════
-                                 ACTION BUTTONS
-                            ════════════════════════════════════════════════ --}}
+                            {{-- ════════ ACTION BUTTONS ════════ --}}
                             <div class="form-group" style="display:flex; gap:12px; margin-top:24px;">
                                 <button type="submit" class="btn btn-light px-5">
                                     <i class="icon-user-follow"></i> Create Driver
@@ -746,18 +787,15 @@
 
 @push('scripts')
 <script>
-// ── Role permissions passed from PHP ──────────────────────────────────────────
 var canCar     = {{ $canCar     ? 'true' : 'false' }};
 var canScooter = {{ $canScooter ? 'true' : 'false' }};
 
-// ── Generate secure random password ──────────────────────────────────────────
 function generatePassword() {
     var lower   = 'abcdefghijklmnopqrstuvwxyz';
     var upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     var digits  = '0123456789';
     var special = '@#$!%*?~';
     var all     = lower + upper + digits + special;
-
     var pwd = [
         lower  [Math.floor(Math.random() * lower.length)],
         upper  [Math.floor(Math.random() * upper.length)],
@@ -771,7 +809,6 @@ function generatePassword() {
     document.getElementById('password_field').value = pwd.join('');
 }
 
-// ── ID type toggle ────────────────────────────────────────────────────────────
 function switchIdType(type, el) {
     document.getElementById('id_type_hidden').value = type;
     document.getElementById('national-id-section').style.display = type === 'national' ? 'block' : 'none';
@@ -782,52 +819,98 @@ function switchIdType(type, el) {
     el.classList.add('active');
 }
 
-// ── Vehicle type toggle ───────────────────────────────────────────────────────
 function switchVehicle(type, el) {
-    // Safety: ignore if this type is not allowed for this role
     if (type === 'car'     && !canCar)     return;
     if (type === 'scooter' && !canScooter) return;
-
     document.getElementById('vehicle_type_hidden').value = type;
     document.getElementById('car-fields').style.display     = type === 'car'     ? 'block' : 'none';
     document.getElementById('scooter-fields').style.display = type === 'scooter' ? 'block' : 'none';
-
     document.querySelectorAll('.vehicle-type-btn:not(.disabled-tab)').forEach(function(btn) {
         btn.classList.remove('active');
     });
     el.classList.add('active');
 }
 
-// ── Color swatch preview ──────────────────────────────────────────────────────
 function updateColorSwatch() {
-    var sel    = document.getElementById('color_select');
-    var swatch = document.getElementById('color-swatch');
-    var label  = document.getElementById('color-label');
+    var sel     = document.getElementById('color_select');
+    var swatch  = document.getElementById('color-swatch');
+    var label   = document.getElementById('color-label');
     var preview = document.getElementById('color-preview');
-
-    if (!sel || !sel.value) {
-        if (preview) preview.style.display = 'none';
-        return;
-    }
-
+    if (!sel || !sel.value) { if (preview) preview.style.display = 'none'; return; }
     var opt = sel.options[sel.selectedIndex];
     var hex = opt.getAttribute('data-hex') || '#9e9e9e';
-
-    if (swatch) swatch.style.background = hex;
-    if (label)  label.textContent       = opt.textContent.trim();
-    if (preview) preview.style.display  = 'flex';
+    if (swatch)  swatch.style.background = hex;
+    if (label)   label.textContent       = opt.textContent.trim();
+    if (preview) preview.style.display   = 'flex';
 }
 
-// ── Ajax: load models for a given mark ───────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Restore ID type tabs
+    var idType = document.getElementById('id_type_hidden').value || 'national';
+    document.getElementById('national-id-section').style.display = idType === 'national' ? 'block' : 'none';
+    document.getElementById('passport-section').style.display    = idType === 'passport'  ? 'block' : 'none';
+    document.querySelectorAll('.id-type-btn').forEach(function(btn) {
+        var t = btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('national') ? 'national' : 'passport';
+        btn.classList.toggle('active', t === idType);
+    });
+
+    // Restore vehicle type
+    var vehicleType = document.getElementById('vehicle_type_hidden').value;
+    if (vehicleType === 'car'     && !canCar)     vehicleType = 'scooter';
+    if (vehicleType === 'scooter' && !canScooter) vehicleType = 'car';
+    document.getElementById('vehicle_type_hidden').value = vehicleType;
+    document.getElementById('car-fields').style.display     = vehicleType === 'car'     ? 'block' : 'none';
+    document.getElementById('scooter-fields').style.display = vehicleType === 'scooter' ? 'block' : 'none';
+    document.querySelectorAll('.vehicle-type-btn').forEach(function(btn) {
+        if (btn.disabled) return;
+        var t = btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
+        btn.classList.toggle('active', t === vehicleType);
+    });
+
+    // Color swatch
+    var colorSel = document.getElementById('color_select');
+    if (colorSel) {
+        colorSel.addEventListener('change', updateColorSwatch);
+        if (colorSel.value) updateColorSwatch();
+    }
+
+    // Car mark → model
+    var carMarkSelect  = document.getElementById('car_mark_select');
+    var carModelSelect = document.getElementById('car_model_select');
+    var oldCarMark     = "{{ old('car_mark_id') }}";
+    var oldCarModel    = "{{ old('car_model_id') }}";
+    if (oldCarMark) {
+        carMarkSelect.value = oldCarMark;
+        loadModels('/api/models', { car_mark_id: oldCarMark }, carModelSelect, oldCarModel, 'Select Car Model');
+    }
+    carMarkSelect.addEventListener('change', function () {
+        if (!this.value) { carModelSelect.innerHTML = '<option value="">Select Car Model</option>'; return; }
+        loadModels('/api/models', { car_mark_id: this.value }, carModelSelect, null, 'Select Car Model');
+    });
+
+    // Scooter mark → model
+    var scooterMarkSelect  = document.getElementById('scooter_mark_select');
+    var scooterModelSelect = document.getElementById('scooter_model_select');
+    var oldScooterMark     = "{{ old('scooter_mark_id') }}";
+    var oldScooterModel    = "{{ old('scooter_model_id') }}";
+    if (oldScooterMark) {
+        scooterMarkSelect.value = oldScooterMark;
+        loadModels('/api/scooter_models', { scooter_mark_id: oldScooterMark }, scooterModelSelect, oldScooterModel, 'Select Scooter Model');
+    }
+    scooterMarkSelect.addEventListener('change', function () {
+        if (!this.value) { scooterModelSelect.innerHTML = '<option value="">Select Scooter Model</option>'; return; }
+        loadModels('/api/scooter_models', { scooter_mark_id: this.value }, scooterModelSelect, null, 'Select Scooter Model');
+    });
+
+});
+
 function loadModels(url, params, modelSelect, selectedId, defaultText) {
     modelSelect.innerHTML = '<option value="">Loading...</option>';
     var query = new URLSearchParams(params).toString();
-
     fetch(url + '?' + query, {
         method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
     })
     .then(function(res) { return res.json(); })
     .then(function(response) {
@@ -846,78 +929,5 @@ function loadModels(url, params, modelSelect, selectedId, defaultText) {
         modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
     });
 }
-
-// ── DOMContentLoaded: restore state after validation error ────────────────────
-document.addEventListener('DOMContentLoaded', function () {
-
-    // ── Restore ID type tabs ──────────────────────────────────────────────────
-    var idType = document.getElementById('id_type_hidden').value || 'national';
-    document.getElementById('national-id-section').style.display = idType === 'national' ? 'block' : 'none';
-    document.getElementById('passport-section').style.display    = idType === 'passport'  ? 'block' : 'none';
-    document.querySelectorAll('.id-type-btn').forEach(function(btn) {
-        var t = btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('national') ? 'national' : 'passport';
-        btn.classList.toggle('active', t === idType);
-    });
-
-    // ── Restore vehicle type (clamped to allowed) ─────────────────────────────
-    var vehicleType = document.getElementById('vehicle_type_hidden').value;
-    if (vehicleType === 'car'     && !canCar)     vehicleType = 'scooter';
-    if (vehicleType === 'scooter' && !canScooter) vehicleType = 'car';
-    document.getElementById('vehicle_type_hidden').value = vehicleType;
-
-    document.getElementById('car-fields').style.display     = vehicleType === 'car'     ? 'block' : 'none';
-    document.getElementById('scooter-fields').style.display = vehicleType === 'scooter' ? 'block' : 'none';
-
-    // Re-activate the correct tab button
-    document.querySelectorAll('.vehicle-type-btn').forEach(function(btn) {
-        if (btn.disabled) return;
-        var t = btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('scooter') ? 'scooter' : 'car';
-        btn.classList.toggle('active', t === vehicleType);
-    });
-
-    // ── Color swatch on page load (restore after validation error) ────────────
-    var colorSel = document.getElementById('color_select');
-    if (colorSel) {
-        colorSel.addEventListener('change', updateColorSwatch);
-        if (colorSel.value) updateColorSwatch(); // restore if old() was set
-    }
-
-    // ── Car mark → model ──────────────────────────────────────────────────────
-    var carMarkSelect  = document.getElementById('car_mark_select');
-    var carModelSelect = document.getElementById('car_model_select');
-    var oldCarMark     = "{{ old('car_mark_id') }}";
-    var oldCarModel    = "{{ old('car_model_id') }}";
-
-    if (oldCarMark) {
-        carMarkSelect.value = oldCarMark;
-        loadModels('/api/models', { car_mark_id: oldCarMark }, carModelSelect, oldCarModel, 'Select Car Model');
-    }
-    carMarkSelect.addEventListener('change', function () {
-        if (!this.value) {
-            carModelSelect.innerHTML = '<option value="">Select Car Model</option>';
-            return;
-        }
-        loadModels('/api/models', { car_mark_id: this.value }, carModelSelect, null, 'Select Car Model');
-    });
-
-    // ── Scooter mark → model ──────────────────────────────────────────────────
-    var scooterMarkSelect  = document.getElementById('scooter_mark_select');
-    var scooterModelSelect = document.getElementById('scooter_model_select');
-    var oldScooterMark     = "{{ old('scooter_mark_id') }}";
-    var oldScooterModel    = "{{ old('scooter_model_id') }}";
-
-    if (oldScooterMark) {
-        scooterMarkSelect.value = oldScooterMark;
-        loadModels('/api/scooter_models', { scooter_mark_id: oldScooterMark }, scooterModelSelect, oldScooterModel, 'Select Scooter Model');
-    }
-    scooterMarkSelect.addEventListener('change', function () {
-        if (!this.value) {
-            scooterModelSelect.innerHTML = '<option value="">Select Scooter Model</option>';
-            return;
-        }
-        loadModels('/api/scooter_models', { scooter_mark_id: this.value }, scooterModelSelect, null, 'Select Scooter Model');
-    });
-
-});
 </script>
 @endpush
