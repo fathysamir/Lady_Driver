@@ -171,9 +171,9 @@
                 </a>
             </li>
         @endcan
+        @if (!in_array(auth()->user()->role, ['Moderator Standard', 'Moderator Comfort', 'Moderator Scooter']))
         @canany(['dashboard.messages.send'])
             <li class="sidebar-item">
-
                 <a href="#" class="dropdown-toggle" onclick="toggleSubmenu(event, this)">
                     <i class="zmdi zmdi-view-dashboard"></i> <span>Chats</span>
                 </a>
@@ -186,24 +186,18 @@
                 </ul>
             </li>
         @endcanany
+
         @can('contact.us.view')
             <li>
                 <a href="{{ url('/admin-dashboard/contact_us') }}">
                     <i class="zmdi zmdi-view-dashboard"></i> <span>Contact Us</span>
                     @if (app('new_contact_us_count') > 0)
-                        <span
-                            style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block;  line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_contact_us_count') }}</span>
+                        <span style="background-color:rgb(143, 118, 9); float:right; margin-right:10px; display:inline-block; line-height: 20px; text-align: center; border-radius: 50%; padding: 0px 5px 0px 5px;">{{ app('new_contact_us_count') }}</span>
                     @endif
                 </a>
             </li>
         @endcan
-        @can('about.us.edit')
-            <li>
-                <a href="{{ url('/admin-dashboard/about_us/view') }}">
-                    <i class="zmdi zmdi-view-dashboard"></i> <span>About Us</span>
-                </a>
-            </li>
-        @endcan
+
         @can('feedbacks.view')
             <li>
                 <a href="{{ url('/admin-dashboard/feed_back') }}">
@@ -211,6 +205,7 @@
                 </a>
             </li>
         @endcan
+    @endif
         @can('privacy.policy.edit')
             <li>
                 <a href="{{ url('/admin-dashboard/privacy-policy') }}">
