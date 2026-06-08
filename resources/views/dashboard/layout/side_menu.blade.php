@@ -89,6 +89,7 @@
             </li>
         @endcanany
         {{-- @can() --}}
+        @if (auth()->user()->role == 'Super Admin')
         @can('cities.view')
             <li>
                 <a href="{{ url('/admin-dashboard/cities') }}">
@@ -96,6 +97,7 @@
                 </a>
             </li>
         @endcan
+    @endif
         @can('FAQs.view')
             <li>
                 <a href="{{ url('/admin-dashboard/FAQs') }}">
