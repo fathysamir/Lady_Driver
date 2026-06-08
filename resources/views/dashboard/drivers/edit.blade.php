@@ -584,30 +584,26 @@
                                 @endif
 
                                 @if ($user->car)
-                                <div class="form-group">
-                                    <label>
-                                        Car Details : you can view car details from
-                                        <a style="color: yellow; font-size: 18px; font-weight: bold;"
-                                           href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
-                                            Here
-                                        </a>
-                                    </label>
-                                </div>
-                                @elseif($user->scooter)
-                                <div class="form-group">
-                                    <label>
-                                        Scooter Details : you can view scooter details from
-                                        <a style="color: yellow; font-size: 18px; font-weight: bold;"
-                                           href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">
-                                            Here
-                                        </a>
-                                    </label>
-                                </div>
-                                @else
-                                    <div class="form-group" style="display: flex;">
-                                        <label>No vehicle data has been entered</label>
-                                    </div>
-                                @endif
+<div class="form-group" style="text-align: center; margin: 20px 0;">
+    <label style="display:block; margin-bottom: 8px;">Car Details</label>
+    <a style="color: yellow; font-size: 28px; font-weight: bold; display:block;"
+       href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
+        HERE
+    </a>
+</div>
+@elseif($user->scooter)
+<div class="form-group" style="text-align: center; margin: 20px 0;">
+    <label style="display:block; margin-bottom: 8px;">Scooter Details</label>
+    <a style="color: yellow; font-size: 28px; font-weight: bold; display:block;"
+       href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">
+        HERE
+    </a>
+</div>
+@else
+    <div class="form-group" style="display: flex;">
+        <label>No vehicle data has been entered</label>
+    </div>
+@endif
 
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <h4 style="margin-right: 10px;">Activities</h4>
