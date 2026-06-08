@@ -354,6 +354,8 @@
                                 <small style="color: rgba(255,255,255,0.5);">
                                     Driver must be at least 16 years old. &nbsp;|&nbsp;
                                     يجب أن يكون السائق على الأقل 16 سنة
+                                    mm شهر <br> dd يوم <br> yyyy سنة
+
                                 </small>
                                 @error('birth_date')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
                             </div>
