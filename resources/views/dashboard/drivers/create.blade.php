@@ -558,7 +558,7 @@
                                         <option value="{{ $en }}"
                                             data-hex="{{ $colorHex[$en] ?? '#9e9e9e' }}"
                                             {{ old('color') === $en ? 'selected' : '' }}>
-                                            {{ $en }} / {{ $ar }}
+                                            {{ $en }}
                                         </option>
                                     @endforeach
                                 </select>
