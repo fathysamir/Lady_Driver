@@ -38,7 +38,9 @@
 
                 <ul class="sidebar-submenu" style="display: none; padding-left: 40px;">
                     <li> <a href="{{ url('/admin-dashboard/clients') }}">Clients</a></li>
-                    <li> <a href="{{ url('/admin-dashboard/clients?type=students') }}">Students</a></li>
+                    @if (auth()->user()->role == 'Super Admin')
+                        <li> <a href="{{ url('/admin-dashboard/clients?type=students') }}">Students</a></li>
+                    @endif
                 </ul>
             </li>
         @endcan
