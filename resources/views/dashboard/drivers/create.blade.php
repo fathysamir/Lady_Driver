@@ -353,7 +353,7 @@
                                     max="{{ now()->subYears(16)->format('Y-m-d') }}" required>
                                 <small style="color: rgba(255,255,255,0.5);">
                                     Driver must be at least 16 years old. &nbsp;|&nbsp;
-                                    يجب أن يكون السائق على الأقل 16 سنة
+                                    يجب أن يكون السائق على الأقل 16 سنة <br>
                                     mm شهر <br> dd يوم <br> yyyy سنة
 
                                 </small>
