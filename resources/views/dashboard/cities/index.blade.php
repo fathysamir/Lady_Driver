@@ -62,10 +62,8 @@
                         <div class="card-body">
                             <div style="display: flex;">
                                 <h5 class="card-title" style="width: 55%;">Cities</h5>
-                                @can('cities.create')
-                                    <a class="btn btn-light px-5" style="margin-bottom:1%;"
-                                        href="{{ route('add.city') }}">create</a>
-                                @endcan
+
+
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-left:20px;margin-right:0px;"
                                     method="post"
