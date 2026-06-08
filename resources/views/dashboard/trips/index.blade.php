@@ -38,22 +38,6 @@
                                     <div id="filterOptions"
                                          style="display:{{ request()->hasAny(['user','driver','status','payment_status','mark','model','created_date','air_conditioned','trip_type']) ? 'block' : 'none' }};text-align:center;">
                                         <div style="display:flex;">
-                                            <select class="form-control" style="width:23.5%;margin:0% 1% 0% 0%;" name="user">
-                                                <option value="">Select Client</option>
-                                                @foreach ($users as $user)
-                                                    <option value="{{ $user->id }}" {{ request('user') == $user->id ? 'selected' : '' }}>
-                                                        {{ $user->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <select class="form-control" style="width:23.5%;margin:0% 1% 0% 1%;" name="driver">
-                                                <option value="">Select Driver</option>
-                                                @foreach ($drivers as $driver)
-                                                    <option value="{{ $driver->id }}" {{ request('driver') == $driver->id ? 'selected' : '' }}>
-                                                        {{ $driver->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
                                             <select class="form-control" style="width:23.5%;margin:0% 1% 0% 1%;" name="status">
                                                 <option value="">Select Status</option>
                                                 <option value="pending"      {{ request('status') == 'pending'      ? 'selected' : '' }}>Pending</option>
@@ -70,12 +54,7 @@
                                             </select>
                                         </div>
                                         <div style="display:flex;margin-top:10px;">
-                                            <select class="form-control" style="width:23.5%;margin:0% 1% 0% 0%;" name="trip_type">
-                                                <option value="">Select Trip Type</option>
-                                                <option value="individual" {{ request('trip_type') == 'individual' ? 'selected' : '' }}>Individual</option>
-                                                <option value="couple"     {{ request('trip_type') == 'couple'     ? 'selected' : '' }}>Couple</option>
-                                                <option value="group"      {{ request('trip_type') == 'group'      ? 'selected' : '' }}>Group</option>
-                                            </select>
+
                                             <select class="form-control" style="width:23.5%;margin:0% 1% 0% 1%;" name="mark" id="markSelect">
                                                 <option value="">Select Vehicle Mark</option>
                                                 @if ($type === 'scooter')
