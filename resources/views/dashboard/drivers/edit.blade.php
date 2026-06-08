@@ -584,17 +584,19 @@
                                 @endif
 
                                 @if ($user->car)
-                                <div class="form-group" style="text-align: center; margin: 20px 0;">
-                                    <a style="color: yellow; font-size: 28px; font-weight: bold; display:block;"
+                                <div class="form-group" style="text-align: center; margin: 40px 0;">
+                                    <label style="display:block; font-size: 22px; margin-bottom: 12px;">Car Details : You can view car details from</label>
+                                    <a style="color: yellow; font-size: 36px; font-weight: bold;"
                                        href="{{ url('/admin-dashboard/car/edit/' . $user->car->id) }}">
-                                        Car Details : You can view car details from Here
+                                        Here
                                     </a>
                                 </div>
                                 @elseif($user->scooter)
-                                <div class="form-group" style="text-align: center; margin: 20px 0;">
-                                    <a style="color: yellow; font-size: 28px; font-weight: bold; display:block;"
+                                <div class="form-group" style="text-align: center; margin: 40px 0;">
+                                    <label style="display:block; font-size: 22px; margin-bottom: 12px;">Scooter Details : You can view scooter details from</label>
+                                    <a style="color: yellow; font-size: 36px; font-weight: bold;"
                                        href="{{ url('/admin-dashboard/scooter/edit/' . $user->scooter->id) }}">
-                                        Scooter Details : You can view scooter details from Here
+                                        Here
                                     </a>
                                 </div>
                                 @else
