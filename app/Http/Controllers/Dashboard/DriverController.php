@@ -379,238 +379,322 @@ $filename = "drivers_{$typeLabel}_{$scopePart}{$datePart}_" . now()->format('Y_m
     }
 
     public function create()
-    {
-        $cities        = City::orderBy('name')->get();
-        $carMarks      = CarMark::orderBy('en_name')->get();
-        $carModels     = CarModel::orderBy('en_name')->get();
-        $scooterMarks  = MotorcycleMark::orderBy('en_name')->get();
-        $scooterModels = MotorcycleModel::orderBy('en_name')->get();
-        $comfort_year  = Setting::where('key', 'comfort_car_start_from_year')
-                            ->where('category', 'General')
-                            ->where('type', 'number')
-                            ->first()?->value ?? 2020;
+{
+    $cities        = City::orderBy('name')->get();
+    $carMarks      = CarMark::orderBy('en_name')->get();
+    $carModels     = CarModel::orderBy('en_name')->get();
+    $scooterMarks  = MotorcycleMark::orderBy('en_name')->get();
+    $scooterModels = MotorcycleModel::orderBy('en_name')->get();
+    $comfort_year  = Setting::where('key', 'comfort_car_start_from_year')
+                        ->where('category', 'General')
+                        ->where('type', 'number')
+                        ->first()?->value ?? 2020;
 
-        return view('dashboard.drivers.create', compact(
-            'cities',
-            'carMarks',
-            'carModels',
-            'scooterMarks',
-            'scooterModels',
-            'comfort_year',
-        ));
+    // ── Vehicle tab permissions ───────────────────────────────────────────────
+    $admin = auth()->user();
+
+    if ($admin->hasRole('Moderator Comfort') || $admin->hasRole('Client')) {
+        $vehiclePerms = ['car' => true, 'scooter' => false];
+    } elseif ($admin->hasRole('Moderator Scooter')) {
+        $vehiclePerms = ['car' => false, 'scooter' => true];
+    } else {
+        // Super Admin, Supervisor, etc. — all tabs
+        $vehiclePerms = ['car' => true, 'scooter' => true];
     }
 
-    public function store(Request $request)
-    {
-        // ── Save uploaded files to temp BEFORE validation ────────────────────────
-        $tempFields = [
-            'image', 'ID_front_image', 'ID_back_image', 'passport_image',
-            'license_front_image', 'license_back_image',
-            'vehicle_image', 'plate_image',
-            'vehicle_license_front_image', 'vehicle_license_back_image',
-        ];
+    return view('dashboard.drivers.create', compact(
+        'cities',
+        'carMarks',
+        'carModels',
+        'scooterMarks',
+        'scooterModels',
+        'comfort_year',
+        'vehiclePerms',
+    ));
+}
 
-        foreach ($tempFields as $field) {
-            if ($request->hasFile($field)) {
-                $existingTemp = session("temp_upload_{$field}");
-                if ($existingTemp && Storage::disk('public')->exists($existingTemp)) {
-                    Storage::disk('public')->delete($existingTemp);
-                }
-                $path = $request->file($field)->store('temp_uploads', 'public');
-                session()->put("temp_upload_{$field}", $path);
+public function store(Request $request)
+{
+    // ── 1. Save uploaded files to temp BEFORE validation ────────────────────
+    $tempFields = [
+        'image', 'ID_front_image', 'ID_back_image', 'passport_image',
+        'license_front_image', 'license_back_image',
+        'vehicle_image', 'plate_image',
+        'vehicle_license_front_image', 'vehicle_license_back_image',
+    ];
+
+    foreach ($tempFields as $field) {
+        if ($request->hasFile($field)) {
+            $existingTemp = session("temp_upload_{$field}");
+            if ($existingTemp && Storage::disk('public')->exists($existingTemp)) {
+                Storage::disk('public')->delete($existingTemp);
             }
+            $path = $request->file($field)->store('temp_uploads', 'public');
+            session()->put("temp_upload_{$field}", $path);
         }
-
-        // ── Validation ───────────────────────────────────────────────────────────
-        $validator = Validator::make($request->all(), [
-            'name'         => 'required|string|max:255',
-            'email'        => [
-                'required', 'string', 'email', 'max:255',
-                Rule::unique('users')->whereNull('deleted_at'),
-            ],
-            'password'     => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$!%*?~])[\S]{8,}$/'],
-            'country_code' => 'required|string|max:10',
-            'phone'        => [
-                'required',
-                Rule::unique('users')->where(function ($query) use ($request) {
-                    return $query->where('country_code', $request->country_code)
-                                 ->whereNull('deleted_at');
-                }),
-            ],
-            'birth_date' => [
-                'required', 'date',
-                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'city_id' => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
-
-            'national_id'             => 'nullable|digits:14|required_without:passport_id',
-            'national_id_expire_date' => 'nullable|date',
-            'passport_id'             => 'nullable|required_without:national_id',
-            'passport_expire_date'    => 'nullable|date',
-
-            'image'          => [session('temp_upload_image')          ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'ID_front_image' => [session('temp_upload_ID_front_image') ? 'nullable' : 'nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'ID_back_image'  => [session('temp_upload_ID_back_image')  ? 'nullable' : 'nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'passport_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
-
-            'driving_license_number' => 'required|string|max:50',
-            'license_expire_date'    => [
-                'required', 'date_format:Y-m-d', 'after_or_equal:today',
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'license_front_image' => [session('temp_upload_license_front_image') ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'license_back_image'  => [session('temp_upload_license_back_image')  ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-
-            'vehicle_type'    => ['required', Rule::in(['car', 'scooter'])],
-            'car_mark_id'     => ['required_if:vehicle_type,car',     'nullable', Rule::exists('car_marks', 'id')],
-            'car_model_id'    => ['required_if:vehicle_type,car',     'nullable', Rule::exists('car_models', 'id')],
-            'scooter_mark_id' => ['required_if:vehicle_type,scooter', 'nullable', Rule::exists('motorcycle_marks', 'id')],
-            'scooter_model_id'=> ['required_if:vehicle_type,scooter', 'nullable', Rule::exists('motorcycle_models', 'id')],
-
-            'color'     => 'required|string|max:255',
-            'year'      => 'required|integer|min:1990|max:' . date('Y'),
-            'plate_num' => 'required|string|max:255',
-
-            'vehicle_license_expire_date' => [
-                'required', 'date_format:Y-m-d', 'after_or_equal:today',
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'vehicle_image'               => [session('temp_upload_vehicle_image')               ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'plate_image'                 => [session('temp_upload_plate_image')                 ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'vehicle_license_front_image' => [session('temp_upload_vehicle_license_front_image') ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-            'vehicle_license_back_image'  => [session('temp_upload_vehicle_license_back_image')  ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
-
-            'status' => ['required', Rule::in(['pending', 'confirmed', 'banned', 'blocked'])],
-        ]);
-
-        if ($validator->fails()) {
-            return Redirect::back()->withInput()->withErrors($validator);
-        }
-
-        // ── Driver / vehicle type ─────────────────────────────────────────────────
-        $is_comfort = '0';
-        if ($request->vehicle_type == 'car') {
-            $comfort_year = Setting::where('key', 'comfort_car_start_from_year')
-                ->where('category', 'General')
-                ->where('type', 'number')
-                ->first()?->value ?? 2020;
-
-            if (intval($request->year) >= intval($comfort_year)) {
-                $driver_type = 'comfort_car';
-                $is_comfort  = '1';
-            } else {
-                $driver_type = 'car';
-            }
-        } else {
-            $driver_type = 'scooter';
-        }
-
-        // ── Username & invitation code ────────────────────────────────────────────
-        $username = username_Generation($request->name);
-
-        do {
-            $invitation_code = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 12);
-        } while (User::where('invitation_code', $invitation_code)->exists());
-
-        // ── Create user ───────────────────────────────────────────────────────────
-        $user = User::create([
-            'name'            => $request->name,
-            'username'        => $username,
-            'email'           => $request->email,
-            'password'        => Hash::make($request->password),
-            'phone'           => $request->phone,
-            'country_code'    => $request->country_code,
-            'mode'            => 'driver',
-            'invitation_code' => $invitation_code,
-            'gendor'          => 'Female',
-            'birth_date'      => $request->birth_date,
-            'age'             => $request->birth_date ? Carbon::parse($request->birth_date)->age : null,
-            'city_id'         => $request->city_id,
-            'national_id'     => $request->national_id,
-            'passport_id'     => $request->passport_id,
-            'driver_type'     => $driver_type,
-            'level'           => '1',
-            'status'          => $request->status,
-            'is_verified'     => '1',
-        ]);
-
-        $role = Role::where('name', 'Driver')->first();
-        $user->assignRole([$role->id]);
-
-        // ── User images ───────────────────────────────────────────────────────────
-        $this->attachMedia($request, $user, 'image',          $user->avatarCollection);
-        $this->attachMedia($request, $user, 'ID_front_image', $user->IDfrontImageCollection);
-        $this->attachMedia($request, $user, 'ID_back_image',  $user->IDbackImageCollection);
-        $this->attachMedia($request, $user, 'passport_image', $user->passportImageCollection);
-
-        // ── Driving license ───────────────────────────────────────────────────────
-        $license = DriverLicense::create([
-            'user_id'     => $user->id,
-            'license_num' => $request->driving_license_number,
-            'expire_date' => $request->license_expire_date,
-        ]);
-
-        $this->attachMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
-        $this->attachMedia($request, $license, 'license_back_image',  $license->LicenseBackImageCollection);
-
-        // ── Vehicle ───────────────────────────────────────────────────────────────
-        if ($request->vehicle_type == 'car') {
-            $lastCar = Car::orderBy('id', 'desc')->first();
-            $code    = $lastCar
-                ? 'CAR-' . str_pad((int) substr($lastCar->code, 4) + 1, 9, '0', STR_PAD_LEFT)
-                : 'CAR-000000001';
-
-            $car = Car::create([
-                'user_id'             => $user->id,
-                'code'                => $code,
-                'car_mark_id'         => $request->car_mark_id,
-                'car_model_id'        => $request->car_model_id,
-                'color'               => $request->color,
-                'year'                => $request->year,
-                'car_plate'           => $request->plate_num,
-                'passenger_type'      => 'female',
-                'license_expire_date' => $request->vehicle_license_expire_date,
-                'is_comfort'          => $is_comfort,
-                'air_conditioned'     => '0',
-                'animals'             => '0',
-                'status'              => $request->status,
-            ]);
-
-            $this->attachMedia($request, $car, 'vehicle_image',               $car->avatarCollection);
-            $this->attachMedia($request, $car, 'plate_image',                 $car->PlateImageCollection);
-            $this->attachMedia($request, $car, 'vehicle_license_front_image', $car->LicenseFrontImageCollection);
-            $this->attachMedia($request, $car, 'vehicle_license_back_image',  $car->LicenseBackImageCollection);
-
-        } else {
-            $lastScooter = Scooter::orderBy('id', 'desc')->first();
-            $code        = $lastScooter
-                ? 'SCO-' . str_pad((int) substr($lastScooter->code, 4) + 1, 9, '0', STR_PAD_LEFT)
-                : 'SCO-000000001';
-
-            $scooter = Scooter::create([
-                'user_id'             => $user->id,
-                'code'                => $code,
-                'motorcycle_mark_id'  => $request->scooter_mark_id,
-                'motorcycle_model_id' => $request->scooter_model_id,
-                'color'               => $request->color,
-                'year'                => $request->year,
-                'scooter_plate'       => $request->plate_num,
-                'license_expire_date' => $request->vehicle_license_expire_date,
-            ]);
-
-            $this->attachMedia($request, $scooter, 'vehicle_image',               $scooter->avatarCollection);
-            $this->attachMedia($request, $scooter, 'plate_image',                 $scooter->PlateImageCollection);
-            $this->attachMedia($request, $scooter, 'vehicle_license_front_image', $scooter->LicenseFrontImageCollection);
-            $this->attachMedia($request, $scooter, 'vehicle_license_back_image',  $scooter->LicenseBackImageCollection);
-        }
-
-        // ── Clear all temp session files ──────────────────────────────────────────
-        $this->clearTempUploads($tempFields);
-
-        return redirect()->route('drivers', request()->query())
-            ->with('success', 'Driver account created successfully.');
     }
+
+    // ── 2. Role-based vehicle permission ────────────────────────────────────
+    $admin = auth()->user();
+
+    if ($admin->hasRole('Moderator Comfort') || $admin->hasRole('Client')) {
+        $allowedVehicleTypes = ['car'];
+    } elseif ($admin->hasRole('Moderator Scooter')) {
+        $allowedVehicleTypes = ['scooter'];
+    } else {
+        $allowedVehicleTypes = ['car', 'scooter'];
+    }
+
+    // ── 3. Validation ────────────────────────────────────────────────────────
+    $validator = Validator::make($request->all(), [
+        // Account
+        'name'         => 'required|string|max:255',
+        'email'        => [
+            'required', 'string', 'email', 'max:255',
+            Rule::unique('users')->whereNull('deleted_at'),
+        ],
+        'password' => [
+            'required', 'string', 'min:8',
+            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$!%*?~])[\S]{8,}$/',
+        ],
+        'country_code' => 'required|string|max:10',
+        'phone'        => [
+            'required',
+            Rule::unique('users')->where(function ($query) use ($request) {
+                return $query->where('country_code', $request->country_code)
+                             ->whereNull('deleted_at');
+            }),
+        ],
+        'birth_date' => [
+            'required', 'date',
+            'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+            'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
+        ],
+        'city_id' => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
+
+        // Identity document — at least one of national_id or passport_id required
+        'national_id'             => 'nullable|digits:14|required_without:passport_id',
+        'national_id_expire_date' => 'nullable|date',
+        'passport_id'             => 'nullable|string|max:50|required_without:national_id',
+        'passport_expire_date'    => 'nullable|date',
+
+        // Profile image
+        'image' => [
+            session('temp_upload_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+
+        // ID images (optional)
+        'ID_front_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+        'ID_back_image'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+        'passport_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+
+        // Driving license
+        'driving_license_number' => 'required|string|max:50',
+        'license_expire_date'    => [
+            'required', 'date_format:Y-m-d', 'after_or_equal:today',
+            'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
+        ],
+        'license_front_image' => [
+            session('temp_upload_license_front_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+        'license_back_image' => [
+            session('temp_upload_license_back_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+
+        // Vehicle type — validated against role-allowed list
+        'vehicle_type' => ['required', Rule::in($allowedVehicleTypes)],
+
+        // Car-specific
+        'car_mark_id'  => ['nullable', Rule::requiredIf($request->vehicle_type === 'car'), Rule::exists('car_marks', 'id')],
+        'car_model_id' => ['nullable', Rule::requiredIf($request->vehicle_type === 'car'), Rule::exists('car_models', 'id')],
+
+        // Scooter-specific
+        'scooter_mark_id'  => ['nullable', Rule::requiredIf($request->vehicle_type === 'scooter'), Rule::exists('motorcycle_marks', 'id')],
+        'scooter_model_id' => ['nullable', Rule::requiredIf($request->vehicle_type === 'scooter'), Rule::exists('motorcycle_models', 'id')],
+
+        // Shared vehicle fields
+        'color'     => 'required|string|max:255',
+        'year'      => 'required|integer|min:1990|max:' . date('Y'),
+        'plate_num' => 'required|string|max:255',
+
+        'vehicle_license_expire_date' => [
+            'required', 'date_format:Y-m-d', 'after_or_equal:today',
+            'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
+        ],
+        'vehicle_image' => [
+            session('temp_upload_vehicle_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+        'plate_image' => [
+            session('temp_upload_plate_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+        'vehicle_license_front_image' => [
+            session('temp_upload_vehicle_license_front_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+        'vehicle_license_back_image' => [
+            session('temp_upload_vehicle_license_back_image') ? 'nullable' : 'required',
+            'image', 'mimes:jpg,jpeg,png', 'max:5120',
+        ],
+
+        // Status
+        'status' => ['required', Rule::in(['pending', 'confirmed', 'banned', 'blocked'])],
+    ]);
+
+    if ($validator->fails()) {
+        return Redirect::back()->withInput()->withErrors($validator);
+    }
+
+    // ── 4. Extra role guard — double-check server-side (bypass-proof) ────────
+    if (!in_array($request->vehicle_type, $allowedVehicleTypes)) {
+        return Redirect::back()
+            ->withInput()
+            ->with('error', 'You are not allowed to create a driver with this vehicle type.');
+    }
+
+    // ── 5. Determine driver_type & is_comfort ────────────────────────────────
+    $is_comfort = '0';
+
+    if ($request->vehicle_type === 'car') {
+        $comfort_year = Setting::where('key', 'comfort_car_start_from_year')
+            ->where('category', 'General')
+            ->where('type', 'number')
+            ->first()?->value ?? 2020;
+
+        if (intval($request->year) >= intval($comfort_year)) {
+            $driver_type = 'comfort_car';
+            $is_comfort  = '1';
+        } else {
+            $driver_type = 'car';
+        }
+    } else {
+        $driver_type = 'scooter';
+    }
+
+    // ── 6. Username & invitation code ────────────────────────────────────────
+    $username = username_Generation($request->name);
+
+    do {
+        $invitation_code = substr(
+            str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+            0, 12
+        );
+    } while (User::where('invitation_code', $invitation_code)->exists());
+
+    // ── 7. Create User ───────────────────────────────────────────────────────
+    $user = User::create([
+        'name'            => $request->name,
+        'username'        => $username,
+        'email'           => $request->email,
+        'password'        => Hash::make($request->password),
+        'phone'           => $request->phone,
+        'country_code'    => $request->country_code,
+        'mode'            => 'driver',
+        'invitation_code' => $invitation_code,
+        'gendor'          => 'Female',
+        'birth_date'      => $request->birth_date,
+        'age'             => $request->birth_date
+                                ? Carbon::parse($request->birth_date)->age
+                                : null,
+        'city_id'         => $request->city_id,
+        'national_id'     => $request->national_id,
+        'passport_id'     => $request->passport_id,
+        'national_id_expire_date' => $request->national_id_expire_date,
+        'passport_expire_date'    => $request->passport_expire_date,
+        'driver_type'     => $driver_type,
+        'level'           => '1',
+        'status'          => $request->status,
+        'is_verified'     => '1',
+    ]);
+
+    // Assign Driver role
+    $role = Role::where('name', 'Driver')->first();
+    if ($role) {
+        $user->assignRole($role->id);
+    }
+
+    // ── 8. User media ────────────────────────────────────────────────────────
+    $this->attachMedia($request, $user, 'image',          $user->avatarCollection);
+    $this->attachMedia($request, $user, 'ID_front_image', $user->IDfrontImageCollection);
+    $this->attachMedia($request, $user, 'ID_back_image',  $user->IDbackImageCollection);
+    $this->attachMedia($request, $user, 'passport_image', $user->passportImageCollection);
+
+    // ── 9. Driving license ───────────────────────────────────────────────────
+    $license = DriverLicense::create([
+        'user_id'     => $user->id,
+        'license_num' => $request->driving_license_number,
+        'expire_date' => $request->license_expire_date,
+    ]);
+
+    $this->attachMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
+    $this->attachMedia($request, $license, 'license_back_image',  $license->LicenseBackImageCollection);
+
+    // ── 10. Vehicle ──────────────────────────────────────────────────────────
+    if ($request->vehicle_type === 'car') {
+
+        // Auto-increment CAR code
+        $lastCar = Car::orderBy('id', 'desc')->first();
+        $code    = $lastCar
+            ? 'CAR-' . str_pad((int) substr($lastCar->code, 4) + 1, 9, '0', STR_PAD_LEFT)
+            : 'CAR-000000001';
+
+        $car = Car::create([
+            'user_id'             => $user->id,
+            'code'                => $code,
+            'car_mark_id'         => $request->car_mark_id,
+            'car_model_id'        => $request->car_model_id,
+            'color'               => $request->color,
+            'year'                => $request->year,
+            'car_plate'           => $request->plate_num,
+            'passenger_type'      => 'female',
+            'license_expire_date' => $request->vehicle_license_expire_date,
+            'is_comfort'          => $is_comfort,
+            'air_conditioned'     => '0',
+            'animals'             => '0',
+            'status'              => $request->status,
+        ]);
+
+        $this->attachMedia($request, $car, 'vehicle_image',               $car->avatarCollection);
+        $this->attachMedia($request, $car, 'plate_image',                 $car->PlateImageCollection);
+        $this->attachMedia($request, $car, 'vehicle_license_front_image', $car->LicenseFrontImageCollection);
+        $this->attachMedia($request, $car, 'vehicle_license_back_image',  $car->LicenseBackImageCollection);
+
+    } else {
+
+        // Auto-increment SCO code
+        $lastScooter = Scooter::orderBy('id', 'desc')->first();
+        $code        = $lastScooter
+            ? 'SCO-' . str_pad((int) substr($lastScooter->code, 4) + 1, 9, '0', STR_PAD_LEFT)
+            : 'SCO-000000001';
+
+        $scooter = Scooter::create([
+            'user_id'             => $user->id,
+            'code'                => $code,
+            'motorcycle_mark_id'  => $request->scooter_mark_id,
+            'motorcycle_model_id' => $request->scooter_model_id,
+            'color'               => $request->color,
+            'year'                => $request->year,
+            'scooter_plate'       => $request->plate_num,
+            'license_expire_date' => $request->vehicle_license_expire_date,
+            'status'              => $request->status,
+        ]);
+
+        $this->attachMedia($request, $scooter, 'vehicle_image',               $scooter->avatarCollection);
+        $this->attachMedia($request, $scooter, 'plate_image',                 $scooter->PlateImageCollection);
+        $this->attachMedia($request, $scooter, 'vehicle_license_front_image', $scooter->LicenseFrontImageCollection);
+        $this->attachMedia($request, $scooter, 'vehicle_license_back_image',  $scooter->LicenseBackImageCollection);
+    }
+
+    // ── 11. Clear all temp session uploads ───────────────────────────────────
+    $this->clearTempUploads($tempFields);
+
+    return redirect()->route('drivers', request()->query())
+        ->with('success', 'Driver account created successfully.');
+}
 
     // ── Attach media from new upload OR existing temp file ────────────────────────
     private function attachMedia(Request $request, $model, string $field, string $collection): void
