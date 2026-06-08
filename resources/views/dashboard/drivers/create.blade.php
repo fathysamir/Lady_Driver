@@ -755,8 +755,6 @@
                                 <select class="form-control" name="status" required>
                                     <option value="pending"   {{ old('status','pending')=='pending'   ? 'selected':'' }}>Pending (قيد الانتظار)</option>
                                     <option value="confirmed" {{ old('status')=='confirmed' ? 'selected':'' }}>Confirmed (مفعّل)</option>
-                                    <option value="banned"    {{ old('status')=='banned'    ? 'selected':'' }}>Banned (محظور)</option>
-                                    <option value="blocked"   {{ old('status')=='blocked'   ? 'selected':'' }}>Blocked (موقوف)</option>
                                 </select>
                             </div>
 
