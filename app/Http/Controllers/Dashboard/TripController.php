@@ -29,7 +29,13 @@ class TripController extends Controller
     public function index(Request $request)
     {
         // ── Resolve active tab state ──────────────────────────────
-        $type        = $request->input('type', 'car');           // car | comfort_car | scooter
+        $defaultType = 'car';
+if (auth()->user()->hasRole('Moderator Comfort')) {
+    $defaultType = 'comfort_car';
+} elseif (auth()->user()->hasRole('Moderator Scooter')) {
+    $defaultType = 'scooter';
+}
+$type = $request->input('type', $defaultType);
         $time_filter = $request->input('time_filter', 'current'); // scheduled | current | past
 
         // ── Base query ────────────────────────────────────────────
