@@ -153,8 +153,24 @@
                                                     <td>{!! highlight($admin->email, $search ?? '') !!}</td>
 
                                                     <td>{!! highlight($admin->country_code . $admin->phone, $search ?? '') !!}</td>
-                                                    <td>{{ $admin->role }}</td>
-
+                                                    <td>
+                                                        @php
+                                                            $roleColors = [
+                                                                'Super Admin'       => '#1a237e',
+                                                                'Supervisor'        => '#1565c0',
+                                                                'Moderator Standard'=> '#1976d2',
+                                                                'Moderator Client'  => '#6a1b9a',
+                                                                'Moderator Comfort' => '#558b2f',
+                                                                'Moderator Scooter' => '#e65100',
+                                                                'Accountant'        => '#4e342e',
+                                                            ];
+                                                            $color = $roleColors[$admin->role] ?? '#555';
+                                                        @endphp
+                                                        <span class="badge badge-secondary"
+                                                              style="background-color:{{ $color }};padding:4px 8px;">
+                                                            {{ $admin->role }}
+                                                        </span>
+                                                    </td>
                                                     <td>{{ $admin->created_at->format('d.M.Y h:i a') }}</td>
 
                                                     <td>

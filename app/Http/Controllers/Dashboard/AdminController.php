@@ -19,7 +19,17 @@ class AdminController extends Controller
         $roles      = Role::whereNotIn('name', ['Client', 'Driver'])->pluck('name')->toArray();
         $all_admins = User::whereHas('roles', function ($query) use ($roles) {
             $query->whereIn('roles.name', $roles);
-        })->orderBy('id', 'desc');
+        })->orderByRaw("
+        FIELD(role,
+            'Super Admin',
+            'Supervisor',
+            'Moderator Standard',
+            'Moderator Client',
+            'Moderator Comfort',
+            'Moderator Scooter',
+            'Accountant'
+        )
+    ")->orderBy('id', 'desc');
 
         if ($request->has('search') && $request->search != null) {
             $all_admins->where(function ($query) use ($request) {
