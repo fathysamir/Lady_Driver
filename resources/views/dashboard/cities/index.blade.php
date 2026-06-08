@@ -141,45 +141,37 @@
                                                         {!! highlight($city->name, $search ?? '') !!}
                                                     </td>
 
-                                                    {{-- Clients Count --}}
-                                                    <td onclick="event.stopPropagation();">
-                                                        @if ($city->clients_count > 0)
-                                                            @can('clients.index')
-                                                                <a href="{{ route('clients', ['city' => $city->id]) }}"
-                                                                    class="count-badge badge-clients">
-                                                                    {{ $city->clients_count }}
-                                                                    {{ Str::plural('Client', $city->clients_count) }}
-                                                                </a>
-                                                            @else
-                                                                <span class="count-badge badge-clients">
-                                                                    {{ $city->clients_count }}
-                                                                    {{ Str::plural('Client', $city->clients_count) }}
-                                                                </span>
-                                                            @endcan
-                                                        @else
-                                                            <span class="count-badge badge-zero">0 Clients</span>
-                                                        @endif
-                                                    </td>
+                                                  {{-- Clients Count --}}
+<td onclick="event.stopPropagation();">
+    @if ($city->clients_count > 0)
+        @can('clients.index')
+            <a href="/admin-dashboard/clients?city={{ $city->id }}"
+                style="color: inherit; text-decoration: none;">
+                {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
+            </a>
+        @else
+            {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
+        @endcan
+    @else
+        0 Clients
+    @endif
+</td>
 
-                                                    {{-- Drivers Count --}}
-                                                    <td onclick="event.stopPropagation();">
-                                                        @if ($city->drivers_count > 0)
-                                                            @can('drivers.index')
-                                                                <a href="{{ route('drivers', ['city' => $city->id]) }}"
-                                                                    class="count-badge badge-drivers">
-                                                                    {{ $city->drivers_count }}
-                                                                    {{ Str::plural('Driver', $city->drivers_count) }}
-                                                                </a>
-                                                            @else
-                                                                <span class="count-badge badge-drivers">
-                                                                    {{ $city->drivers_count }}
-                                                                    {{ Str::plural('Driver', $city->drivers_count) }}
-                                                                </span>
-                                                            @endcan
-                                                        @else
-                                                            <span class="count-badge badge-zero">0 Drivers</span>
-                                                        @endif
-                                                    </td>
+{{-- Drivers Count --}}
+<td onclick="event.stopPropagation();">
+    @if ($city->drivers_count > 0)
+        @can('drivers.index')
+            <a href="/admin-dashboard/drivers?city={{ $city->id }}"
+                style="color: inherit; text-decoration: none;">
+                {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
+            </a>
+        @else
+            {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
+        @endcan
+    @else
+        0 Drivers
+    @endif
+</td>
 
                                                     <td>
                                                         @can('cities.edit')
