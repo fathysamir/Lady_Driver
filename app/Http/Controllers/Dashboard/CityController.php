@@ -9,10 +9,13 @@ class CityController extends Controller
 {
     public function index(Request $request)
     {
-        $cities = City::orderBy('id', 'desc');
+        $cities = City::withCount(['clients', 'drivers'])
+            ->orderBy('id', 'desc');
+
         if ($request->has('search') && $request->search != null) {
             $cities->where('name', 'LIKE', '%' . $request->search . '%');
         }
+
         $cities = $cities->paginate(10);
         $search = $request->search;
 

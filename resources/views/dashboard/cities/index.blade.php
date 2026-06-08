@@ -16,33 +16,22 @@
             margin-bottom: 8%;
         }
 
-        .online {
-            background-color: green;
-        }
+        .online { background-color: green; }
+        .offline { background-color: gray; }
 
-        .offline {
-            background-color: gray;
-        }
-
-
-        /* Popup styles */
-        .user-profile {
-            position: relative;
-        }
+        .user-profile { position: relative; }
 
         .user-avatar {
             width: 40px;
             height: 40px;
             cursor: pointer;
             position: relative;
-
         }
 
         .avatar-preview {
             display: none;
             position: fixed;
             justify-content: center;
-            /* Center horizontally */
             align-items: center;
             top: 50%;
             left: 50%;
@@ -57,16 +46,35 @@
         }
 
         .avatar-preview img {
-
             width: 100%;
             height: 100%;
             border-radius: 5px;
         }
 
-        .user-profile:hover .avatar-preview {
-            display: block;
+        .user-profile:hover .avatar-preview { display: block; }
+
+        .count-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: opacity 0.2s ease, transform 0.15s ease;
+            white-space: nowrap;
         }
+
+        .count-badge:hover {
+            opacity: 0.82;
+            text-decoration: none;
+            transform: scale(1.05);
+        }
+
+        .badge-clients { background-color: #3a86ff; color: white; }
+        .badge-drivers { background-color: #06d6a0; color: white; }
+        .badge-zero    { background-color: #555; color: #aaa; cursor: default; }
     </style>
+
     <div class="content-wrapper">
         <div class="container-fluid">
             <div class="row">
@@ -76,31 +84,33 @@
                             <div style="display: flex;">
                                 <h5 class="card-title" style="width: 55%;">Cities</h5>
                                 @can('cities.create')
-                                    <a class="btn btn-light px-5" style="margin-bottom:1%; "
+                                    <a class="btn btn-light px-5" style="margin-bottom:1%;"
                                         href="{{ route('add.city') }}">create</a>
                                 @endcan
                                 <form id="searchForm" class="search-bar"
-                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;"method="post"
-                                    action="{{ route('cities') }}" enctype="multipart/form-data">
+                                    style="margin-bottom:1%;margin-left:20px;margin-right:0px;"
+                                    method="post"
+                                    action="{{ route('cities') }}"
+                                    enctype="multipart/form-data">
                                     @csrf
-                                    <input type="text" class="form-control" placeholder="Enter keywords" name="search">
-                                    <a href="javascript:void(0);" id="submitForm"><i class="icon-magnifier"></i></a>
+                                    <input type="text" class="form-control" placeholder="Enter keywords"
+                                        name="search" value="{{ $search ?? '' }}">
+                                    <a href="javascript:void(0);" id="submitForm">
+                                        <i class="icon-magnifier"></i>
+                                    </a>
                                 </form>
-
-
-
                             </div>
 
                             @if (session('error'))
                                 <div id="errorAlert" class="alert alert-danger"
-                                    style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:brown;border-radius: 20px; color:beige;">
+                                    style="padding-top:5px;padding-bottom:5px;padding-left:10px;background-color:brown;border-radius:20px;color:beige;">
                                     {{ session('error') }}
                                 </div>
                             @endif
 
                             @if (session('success'))
-                                <div id="successAlert"
-                                    class="alert alert-success"style="padding-top:5px;padding-bottom:5px; padding-left: 10px; background-color:green;border-radius: 20px; color:beige;">
+                                <div id="successAlert" class="alert alert-success"
+                                    style="padding-top:5px;padding-bottom:5px;padding-left:10px;background-color:green;border-radius:20px;color:beige;">
                                     {{ session('success') }}
                                 </div>
                             @endif
@@ -111,7 +121,8 @@
                                         <tr>
                                             <th scope="col">#</th>
                                             <th scope="col">Name</th>
-
+                                            <th scope="col">Clients</th>
+                                            <th scope="col">Drivers</th>
                                             <th scope="col">Action</th>
                                         </tr>
                                     </thead>
@@ -123,17 +134,54 @@
                                             @foreach ($cities as $city)
                                                 <tr onclick="window.location='{{ route('edit.city', ['id' => $city->id] + request()->query()) }}';"
                                                     style="cursor: pointer;">
+
                                                     <td>{{ $counter++ }}</td>
+
                                                     <td>
                                                         {!! highlight($city->name, $search ?? '') !!}
                                                     </td>
 
+                                                    {{-- Clients Count --}}
+                                                    <td onclick="event.stopPropagation();">
+                                                        @if ($city->clients_count > 0)
+                                                            @can('clients.index')
+                                                                <a href="{{ route('clients', ['city' => $city->id]) }}"
+                                                                    class="count-badge badge-clients">
+                                                                    {{ $city->clients_count }}
+                                                                    {{ Str::plural('Client', $city->clients_count) }}
+                                                                </a>
+                                                            @else
+                                                                <span class="count-badge badge-clients">
+                                                                    {{ $city->clients_count }}
+                                                                    {{ Str::plural('Client', $city->clients_count) }}
+                                                                </span>
+                                                            @endcan
+                                                        @else
+                                                            <span class="count-badge badge-zero">0 Clients</span>
+                                                        @endif
+                                                    </td>
 
-
-
+                                                    {{-- Drivers Count --}}
+                                                    <td onclick="event.stopPropagation();">
+                                                        @if ($city->drivers_count > 0)
+                                                            @can('drivers.index')
+                                                                <a href="{{ route('drivers', ['city' => $city->id]) }}"
+                                                                    class="count-badge badge-drivers">
+                                                                    {{ $city->drivers_count }}
+                                                                    {{ Str::plural('Driver', $city->drivers_count) }}
+                                                                </a>
+                                                            @else
+                                                                <span class="count-badge badge-drivers">
+                                                                    {{ $city->drivers_count }}
+                                                                    {{ Str::plural('Driver', $city->drivers_count) }}
+                                                                </span>
+                                                            @endcan
+                                                        @else
+                                                            <span class="count-badge badge-zero">0 Drivers</span>
+                                                        @endif
+                                                    </td>
 
                                                     <td>
-
                                                         @can('cities.edit')
                                                             <a href="{{ route('edit.city', ['id' => $city->id] + request()->query()) }}"
                                                                 style="margin-right: 1rem;">
@@ -143,8 +191,7 @@
                                                         @endcan
 
                                                         @can('cities.delete')
-                                                            <a
-                                                                onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
+                                                            <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
                                                                 <span class="bi bi-trash"
                                                                     style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
@@ -154,15 +201,15 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td>There are no Cities.</td>
+                                                <td colspan="5">There are no Cities.</td>
                                             </tr>
                                         @endif
                                     </tbody>
                                 </table>
                                 <div style="text-align: center;">
                                     {!! $cities->appends([
-                                            'search' => request('search'),
-                                        ])->links('pagination::bootstrap-4') !!}
+                                        'search' => request('search'),
+                                    ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
                         </div>
@@ -172,52 +219,51 @@
             <div class="overlay toggle-menu"></div>
         </div>
     </div>
-    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
-        aria-hidden="true">
+
+    {{-- Delete Confirmation Modal --}}
+    <div class="modal fade" id="confirmationPopup" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">Are you sure you want to
-                        delete this City?</h5>
-                        <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
+                    <h5 class="modal-title" id="exampleModalLongTitle" style="color:black;">
+                        Are you sure you want to delete this City?
+                    </h5>
+                    <button type="button" class="close" onclick="hideConfirmationPopup()" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" style="color:black;">
                     <div class="form-group">
-
-                        <div style="width: 100%;  display: flex;justify-content: center;">
-                            <h5 class="logo-text"style="color:black;font-weight: bold;" id="deletedNameInput"></h5>
-
+                        <div style="width:100%; display:flex; justify-content:center;">
+                            <h5 class="logo-text" style="color:black; font-weight:bold;" id="deletedNameInput"></h5>
                         </div>
                     </div>
-                    <button
-                        onclick="hideConfirmationPopup()"style="background-color: #5f6360; color: white; padding: 10px 20px; border: none; cursor: pointer;width:48%;border-radius:10px;"><span
-                            class="bi bi-x" style="font-size: 1rem; color: rgb(255,255,255);"></span> Cancel</button>
-                    <button
-                        onclick="deleteCity()"style="background-color: #f44336; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px; width:48%; border-radius:10px;"><span
-                            class="bi bi-trash" style="font-size: 1rem; color: rgb(255,255,255);"></span> Delete</button>
-
+                    <button onclick="hideConfirmationPopup()"
+                        style="background-color:#5f6360; color:white; padding:10px 20px; border:none; cursor:pointer; width:48%; border-radius:10px;">
+                        <span class="bi bi-x" style="font-size:1rem; color:rgb(255,255,255);"></span> Cancel
+                    </button>
+                    <button onclick="deleteCity()"
+                        style="background-color:#f44336; color:white; padding:10px 20px; border:none; cursor:pointer; margin-right:10px; width:48%; border-radius:10px;">
+                        <span class="bi bi-trash" style="font-size:1rem; color:rgb(255,255,255);"></span> Delete
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function showConfirmationPopup(deleteUrl, name) {
-
             document.getElementById('deletedNameInput').textContent = name;
-
             const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
             myModal.show();
-            // Set the delete URL in a data attribute to access it in the deleteUser function
             document.getElementById('confirmationPopup').setAttribute('data-delete-url', deleteUrl);
         }
 
         function hideConfirmationPopup() {
-
             var modal = document.getElementById('confirmationPopup');
             modal.classList.remove('show');
             modal.style.display = 'none';
@@ -231,17 +277,16 @@
         }
     </script>
     <script>
-        $(document).ready(function() {
-            $('#submitForm').on('click', function() {
+        $(document).ready(function () {
+            $('#submitForm').on('click', function () {
                 $('#searchForm').submit();
             });
         });
     </script>
     <script>
-        // Set a timeout to hide the error or success message after 5 seconds
-        setTimeout(function() {
+        setTimeout(function () {
             $('#errorAlert').fadeOut();
             $('#successAlert').fadeOut();
-        }, 4000); // 5000 milliseconds = 5 seconds
+        }, 4000);
     </script>
 @endpush
