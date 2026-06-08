@@ -52,27 +52,6 @@
         }
 
         .user-profile:hover .avatar-preview { display: block; }
-
-        .count-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 0.82rem;
-            font-weight: 600;
-            transition: opacity 0.2s ease, transform 0.15s ease;
-            white-space: nowrap;
-        }
-
-        .count-badge:hover {
-            opacity: 0.82;
-            text-decoration: none;
-            transform: scale(1.05);
-        }
-
-        .badge-clients { background-color: #3a86ff; color: white; }
-        .badge-drivers { background-color: #06d6a0; color: white; }
-        .badge-zero    { background-color: #555; color: #aaa; cursor: default; }
     </style>
 
     <div class="content-wrapper">
@@ -132,7 +111,7 @@
                                                 $counter = ($cities->currentPage() - 1) * $cities->perPage() + 1;
                                             @endphp
                                             @foreach ($cities as $city)
-                                                <tr onclick="window.location='{{ route('edit.city', ['id' => $city->id] + request()->query()) }}';"
+                                                <tr onclick="handleRowClick(event, '{{ route('edit.city', ['id' => $city->id] + request()->query()) }}')"
                                                     style="cursor: pointer;">
 
                                                     <td>{{ $counter++ }}</td>
@@ -141,39 +120,40 @@
                                                         {!! highlight($city->name, $search ?? '') !!}
                                                     </td>
 
-                                                  {{-- Clients Count --}}
-<td onclick="event.stopPropagation();">
-    @if ($city->clients_count > 0)
-        @can('clients.index')
-            <a href="/admin-dashboard/clients?city={{ $city->id }}"
-                style="color: inherit; text-decoration: none;">
-                {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
-            </a>
-        @else
-            {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
-        @endcan
-    @else
-        0 Clients
-    @endif
-</td>
+                                                    {{-- Clients Count --}}
+                                                    <td class="no-row-click">
+                                                        @if ($city->clients_count > 0)
+                                                            @can('clients.index')
+                                                                <a href="/admin-dashboard/clients?city={{ $city->id }}"
+                                                                    style="color: inherit; text-decoration: none;">
+                                                                    {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
+                                                                </a>
+                                                            @else
+                                                                {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
+                                                            @endcan
+                                                        @else
+                                                            0 Clients
+                                                        @endif
+                                                    </td>
 
-{{-- Drivers Count --}}
-<td onclick="event.stopPropagation();">
-    @if ($city->drivers_count > 0)
-        @can('drivers.index')
-            <a href="/admin-dashboard/drivers?city={{ $city->id }}"
-                style="color: inherit; text-decoration: none;">
-                {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
-            </a>
-        @else
-            {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
-        @endcan
-    @else
-        0 Drivers
-    @endif
-</td>
+                                                    {{-- Drivers Count --}}
+                                                    <td class="no-row-click">
+                                                        @if ($city->drivers_count > 0)
+                                                            @can('drivers.index')
+                                                                <a href="/admin-dashboard/drivers?city={{ $city->id }}"
+                                                                    style="color: inherit; text-decoration: none;">
+                                                                    {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
+                                                                </a>
+                                                            @else
+                                                                {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
+                                                            @endcan
+                                                        @else
+                                                            0 Drivers
+                                                        @endif
+                                                    </td>
 
-                                                    <td>
+                                                    {{-- Actions --}}
+                                                    <td class="no-row-click">
                                                         @can('cities.edit')
                                                             <a href="{{ route('edit.city', ['id' => $city->id] + request()->query()) }}"
                                                                 style="margin-right: 1rem;">
@@ -183,7 +163,8 @@
                                                         @endcan
 
                                                         @can('cities.delete')
-                                                            <a onclick='event.stopPropagation(); showConfirmationPopup("{{ url('/admin-dashboard/cities/delete/' . $city->id) }}","{{ $city->name }}")'>
+                                                            <a href="javascript:void(0);"
+                                                                onclick="showConfirmationPopup('{{ url('/admin-dashboard/cities/delete/' . $city->id) }}','{{ $city->name }}')">
                                                                 <span class="bi bi-trash"
                                                                     style="font-size: 1rem; color: rgb(255,255,255);"></span>
                                                             </a>
@@ -248,6 +229,13 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        function handleRowClick(event, url) {
+            if (event.target.closest('.no-row-click')) {
+                return;
+            }
+            window.location.href = url;
+        }
+
         function showConfirmationPopup(deleteUrl, name) {
             document.getElementById('deletedNameInput').textContent = name;
             const myModal = new bootstrap.Modal(document.getElementById('confirmationPopup'), {});
