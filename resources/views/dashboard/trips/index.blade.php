@@ -302,6 +302,11 @@
             clearFilterInputs();
             document.getElementById('type_input').value        = tripType;
             document.getElementById('time_filter_input').value = 'current';
+             // Hide/show air conditioned checkbox based on trip type
+    const airCondDiv = document.getElementById('airConditionedCheckbox');
+    if (airCondDiv) {
+        airCondDiv.style.display = tripType === 'car' ? '' : 'none';
+    }
             submitWithoutPage();
         }
 
