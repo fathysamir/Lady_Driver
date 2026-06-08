@@ -632,7 +632,7 @@
 
                            {{-- Vehicle Image (used for both vehicle_image and plate_image) --}}
 <div class="form-group">
-    <label>Vehicle Image <span class="ar">(صورة المركبة)</span><span style="color:red">*</span></label>
+    <label>Vehicle and Plate Image <span class="ar"> (صورة المركبة واللوحة)</span><span style="color:red">*</span></label>
     @php
         $hasVehicleTemp = session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image'));
     @endphp
