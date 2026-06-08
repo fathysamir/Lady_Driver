@@ -630,41 +630,27 @@
                                 </div>
                             </div>
 
-                            {{-- Vehicle Image --}}
-                            <div class="form-group">
-                                <label>Vehicle Image <span class="ar">(صورة المركبة)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image')))
-                                    <div style="margin-bottom:8px;">
-                                        <img src="{{ asset('storage/' . session('temp_upload_vehicle_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
-                                        <input type="hidden" name="temp_vehicle_image" value="{{ session('temp_upload_vehicle_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
-                                    </div>
-                                @endif
-                                <input type="file" class="form-control" name="vehicle_image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image'))) ? '' : 'required' }}>
-                                @error('vehicle_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
-                            </div>
-
-                            {{-- Plate Image --}}
-                            <div class="form-group">
-                                <label>Plate Image <span class="ar">(صورة اللوحة)</span><span style="color:red">*</span></label>
-                                @if(session('temp_upload_plate_image') && Storage::disk('public')->exists(session('temp_upload_plate_image')))
-                                    <div style="margin-bottom:8px;">
-                                        <img src="{{ asset('storage/' . session('temp_upload_plate_image')) }}"
-                                            style="height:80px; border-radius:6px;"
-                                            onerror="this.parentElement.style.display='none'">
-                                        <input type="hidden" name="temp_plate_image" value="{{ session('temp_upload_plate_image') }}">
-                                        <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
-                                    </div>
-                                @endif
-                                <input type="file" class="form-control" name="plate_image"
-                                    accept="image/jpg,image/jpeg,image/png"
-                                    {{ (session('temp_upload_plate_image') && Storage::disk('public')->exists(session('temp_upload_plate_image'))) ? '' : 'required' }}>
-                                @error('plate_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
-                            </div>
+                           {{-- Vehicle Image (used for both vehicle_image and plate_image) --}}
+<div class="form-group">
+    <label>Vehicle Image <span class="ar">(صورة المركبة)</span><span style="color:red">*</span></label>
+    @php
+        $hasVehicleTemp = session('temp_upload_vehicle_image') && Storage::disk('public')->exists(session('temp_upload_vehicle_image'));
+    @endphp
+    @if($hasVehicleTemp)
+        <div style="margin-bottom:8px;">
+            <img src="{{ asset('storage/' . session('temp_upload_vehicle_image')) }}"
+                style="height:80px; border-radius:6px;"
+                onerror="this.parentElement.style.display='none'">
+            <input type="hidden" name="temp_vehicle_image" value="{{ session('temp_upload_vehicle_image') }}">
+            <input type="hidden" name="temp_plate_image"   value="{{ session('temp_upload_vehicle_image') }}">
+            <small style="color:rgba(255,255,255,0.5); display:block;">Previously uploaded — upload again to replace.</small>
+        </div>
+    @endif
+    <input type="file" class="form-control" name="vehicle_image"
+        accept="image/jpg,image/jpeg,image/png"
+        {{ $hasVehicleTemp ? '' : 'required' }}>
+    @error('vehicle_image')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
+</div>
 
                             {{-- Vehicle License Expiry --}}
                             <div class="form-group">
