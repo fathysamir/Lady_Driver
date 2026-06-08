@@ -3,16 +3,12 @@
         <a href="{{ url('/admin-dashboard') }}">
             <img src="{{ asset('dashboard/logo.png') }}" class="logo-icon" alt="logo icon"
                 style="width:60px; border-radius: 50%;">
-            <h5 class="logo-text">Dashboard Admin</h5>
+            <h5 class="logo-text">Dashboard</h5>
         </a>
     </div>
     <ul class="sidebar-menu do-nicescrol">
         <li class="sidebar-header">MAIN NAVIGATION</li>
-        <li>
-            <a href="{{ url('/admin-dashboard') }}">
-                <i class="zmdi zmdi-view-dashboard"></i> <span>Dashboard</span>
-            </a>
-        </li>
+
         @if (auth()->user()->role == 'Super Admin')
             <li>
                 <a href="{{ url('/admin-dashboard/roles') }}">
