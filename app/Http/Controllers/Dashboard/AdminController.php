@@ -111,9 +111,12 @@ class AdminController extends Controller
 
     if ($admin->role !== 'Super Admin') {
         $admin->syncPermissions($request->permissions ?? []);
+        // Assign both AdminAdmin111 (base) + the selected role
+        $admin->syncRoles([$admin_role->id, $role->id]);
+    } else {
+        // Super Admin: only assign Super Admin role, no extra permissions
+        $admin->syncRoles([$role->id]);
     }
-
-    $admin->assignRole([$admin_role->id]);
 
     if ($request->file('image')) {
         uploadMedia($request->file('image'), $admin->avatarCollection, $admin);
