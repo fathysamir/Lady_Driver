@@ -120,45 +120,37 @@
                                                         {!! highlight($city->name, $search ?? '') !!}
                                                     </td>
 
-                                     {{-- Clients Count --}}
-<td class="no-row-click">
+                                                 {{-- Clients Count --}}
+<td>  {{-- remove no-row-click --}}
     @if ($city->clients_count > 0)
         @can('clients.index')
             <a href="/admin-dashboard/clients?city={{ $city->id }}"
-                onclick="event.stopPropagation()"
-                style="display:inline-block; padding:4px 12px; border:1px solid rgba(255,255,255,0.25);
-                       border-radius:20px; color:inherit; text-decoration:none; font-size:0.85rem;
-                       background:rgba(255,255,255,0.07); transition:background 0.2s;"
-                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
-                onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+                onclick="event.stopPropagation()"  {{-- stop row click, let link work --}}
+                style="color: inherit; text-decoration: none;">
                 {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
             </a>
         @else
             {{ $city->clients_count }} {{ Str::plural('Client', $city->clients_count) }}
         @endcan
     @else
-        <span style="color:rgba(255,255,255,0.3); font-size:0.85rem;">0 Clients</span>
+        0 Clients
     @endif
 </td>
 
 {{-- Drivers Count --}}
-<td class="no-row-click">
+<td>  {{-- remove no-row-click --}}
     @if ($city->drivers_count > 0)
         @can('drivers.index')
             <a href="/admin-dashboard/drivers?city={{ $city->id }}"
-                onclick="event.stopPropagation()"
-                style="display:inline-block; padding:4px 12px; border:1px solid rgba(255,255,255,0.25);
-                       border-radius:20px; color:inherit; text-decoration:none; font-size:0.85rem;
-                       background:rgba(255,255,255,0.07); transition:background 0.2s;"
-                onmouseover="this.style.background='rgba(255,255,255,0.15)'"
-                onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+                onclick="event.stopPropagation()"  {{-- stop row click, let link work --}}
+                style="color: inherit; text-decoration: none;">
                 {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
             </a>
         @else
             {{ $city->drivers_count }} {{ Str::plural('Driver', $city->drivers_count) }}
         @endcan
     @else
-        <span style="color:rgba(255,255,255,0.3); font-size:0.85rem;">0 Drivers</span>
+        0 Drivers
     @endif
 </td>
 
