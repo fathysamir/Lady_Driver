@@ -77,7 +77,7 @@
                         </li>
                     @endif
                     @can('drivers.standard.car.view')
-                        <li><a href="{{ url('/admin-dashboard/drivers?type=cars') }}">Original Cars</a></li>
+                        <li><a href="{{ url('/admin-dashboard/drivers?type=cars') }}">Standard Cars</a></li>
                     @endcan
                     @can('drivers.comfort.car.view')
                         <li><a href="{{ url('/admin-dashboard/drivers?type=comfort_cars') }}">Comfort Cars</a></li>

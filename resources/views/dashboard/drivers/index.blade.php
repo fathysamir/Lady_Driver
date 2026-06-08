@@ -126,9 +126,9 @@
                                             @elseif($type == 'scooters')
                                                 Scooters
                                             @elseif($type == 'cars')
-                                                Original Drivers
+                                                Standard Drivers
                                             @else
-                                                Drivers
+                                                ALL Drivers
                                             @endif
                                             - {{ $count }}
                                         </h5>
