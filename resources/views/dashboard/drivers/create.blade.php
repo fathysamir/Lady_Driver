@@ -950,7 +950,7 @@ function confirmDriverAccount() {
                 </p>
             </div>
         `,
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Create Driver'
     }).then((result) => {
         if (result.isConfirmed) {
             document.getElementById('createDriverForm').submit();
