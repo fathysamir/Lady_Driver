@@ -4,6 +4,12 @@
 @section('content')
 
 <style>
+    .swal2-popup,
+.swal2-html-container,
+.swal2-popup * {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
     /* ── Section dividers ─────────────────────────────────────────────────── */
     .section-divider {
         display: flex;
