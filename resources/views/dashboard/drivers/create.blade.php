@@ -178,8 +178,8 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('drivers.store') }}" enctype="multipart/form-data">
-                            @csrf
+                        <form id="createDriverForm" method="POST" action="{{ route('drivers.store') }}" enctype="multipart/form-data">
+                        @csrf
 
                             {{-- ════════ ACCOUNT CREDENTIALS ════════ --}}
                             <div class="section-divider">
@@ -760,7 +760,7 @@
 
                             {{-- ════════ ACTION BUTTONS ════════ --}}
                             <div class="form-group" style="display:flex; gap:12px; margin-top:24px;">
-                                <button type="submit" class="btn btn-light px-5">
+                                <button type="button" class="btn btn-light px-5" onclick="confirmDriverAccount()">
                                     <i class="icon-user-follow"></i> Create Driver
                                 </button>
 
