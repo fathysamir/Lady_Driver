@@ -5,14 +5,14 @@
 
 <style>
     .swal2-popup .btn {
-    background-color: rgba(2, 2, 2, 0.15) !important;
+    background-color: rgba(0, 0, 0, 0) !important;
     border: 1px solid rgb(0, 0, 0) !important;
     color: rgb(255, 255, 255) !important;
     font-weight: 500;
 }
 
 .swal2-popup .btn:hover {
-    background-color: rgb(255, 230, 0) !important;
+    background-color: rgb(63, 63, 54) !important;
     color: #000 !important;
 }
     .swal2-popup,
