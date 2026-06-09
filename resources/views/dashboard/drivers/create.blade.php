@@ -933,29 +933,58 @@ function loadModels(url, params, modelSelect, selectedId, defaultText) {
         modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
     });
 }
+function copyToClipboard(text, btnId) {
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.innerText = 'Copied ✅';
+            setTimeout(() => {
+                btn.innerText = 'Copy';
+            }, 1500);
+        }
+    });
+}
+
 function confirmDriverAccount() {
     const email = document.querySelector('input[name="email"]').value;
     const password = document.querySelector('input[name="password"]').value;
 
     Swal.fire({
         icon: 'info',
+        width: 600,
         html: `
-            <div style="text-align:left">
-                <p><b>Please copy these credentials and send them to the captain.</b></p>
+            <div style="text-align:left; font-size:14px">
 
+                <p><b>Please copy these credentials and send them to the driver</b></p>
                 <hr>
 
-                <p><b>Email:</b> ${email}</p>
-                <p><b>Password:</b> ${password}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span><b>Email:</b> ${email}</span>
+                    <button id="copyEmailBtn" class="btn btn-sm btn-light">Copy</button>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span><b>Password:</b> ${password}</span>
+                    <button id="copyPassBtn" class="btn btn-sm btn-light">Copy</button>
+                </div>
 
                 <hr>
 
                 <p dir="rtl">
-                    <b>من فضلك انسخ بيانات الحساب والرقم السري وأرسلهم للكابتن.</b>
+                    <b>من فضلك انسخ البيانات وأرسلها للكابتن</b>
                 </p>
             </div>
         `,
-        confirmButtonText: 'Create Driver'
+        showCancelButton: true,
+        confirmButtonText: 'Create Driver',
+        cancelButtonText: 'Cancel',
+        didOpen: () => {
+            document.getElementById('copyEmailBtn')
+                .addEventListener('click', () => copyToClipboard(email, 'copyEmailBtn'));
+
+            document.getElementById('copyPassBtn')
+                .addEventListener('click', () => copyToClipboard(password, 'copyPassBtn'));
+        }
     }).then((result) => {
         if (result.isConfirmed) {
             document.getElementById('createDriverForm').submit();
