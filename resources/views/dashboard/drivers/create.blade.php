@@ -4,6 +4,17 @@
 @section('content')
 
 <style>
+    .swal2-popup .btn {
+    background-color: rgba(255, 230, 0, 0.15) !important;
+    border: 1px solid rgb(255, 230, 0) !important;
+    color: rgb(255, 230, 0) !important;
+    font-weight: 500;
+}
+
+.swal2-popup .btn:hover {
+    background-color: rgb(255, 230, 0) !important;
+    color: #000 !important;
+}
     .swal2-popup,
 .swal2-html-container,
 .swal2-popup * {
@@ -990,6 +1001,6 @@ function confirmDriverAccount() {
             document.getElementById('createDriverForm').submit();
         }
     });
-}
+}س
 </script>
 @endpush
