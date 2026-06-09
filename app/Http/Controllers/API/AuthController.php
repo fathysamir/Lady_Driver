@@ -44,6 +44,8 @@ use App\Http\Requests\ClientRegisterRequest;
 use App\Http\Requests\DriverRegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SaveContactUsRequest;
+use App\Http\Requests\SaveReportIssueRequest;
+
 
 //use App\Rules\ValidPhone;
 
@@ -173,7 +175,7 @@ class AuthController extends ApiController
 
       // Get language from header
 $lang = $request->header('Accept-Language', 'en');
-
+/*
 // Deleted email check
 $deletedUser = User::withTrashed()
     ->where('email', $request->email)
@@ -204,6 +206,7 @@ if ($deletedPhone) {
 
     return $this->sendError(null, $message, 400);
 }
+    */
       //  App::setLocale($request->header('Accept-Language') ?? 'en');
 
 
@@ -411,7 +414,7 @@ if ($deletedPhone) {
 
     // Get language from header
 $lang = $request->header('Accept-Language', 'en');
-
+/*
 // Deleted email check
 $deletedUser = User::withTrashed()
     ->where('email', $request->email)
@@ -442,7 +445,7 @@ if ($deletedPhone) {
 
     return $this->sendError(null, $message, 400);
 }
-
+*/
         Log::info('Incoming Request from Flutter:', $request->all());
         $otpCode = generateOTP();
         do {
@@ -1494,6 +1497,30 @@ public function edit_personal_info(Request $request)
     $message = $request->header('Accept-Language') === 'ar'
         ? 'تم إرسال طلبك وسنرد عليك لاحقاً.'
         : 'Your request has been sent and we will respond to you later.';
+
+    return $this->sendResponse(null, $message, 200);
+}
+
+public function save_report_issue(SaveReportIssueRequest $request)
+{
+    // grab user from token if present, else null
+    $user = auth('sanctum')->user();
+
+    $contact = ContactUs::create([
+        'subject' => $request->issue_type,
+        'name'    => $user?->name  ?? 'App User',
+        'email'   => $user?->email ?? 'no-email@app.com',
+        'message' => $request->message,
+        'seen'    => '0',
+    ]);
+
+    if ($request->hasFile('attachment')) {
+        uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
+    }
+
+    $message = $request->header('Accept-Language') === 'ar'
+        ? 'تم إرسال بلاغك وسنراجعه فوراً.'
+        : 'Your report has been submitted and will be reviewed immediately.';
 
     return $this->sendResponse(null, $message, 200);
 }
