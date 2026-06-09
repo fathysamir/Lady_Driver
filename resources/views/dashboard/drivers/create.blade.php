@@ -933,23 +933,23 @@ function confirmDriverAccount() {
 
     Swal.fire({
         icon: 'info',
-        title: 'Driver Account Credentials',
         html: `
-            <div style="text-align:left">
-                <p><b>Please copy these credentials and send them to the captain.</b></p>
+    <div style="text-align:left">
+        <p><b>Please copy credentials:</b></p>
 
-                <hr>
+        <label>Email</label>
+        <input type="text" value="${email}" readonly
+               style="width:100%; padding:6px; margin-bottom:10px;">
 
-                <p><b>Email:</b> ${email}</p>
-                <p><b>Password:</b> ${password}</p>
+        <label>Password</label>
+        <input type="text" value="${password}" readonly
+               style="width:100%; padding:6px;">
 
-                <hr>
+        <hr>
 
-                <p dir="rtl">
-                    <b>من فضلك انسخ بيانات الحساب والرقم السري وأرسلهم للكابتن.</b>
-                </p>
-            </div>
-        `,
+        <p dir="rtl"><b>انسخ البيانات وأرسلها للكابتن</b></p>
+    </div>
+`,
         confirmButtonText: 'Create Driver'
     }).then((result) => {
         if (result.isConfirmed) {
