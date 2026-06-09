@@ -927,5 +927,35 @@ function loadModels(url, params, modelSelect, selectedId, defaultText) {
         modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
     });
 }
+function confirmDriverAccount() {
+    const email = document.querySelector('input[name="email"]').value;
+    const password = document.querySelector('input[name="password"]').value;
+
+    Swal.fire({
+        icon: 'info',
+        title: 'Driver Account Credentials',
+        html: `
+            <div style="text-align:left">
+                <p><b>Please copy these credentials and send them to the captain.</b></p>
+
+                <hr>
+
+                <p><b>Email:</b> ${email}</p>
+                <p><b>Password:</b> ${password}</p>
+
+                <hr>
+
+                <p dir="rtl">
+                    <b>من فضلك انسخ بيانات الحساب والرقم السري وأرسلهم للكابتن.</b>
+                </p>
+            </div>
+        `,
+        confirmButtonText: 'OK'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('createDriverForm').submit();
+        }
+    });
+}
 </script>
 @endpush
