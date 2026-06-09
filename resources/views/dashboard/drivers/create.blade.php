@@ -4,16 +4,20 @@
 @section('content')
 
 <style>
-    .swal2-popup .btn {
-    background-color: rgba(0, 0, 0, 0) !important;
-    border: 1px solid rgb(0, 0, 0) !important;
-    color: rgb(255, 255, 255) !important;
+  .swal2-popup .btn {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    color: #fff !important;
     font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: 0.2s ease;
 }
 
 .swal2-popup .btn:hover {
-    background-color: rgb(63, 63, 54) !important;
-    color: #000 !important;
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    color: #fff !important;
 }
     .swal2-popup,
 .swal2-html-container,
