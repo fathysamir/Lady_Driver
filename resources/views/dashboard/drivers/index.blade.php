@@ -119,6 +119,8 @@
                                     style="margin-bottom:1%;margin-right:20px;margin-left:0px;" method="post"
                                     action="{{ route('drivers') }}" enctype="multipart/form-data">
                                     @csrf
+                                    <input type="hidden" name="type" value="{{ $type }}">
+
                                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                                         <h5 class="card-title" style="margin:0;">
                                             @if($type == 'comfort_cars')
