@@ -39,7 +39,8 @@ class CustomLogoServiceProvider extends ServiceProvider
 
             $query = User::where('mode', 'driver')
                 ->where('status', 'pending')
-                ->where('is_verified', 1)          // ← ADD THIS
+                ->where('is_verified', 1)
+                ->whereNull('deleted_at')
                 ->whereNotNull('driver_type')
                 ->where('created_at', '>', now()->subDays(15)->startOfDay());
 
