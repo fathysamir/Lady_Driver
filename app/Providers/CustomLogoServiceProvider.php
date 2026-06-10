@@ -33,11 +33,28 @@ class CustomLogoServiceProvider extends ServiceProvider
             return $new_clients_count;
         });
         $this->app->bind('new_drivers_count', function () {
-            $new_drivers_count = User::where('mode', 'driver')
+            $user = auth()->user();
+
+            if (!$user) return 0;
+
+            $query = User::where('mode', 'driver')
                 ->where('status', 'pending')
-                ->where('created_at', '>', now()->subDays(15)->startOfDay())
-                ->count();
-            return $new_drivers_count;
+                ->where('created_at', '>', now()->subDays(15)->startOfDay());
+
+            switch ($user->role) {
+                case 'Moderator Standard':
+                    $query->where('driver_type', 'car');
+                    break;
+                case 'Moderator Comfort':
+                    $query->where('driver_type', 'comfort_car');
+                    break;
+                case 'Moderator Scooter':
+                    $query->where('driver_type', 'scooter');
+                    break;
+                // Super Admin, Supervisor, etc → no filter, sees all
+            }
+
+            return $query->count();
         });
         $this->app->bind('new_cars_count', function () {
             // Logic to determine the path to the logo image
