@@ -39,6 +39,8 @@ class CustomLogoServiceProvider extends ServiceProvider
 
             $query = User::where('mode', 'driver')
                 ->where('status', 'pending')
+                ->where('is_verified', 1)          // ← ADD THIS
+                ->whereNotNull('driver_type')
                 ->where('created_at', '>', now()->subDays(15)->startOfDay());
 
             switch ($user->role) {
@@ -51,7 +53,6 @@ class CustomLogoServiceProvider extends ServiceProvider
                 case 'Moderator Scooter':
                     $query->where('driver_type', 'scooter');
                     break;
-                // Super Admin, Supervisor, etc → no filter, sees all
             }
 
             return $query->count();
