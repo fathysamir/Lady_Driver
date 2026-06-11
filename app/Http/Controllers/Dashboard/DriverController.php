@@ -240,13 +240,17 @@ class DriverController extends Controller
     // =========================================================================
 
     public function delete($id, Request $request)
-    {
-        $user = User::where('id', $id)->first();
-        $user->tokens()->delete();
-        $user->delete();
-        return redirect()->route('drivers', $request->query())
-            ->with('success', 'Driver deleted successfully.');
-    }
+{
+    $user = User::where('id', $id)->first();
+    $user->tokens()->delete();
+    $user->update([
+        'status' => 'pending',
+        'is_verified' => '0',
+    ]);
+    $user->delete();
+    return redirect()->route('drivers', $request->query())
+        ->with('success', 'Driver deleted successfully.');
+}
 
     public function restore($id, Request $request)
     {
@@ -391,6 +395,10 @@ class DriverController extends Controller
             'ids.*' => 'integer|exists:users,id',
         ]);
 
+        User::whereIn('id', $request->ids)->update([
+            'status' => 'pending',
+            'is_verified' => '0',
+        ]);
         User::whereIn('id', $request->ids)->delete();
 
         return redirect()

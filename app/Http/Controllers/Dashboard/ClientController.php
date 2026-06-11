@@ -168,6 +168,10 @@ class ClientController extends Controller
     {
         $user = User::where('id', $id)->first();
         $user->tokens()->delete();
+        $user->update([
+            'status' => 'pending',
+            'is_verified' => '0',
+        ]);
         $user->delete();
 
         return redirect()->route('clients', $request->query())
@@ -302,12 +306,16 @@ class ClientController extends Controller
         return response()->stream($callback, 200, $headers);
     }
     public function bulkDestroy(Request $request)
-{
-    $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|exists:users,id']);
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|exists:users,id']);
 
-    User::whereIn('id', $request->ids)->delete(); // soft-delete if you use SoftDeletes
+        User::whereIn('id', $request->ids)->update([
+            'status' => 'pending',
+            'is_verified' => '0',
+        ]);
+        User::whereIn('id', $request->ids)->delete();
 
-    return redirect()->route('clients', ['type' => $request->type])
-                     ->with('success', count($request->ids) . ' client(s) deleted.');
-}
+        return redirect()->route('clients', ['type' => $request->type])
+                         ->with('success', count($request->ids) . ' client(s) deleted.');
+    }
 }
