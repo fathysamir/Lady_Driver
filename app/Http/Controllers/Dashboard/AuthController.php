@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Trip;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -82,64 +80,14 @@ class AuthController extends Controller
     return redirect('/admin-dashboard/login');
 }
 
-public function home(Request $request)
-{
-    if ($request->has('lang')) {
-        App::setLocale($request->lang);
-        session(['locale' => $request->lang]);
+    public function home(Request $request)
+    {
+        if ($request->has('lang')) {
+            App::setLocale($request->lang);
+            session(['locale' => $request->lang]);
+        }
+        return view('dashboard.home');
     }
-
-    // ── Total Users — matches ClientController@index exactly
-    // mode='client', is_verified=1, no student_code, not soft-deleted
-    $totalUsers = User::where('mode', 'client')
-                      ->where('is_verified', '1')
-                      ->whereNull('student_code')
-                      ->whereNull('deleted_at')
-                      ->count();
-
-    // ── Total Drivers — matches DriverController@index (no type filter = all drivers)
-    // mode='driver', is_verified=1, not soft-deleted
-    $totalDrivers = User::where('mode', 'driver')
-                        ->where('is_verified', '1')
-                        ->whereNull('deleted_at')
-                        ->count();
-
-    // ── Total Trips — matches TripController@index (no time_filter = all statuses)
-    $totalTrips = Trip::whereIn('status', [
-                      'pending', 'scheduled', 'in_progress', 'completed', 'cancelled'
-                  ])->count();
-
-    // ── Revenue — completed trips only
-    $totalRevenue = Trip::where('status', 'completed')->sum('total_price');
-
-    // ── Recent 10 trips with relationships used in the trips blade
-    $recentTrips = Trip::with(['user', 'car', 'car.owner', 'scooter', 'scooter.owner'])
-                       ->latest()
-                       ->take(10)
-                       ->get();
-
-    // ── Bar chart — last 7 days (all statuses)
-    $chartLabels = [];
-    $chartData   = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $date          = now()->subDays($i);
-        $chartLabels[] = $date->format('D');
-        $chartData[]   = Trip::whereDate('created_at', $date)->count();
-    }
-
-    // ── Doughnut — matches TripController time_filter status groupings
-    $statusData = [
-        Trip::where('status', 'completed')->count(),                          // green
-        Trip::where('status', 'cancelled')->count(),                          // red
-        Trip::where('status', 'in_progress')->count(),                        // yellow
-        Trip::whereIn('status', ['pending', 'scheduled'])->count(),           // other
-    ];
-
-    return view('dashboard.home', compact(
-        'totalUsers', 'totalDrivers', 'totalTrips', 'totalRevenue',
-        'recentTrips', 'chartLabels', 'chartData', 'statusData'
-    ));
-}
     public function change_theme(Request $request)
     {
         $user        = auth()->user();
