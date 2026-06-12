@@ -42,7 +42,7 @@
                                     </div>
 
                                     <div id="filterOptions"
-                                    style="display:{{ request()->hasAny(['user','status','payment_status','mark','model','created_date','air_conditioned','trip_type']) ? 'block' : 'none' }};text-align:center;">
+                                    style="display:{{ request()->anyFilled(['user','status','payment_status','mark','model','created_date','air_conditioned','trip_type']) ? 'block' : 'none' }};text-align:center;">
 
                                         <div style="display:flex;">
                                             <select class="form-control" style="width:23.5%;margin:0% 1% 0% 1%;" name="status">
