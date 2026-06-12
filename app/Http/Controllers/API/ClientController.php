@@ -1262,6 +1262,8 @@ public function cancelled_trips()
             $status = 'before';
         } elseif ($trip->status == 'in_progress') {
             $status = 'after';
+        } else {
+            return $this->sendResponse([], null, 200);
         }
         $reasons = TripCancellingReason::whereIn('type', [$type, 'all'])->where('status', $status)->get();
         return $this->sendResponse($reasons, null, 200);
