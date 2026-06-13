@@ -46,7 +46,7 @@ class ClientController extends Controller
         $query->orderBy('created_at', 'desc')
               ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
-        $all_users = $query->paginate(25)->withQueryString();
+        $all_users = $query->paginate(50)->withQueryString();
         $count     = $all_users->total();
 
         $all_users->setCollection(
@@ -92,7 +92,7 @@ class ClientController extends Controller
         $query->orderBy('created_at', 'desc')
               ->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
 
-        $all_users = $query->paginate(25)->withQueryString();
+        $all_users = $query->paginate(50)->withQueryString();
         $count     = $all_users->total();
 
         $all_users->getCollection()->transform(function ($user) {
