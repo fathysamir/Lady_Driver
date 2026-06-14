@@ -252,7 +252,6 @@
                                             <th scope="col">Email</th>
                                             <th scope="col">Phone Number</th>
                                             <th scope="col">Status</th>
-                                            <th scope="col">Activation</th>
                                             <th scope="col">Level</th>
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
@@ -309,17 +308,7 @@
                                                             <span class="badge badge-secondary" style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
                                                         @endif
                                                     </td>
-                                                    <td>
-                                                        @php
-                                                            $hasActiveTrip =
-                                                                $user->car &&
-                                                                $user->car->trips()
-                                                                    ->where('status', 'completed')
-                                                                    ->where('created_at', '>=', now()->subDays(7))
-                                                                    ->exists();
-                                                        @endphp
-                                                        {{ $hasActiveTrip ? 'Active' : 'Unactive' }}
-                                                    </td>
+
                                                     <td>LV {{ $user->level }}</td>
                                                     <td>{{ $user->created_at->format('d.M.Y h:i a') }}</td>
                                                     <td>
@@ -351,7 +340,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="10">There are no Drivers.</td>
+                                                <td colspan="9">There are no Drivers.</td>
                                             </tr>
                                         @endif
                                     </tbody>

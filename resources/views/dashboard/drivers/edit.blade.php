@@ -604,18 +604,7 @@
                                     <hr style="flex: 1; margin: 0;">
                                 </div>
 
-                                <div class="form-group">
-                                    @php
-                                        $hasActiveTrip =
-                                            $user->car &&
-                                            $user->car
-                                                ->trips()
-                                                ->where('status', 'completed')
-                                                ->where('created_at', '>=', now()->subDays(7))
-                                                ->exists();
-                                    @endphp
-                                    <label>Activation : {{ $hasActiveTrip ? 'Active' : 'Unactive' }}</label>
-                                </div>
+
 
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <label>Rate : </label>
