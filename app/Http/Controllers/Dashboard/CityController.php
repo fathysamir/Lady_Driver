@@ -31,7 +31,7 @@ class CityController extends Controller
             'drivers_count'
         )
         ->whereNull('cities.deleted_at')
-        ->orderBy('cities.id', 'desc');
+        ->orderBy('cities.id', 'asc');
 
     if ($request->has('search') && $request->search != null) {
         $cities->where('cities.name', 'LIKE', '%' . $request->search . '%');
