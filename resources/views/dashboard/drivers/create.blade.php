@@ -332,7 +332,7 @@
                                             <option value="+84"  {{ $cc=='+84'  ? 'selected':'' }}>Vietnam (+84)</option>
                                         </select>
                                     </div>
-                                    <input type="number" name="phone" class="form-control"
+                                    <input type="text" name="phone" id="phone_input" class="form-control"
                                         placeholder="Phone number" value="{{ old('phone') }}" required>
                                 </div>
                                 @error('phone')<p style="color:red; margin-top:4px;">{{ $message }}</p>@enderror
@@ -809,6 +809,15 @@
 var canCar     = {{ $canCar     ? 'true' : 'false' }};
 var canScooter = {{ $canScooter ? 'true' : 'false' }};
 
+// ── Phone normalization ────────────────────────────────────────────────────
+// Strips everything before the first '1', keeps '1' + up to 9 following digits
+function normalizePhone(val) {
+    var digits = val.replace(/\D/g, '');
+    var idx    = digits.indexOf('1');
+    if (idx === -1) return digits;
+    return digits.slice(idx, idx + 10);
+}
+
 function generatePassword() {
     var lower   = 'abcdefghijklmnopqrstuvwxyz';
     var upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -865,7 +874,27 @@ function updateColorSwatch() {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Restore ID type tabs
+    // ── Phone normalization listeners ──────────────────────────────────────
+    var phoneInput = document.getElementById('phone_input');
+    if (phoneInput) {
+        // Normalize on every keystroke
+        phoneInput.addEventListener('input', function () {
+            var normalized = normalizePhone(this.value);
+            this.value = normalized;
+        });
+
+        // Normalize on blur (safety net)
+        phoneInput.addEventListener('blur', function () {
+            this.value = normalizePhone(this.value);
+        });
+
+        // Normalize old() repopulated value on page load
+        if (phoneInput.value) {
+            phoneInput.value = normalizePhone(phoneInput.value);
+        }
+    }
+
+    // ── Restore ID type tabs ───────────────────────────────────────────────
     var idType = document.getElementById('id_type_hidden').value || 'national';
     document.getElementById('national-id-section').style.display = idType === 'national' ? 'block' : 'none';
     document.getElementById('passport-section').style.display    = idType === 'passport'  ? 'block' : 'none';
@@ -874,7 +903,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.classList.toggle('active', t === idType);
     });
 
-    // Restore vehicle type
+    // ── Restore vehicle type ───────────────────────────────────────────────
     var vehicleType = document.getElementById('vehicle_type_hidden').value;
     if (vehicleType === 'car'     && !canCar)     vehicleType = 'scooter';
     if (vehicleType === 'scooter' && !canScooter) vehicleType = 'car';
@@ -887,14 +916,14 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.classList.toggle('active', t === vehicleType);
     });
 
-    // Color swatch
+    // ── Color swatch ───────────────────────────────────────────────────────
     var colorSel = document.getElementById('color_select');
     if (colorSel) {
         colorSel.addEventListener('change', updateColorSwatch);
         if (colorSel.value) updateColorSwatch();
     }
 
-    // Car mark → model
+    // ── Car mark → model ───────────────────────────────────────────────────
     var carMarkSelect  = document.getElementById('car_mark_select');
     var carModelSelect = document.getElementById('car_model_select');
     var oldCarMark     = "{{ old('car_mark_id') }}";
@@ -908,7 +937,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loadModels('/api/models', { car_mark_id: this.value }, carModelSelect, null, 'Select Car Model');
     });
 
-    // Scooter mark → model
+    // ── Scooter mark → model ───────────────────────────────────────────────
     var scooterMarkSelect  = document.getElementById('scooter_mark_select');
     var scooterModelSelect = document.getElementById('scooter_model_select');
     var oldScooterMark     = "{{ old('scooter_mark_id') }}";
@@ -948,6 +977,7 @@ function loadModels(url, params, modelSelect, selectedId, defaultText) {
         modelSelect.innerHTML = '<option value="">' + defaultText + '</option>';
     });
 }
+
 function copyToClipboard(text, btnId) {
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById(btnId);
@@ -961,8 +991,14 @@ function copyToClipboard(text, btnId) {
 }
 
 function confirmDriverAccount() {
-    const email = document.querySelector('input[name="email"]').value;
+    const email    = document.querySelector('input[name="email"]').value;
     const password = document.querySelector('input[name="password"]').value;
+
+    // Normalize phone before showing the confirmation (also normalizes before submit)
+    var phoneInput = document.getElementById('phone_input');
+    if (phoneInput) {
+        phoneInput.value = normalizePhone(phoneInput.value);
+    }
 
     Swal.fire({
         icon: 'info',
@@ -1005,6 +1041,6 @@ function confirmDriverAccount() {
             document.getElementById('createDriverForm').submit();
         }
     });
-}س
+}
 </script>
 @endpush

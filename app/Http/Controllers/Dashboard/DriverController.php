@@ -202,11 +202,14 @@ class DriverController extends Controller
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
+        // Normalize phone number: strip everything before first '1', keep 1 + 9 digits
+        $phone = $this->normalizePhone($request->phone);
+
         try {
             User::where('id', $id)->update([
                 'status'       => $request->status,
                 'email'        => $request->email,
-                'phone'        => $request->phone,
+                'phone'        => $phone,
                 'country_code' => $request->country_code,
                 'birth_date'   => $request->birth_date,
                 'national_id'  => $request->national_id,
@@ -240,17 +243,17 @@ class DriverController extends Controller
     // =========================================================================
 
     public function delete($id, Request $request)
-{
-    $user = User::where('id', $id)->first();
-    $user->tokens()->delete();
-    $user->update([
-        'status' => 'pending',
-        'is_verified' => '0',
-    ]);
-    $user->delete();
-    return redirect()->route('drivers', $request->query())
-        ->with('success', 'Driver deleted successfully.');
-}
+    {
+        $user = User::where('id', $id)->first();
+        $user->tokens()->delete();
+        $user->update([
+            'status'      => 'pending',
+            'is_verified' => '0',
+        ]);
+        $user->delete();
+        return redirect()->route('drivers', $request->query())
+            ->with('success', 'Driver deleted successfully.');
+    }
 
     public function restore($id, Request $request)
     {
@@ -396,7 +399,7 @@ class DriverController extends Controller
         ]);
 
         User::whereIn('id', $request->ids)->update([
-            'status' => 'pending',
+            'status'      => 'pending',
             'is_verified' => '0',
         ]);
         User::whereIn('id', $request->ids)->delete();
@@ -491,7 +494,13 @@ class DriverController extends Controller
             }
         }
 
-        // ── 2. Role-based vehicle permission ─────────────────────────────────
+        // ── 2. Normalize phone number ─────────────────────────────────────────
+        // Strip everything before the first '1', keep '1' + up to 9 following digits
+        if ($request->phone) {
+            $request->merge(['phone' => $this->normalizePhone($request->phone)]);
+        }
+
+        // ── 3. Role-based vehicle permission ─────────────────────────────────
         $admin = auth()->user();
 
         if ($admin->hasRole('Moderator Comfort') || $admin->hasRole('Client')) {
@@ -502,7 +511,7 @@ class DriverController extends Controller
             $allowedVehicleTypes = ['car', 'scooter'];
         }
 
-        // ── 3. Validation ─────────────────────────────────────────────────────
+        // ── 4. Validation ─────────────────────────────────────────────────────
         $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
             'email'        => [
@@ -596,13 +605,13 @@ class DriverController extends Controller
             return Redirect::back()->withInput()->withErrors($validator);
         }
 
-        // ── 4. Extra role guard ───────────────────────────────────────────────
+        // ── 5. Extra role guard ───────────────────────────────────────────────
         if (!in_array($request->vehicle_type, $allowedVehicleTypes)) {
             return Redirect::back()->withInput()
                 ->with('error', 'You are not allowed to create a driver with this vehicle type.');
         }
 
-        // ── 5. Determine driver_type & is_comfort ─────────────────────────────
+        // ── 6. Determine driver_type & is_comfort ─────────────────────────────
         $is_comfort = '0';
 
         if ($request->vehicle_type === 'car') {
@@ -621,7 +630,7 @@ class DriverController extends Controller
             $driver_type = 'scooter';
         }
 
-        // ── 6. Username & invitation code ─────────────────────────────────────
+        // ── 7. Username & invitation code ─────────────────────────────────────
         $username = username_Generation($request->name);
 
         do {
@@ -631,10 +640,10 @@ class DriverController extends Controller
             );
         } while (User::where('invitation_code', $invitation_code)->exists());
 
-        // ── 7–11. Create all records ──────────────────────────────────────────
+        // ── 8–12. Create all records ──────────────────────────────────────────
         try {
 
-            // ── 7. Create User ────────────────────────────────────────────────
+            // ── 8. Create User ────────────────────────────────────────────────
             $user = User::create([
                 'name'            => $request->name,
                 'username'        => $username,
@@ -666,13 +675,13 @@ class DriverController extends Controller
                 $user->assignRole($role->id);
             }
 
-            // ── 8. User media ─────────────────────────────────────────────────
+            // ── 9. User media ─────────────────────────────────────────────────
             $this->attachMedia($request, $user, 'image',          $user->avatarCollection);
             $this->attachMedia($request, $user, 'ID_front_image', $user->IDfrontImageCollection);
             $this->attachMedia($request, $user, 'ID_back_image',  $user->IDbackImageCollection);
             $this->attachMedia($request, $user, 'passport_image', $user->passportImageCollection);
 
-            // ── 9. Driving license ────────────────────────────────────────────
+            // ── 10. Driving license ────────────────────────────────────────────
             $license = DriverLicense::create([
                 'user_id'     => $user->id,
                 'license_num' => $request->driving_license_number,
@@ -682,7 +691,7 @@ class DriverController extends Controller
             $this->attachMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
             $this->attachMedia($request, $license, 'license_back_image',  $license->LicenseBackImageCollection);
 
-            // ── 10. Vehicle ───────────────────────────────────────────────────
+            // ── 11. Vehicle ───────────────────────────────────────────────────
             if ($request->vehicle_type === 'car') {
 
                 $lastCar = Car::orderBy('id', 'desc')->first();
@@ -736,7 +745,7 @@ class DriverController extends Controller
                 $this->attachMedia($request, $scooter, 'vehicle_license_back_image',  $scooter->LicenseBackImageCollection);
             }
 
-            // ── 11. Clear all temp session uploads ────────────────────────────
+            // ── 12. Clear all temp session uploads ────────────────────────────
             $this->clearTempUploads();
 
             return redirect()->route('drivers', request()->query())
@@ -774,6 +783,31 @@ class DriverController extends Controller
     // =========================================================================
     // PRIVATE HELPERS
     // =========================================================================
+
+    /**
+     * Normalize a phone number:
+     * Strip all non-digit characters, find the first '1',
+     * then return '1' + up to 9 following digits (10 digits total).
+     *
+     * Examples:
+     *   01204270163  → 1204270163
+     *   201204270163 → 1204270163
+     *   +201204270163 → 1204270163
+     *   1204270163   → 1204270163
+     */
+    private function normalizePhone(string $phone): string
+    {
+        // Remove everything that is not a digit
+        $digits = preg_replace('/\D/', '', $phone);
+
+        // Find the first '1' and slice from there (max 10 chars: '1' + 9 digits)
+        $pos = strpos($digits, '1');
+        if ($pos === false) {
+            return $digits; // no '1' found — return digits as-is
+        }
+
+        return substr($digits, $pos, 10);
+    }
 
     /**
      * Resize an image using GD and save to destination path.
