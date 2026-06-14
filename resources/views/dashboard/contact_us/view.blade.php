@@ -8,7 +8,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-body">
-                            <div class="card-title">Contact Us</div>
+                            <div class="card-title">Support</div>
                             <hr>
                             <form method="post" action="{{ route('update.contact_us', ['id' => $contact_us->id]) }}"
                                 enctype="multipart/form-data">

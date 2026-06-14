@@ -13,7 +13,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div style="display: flex;">
-                                <h5 class="card-title" style="width: 89%;">Contact Us</h5>
+                                <h5 class="card-title" style="width: 89%;">Support</h5>
                                 <form id="searchForm" class="search-bar"
                                     style="margin-bottom:1%;margin-left:20px;margin-right:0px;" method="post"
                                     action="{{ route('contact_us') }}" enctype="multipart/form-data">
