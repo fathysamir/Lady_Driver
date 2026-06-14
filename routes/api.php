@@ -98,7 +98,6 @@ Route::post('/client_register', [AuthController::class, 'client_register'])->nam
 Route::post('/register2', [AuthController::class, 'register2'])->name('register2');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
 Route::post('/careers', [AuthController::class, 'careers'])->name('career.apply');
 Route::get('/about_us', [AuthController::class, 'about_us'])->name('about_us');
 Route::post('/verifyOTP', [AuthController::class, 'verifyOTP'])->name('verifyOTP');
@@ -108,6 +107,7 @@ Route::post('/reset-password', [AuthController::class, 'resetpassword'])->name('
 Route::get('/live-location/data/{token}', [LiveLocationController::class, 'getLocation']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/device_tocken', [AuthController::class, 'device_tocken'])->name('device_tocken');
+    //Route::post('/heartbeat', [AuthController::class, 'heartbeat'])->name('heart_beat');
     Route::get('/user_notification', [AuthController::class, 'user_notification'])->name('user_notification');
     Route::post('/seen_notification', [AuthController::class, 'seen_notification'])->name('seen_notification');
     Route::post('/update_password', [AuthController::class, 'update_password'])->name('update_password');
@@ -136,6 +136,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/add_car_license', [DriverController::class, 'add_car_license'])->name('add_car_license');
     Route::post('/add_scooter_license', [DriverController::class, 'add_scooter_license'])->name('add_scooter_license');
     Route::post('/criminal_record', [DriverController::class, 'criminal_record'])->name('criminal_record'); //
+
+    Route::post('/contact_us', [AuthController::class, 'save_contact_us'])->name('save_contact_us');
+    Route::post('report-issue', [AuthController::class, 'save_report_issue']);
+
 
     Route::get('/driving_license', [DriverController::class, 'driving_license'])->name('driving_license');
     Route::get('/profile/{id}', [AuthController::class, 'profile'])->name('profile');
@@ -196,7 +200,7 @@ Route::post('/client/messages/mark-seen', [ClientController::class, 'mark_messag
 
     ///////////////////////////////////////////////////////////////////////////////////
 
-    Route::get('/get-trip-by-id/{id}', [AuthController::class, 'TripByID']);
+Route::get('/get-trip-by-id/{id}', [AuthController::class, 'TripByID']);
     Route::get('/messages', [AuthController::class, 'getMessagesAfter']);
     Route::get('/sos_triggered', [AuthController::class, 'sos_triggered']);
     ///////////////////////////////////////////////////////////////////////////////////
