@@ -219,7 +219,7 @@ Route::get('/get-trip-by-id/{id}', [AuthController::class, 'TripByID']);
 
 
 
-
+    Route::get('/check_account', [AuthController::class, 'check_account'])->name('check_account');
 
 
 

@@ -2142,5 +2142,17 @@ public function sos_triggered(Request $request)
     return $this->sendResponse(null, 'sos triggered successfully', 200);
 }
 
+public function check_account()
+{
+    $user = auth()->user();
+
+    $daysSinceRegistration = \Carbon\Carbon::parse($user->created_at)->diffInDays(now());
+
+    return $this->sendResponse([
+        'status'       => $user->status,
+        'days_registered' => $daysSinceRegistration,
+        'created_at'   => $user->created_at->format('Y-m-d'),
+    ], null, 200);
+}
 
 }
