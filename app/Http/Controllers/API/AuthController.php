@@ -2151,8 +2151,10 @@ public function check_account(Request $request)
 
     $statusTranslations = [
         'confirmed' => ['en' => 'Confirmed',  'ar' => 'مفعل'],
-        'pending'   => ['en' => 'Pending',    'ar' => 'قيد المراجعة'],
+        'pending'   => ['en' => 'Under Review',    'ar' => 'قيد المراجعة'],
         'blocked'   => ['en' => 'Blocked',    'ar' => 'محظور'],
+        'banned'   => ['en' => 'The Account is Banned',    'ar' => 'الحساب موقوف مؤقتا'],
+
     ];
 
     $statusLabel = $statusTranslations[$user->status][$lang]
