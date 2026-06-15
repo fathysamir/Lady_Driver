@@ -2142,17 +2142,28 @@ public function sos_triggered(Request $request)
     return $this->sendResponse(null, 'sos triggered successfully', 200);
 }
 
-public function check_account()
+public function check_account(Request $request)
 {
     $user = auth()->user();
+    $lang = $request->header('Accept-Language', 'en');
 
     $daysSinceRegistration = \Carbon\Carbon::parse($user->created_at)->diffInDays(now());
 
+    $statusTranslations = [
+        'confirmed' => ['en' => 'Confirmed',  'ar' => 'مفعل'],
+        'pending'   => ['en' => 'Pending',    'ar' => 'قيد المراجعة'],
+        'blocked'   => ['en' => 'Blocked',    'ar' => 'محظور'],
+    ];
+
+    $statusLabel = $statusTranslations[$user->status][$lang]
+                ?? $statusTranslations[$user->status]['en']
+                ?? $user->status;
+
     return $this->sendResponse([
-        'status'       => $user->status,
+        'status'          => $user->status,       // raw value for Flutter logic
+        'status_label'    => $statusLabel,         // translated for display
         'days_registered' => $daysSinceRegistration,
-        'created_at'   => $user->created_at->format('Y-m-d'),
+        'created_at'      => $user->created_at->format('Y-m-d'),
     ], null, 200);
 }
-
 }
