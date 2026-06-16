@@ -45,6 +45,7 @@ use App\Http\Requests\DriverRegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SaveContactUsRequest;
 use App\Http\Requests\SaveReportIssueRequest;
+use App\Http\Requests\UpdatePasswordRequest;
 
 
 //use App\Rules\ValidPhone;
@@ -1418,39 +1419,14 @@ public function edit_personal_info(Request $request)
         return $this->sendResponse($FAQs, null, 200);
     }
 
-    public function update_password(Request $request)
-    {
-        // Validate the incoming request
-        $validator = Validator::make($request->all(), [
-            'old_password' => 'required',
-            'password'     => 'required|confirmed|min:8',
-        ]);
+    public function update_password(UpdatePasswordRequest $request)
+{
+    $user           = auth()->user();
+    $user->password = Hash::make($request->password);
+    $user->save();
 
-        if ($validator->fails()) {
-
-            $errors = implode(" / ", $validator->errors()->all());
-
-            return $this->sendError(null, $errors, 400);
-        }
-
-        // Check if the old password matches the user's current password
-        if (! Hash::check($request->old_password, auth()->user()->password)) {
-            return $this->sendError(null, 'The old password is incorrect.', 400);
-
-        }
-        if (Hash::check($request->password, auth()->user()->password)) {
-            return $this->sendError(null, 'The new password is sama as the old one.', 400);
-
-        }
-
-        // Update the user's password
-        $user           = auth()->user();
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return $this->sendResponse(null, 'Password updated successfully.', 200);
-
-    }
+    return $this->sendResponse(null, 'Password updated successfully.', 200);
+}
 
     public function careers(Request $request)
     {
