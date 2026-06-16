@@ -199,7 +199,7 @@
                                     <div class="photo-edit-wrapper avatar-edit-wrapper" id="wrapper-avatar" style="display:inline-block;">
                                         <img id="preview-avatar"
                                              style="border-radius:50%;width:200px;height:200px;"
-                                             src="{{ $user->image ?? $avatarFallback }}"
+                                             src="{{ ($user->image ?? $avatarFallback) . '?v=' . $cacheBust }}"
                                              onerror="this.onerror=null;this.src='{{ $avatarFallback }}';"
                                              class="img-circle zoomable-image" alt="user avatar">
                                         <span class="user-status {{ $user->is_online ? 'online' : 'offline' }}"></span>
@@ -465,7 +465,7 @@
                                             <div class="photo-edit-wrapper" id="wrapper-id-front">
                                                 <img id="preview-id-front" width="400" height="250"
                                                      style="border-radius:10px;"
-                                                     src="{{ $user->IDfrontImage }}"
+                                                     src="{{ $user->IDfrontImage . '?v=' . $cacheBust }}"
                                                      onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                      class="zoomable-image">
                                                 <span class="new-img-badge">NEW</span>
@@ -478,7 +478,8 @@
                                             <div class="photo-edit-wrapper" id="wrapper-id-back">
                                                 <img id="preview-id-back" width="400" height="250"
                                                      style="border-radius:10px;"
-                                                     src="{{ $user->IDbackImage }}"
+                                                     src="{{ $user->IDbackImage . '?v=' . $cacheBust }}"
+
                                                      onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                      class="zoomable-image">
                                                 <span class="new-img-badge">NEW</span>
@@ -515,7 +516,8 @@
                                             <div class="photo-edit-wrapper" id="wrapper-passport">
                                                 <img id="preview-passport" width="400" height="250"
                                                      style="border-radius:10px;"
-                                                     src="{{ $user->PassportImage }}"
+                                                     src="{{ $user->PassportImage . '?v=' . $cacheBust }}"
+
                                                      onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                      class="zoomable-image">
                                                 <span class="new-img-badge">NEW</span>
@@ -542,7 +544,8 @@
                                         <div class="photo-edit-wrapper" id="wrapper-medical">
                                             <img id="preview-medical" width="400" height="250"
                                                  style="border-radius:10px;"
-                                                 src="{{ $user->medicalExaminationImage }}"
+                                                 src="{{ $user->medicalExaminationImage . '?v=' . $cacheBust }}"
+
                                                  onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                  class="zoomable-image">
                                             <span class="new-img-badge">NEW</span>
@@ -573,7 +576,8 @@
                                         <div class="photo-edit-wrapper" id="wrapper-criminal">
                                             <img id="preview-criminal" width="400" height="250"
                                                  style="border-radius:10px;"
-                                                 src="{{ $user->criminalRecordImage }}"
+                                                 src="{{ $user->criminalRecordImage . '?v=' . $cacheBust }}"
+
                                                  onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                  class="zoomable-image">
                                             <span class="new-img-badge">NEW</span>
@@ -627,7 +631,8 @@
                                         <div class="photo-edit-wrapper" id="wrapper-lic-front">
                                             <img id="preview-lic-front" width="300"
                                                  style="border-radius:10px;"
-                                                 src="{{ $user->driving_license->front_image }}"
+                                                 src="{{ $user->driving_license->front_image . '?v=' . $cacheBust }}"
+
                                                  onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                  class="zoomable-image">
                                             <span class="new-img-badge">NEW</span>
@@ -640,7 +645,7 @@
                                         <div class="photo-edit-wrapper" id="wrapper-lic-back">
                                             <img id="preview-lic-back" width="300"
                                                  style="border-radius:10px;"
-                                                 src="{{ $user->driving_license->back_image }}"
+                                                 src="{{ $user->driving_license->back_image . '?v=' . $cacheBust }}"
                                                  onerror="this.onerror=null;this.src='{{ $imageFallback }}';"
                                                  class="zoomable-image">
                                             <span class="new-img-badge">NEW</span>

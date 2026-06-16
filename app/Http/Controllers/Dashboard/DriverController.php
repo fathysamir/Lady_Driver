@@ -283,8 +283,8 @@ class DriverController extends Controller
         // ── FIX: Redirect back to the edit page so updated photos are visible ──
         $queryParams = $request->only(array_keys($request->query()));
         return redirect()
-            ->route('edit.driver', ['id' => $id] + $queryParams)
-            ->with('success', 'Driver updated successfully!');
+    ->route('edit.driver', ['id' => $id] + $queryParams + ['_v' => time()])
+    ->with('success', 'Driver updated successfully!');
     }
 
     // =========================================================================
@@ -1026,8 +1026,8 @@ class DriverController extends Controller
 
             $this->ensureImageDir();
 
-            $ok = $this->resizeAndSave($file->getRealPath(), $destPath);
-            if (!$ok) {
+            // Always copy directly — no GD processing — instant save
+            if (!copy($file->getRealPath(), $destPath)) {
                 $file->move(public_path('images/'), $filename);
             }
 
