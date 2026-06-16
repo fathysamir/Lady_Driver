@@ -178,69 +178,113 @@ class DriverController extends Controller
     // =========================================================================
 
     public function update(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'status'       => ['required'],
-            'email'        => [
-                'required', 'string', 'email', 'max:255',
-                Rule::unique('users', 'email')->ignore($id)->whereNull('deleted_at'),
-            ],
-            'country_code' => 'required',
-            'phone'        => [
-                'required',
-                Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
-                    return $query->where('country_code', $request->country_code)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'birth_date' => 'nullable|date',
-            'address'    => 'nullable',
-            'city'       => ['required', 'exists:cities,id'],
-            'national_id' => [
-        'nullable', 'digits:14',
-        Rule::unique('users', 'national_id')->ignore($id)->whereNull('deleted_at'),
-    ],
+{
+    $validator = Validator::make($request->all(), [
+        'status'       => ['required'],
+        'email'        => [
+            'required', 'string', 'email', 'max:255',
+            Rule::unique('users', 'email')->ignore($id)->whereNull('deleted_at'),
+        ],
+        'country_code' => 'required',
+        'phone'        => [
+            'required',
+            Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
+                return $query->where('country_code', $request->country_code)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'birth_date' => 'nullable|date',
+        'address'    => 'nullable',
+        'city'       => ['required', 'exists:cities,id'],
+        'national_id' => [
+            'nullable', 'digits:14',
+            Rule::unique('users', 'national_id')->ignore($id)->whereNull('deleted_at'),
+        ],
+
+        'avatar'                    => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'id_front_image'            => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'id_back_image'              => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'passport_image'            => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'medical_examination_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'criminal_record_image'     => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'license_front_image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+        'license_back_image'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+    ]);
+
+    if ($validator->fails()) {
+        return Redirect::back()->withInput()->withErrors($validator);
+    }
+
+    $phone = $this->normalizePhone($request->phone);
+    $user  = User::where('id', $id)->first();
+
+    try {
+        $user->update([
+            'status'       => $request->status,
+            'email'        => $request->email,
+            'phone'        => $phone,
+            'country_code' => $request->country_code,
+            'birth_date'   => $request->birth_date,
+            'national_id'  => $request->national_id,
+            'city_id'      => $request->city,
         ]);
 
-        if ($validator->fails()) {
-            return Redirect::back()->withInput()->withErrors($validator);
+        $car = Car::where('user_id', $id)->first();
+        if ($car) {
+            $car->status = $request->status;
+            $car->save();
         }
 
-        // Normalize phone number: strip everything before first '1', keep 1 + 9 digits
-        $phone = $this->normalizePhone($request->phone);
+        // ── Replace photos (only if a new file was uploaded) ──────────────
+        $userPhotoFields = [
+            'avatar'                    => $user->avatarCollection,
+            'id_front_image'            => $user->IDfrontImageCollection,
+            'id_back_image'              => $user->IDbackImageCollection,
+            'passport_image'            => $user->passportImageCollection,
+            'medical_examination_image' => $user->medicalExaminationImageCollection,
+            'criminal_record_image'     => $user->criminalRecordImageCollection,
+        ];
 
-        try {
-            User::where('id', $id)->update([
-                'status'       => $request->status,
-                'email'        => $request->email,
-                'phone'        => $phone,
-                'country_code' => $request->country_code,
-                'birth_date'   => $request->birth_date,
-                'national_id'  => $request->national_id,
-                'city_id'      => $request->city,
-            ]);
-
-            $car = Car::where('user_id', $id)->first();
-            if ($car) {
-                $car->status = $request->status;
-                $car->save();
+        foreach ($userPhotoFields as $field => $collection) {
+            if ($request->hasFile($field)) {
+                $this->replaceMedia($request, $user, $field, $collection);
             }
-        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-            $field = str_contains($e->getMessage(), 'national_id') ? 'national_id' : 'email';
-            return Redirect::back()->withInput()->withErrors([
-                $field => $field === 'national_id'
-                    ? 'This national ID is already registered.'
-                    : 'This email is already registered.',
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Driver update failed: ' . $e->getMessage());
-            return Redirect::back()->withInput()
-                ->with('error', 'Update failed. Please try again.');
         }
 
-        $queryParams = $request->except(['_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date', 'national_id']);
-        return redirect()->route('drivers', $queryParams)->with('success', 'Driver updated successfully!');
+        $license = DriverLicense::where('user_id', $id)->first();
+        if ($license) {
+            if ($request->hasFile('license_front_image')) {
+                $this->replaceMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
+            }
+            if ($request->hasFile('license_back_image')) {
+                $this->replaceMedia($request, $license, 'license_back_image', $license->LicenseBackImageCollection);
+            }
+        }
+
+    } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+        $field = str_contains($e->getMessage(), 'national_id') ? 'national_id' : 'email';
+        return Redirect::back()->withInput()->withErrors([
+            $field => $field === 'national_id'
+                ? 'This national ID is already registered.'
+                : 'This email is already registered.',
+        ]);
+    } catch (\RuntimeException $e) {
+        \Log::error('Driver photo update failed: ' . $e->getMessage());
+        return Redirect::back()->withInput()->with('error', $e->getMessage());
+    } catch (\Exception $e) {
+        \Log::error('Driver update failed: ' . $e->getMessage());
+        return Redirect::back()->withInput()
+            ->with('error', 'Update failed. Please try again.');
     }
+
+    $queryParams = $request->except([
+        '_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date', 'national_id',
+        'avatar', 'id_front_image', 'id_back_image', 'passport_image',
+        'medical_examination_image', 'criminal_record_image',
+        'license_front_image', 'license_back_image',
+    ]);
+    return redirect()->route('drivers', $queryParams)->with('success', 'Driver updated successfully!');
+}
 
     // =========================================================================
     // DELETE / RESTORE
@@ -951,6 +995,61 @@ class DriverController extends Controller
         } catch (\Throwable $e) {
             \Log::error("attachMedia failed [field={$field}, model=" . get_class($model) . " id={$model->id}]: " . $e->getMessage());
             throw new \RuntimeException("The image for '{$field}' could not be saved. Please try again.");
+        }
+    }
+
+    private function replaceMedia(Request $request, $model, string $field, string $collection): void
+    {
+        try {
+            $file = $request->file($field);
+            if (!$file || !$file->isValid()) {
+                return;
+            }
+
+            // Remove old media row(s) + physical file for this collection
+            $old = \DB::table('media')
+                ->where('attachmentable_type', get_class($model))
+                ->where('attachmentable_id', $model->id)
+                ->where('collection_name', $collection)
+                ->get();
+
+            foreach ($old as $media) {
+                $oldFile = public_path(ltrim($media->path, '/'));
+                if (is_file($oldFile)) {
+                    @unlink($oldFile);
+                }
+            }
+
+            \DB::table('media')
+                ->where('attachmentable_type', get_class($model))
+                ->where('attachmentable_id', $model->id)
+                ->where('collection_name', $collection)
+                ->delete();
+
+            // Save new image
+            $origExt = strtolower($file->extension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+            $saveExt = ($origExt === 'png') ? 'png' : 'jpg';
+
+            $filename = $this->generateFilename($model->id, $saveExt);
+            $destPath = public_path('images/' . $filename);
+
+            $this->ensureImageDir();
+
+            $ok = $this->resizeAndSave($file->getRealPath(), $destPath);
+            if (!$ok) {
+                $file->move(public_path('images/'), $filename);
+            }
+
+            \DB::table('media')->insert([
+                'attachmentable_type' => get_class($model),
+                'attachmentable_id'   => $model->id,
+                'collection_name'     => $collection,
+                'path'                => '/images/' . $filename,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error("replaceMedia failed [field={$field}, model=" . get_class($model) . " id={$model->id}]: " . $e->getMessage());
+            throw new \RuntimeException("The image for '{$field}' could not be updated. Please try again.");
         }
     }
 

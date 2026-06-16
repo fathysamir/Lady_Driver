@@ -121,7 +121,6 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::post('/drivers/clear-temp', [DriverController::class, 'clearTempUploadsRequest'])->name('drivers.clearTemp');
 
 
-
     //////////////////////////////////////////////////
     Route::any('/cities', [CityController::class, 'index'])->name('cities');
     Route::get('/cities/create', [CityController::class, 'create'])->name('add.city');
