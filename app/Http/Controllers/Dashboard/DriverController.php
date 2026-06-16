@@ -196,6 +196,10 @@ class DriverController extends Controller
             'birth_date' => 'nullable|date',
             'address'    => 'nullable',
             'city'       => ['required', 'exists:cities,id'],
+            'national_id' => [
+        'nullable', 'digits:14',
+        Rule::unique('users', 'national_id')->ignore($id)->whereNull('deleted_at'),
+    ],
         ]);
 
         if ($validator->fails()) {
