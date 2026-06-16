@@ -170,7 +170,10 @@ class DriverController extends Controller
         $cities      = City::all();
         $queryString = $request->query();
 
-        return view('dashboard.drivers.edit', compact('user', 'queryString', 'cities'));
+        // Pass a cache-bust timestamp so the blade can append ?v=... to image URLs
+        $cacheBust = time();
+
+        return view('dashboard.drivers.edit', compact('user', 'queryString', 'cities', 'cacheBust'));
     }
 
     // =========================================================================
@@ -178,113 +181,111 @@ class DriverController extends Controller
     // =========================================================================
 
     public function update(Request $request, $id)
-{
-    $validator = Validator::make($request->all(), [
-        'status'       => ['required'],
-        'email'        => [
-            'required', 'string', 'email', 'max:255',
-            Rule::unique('users', 'email')->ignore($id)->whereNull('deleted_at'),
-        ],
-        'country_code' => 'required',
-        'phone'        => [
-            'required',
-            Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
-                return $query->where('country_code', $request->country_code)
-                    ->whereNull('deleted_at');
-            }),
-        ],
-        'birth_date' => 'nullable|date',
-        'address'    => 'nullable',
-        'city'       => ['required', 'exists:cities,id'],
-        'national_id' => [
-            'nullable', 'digits:14',
-            Rule::unique('users', 'national_id')->ignore($id)->whereNull('deleted_at'),
-        ],
+    {
+        $validator = Validator::make($request->all(), [
+            'status'       => ['required'],
+            'email'        => [
+                'required', 'string', 'email', 'max:255',
+                Rule::unique('users', 'email')->ignore($id)->whereNull('deleted_at'),
+            ],
+            'country_code' => 'required',
+            'phone'        => [
+                'required',
+                Rule::unique('users')->ignore($id)->where(function ($query) use ($request) {
+                    return $query->where('country_code', $request->country_code)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'birth_date' => 'nullable|date',
+            'address'    => 'nullable',
+            'city'       => ['required', 'exists:cities,id'],
+            'national_id' => [
+                'nullable', 'digits:14',
+                Rule::unique('users', 'national_id')->ignore($id)->whereNull('deleted_at'),
+            ],
 
-        'avatar'                    => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'id_front_image'            => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'id_back_image'              => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'passport_image'            => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'medical_examination_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'criminal_record_image'     => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'license_front_image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-        'license_back_image'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
-    ]);
-
-    if ($validator->fails()) {
-        return Redirect::back()->withInput()->withErrors($validator);
-    }
-
-    $phone = $this->normalizePhone($request->phone);
-    $user  = User::where('id', $id)->first();
-
-    try {
-        $user->update([
-            'status'       => $request->status,
-            'email'        => $request->email,
-            'phone'        => $phone,
-            'country_code' => $request->country_code,
-            'birth_date'   => $request->birth_date,
-            'national_id'  => $request->national_id,
-            'city_id'      => $request->city,
+            'avatar'                    => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'id_front_image'            => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'id_back_image'             => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'passport_image'            => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'medical_examination_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'criminal_record_image'     => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'license_front_image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
+            'license_back_image'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ]);
 
-        $car = Car::where('user_id', $id)->first();
-        if ($car) {
-            $car->status = $request->status;
-            $car->save();
+        if ($validator->fails()) {
+            return Redirect::back()->withInput()->withErrors($validator);
         }
 
-        // ── Replace photos (only if a new file was uploaded) ──────────────
-        $userPhotoFields = [
-            'avatar'                    => $user->avatarCollection,
-            'id_front_image'            => $user->IDfrontImageCollection,
-            'id_back_image'              => $user->IDbackImageCollection,
-            'passport_image'            => $user->passportImageCollection,
-            'medical_examination_image' => $user->medicalExaminationImageCollection,
-            'criminal_record_image'     => $user->criminalRecordImageCollection,
-        ];
+        $phone = $this->normalizePhone($request->phone);
+        $user  = User::where('id', $id)->first();
 
-        foreach ($userPhotoFields as $field => $collection) {
-            if ($request->hasFile($field)) {
-                $this->replaceMedia($request, $user, $field, $collection);
+        try {
+            $user->update([
+                'status'       => $request->status,
+                'email'        => $request->email,
+                'phone'        => $phone,
+                'country_code' => $request->country_code,
+                'birth_date'   => $request->birth_date,
+                'national_id'  => $request->national_id,
+                'city_id'      => $request->city,
+            ]);
+
+            $car = Car::where('user_id', $id)->first();
+            if ($car) {
+                $car->status = $request->status;
+                $car->save();
             }
+
+            // ── Replace photos (only if a new file was uploaded) ──────────────
+            $userPhotoFields = [
+                'avatar'                    => $user->avatarCollection,
+                'id_front_image'            => $user->IDfrontImageCollection,
+                'id_back_image'             => $user->IDbackImageCollection,
+                'passport_image'            => $user->passportImageCollection,
+                'medical_examination_image' => $user->medicalExaminationImageCollection,
+                'criminal_record_image'     => $user->criminalRecordImageCollection,
+            ];
+
+            foreach ($userPhotoFields as $field => $collection) {
+                if ($request->hasFile($field)) {
+                    $this->replaceMedia($request, $user, $field, $collection);
+                }
+            }
+
+            $license = DriverLicense::where('user_id', $id)->first();
+            if ($license) {
+                if ($request->hasFile('license_front_image')) {
+                    $this->replaceMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
+                }
+                if ($request->hasFile('license_back_image')) {
+                    $this->replaceMedia($request, $license, 'license_back_image', $license->LicenseBackImageCollection);
+                }
+            }
+
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            $field = str_contains($e->getMessage(), 'national_id') ? 'national_id' : 'email';
+            return Redirect::back()->withInput()->withErrors([
+                $field => $field === 'national_id'
+                    ? 'This national ID is already registered.'
+                    : 'This email is already registered.',
+            ]);
+        } catch (\RuntimeException $e) {
+            \Log::error('Driver photo update failed: ' . $e->getMessage());
+            return Redirect::back()->withInput()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error('Driver update failed: ' . $e->getMessage());
+            return Redirect::back()->withInput()
+                ->with('error', 'Update failed. Please try again.');
         }
 
-        $license = DriverLicense::where('user_id', $id)->first();
-        if ($license) {
-            if ($request->hasFile('license_front_image')) {
-                $this->replaceMedia($request, $license, 'license_front_image', $license->LicenseFrontImageCollection);
-            }
-            if ($request->hasFile('license_back_image')) {
-                $this->replaceMedia($request, $license, 'license_back_image', $license->LicenseBackImageCollection);
-            }
-        }
-
-    } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-        $field = str_contains($e->getMessage(), 'national_id') ? 'national_id' : 'email';
-        return Redirect::back()->withInput()->withErrors([
-            $field => $field === 'national_id'
-                ? 'This national ID is already registered.'
-                : 'This email is already registered.',
-        ]);
-    } catch (\RuntimeException $e) {
-        \Log::error('Driver photo update failed: ' . $e->getMessage());
-        return Redirect::back()->withInput()->with('error', $e->getMessage());
-    } catch (\Exception $e) {
-        \Log::error('Driver update failed: ' . $e->getMessage());
-        return Redirect::back()->withInput()
-            ->with('error', 'Update failed. Please try again.');
+        // ── FIX: Redirect back to the edit page so updated photos are visible ──
+        $queryParams = $request->only(array_keys($request->query()));
+        return redirect()
+            ->route('edit.driver', ['id' => $id] + $queryParams)
+            ->with('success', 'Driver updated successfully!');
     }
-
-    $queryParams = $request->except([
-        '_token', '_method', 'status', 'email', 'phone', 'country_code', 'birth_date', 'national_id',
-        'avatar', 'id_front_image', 'id_back_image', 'passport_image',
-        'medical_examination_image', 'criminal_record_image',
-        'license_front_image', 'license_back_image',
-    ]);
-    return redirect()->route('drivers', $queryParams)->with('success', 'Driver updated successfully!');
-}
 
     // =========================================================================
     // DELETE / RESTORE
@@ -543,7 +544,6 @@ class DriverController extends Controller
         }
 
         // ── 2. Normalize phone number ─────────────────────────────────────────
-        // Strip everything before the first '1', keep '1' + up to 9 following digits
         if ($request->phone) {
             $request->merge(['phone' => $this->normalizePhone($request->phone)]);
         }
@@ -586,9 +586,9 @@ class DriverController extends Controller
             'city_id' => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
             'national_id' => [
-    'nullable', 'digits:14', 'required_without:passport_id',
-    Rule::unique('users', 'national_id')->whereNull('deleted_at'),
-],
+                'nullable', 'digits:14', 'required_without:passport_id',
+                Rule::unique('users', 'national_id')->whereNull('deleted_at'),
+            ],
             'national_id_expire_date' => 'nullable|date',
             'passport_id'             => 'nullable|string|max:50|required_without:national_id',
             'passport_expire_date'    => 'nullable|date',
@@ -819,7 +819,6 @@ class DriverController extends Controller
             ]);
 
         } catch (\RuntimeException $e) {
-            // Image upload failure — message is user-friendly from attachMedia()
             \Log::error('Driver store image error: ' . $e->getMessage());
             return Redirect::back()->withInput()
                 ->with('error', $e->getMessage());
@@ -836,40 +835,24 @@ class DriverController extends Controller
     // =========================================================================
 
     /**
-     * Normalize a phone number:
+     * Normalize a phone number.
      * Strip all non-digit characters, find the first '1',
      * then return '1' + up to 9 following digits (10 digits total).
-     *
-     * Examples:
-     *   01204270163  → 1204270163
-     *   201204270163 → 1204270163
-     *   +201204270163 → 1204270163
-     *   1204270163   → 1204270163
      */
     private function normalizePhone(string $phone): string
     {
-        // Remove everything that is not a digit
         $digits = preg_replace('/\D/', '', $phone);
-
-        // Find the first '1' and slice from there (max 10 chars: '1' + 9 digits)
-        $pos = strpos($digits, '1');
+        $pos    = strpos($digits, '1');
         if ($pos === false) {
-            return $digits; // no '1' found — return digits as-is
+            return $digits;
         }
-
         return substr($digits, $pos, 10);
     }
 
     /**
      * Resize an image using GD and save to destination path.
      * Falls back to copy() if GD cannot process the format.
-     *
-     * @param  string  $sourcePath  Absolute path to source image
-     * @param  string  $destPath    Absolute path for output
-     * @param  int     $maxWidth    Maximum output width in pixels  (default 1200)
-     * @param  int     $maxHeight   Maximum output height in pixels (default 1200)
-     * @param  int     $quality     JPEG quality 0-100 (default 82)
-     * @return bool
+     * Skips resize entirely for small files (≤ 500 KB) to speed up saves.
      */
     private function resizeAndSave(
         string $sourcePath,
@@ -879,6 +862,11 @@ class DriverController extends Controller
         int $quality   = 82
     ): bool {
         try {
+            // ── FIX: Skip GD resize for small files — just copy directly ──────
+            if (filesize($sourcePath) <= 500 * 1024) {
+                return copy($sourcePath, $destPath);
+            }
+
             $info = @getimagesize($sourcePath);
             if (!$info) {
                 return copy($sourcePath, $destPath);
@@ -914,7 +902,6 @@ class DriverController extends Controller
                 $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
                 imagefilledrectangle($dst, 0, 0, $newW, $newH, $transparent);
             } else {
-                // Fill white background for JPEG
                 $white = imagecolorallocate($dst, 255, 255, 255);
                 imagefill($dst, 0, 0, $white);
             }
@@ -982,7 +969,7 @@ class DriverController extends Controller
                 session()->forget($sessionKey);
 
             } else {
-                return; // nothing to attach — optional field
+                return;
             }
 
             \DB::table('media')->insert([
@@ -998,6 +985,10 @@ class DriverController extends Controller
         }
     }
 
+    /**
+     * Replace existing media for a model collection with a newly uploaded file.
+     * Deletes the old physical file and DB row, then saves the new image.
+     */
     private function replaceMedia(Request $request, $model, string $field, string $collection): void
     {
         try {
@@ -1055,7 +1046,6 @@ class DriverController extends Controller
 
     /**
      * Attach plate image by copying the already-saved vehicle_image temp path.
-     * Uses copy() not move() so vehicle_image temp is still available to attachMedia().
      */
     private function attachMediaFromSession($model, string $field, string $sessionKey, string $collection): void
     {
@@ -1075,7 +1065,6 @@ class DriverController extends Controller
 
             $this->ensureImageDir();
 
-            // Copy + resize — do NOT move/delete temp here
             $ok = $this->resizeAndSave($tempPath, $destPath);
             if (!$ok) {
                 copy($tempPath, $destPath);
