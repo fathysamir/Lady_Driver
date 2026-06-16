@@ -537,7 +537,10 @@ class DriverController extends Controller
             ],
             'city_id' => ['required', Rule::exists('cities', 'id')->whereNull('deleted_at')],
 
-            'national_id'             => 'nullable|digits:14|unique:users,national_id|required_without:passport_id',
+            'national_id' => [
+    'nullable', 'digits:14', 'required_without:passport_id',
+    Rule::unique('users', 'national_id')->whereNull('deleted_at'),
+],
             'national_id_expire_date' => 'nullable|date',
             'passport_id'             => 'nullable|string|max:50|required_without:national_id',
             'passport_expire_date'    => 'nullable|date',
