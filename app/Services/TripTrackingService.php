@@ -13,16 +13,18 @@ class TripTrackingService
             $trip->start_lng
         );
 
-        if (!$response) {
+        // Bug 3 fix: validate response fields
+        if (!$response ||
+            !isset($response['distance_in_km']) ||
+            !isset($response['duration_in_M']) ||
+            $response['distance_in_km'] < 0 ||
+            $response['duration_in_M'] < 0) {
             return null;
         }
 
         $distanceKm = round($response['distance_in_km'], 2);
         $meters     = $distanceKm * 1000;
         $duration   = (int) $response['duration_in_M'];
-        $eta        = now()->addMinutes($duration)->format('h:i A');
-
-        $status = 'on_the_way';
 
         $messages = [
             'en' => [
@@ -32,38 +34,51 @@ class TripTrackingService
                 '200'     => 'Driver is 200 meters away',
                 '100'     => 'Driver is 100 meters away',
                 'arrived' => 'Driver has arrived',
-                'far'     => 'Driver is on the way',   // ← add a fallback key
+                'far'     => 'Driver is on the way',
             ],
-           'ar' => [
-    '500'     => 'الكابتن على بعد 500 متر',
-    '400'     => 'الكابتن على بعد 400 متر',
-    '300'     => 'الكابتن على بعد 300 متر',
-    '200'     => 'الكابتن على بعد 200 متر',
-    '100'     => 'الكابتن على بعد 100 متر',
-    'arrived' => 'الكابتن وصلت',
-    'far'     => 'الكابتن في الطريق',
-]
+            'ar' => [
+                '500'     => 'الكابتن على بعد 500 متر',
+                '400'     => 'الكابتن على بعد 400 متر',
+                '300'     => 'الكابتن على بعد 300 متر',
+                '200'     => 'الكابتن على بعد 200 متر',
+                '100'     => 'الكابتن على بعد 100 متر',
+                'arrived' => 'الكابتن وصلت',
+                'far'     => 'الكابتن في الطريق',
+            ],
         ];
 
-        // Single if/elseif chain — no double-execution bug
+        // Bug 1 fix: correct thresholds
         if ($meters <= 40) {
-            $key        = 'arrived';
-            $status     = 'reached'; //
+            $key    = 'arrived';
+            $status = 'reached';
+        } elseif ($meters <= 100) {
+            $key    = '100';
+            $status = 'on_the_way';
         } elseif ($meters <= 200) {
-            $key = '100';
+            $key    = '200';
+            $status = 'on_the_way';
         } elseif ($meters <= 300) {
-            $key = '200';
+            $key    = '300';
+            $status = 'on_the_way';
         } elseif ($meters <= 400) {
-            $key = '300';
+            $key    = '400';
+            $status = 'on_the_way';
         } elseif ($meters <= 500) {
-            $key = '400';
+            $key    = '500';
+            $status = 'on_the_way';
         } else {
-            $key = 'far'; // > 500m, still on the way
+            $key    = 'far';
+            $status = 'on_the_way';
         }
+
+        // Bug 2 fix: no ETA when already arrived
+        $eta = ($status === 'reached')
+            ? null
+            : now()->addMinutes($duration)->format('h:i A');
 
         return [
             'distance' => $distanceKm,
-            'duration' => $duration,
+            'duration' => ($status === 'reached') ? 0 : $duration,
             'eta'      => $eta,
             'status'   => $status,
             'message'  => [
