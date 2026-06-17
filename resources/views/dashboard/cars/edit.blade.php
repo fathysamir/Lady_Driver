@@ -163,19 +163,12 @@
                                 @method('PUT')
 
                                 <div class="form-group" style="text-align: center;">
-                                    <div class="photo-edit-wrapper" id="wrapper-car-image" style="display:inline-block;">
+                                    <div style="display:inline-block;">
                                         <img id="preview-car-image"
                                              style="border-radius:2%; width:60%;"
                                              src="{{ $car->image ?? asset('dashboard/car_avatar.png') }}"
                                              onerror="this.onerror=null;this.src='{{ asset('dashboard/car_avatar.png') }}';"
                                              class="img-circle zoomable-image" alt="car image">
-                                             @if ($car->image)
-                                             <span class="new-img-badge">NEW</span>
-                                             <button type="button" class="edit-photo-btn" title="Change photo"
-                                                     onclick="document.getElementById('input-car-image').click()">✎</button>
-                                             <input type="file" id="input-car-image" name="car_image" accept="image/*"
-                                                    style="display:none" data-wrapper="wrapper-car-image" data-preview="preview-car-image">
-                                             @endif
                                     </div>
                                     <h3 style="margin-top:10px;">{{ $car->mark->en_name }} - {{ $car->mark->ar_name }}</h3>
                                     <h3 style="margin-top:10px;">{{ $car->model->en_name }} - {{ $car->model->ar_name }}
@@ -464,6 +457,10 @@
                     reader.onload = function (e) {
                         previewImg.src = e.target.result;
                         wrapper.classList.add('has-new');
+                        if (input.name === 'car_image') {
+                            var topImg = document.getElementById('preview-car-image');
+                            if (topImg) topImg.src = e.target.result;
+                        }
                     };
                     reader.readAsDataURL(this.files[0]);
                 });
