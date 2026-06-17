@@ -163,7 +163,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     // Route::get('/users/create', [UserController::class, 'create'])->name('add.user');
     // Route::post('/users/create', [UserController::class, 'store'])->name('create.user');
     Route::get('/car/edit/{id}', [CarController::class, 'edit'])->name('edit.car');
-    Route::post('/car/update/{id}', [CarController::class, 'update'])->name('update.car');
+    //Route::post('/car/update/{id}', [CarController::class, 'update'])->name('update.car');
+    Route::put('/car/update/{id}', [CarController::class, 'update'])->name('update.car');
     Route::get('/car/delete/{id}', [CarController::class, 'delete'])->name('delete.car');
     Route::get('/getModels', [CarController::class, 'getModels'])->name('getModels');
     Route::get('/car-location/{id}', [CarController::class, 'getLocation']);
