@@ -170,6 +170,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => 'admin-dashboard'], functio
     Route::get('/car-location/{id}', [CarController::class, 'getLocation']);
     ///////////////////////////////////////////
     Route::get('/scooter/edit/{id}', [ScooterController::class, 'edit'])->name('edit.scooter');
+    Route::put('/scooter/update/{id}', [ScooterController::class, 'update'])->name('update.scooter');  // ← add this
     Route::get('scooter/getModels', [ScooterController::class, 'getModels'])->name('scooter.getModels');
     Route::get('scooter/scooter-location/{id}', [ScooterController::class, 'getLocation']);
     //////////////////////////////////////////
