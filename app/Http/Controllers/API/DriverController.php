@@ -1440,14 +1440,8 @@ private function getDriverTrips($user, string $status)
         $vehicleRelation = $isCarDriver ? 'car' : 'scooter';
         $vehicle         = $trip->$vehicleRelation;
 
-        if ($vehicle) {
-            $response = calculate_distance(
-                $vehicle->lat, $vehicle->lng,
-                $trip->start_lat, $trip->start_lng
-            );
-            $trip->client_location_distance = round($response['distance_in_km'], 2);
-            $trip->client_location_duration = intval($response['duration_in_M']);
-        }
+        $trip->client_location_distance = 0;
+        $trip->client_location_duration = 0;
 
         $trip->barcode          = url(barcodeImage($trip->id));
         $trip->is_driver_arrived = !is_null($trip->driver_arrived);
