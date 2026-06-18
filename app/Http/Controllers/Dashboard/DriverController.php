@@ -305,7 +305,7 @@ class DriverController extends Controller
         $user = User::where('id', $id)->first();
         $user->tokens()->delete();
         $user->update([
-            'status'      => 'pending',
+            'status'      => 'blocked',
             'is_verified' => '0',
         ]);
         $user->delete();
@@ -315,7 +315,13 @@ class DriverController extends Controller
 
     public function restore($id, Request $request)
     {
-        User::withTrashed()->where('id', $id)->update(['deleted_at' => null]);
+        User::withTrashed()->where('id', $id)->update(
+            ['deleted_at' => null,
+            'status'      => 'pending',
+            'is_verified' => '1',
+            ]
+
+        );
         return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
     }
 
