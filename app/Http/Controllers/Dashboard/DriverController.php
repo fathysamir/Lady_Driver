@@ -21,6 +21,8 @@ use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use App\Events\DriverStatusConfirmed;
+
 
 class DriverController extends Controller
 {
@@ -222,6 +224,7 @@ class DriverController extends Controller
         $user  = User::where('id', $id)->first();
 
         try {
+            $oldStatus = $user->status;
             $user->update([
                 'status'       => $request->status,
                 'email'        => $request->email,
@@ -231,6 +234,10 @@ class DriverController extends Controller
                 'national_id'  => $request->national_id,
                 'city_id'      => $request->city,
             ]);
+
+            if ($oldStatus !== 'confirmed' && $request->status === 'confirmed' && $user->mode === 'driver') {
+                event(new DriverStatusConfirmed($user));
+            }
 
             $car = Car::where('user_id', $id)->first();
             if ($car) {
