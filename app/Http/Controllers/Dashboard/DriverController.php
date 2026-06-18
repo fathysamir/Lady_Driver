@@ -53,7 +53,9 @@ class DriverController extends Controller
                 $query->where('name', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('email', 'LIKE', '%' . $request->search . '%')
                     ->orWhere('phone', 'LIKE', '%' . $request->search . '%')
-                    ->orWhere('id', 'LIKE', '%' . $request->search . '%');
+                    ->orWhere('id', 'LIKE', '%' . $request->search . '%')
+                    ->orWhere('national_id', 'LIKE', '%' . $request->search . '%');
+
             });
         }
 
@@ -363,7 +365,8 @@ class DriverController extends Controller
                 $q->where('name', 'LIKE', "%{$search}%")
                   ->orWhere('email', 'LIKE', "%{$search}%")
                   ->orWhere('phone', 'LIKE', "%{$search}%")
-                  ->orWhere('id', $search);
+                  ->orWhere('id', $search)
+                  ->orWhere('national_id', 'LIKE', "%{$search}%");
             });
         }
 
@@ -432,6 +435,7 @@ class DriverController extends Controller
                     $user->name,
                     $user->email,
                     "\t" . $user->country_code . $user->phone,
+                    $user->national_id ?? '',
                     $user->status,
                     $user->is_online ? 'Online' : 'Offline',
                     $user->created_at->format('d.M.Y h:i a'),

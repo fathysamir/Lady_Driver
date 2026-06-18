@@ -251,6 +251,7 @@
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
                                             <th scope="col">Phone Number</th>
+                                            <th scope="col">National ID</th>
                                             <th scope="col">Status</th>
                                             <th scope="col">Level</th>
                                             <th scope="col">Join Date</th>
@@ -297,6 +298,8 @@
                                                     </td>
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
                                                     <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
+                                                    <td>{!! highlight($user->national_id ?? '—', $search ?? '') !!}</td>
+
                                                     <td>
                                                         @if ($user->status == 'pending')
                                                             <span class="badge badge-secondary" style="background-color:rgb(143,118,9);width:100%;">Pending</span>
@@ -340,7 +343,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="9">There are no Drivers.</td>
+                                                <td colspan="10">There are no Drivers.</td>
                                             </tr>
                                         @endif
                                     </tbody>
