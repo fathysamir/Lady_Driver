@@ -316,13 +316,18 @@ public function delete($id, Request $request)
 
 public function restore($id, Request $request)
 {
-    User::withTrashed()->where('id', $id)->update(
-        ['deleted_at' => null,
+    // Only Super Admin and Supervisor may restore deleted accounts
+    $authUser = auth()->user();
+    if (!$authUser->hasRole('Super Admin') && !$authUser->hasRole('Supervisor')) {
+        abort(403, 'You do not have permission to restore driver accounts.');
+    }
+
+    User::withTrashed()->where('id', $id)->update([
+        'deleted_at'  => null,
         'status'      => 'pending',
         'is_verified' => '1',
-        ]
+    ]);
 
-    );
     return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
 }
 
