@@ -316,14 +316,52 @@ public function delete($id, Request $request)
 
 public function restore($id, Request $request)
 {
-    User::withTrashed()->where('id', $id)->update(
-        ['deleted_at' => null,
+    $user = User::withTrashed()->where('id', $id)->first();
+
+    if (!$user) {
+        return redirect('/admin-dashboard/archived-drivers?type=' . $request->type)
+            ->with('error', 'Driver not found.');
+    }
+
+    // Check for conflicts with active (non-deleted) accounts
+    $conflict = User::whereNull('deleted_at')
+        ->where('id', '!=', $id)
+        ->where(function ($q) use ($user) {
+            $q->where('email', $user->email);
+
+            if ($user->phone) {
+                $q->orWhere(function ($q2) use ($user) {
+                    $q2->where('phone', $user->phone)
+                       ->where('country_code', $user->country_code);
+                });
+            }
+
+            if ($user->national_id) {
+                $q->orWhere('national_id', $user->national_id);
+            }
+        })
+        ->first();
+
+    if ($conflict) {
+        $reason = match(true) {
+            $conflict->email === $user->email                                                         => 'email (' . $user->email . ')',
+            $conflict->phone === $user->phone && $conflict->country_code === $user->country_code      => 'phone (' . $user->country_code . $user->phone . ')',
+            $conflict->national_id && $conflict->national_id === $user->national_id                  => 'national ID (' . $user->national_id . ')',
+            default                                                                                    => 'one of their details',
+        };
+
+        return redirect('/admin-dashboard/archived-drivers?type=' . $request->type)
+            ->with('error', 'Cannot restore this driver — an active account already exists with the same ' . $reason . '.');
+    }
+
+    $user->update([
+        'deleted_at'  => null,
         'status'      => 'pending',
         'is_verified' => '1',
-        ]
+    ]);
 
-    );
-    return redirect('/admin-dashboard/archived-drivers?type=' . $request->type);
+    return redirect('/admin-dashboard/archived-drivers?type=' . $request->type)
+        ->with('success', 'Driver restored successfully.');
 }
 
 // =========================================================================
