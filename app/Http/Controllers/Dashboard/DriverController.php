@@ -239,7 +239,7 @@ public function update(Request $request, $id)
         ]);
 
         if ($oldStatus !== 'confirmed' && $request->status === 'confirmed' && $user->mode === 'driver') {
-            event(new DriverStatusConfirmed($user));
+          //  event(new DriverStatusConfirmed($user));
         }
 
         $car = Car::where('user_id', $id)->first();
