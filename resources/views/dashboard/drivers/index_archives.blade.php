@@ -75,6 +75,7 @@
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
                                             <th scope="col">Phone Number</th>
+                                            <th scope="col">National ID</th>
                                             <th scope="col">status</th>
                                             <th scope="col">Activation</th>
                                             <th scope="col">Join Date</th>
@@ -110,6 +111,8 @@
                                                     </td>
                                                     <td>{!! highlight($user->email, $search ?? '') !!}</td>
                                                     <td>{!! highlight($user->country_code . $user->phone, $search ?? '') !!}</td>
+                                                    <td>{!! highlight($user->national_id ?? '—', $search ?? '') !!}</td>
+
                                                     <td>
                                                         @if ($user->status == 'pending')
                                                             <span class="badge badge-secondary"
