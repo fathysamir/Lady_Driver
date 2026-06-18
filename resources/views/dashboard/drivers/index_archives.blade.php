@@ -77,7 +77,6 @@
                                             <th scope="col">Phone Number</th>
                                             <th scope="col">National ID</th>
                                             <th scope="col">status</th>
-                                            <th scope="col">Activation</th>
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
                                         </tr>
@@ -128,18 +127,7 @@
                                                                 style="background-color:rgb(255,0,0);width:100%;">Blocked</span>
                                                         @endif
                                                     </td>
-                                                    <td>
-                                                        @php
-                                                            $hasActiveTrip =
-                                                                $user->car &&
-                                                                $user->car
-                                                                    ->trips()
-                                                                    ->where('status', 'completed')
-                                                                    ->where('created_at', '>=', now()->subDays(7))
-                                                                    ->exists();
-                                                        @endphp
-                                                        {{ $hasActiveTrip ? 'Active' : 'Unactive' }}
-                                                    </td>
+
                                                     <td>{{ $user->created_at->format('d.M.Y') }}</td>
                                                     <td>
                                                         <a onclick='event.stopPropagation(); showConfirmationPopup(
