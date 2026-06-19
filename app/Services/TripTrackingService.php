@@ -242,7 +242,8 @@ class TripTrackingService
 
         $sustainedSeconds = $trip->arrival_state_started_at->diffInSeconds($now);
 
-        if ($sustainedSeconds >= self::ARRIVAL_SUSTAIN_SECONDS) {
+      //  if ($sustainedSeconds >= self::ARRIVAL_SUSTAIN_SECONDS) {
+        if ($sustainedSeconds >= 1) {
             $trip->update(['driver_arrived' => $now]);
             return true;
         }
