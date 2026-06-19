@@ -101,7 +101,7 @@ class TripTrackingService
         // ----------------------------------------------------------------
         $meetsArrivalConditions =
             $routeDistanceM <= self::ARRIVAL_ROUTE_DISTANCE_M &&
-            $etaSeconds <= self::ARRIVAL_ETA_SECONDS &&
+           // $etaSeconds <= self::ARRIVAL_ETA_SECONDS &&
             $speedKmh <= self::ARRIVAL_MAX_SPEED_KMH;
 
         $hasArrived = $this->evaluateSustainedArrival($trip, $meetsArrivalConditions);
