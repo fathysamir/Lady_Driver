@@ -184,6 +184,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/client/messages/mark-seen', [ClientController::class, 'mark_messages_seen']);
     Route::post('/user/update-location', [ClientController::class, 'updateUserLocation']);
 
+    Route::post('trips/{trip}/pickup-point/accept', [TripPickupPointController::class, 'accept']);
+    Route::post('trips/{trip}/pickup-point/reject', [TripPickupPointController::class, 'reject']);
+
     Route::post('/live-location/create', [LiveLocationController::class, 'create']);
     Route::post('/live-location/update', [LiveLocationController::class, 'update']);
     Route::get('/get_near_drivers', [ClientController::class, 'get_near_drivers']);
