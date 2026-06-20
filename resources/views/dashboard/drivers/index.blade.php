@@ -263,9 +263,7 @@
                                             <th scope="col">National ID</th>
                                             <th scope="col">Status</th>
                                             <th scope="col">Level</th>
-                                            @if($hasTripsFilter)
                                                 <th scope="col">Trips Count</th>
-                                            @endif
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
                                         </tr>
@@ -325,9 +323,7 @@
                                                     </td>
 
                                                     <td>LV {{ $user->level }}</td>
-                                                    @if($hasTripsFilter)
-                                                        <td>{{ $user->trips_count ?? 0 }}</td>
-                                                    @endif
+                                                    <td>{!! highlight($user->trips_count ?? 0, $search ?? '') !!}</td>
                                                     <td>{{ $user->created_at->format('d.M.Y h:i a') }}</td>
                                                     <td>
                                                         @php
@@ -358,7 +354,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="{{ $hasTripsFilter ? 11 : 10 }}">There are no Drivers.</td>
+                                                <td colspan="11">There are no Drivers.</td>
                                             </tr>
                                         @endif
                                     </tbody>

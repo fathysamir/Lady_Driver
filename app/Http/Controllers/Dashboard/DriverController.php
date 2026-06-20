@@ -74,6 +74,16 @@ public function index(Request $request)
                 ->orWhere('id', 'LIKE', '%' . $request->search . '%')
                 ->orWhere('national_id', 'LIKE', '%' . $request->search . '%');
 
+            if (is_numeric($request->search)) {
+                $query->orWhereRaw('(
+                    select count(*) from trips
+                    where trips.status = "completed"
+                    and (
+                        trips.car_id in (select id from cars where cars.user_id = users.id)
+                        or trips.scooter_id in (select id from scooters where scooters.user_id = users.id)
+                    )
+                ) = ?', [(int) $request->search]);
+            }
         });
     }
 
