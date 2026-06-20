@@ -88,12 +88,12 @@ public function index(Request $request)
         $all_users->where('is_online', $request->online);
     }
 
-    if ($request->filled('trips_min')) {
-        $all_users->having('trips_count', '>=', (int) $request->trips_min);
-    }
-
-    if ($request->filled('trips_max')) {
-        $all_users->having('trips_count', '<=', (int) $request->trips_max);
+    if ($request->filled('trip_status')) {
+        if ($request->trip_status === 'has_trips') {
+            $all_users->having('trips_count', '>', 0);
+        } elseif ($request->trip_status === 'no_trips') {
+            $all_users->having('trips_count', '=', 0);
+        }
     }
 
     $count     = $all_users->count();
@@ -104,16 +104,15 @@ public function index(Request $request)
         return $user;
     });
 
-    $cities    = City::all();
-    $search    = $request->search;
-    $status    = $request->status;
-    $city      = auth()->user()->hasRole('Supervisor') ? 3 : $request->city;
-    $online    = $request->online;
-    $type      = $request->type;
-    $tripsMin  = $request->trips_min;
-    $tripsMax  = $request->trips_max;
+    $cities     = City::all();
+    $search     = $request->search;
+    $status     = $request->status;
+    $city       = auth()->user()->hasRole('Supervisor') ? 3 : $request->city;
+    $online     = $request->online;
+    $type       = $request->type;
+    $tripStatus = $request->trip_status;
 
-    return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type', 'tripsMin', 'tripsMax'));
+    return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type', 'tripStatus'));
 }
 
 // =========================================================================
