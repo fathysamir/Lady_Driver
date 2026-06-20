@@ -34,6 +34,21 @@ public function index(Request $request)
 {
     $all_users = User::where('mode', 'driver')->where('is_verified', '1');
 
+    // ── Attach a trips_count subquery (completed trips via car OR scooter) ──
+    $all_users->select('users.*')->selectSub(function ($q) {
+        $q->from('trips')
+            ->selectRaw('count(*)')
+            ->where('trips.status', 'completed')
+            ->where(function ($q2) {
+                $q2->whereIn('trips.car_id', function ($q3) {
+                        $q3->select('id')->from('cars')->whereColumn('cars.user_id', 'users.id');
+                    })
+                    ->orWhereIn('trips.scooter_id', function ($q3) {
+                        $q3->select('id')->from('scooters')->whereColumn('scooters.user_id', 'users.id');
+                    });
+            });
+    }, 'trips_count');
+
     if (auth()->user()->hasRole('Supervisor')) {
         $all_users->where('city_id', 3);
     }
@@ -73,6 +88,14 @@ public function index(Request $request)
         $all_users->where('is_online', $request->online);
     }
 
+    if ($request->filled('trips_min')) {
+        $all_users->having('trips_count', '>=', (int) $request->trips_min);
+    }
+
+    if ($request->filled('trips_max')) {
+        $all_users->having('trips_count', '<=', (int) $request->trips_max);
+    }
+
     $count     = $all_users->count();
     $all_users = $all_users->paginate(50);
 
@@ -81,14 +104,16 @@ public function index(Request $request)
         return $user;
     });
 
-    $cities = City::all();
-    $search = $request->search;
-    $status = $request->status;
-    $city   = auth()->user()->hasRole('Supervisor') ? 3 : $request->city;
-    $online = $request->online;
-    $type   = $request->type;
+    $cities    = City::all();
+    $search    = $request->search;
+    $status    = $request->status;
+    $city      = auth()->user()->hasRole('Supervisor') ? 3 : $request->city;
+    $online    = $request->online;
+    $type      = $request->type;
+    $tripsMin  = $request->trips_min;
+    $tripsMax  = $request->trips_max;
 
-    return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type'));
+    return view('dashboard.drivers.index', compact('all_users', 'cities', 'status', 'count', 'city', 'search', 'online', 'type', 'tripsMin', 'tripsMax'));
 }
 
 // =========================================================================

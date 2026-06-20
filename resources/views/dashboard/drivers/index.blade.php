@@ -112,6 +112,7 @@
                                 $isModeratorScooter  = $authUser->hasRole('Moderator Scooter');
                                 $isModeratorClient   = $authUser->hasRole('Moderator Client');
                                 $isAccountant        = $authUser->hasRole('Accountant');
+                                $hasTripsFilter      = request()->filled('trips_min') || request()->filled('trips_max');
                             @endphp
 
                             <div>
@@ -151,7 +152,7 @@
         <div class="export-dropdown-menu">
             <a href="{{ route('drivers.export', array_merge(
                     ['type' => $type, 'export_scope' => 'all'],
-                    array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online')], fn($v)=>$v!==null&&$v!=='')
+                    array_filter(['search'=>request('search'),'status'=>request('status'),'city'=>request('city'),'online'=>request('online'),'trips_min'=>request('trips_min'),'trips_max'=>request('trips_max')], fn($v)=>$v!==null&&$v!=='')
                 )) }}">Export All Drivers</a>
 
             <a href="javascript:void(0);" onclick="openCityExportModal(); event.stopPropagation();">
@@ -183,7 +184,7 @@
     </button>
 </div>
 
-                                    <div id="filterOptions" style="display: none; text-align:center;">
+                                    <div id="filterOptions" style="display: {{ $hasTripsFilter ? 'block' : 'none' }}; text-align:center;">
                                         <div style="display: flex;">
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="status">
                                                 <option value="">Select Status</option>
@@ -216,6 +217,15 @@
                                                 <option value="0" {{ request('online') === '0' ? 'selected' : '' }}>Offline</option>
                                             </select>
                                         </div>
+
+                                        {{-- Trip count filter row --}}
+                                        <div style="display:flex; margin-top:10px;">
+                                            <input type="number" min="0" class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
+                                                name="trips_min" placeholder="Min Trips" value="{{ request('trips_min') }}">
+                                            <input type="number" min="0" class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;"
+                                                name="trips_max" placeholder="Max Trips" value="{{ request('trips_max') }}">
+                                        </div>
+
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
                                     </div>
                                 </form>
@@ -254,6 +264,9 @@
                                             <th scope="col">National ID</th>
                                             <th scope="col">Status</th>
                                             <th scope="col">Level</th>
+                                            @if($hasTripsFilter)
+                                                <th scope="col">Trips</th>
+                                            @endif
                                             <th scope="col">Join Date</th>
                                             <th scope="col">Action</th>
                                         </tr>
@@ -313,6 +326,9 @@
                                                     </td>
 
                                                     <td>LV {{ $user->level }}</td>
+                                                    @if($hasTripsFilter)
+                                                        <td>{{ $user->trips_count ?? 0 }}</td>
+                                                    @endif
                                                     <td>{{ $user->created_at->format('d.M.Y h:i a') }}</td>
                                                     <td>
                                                         @php
@@ -343,18 +359,20 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="10">There are no Drivers.</td>
+                                                <td colspan="{{ $hasTripsFilter ? 11 : 10 }}">There are no Drivers.</td>
                                             </tr>
                                         @endif
                                     </tbody>
                                 </table>
                                 <div style="text-align: center;">
                                     {!! $all_users->appends([
-                                        'search' => request('search'),
-                                        'status' => request('status'),
-                                        'city'   => request('city'),
-                                        'online' => request('online'),
-                                        'type'   => request('type'),
+                                        'search'    => request('search'),
+                                        'status'    => request('status'),
+                                        'city'      => request('city'),
+                                        'online'    => request('online'),
+                                        'type'      => request('type'),
+                                        'trips_min' => request('trips_min'),
+                                        'trips_max' => request('trips_max'),
                                     ])->links('pagination::bootstrap-4') !!}
                                 </div>
                             </div>
@@ -570,6 +588,8 @@ function submitCityExport() {
     @if(request('search')) params.append('search', '{{ request('search') }}'); @endif
     @if(request('status')) params.append('status', '{{ request('status') }}'); @endif
     @if(request()->filled('online')) params.append('online', '{{ request('online') }}'); @endif
+    @if(request()->filled('trips_min')) params.append('trips_min', '{{ request('trips_min') }}'); @endif
+    @if(request()->filled('trips_max')) params.append('trips_max', '{{ request('trips_max') }}'); @endif
 
     closeCityExportModal();
     window.location.href = '{{ route('drivers.export') }}?' + params.toString();
@@ -811,6 +831,8 @@ function submitCityExport() {
         @if(request('status')) params.append('status', '{{ request('status') }}'); @endif
         @if(request('city'))   params.append('city',   '{{ request('city') }}');   @endif
         @if(request()->filled('online')) params.append('online', '{{ request('online') }}'); @endif
+        @if(request()->filled('trips_min')) params.append('trips_min', '{{ request('trips_min') }}'); @endif
+        @if(request()->filled('trips_max')) params.append('trips_max', '{{ request('trips_max') }}'); @endif
 
         closeDateRangeModal();
         window.location.href = '{{ route('drivers.export') }}?' + params.toString();
