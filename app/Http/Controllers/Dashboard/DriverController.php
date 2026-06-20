@@ -61,8 +61,11 @@ public function index(Request $request)
         $all_users->where('driver_type', 'scooter');
     }
 
-    $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
-
+    if ($request->filled('trip_status')) {
+        $all_users->orderBy('trips_count', 'desc');
+    } else {
+        $all_users->orderBy('created_at', 'desc')->orderByRaw("LOWER(name) COLLATE utf8mb4_general_ci");
+    }
     if ($request->has('search') && $request->search != null) {
         $all_users->where(function ($query) use ($request) {
             $query->where('name', 'LIKE', '%' . $request->search . '%')
