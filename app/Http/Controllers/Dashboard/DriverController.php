@@ -74,7 +74,7 @@ public function index(Request $request)
     }
 
     $count     = $all_users->count();
-    $all_users = $all_users->paginate(25);
+    $all_users = $all_users->paginate(50);
 
     $all_users->getCollection()->transform(function ($user) {
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
@@ -125,7 +125,7 @@ public function index_archives(Request $request)
 
     $all_users->whereNotNull('deleted_at');
     $count     = $all_users->count();
-    $all_users = $all_users->paginate(25);
+    $all_users = $all_users->paginate(50);
 
     $all_users->getCollection()->transform(function ($user) {
         $user->image = getFirstMediaUrl($user, $user->avatarCollection);
