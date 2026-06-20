@@ -184,8 +184,9 @@
     </button>
 </div>
 
-                                    <div id="filterOptions" style="display: {{ $hasTripsFilter ? 'block' : 'none' }}; text-align:center;">
-                                        <div style="display: flex;">
+                                   <div id="filterOptions" style="display: {{ $hasTripsFilter ? 'block' : 'none' }}; text-align:center;">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
                                             <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="status">
                                                 <option value="">Select Status</option>
                                                 <option value="pending"   {{ request('status') == 'pending'   ? 'selected' : '' }}>Pending</option>
@@ -216,16 +217,13 @@
                                                 <option value="1" {{ request('online') === '1' ? 'selected' : '' }}>Online</option>
                                                 <option value="0" {{ request('online') === '0' ? 'selected' : '' }}>Offline</option>
                                             </select>
-                                        </div>
 
-                                       {{-- Trip status filter row --}}
-                                       <div style="display:flex; margin-top:10px;">
-                                        <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="trip_status">
-                                            <option value="">Select Trip Status</option>
-                                            <option value="has_trips" {{ request('trip_status') == 'has_trips' ? 'selected' : '' }}>Made Trips</option>
-                                            <option value="no_trips"  {{ request('trip_status') == 'no_trips'  ? 'selected' : '' }}>No Trips</option>
-                                        </select>
-                                    </div>
+                                            <select class="form-control" style="width: 32%;margin: 0% 2% 0% 0%;" name="trip_status">
+                                                <option value="">Select Trip Status</option>
+                                                <option value="has_trips" {{ request('trip_status') == 'has_trips' ? 'selected' : '' }}>Made Trips</option>
+                                                <option value="no_trips"  {{ request('trip_status') == 'no_trips'  ? 'selected' : '' }}>No Trips</option>
+                                            </select>
+                                        </div>
 
                                         <button class="btn btn-light px-5" style="margin-top:10px" type="submit">Apply Filters</button>
                                     </div>
