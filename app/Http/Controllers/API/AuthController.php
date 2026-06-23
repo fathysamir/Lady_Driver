@@ -1364,7 +1364,7 @@ public function edit_personal_info(Request $request)
         try {
             $validator = Validator::make($request->all(), [
                 'email'    => 'required|string',
-                'token'    => 'required|string',
+                'token'    => 'nullable|string',
                 'password' => 'required|string|min:8|confirmed',
             ], [
                 'email.required'     => 'The email field is required.',
