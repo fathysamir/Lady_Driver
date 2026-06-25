@@ -51,20 +51,6 @@ class Trip extends Model
         'scheduled',
         'payment_method',
         'seen_count',
-        'arrival_state_started_at',
-'last_route_distance_m',
-'last_eta_seconds',
-'last_route_check_at',
-'opposite_side_detected',
-'suggested_pickup_lat',
-'suggested_pickup_lng',
-'pickup_point_status',
-    ];
-    protected $casts = [
-        'driver_arrived' => 'datetime',
-        'arrival_state_started_at' => 'datetime',
-        'last_route_check_at' => 'datetime',
-        'opposite_side_detected' => 'boolean',
     ];
     protected $appends = ['is_driver_arrived'];
 

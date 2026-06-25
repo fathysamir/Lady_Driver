@@ -2293,18 +2293,6 @@ if ($trip->car_id != null && $trip->car) {
 
     }
 
-
-    /**
-     * =========================================================================
-     *  التعديل المطلوب على دالة update_location() الحالية
-     *  (التغييرات فقط — باقي الدالة يبقى كما هو)
-     * =========================================================================
-     *
-     * التغيير الوحيد الجوهري هنا: تمرير $speed إلى $tracker->calculate(),
-     * لأن شرط "سرعة السائق ≤ 5 كم/س" أساسي في منطق الوصول الجديد ولم يكن
-     * يُستخدم سابقًا على الإطلاق.
-     */
-
     private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
     {
         $data = json_decode($trackCarRequest, true);
@@ -2332,53 +2320,25 @@ if ($trip->car_id != null && $trip->car) {
 
         $tracker = app(\App\Services\TripTrackingService::class);
         $trip = null;
-        $wasArrivedBefore = false;
 
         // ================= TRIP =================
         if ($driver->car) {
-            $driver->car->update(compact('lat', 'lng', 'heading', 'speed'));
+            $driver->car->update(compact('lat','lng','heading','speed'));
 
             $trip = Trip::where('car_id', $driver->car->id)
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->first();
-        } elseif ($driver->scooter) {
-            $driver->scooter->update(compact('lat', 'lng', 'heading', 'speed'));
+        }
+
+        elseif ($driver->scooter) {
+            $driver->scooter->update(compact('lat','lng','heading','speed'));
 
             $trip = Trip::where('scooter_id', $driver->scooter->id)
                 ->whereIn('status', ['pending', 'in_progress'])
                 ->first();
         }
-        if ($trip) {
-            $wasArrivedBefore = $trip->is_driver_arrived;
-        }
 
-        // 👇 التغيير الأساسي: تمرير $speed كمعامل رابع
-        // ملفوف بـ try/catch حماية لو حصل خطأ غير متوقع (مثلاً Google API
-        // رجع شكل غريب أو فشل اتصال) لا يكسر الـ WebSocket لكل المستخدمين.
-        $result = null;
-
-        if ($trip) {
-            try {
-                $result = $tracker->calculate($lat, $lng, $trip, $speed);
-            } catch (\Throwable $e) {
-                \Log::error('TripTrackingService::calculate failed', [
-                    'trip_id' => $trip->id,
-                    'error'   => $e->getMessage(),
-                ]);
-                $result = null;
-            }
-        }
-
-        // إطلاق DriverReached Event مرة واحدة فقط عند لحظة الوصول الفعلية
-        // (وليس في كل tick بعد الوصول) — لتفادي إشعارات/برودكاست مكررة.
-        if ($trip && ($result['driver_arrived'] ?? false) && !$wasArrivedBefore) {
-            event(new \App\Events\DriverReached([
-                'trip_id'  => $trip->id,
-                'message'  => $result['message']['ar'] ?? 'السائق وصل',
-                'distance' => $result['distance'] ?? 0,
-                'trip'     => $trip,
-            ], $trip->user_id));
-        }
+        $result = $trip ? $tracker->calculate($lat, $lng, $trip) : null;
 
         // ================= SAFE PAYLOAD =================
         $payload = [
@@ -2394,9 +2354,7 @@ if ($trip->car_id != null && $trip->car) {
                 'eta'      => $result['eta'] ?? null,
                 'status'   => $result['status'] ?? 'on_the_way',
 
-                // 👇 جديد: معلومات اكتشاف "الجانب الآخر من الطريق"
-                'opposite_side_detected' => $result['opposite_side_detected'] ?? false,
-
+                // 👇 flattened to avoid frontend issues
                 'message_en' => $result['message']['en'] ?? null,
                 'message_ar' => $result['message']['ar'] ?? null,
             ],
