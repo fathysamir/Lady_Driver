@@ -25,6 +25,8 @@ class ClientRegisterRequest extends FormRequest
             'name'         => 'required|string|max:255',
             'email'        => [
                 'required', 'string', 'email', 'max:255',
+                'email:rfc',
+                'regex:/^[^@\s]+@[^@\s]+\.[^@\s]+$/',
                 Rule::unique('users', 'email')->whereNull('deleted_at'),
 
             ],
