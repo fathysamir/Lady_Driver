@@ -167,7 +167,6 @@
                 </a>
             </li>
         @endcan
-        @if (!in_array(auth()->user()->role, ['Moderator Standard', 'Moderator Comfort', 'Moderator Scooter']))
         @canany(['dashboard.messages.send'])
             <li class="sidebar-item">
                 <a href="#" class="dropdown-toggle" onclick="toggleSubmenu(event, this)">
@@ -201,7 +200,6 @@
                 </a>
             </li>
         @endcan
-    @endif
         @can('privacy.policy.edit')
             <li>
                 <a href="{{ url('/admin-dashboard/privacy-policy') }}">
