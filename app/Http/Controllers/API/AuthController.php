@@ -925,7 +925,7 @@ if ($deletedPhone) {
                 ? 'هذا الحساب غير مفعل. يرجى التحقق من رمز OTP.'
                 : 'This account is not verified. Please verify your OTP.';
 
-            return $this->sendResponse($user, $message, 200);
+            return $this->sendError($user, $message, 403);
         }
 
         if ($request->device_token) {
