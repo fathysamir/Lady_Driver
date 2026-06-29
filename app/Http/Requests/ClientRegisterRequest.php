@@ -20,34 +20,36 @@ class ClientRegisterRequest extends FormRequest
     }
 
     public function rules(): array
-    {
-        return [
-            'name'         => 'required|string|max:255',
-            'email'        => [
-                'required', 'string', 'email', 'max:255',
-                'email:rfc',
-                'regex:/^[^@\s]+@[^@\s]+\.[^@\s]+$/',
-                Rule::unique('users', 'email')->whereNull('deleted_at'),
-
-            ],
-            'password'     => 'required|string|min:8|confirmed',
-            'country_code' => 'required|string|max:10',
-            'phone'        => [
-                'required',
-                Rule::unique('users')->where(function ($query) {
-                    return $query->where('country_code', $this->country_code)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'birth_date'   => [
-                'required', 'date',
-                'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
-                'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            ],
-            'city_id'      => ['nullable', Rule::exists('cities', 'id')->whereNull('deleted_at')],
-        ];
-    }
+{
+    return [
+        'name'         => 'required|string|max:255',
+        'email'        => [
+            'required', 'string', 'email', 'max:255',
+            'email:rfc',
+            'regex:/^[^@\s]+@[^@\s]+\.[^@\s]+$/',
+            Rule::unique('users', 'email')
+                ->whereNull('deleted_at')
+                ->where(fn($q) => $q->where('status', '!=', 'pending')),
+        ],
+        'password'     => 'required|string|min:8|confirmed',
+        'country_code' => 'required|string|max:10',
+        'phone'        => [
+            'required',
+            Rule::unique('users')->where(function ($query) {
+                return $query->where('country_code', $this->country_code)
+                    ->whereNull('deleted_at')
+                    ->where('status', '!=', 'pending');
+            }),
+        ],
+        'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'birth_date'   => [
+            'required', 'date',
+            'before_or_equal:' . now()->subYears(16)->format('Y-m-d'),
+            'regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
+        ],
+        'city_id'      => ['nullable', Rule::exists('cities', 'id')->whereNull('deleted_at')],
+    ];
+}
 
     public function messages(): array
     {
