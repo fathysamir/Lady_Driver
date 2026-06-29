@@ -921,7 +921,11 @@ if ($deletedPhone) {
             $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
             $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
 
-            return $this->sendResponse($user, 'This account is not verified', 200);
+            $message = $lang === 'ar'
+                ? 'هذا الحساب غير مفعل. يرجى التحقق من رمز OTP.'
+                : 'This account is not verified. Please verify your OTP.';
+
+            return $this->sendResponse($user, $message, 200);
         }
 
         if ($request->device_token) {
