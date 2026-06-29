@@ -844,7 +844,6 @@ if ($deletedPhone) {
     {
         $lang = $request->header('Accept-Language', 'en');
 
-
         $login     = $request->email;
         $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
         $user      = User::where($fieldType, $login)->first();
@@ -895,6 +894,7 @@ if ($deletedPhone) {
             Log::channel($logChannel)->info('Successful login', [
                 $fieldType => $login,
             ]);
+
         } else {
 
             Log::channel($logChannel)->info('User not found', [
@@ -903,8 +903,13 @@ if ($deletedPhone) {
 
             RateLimiter::hit($key, $lockMinutes * 60);
 
-            return $this->sendError(null, "Invalid $fieldType", 401);
+            $message = $lang === 'ar'
+                ? 'هذا الايميل غير مسجل في النظام.'
+                : 'This email is not registered in the system.';
+
+            return $this->sendError(null, $message, 401);
         }
+
         if ($user->status == 'blocked') {
             return $this->sendError(null, 'This account is blocked', 401);
         }
@@ -918,6 +923,7 @@ if ($deletedPhone) {
 
             return $this->sendResponse($user, 'This account is not verified', 200);
         }
+
         if ($request->device_token) {
             DB::table('users')
                 ->where('device_token', $request->device_token)
@@ -928,10 +934,12 @@ if ($deletedPhone) {
         $user->device_token = $request->device_token;
         $user->is_online    = '1';
         $user->save();
-            if ($request->device_token) {
-                $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
+
+        if ($request->device_token) {
+            $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
         }
-        $user->token = $user->createToken('fcm::' . ($request->device_token ?? 'no-device'))->plainTextToken;
+
+        $user->token        = $user->createToken('fcm::' . ($request->device_token ?? 'no-device'))->plainTextToken;
         $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
         $user->hasVehicle   = $user->car()->exists() || $user->scooter()->exists();
         $user->driver_type  = ($user->driver_type == 'car' || $user->driver_type == 'comfort_car') ? 'car' : $user->driver_type;
