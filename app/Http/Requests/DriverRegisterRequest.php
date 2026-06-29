@@ -26,7 +26,8 @@ class DriverRegisterRequest extends FormRequest
             'name'                        => 'required|string|max:255',
             'email'                       => [
                 'required', 'string', 'email', 'max:255',
-                Rule::unique('users', 'email')->whereNull('deleted_at'),
+                Rule::unique('users', 'email')->whereNull('deleted_at')
+                ->where(fn($q) => $q->where('status', '!=', 'pending')),
 
             ],
             'password'                    => 'required|string|min:8|confirmed',
@@ -35,7 +36,8 @@ class DriverRegisterRequest extends FormRequest
                 'required',
                 Rule::unique('users')->where(function ($query) {
                     return $query->where('country_code', $this->country_code)
-                        ->whereNull('deleted_at');
+                        ->whereNull('deleted_at')
+                        ->where('status', '!=', 'pending');
                 }),
             ],
             'image'                       => ['required', new ValidPublicImage],
