@@ -44,6 +44,7 @@
                                             <td></td>
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>   {{-- new header, after Email --}}
                                             <th scope="col">Subject</th>
                                             <th scope="col">Message</th>
                                             <th scope="col">Action</th>
@@ -62,6 +63,7 @@
                                                     </td>
                                                     <td>{!! highlight($contact_us->name, $search ?? '') !!}</td>
                                                     <td>{!! highlight($contact_us->email, $search ?? '') !!}</td>
+                                                    <td>{!! highlight($contact_us->phone ?? '-', $search ?? '') !!}</td>   {{-- new cell, after Email --}}
                                                     <td>{!! highlight($contact_us->subject, $search ?? '') !!}</td>
                                                     <td>
                                                         @if (strlen($contact_us->message) > 50)
