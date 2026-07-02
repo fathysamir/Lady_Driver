@@ -1469,52 +1469,52 @@ public function edit_personal_info(Request $request)
     }
 
     public function save_contact_us(SaveContactUsRequest $request)
-    {
-        $user = auth('sanctum')->user();
+{
+    $user = auth('sanctum')->user();
 
-        $contact = ContactUs::create([
-            'subject' => $request->subject,
-            'name'    => $request->name,
-            'email'   => $request->email,
-            'phone'   => $user?->phone,
-            'message' => $request->message,
-            'seen'    => '0',
-        ]);
+    $contact = ContactUs::create([
+        'subject' => $request->subject,
+        'name'    => $request->name,
+        'email'   => $request->email,
+        'phone'   => $user ? (($user->country_code ?? '') . ($user->phone ?? '')) : null,
+        'message' => $request->message,
+        'seen'    => '0',
+    ]);
 
-        if ($request->hasFile('attachment')) {
-            uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
-        }
-
-        $message = $request->header('Accept-Language') === 'ar'
-            ? 'تم إرسال طلبك وسنرد عليك لاحقاً.'
-            : 'Your request has been sent and we will respond to you later.';
-
-        return $this->sendResponse(null, $message, 200);
+    if ($request->hasFile('attachment')) {
+        uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
     }
 
-    public function save_report_issue(SaveReportIssueRequest $request)
-    {
-        $user = auth('sanctum')->user();
+    $message = $request->header('Accept-Language') === 'ar'
+        ? 'تم إرسال طلبك وسنرد عليك لاحقاً.'
+        : 'Your request has been sent and we will respond to you later.';
 
-        $contact = ContactUs::create([
-            'subject' => $request->issue_type,
-            'name'    => $user?->name  ?? 'App User',
-            'email'   => $user?->email ?? 'no-email@app.com',
-            'phone'   => $user?->phone,
-            'message' => $request->message,
-            'seen'    => '0',
-        ]);
+    return $this->sendResponse(null, $message, 200);
+}
 
-        if ($request->hasFile('attachment')) {
-            uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
-        }
+public function save_report_issue(SaveReportIssueRequest $request)
+{
+    $user = auth('sanctum')->user();
 
-        $message = $request->header('Accept-Language') === 'ar'
-            ? 'تم إرسال بلاغك وسنراجعه فوراً.'
-            : 'Your report has been submitted and will be reviewed immediately.';
+    $contact = ContactUs::create([
+        'subject' => $request->issue_type,
+        'name'    => $user?->name  ?? 'App User',
+        'email'   => $user?->email ?? 'no-email@app.com',
+        'phone'   => $user ? (($user->country_code ?? '') . ($user->phone ?? '')) : null,
+        'message' => $request->message,
+        'seen'    => '0',
+    ]);
 
-        return $this->sendResponse(null, $message, 200);
+    if ($request->hasFile('attachment')) {
+        uploadMedia($request->file('attachment'), $contact->attachmentCollection, $contact);
     }
+
+    $message = $request->header('Accept-Language') === 'ar'
+        ? 'تم إرسال بلاغك وسنراجعه فوراً.'
+        : 'Your report has been submitted and will be reviewed immediately.';
+
+    return $this->sendResponse(null, $message, 200);
+}
     /////////////////////////////// محتاجة نزود الحاجات الناقصة ///////////////////////////
 
     public function about_us()
