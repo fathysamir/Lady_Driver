@@ -182,16 +182,16 @@
 
                                                 {{-- Driver & Vehicle --}}
                                                 @if ($type === 'scooter')
-                                                    <td>
-                                                        <span class="user-profile">
-                                                            <img src="{{ ($trip->scooter && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection)) ? getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
-                                                                 class="img-circle"
-                                                                 alt="user avatar"
-                                                                 onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
-                                                        </span>
-                                                        {!! $trip->scooter ? highlight($trip->scooter->owner->name, $search ?? '') : 'N/A' !!}
-                                                    </td>
-                                                    <td>{!! highlight($trip->scooter->owner->phone ?? 'N/A', $search ?? '') !!}</td>
+                                                <td>
+                                                    <span class="user-profile">
+                                                        <img src="{{ ($trip->scooter && $trip->scooter->owner && getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection)) ? getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
+                                                             class="img-circle"
+                                                             alt="user avatar"
+                                                             onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
+                                                    </span>
+                                                    {!! ($trip->scooter && $trip->scooter->owner) ? highlight($trip->scooter->owner->name, $search ?? '') : 'N/A' !!}
+                                                </td>
+                                                <td>{!! highlight(optional(optional($trip->scooter)->owner)->phone ?? 'N/A', $search ?? '') !!}</td>
                                                     <td>
                                                         @if ($trip->scooter)
                                                             {{ $trip->scooter->motorcycleMark->en_name ?? 'N/A' }} -
@@ -202,16 +202,16 @@
                                                         @endif
                                                     </td>
                                                 @else
-                                                    <td>
-                                                        <span class="user-profile">
-                                                            <img src="{{ ($trip->car && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection)) ? getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
-                                                                 class="img-circle"
-                                                                 alt="user avatar"
-                                                                 onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
-                                                        </span>
-                                                        {!! $trip->car ? highlight($trip->car->owner->name, $search ?? '') : 'N/A' !!}
-                                                    </td>
-                                                    <td>{!! highlight($trip->car->owner->phone ?? 'N/A', $search ?? '') !!}</td>
+                                                <td>
+                                                    <span class="user-profile">
+                                                        <img src="{{ ($trip->car && $trip->car->owner && getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection)) ? getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection) : asset('dashboard/user_avatar.png') }}"
+                                                             class="img-circle"
+                                                             alt="user avatar"
+                                                             onerror="this.onerror=null; this.src='{{ asset('dashboard/user_avatar.png') }}';">
+                                                    </span>
+                                                    {!! ($trip->car && $trip->car->owner) ? highlight($trip->car->owner->name, $search ?? '') : 'N/A' !!}
+                                                </td>
+                                                <td>{!! highlight(optional(optional($trip->car)->owner)->phone ?? 'N/A', $search ?? '') !!}</td>
                                                     <td>
                                                         @if ($trip->car)
                                                             {{ $trip->car->mark->name }} -
