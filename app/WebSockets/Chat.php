@@ -168,7 +168,7 @@ private function sendPushNotification(string $deviceToken, array $data): void
                 'android' => [
                     'priority' => 'high',
                     'notification' => [
-                        'channel_id' => 'default',
+                        'channel_id' => 'high_importance_channel',
                         'sound' => 'default',
                     ],
                 ],
