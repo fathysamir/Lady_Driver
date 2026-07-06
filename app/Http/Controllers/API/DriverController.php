@@ -809,6 +809,11 @@ class DriverController extends ApiController
             return $this->sendError(null, $check_account, 400);
         }
 
+        $request->validate([
+            'lat' => 'nullable|numeric',
+            'lng' => 'nullable|numeric',
+        ]);
+
         $user = auth()->user();
 
         if (!$user->is_online) {
@@ -827,22 +832,26 @@ class DriverController extends ApiController
             return $this->sendError(null, "Account under review", 400);
         }
 
+        // Prefer lat/lng sent with the request; fall back to the vehicle's last saved location
+        $lat = $request->filled('lat') ? $request->lat : $vehicle->lat;
+        $lng = $request->filled('lng') ? $request->lng : $vehicle->lng;
+
+        if (empty($lat) || empty($lng)) {
+            return $this->sendError(null, "Please update your location first", 400);
+        }
+
+        $lat = (float) $lat;
+        $lng = (float) $lng;
+
+        // Save the fresh location back to the vehicle, if it was sent in the request
+        if ($request->filled('lat') && $request->filled('lng')) {
+            $vehicle->update([
+                'lat' => $lat,
+                'lng' => $lng,
+            ]);
+        }
+
         $radius = 6371;
-
-        $vehicle = $user->driver_type == 'scooter'
-    ? Scooter::where('user_id', $user->id)->first()
-    : Car::where('user_id', $user->id)->first();
-
-if (!$vehicle) {
-    return $this->sendError(null, "No vehicle found", 400);
-}
-
-if (empty($vehicle->lat) || empty($vehicle->lng)) {
-    return $this->sendError(null, "Please update your location first", 400);
-}
-
-$lat = (float) $vehicle->lat;
-$lng = (float) $vehicle->lng;
 
         $trips = Trip::query()
             ->whereIn('status', ['created', 'scheduled', 'in_progress'])
@@ -885,12 +894,12 @@ $lng = (float) $vehicle->lng;
             ->latest()
             ->get();
 
-        $trips->transform(function ($trip) use ($vehicle) {
+        $trips->transform(function ($trip) use ($lat, $lng) {
 
             // distance + duration
             $response = calculate_distance(
-                $vehicle->lat,
-                $vehicle->lng,
+                $lat,
+                $lng,
                 $trip->start_lat,
                 $trip->start_lng
             );
@@ -900,18 +909,16 @@ $lng = (float) $vehicle->lng;
 
             // barcode
             $trip->barcode = url(barcodeImage($trip->id));
+
+            // Clean car plate
             if ($trip->car) {
                 $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
             }
-            // Clean car plate
-if ($trip->car) {
-    $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-}
 
-// Clean scooter plate
-if ($trip->scooter) {
-    $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-}
+            // Clean scooter plate
+            if ($trip->scooter) {
+                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+            }
 
             // driver arrived
             $trip->is_driver_arrived = !is_null($trip->driver_arrived);
@@ -967,21 +974,6 @@ if ($trip->scooter) {
         });
 
         return $this->sendResponse($trips->values(), null, 200);
-    }
-    public function activation()
-    {
-        $user = auth()->user();
-        if ($user->is_online == '1') {
-            $user->is_online = '0';
-            $user->save();
-            return $this->sendResponse(null, 'you are Offline', 200);
-        } else {
-            $user->is_online = '1';
-            $user->save();
-            return $this->sendResponse(null, 'you are online', 200);
-
-        }
-
     }
     public function driver_current_trip()
     {
