@@ -829,8 +829,20 @@ class DriverController extends ApiController
 
         $radius = 6371;
 
-        $lat = $vehicle->lat;
-        $lng = $vehicle->lng;
+        $vehicle = $user->driver_type == 'scooter'
+    ? Scooter::where('user_id', $user->id)->first()
+    : Car::where('user_id', $user->id)->first();
+
+if (!$vehicle) {
+    return $this->sendError(null, "No vehicle found", 400);
+}
+
+if (empty($vehicle->lat) || empty($vehicle->lng)) {
+    return $this->sendError(null, "Please update your location first", 400);
+}
+
+$lat = (float) $vehicle->lat;
+$lng = (float) $vehicle->lng;
 
         $trips = Trip::query()
             ->whereIn('status', ['created', 'scheduled', 'in_progress'])
