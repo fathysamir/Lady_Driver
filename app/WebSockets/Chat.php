@@ -31,6 +31,7 @@ class Chat implements MessageComponentInterface
     private $clientUserIdMap;
     private $cachedAccessToken = null;
 private $tokenExpiresAt = 0;
+private $routeCache = [];
 
     public function __construct($loop)
     {
@@ -2340,7 +2341,26 @@ if ($trip->car_id != null && $trip->car) {
 
         $result = $trip ? $tracker->calculate($lat, $lng, $trip) : null;
 
-        // ================= SAFE PAYLOAD =================
+        // ================= ROUTE (polyline) =================
+        // Driver app only sends "route" when it actually changed.
+        // Cache last known route per trip so every track_car broadcast
+        // still carries the current route.
+        $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$AuthUserID}";
+
+        if (isset($data['route']) && is_array($data['route'])) {
+            $this->routeCache[$routeKey] = [
+                'polyline'   => $data['route']['polyline']   ?? null,
+                'version'    => $data['route']['version']    ?? null,
+                'kind'       => $data['route']['kind']       ?? null,
+                'distance_m' => $data['route']['distance_m'] ?? null,
+                'duration_s' => $data['route']['duration_s'] ?? null,
+            ];
+            echo "🛣️ Route updated for {$routeKey} (v{$this->routeCache[$routeKey]['version']}, {$this->routeCache[$routeKey]['kind']})\n";
+        }
+
+        $route = $this->routeCache[$routeKey] ?? null;
+
+        // ================= SAFE PAYLOAD (matches spec field order) =================
         $payload = [
             'type' => 'track_car',
             'data' => [
@@ -2349,14 +2369,17 @@ if ($trip->car_id != null && $trip->car) {
                 'heading' => $heading,
                 'speed'   => $speed,
 
-                'distance' => $result['distance'] ?? null,
-                'duration' => $result['duration'] ?? null,
                 'eta'      => $result['eta'] ?? null,
+                'distance' => $route['distance_m'] ?? ($result['distance'] ?? null),
+                'duration' => $route['duration_s'] ?? ($result['duration'] ?? null),
                 'status'   => $result['status'] ?? 'on_the_way',
 
-                // 👇 flattened to avoid frontend issues
                 'message_en' => $result['message']['en'] ?? null,
                 'message_ar' => $result['message']['ar'] ?? null,
+
+                'route_polyline' => $route['polyline'] ?? null,
+                'route_version'  => $route['version']  ?? null,
+                'route_kind'     => $route['kind']     ?? null,
             ],
         ];
 
@@ -2374,6 +2397,11 @@ if ($trip->car_id != null && $trip->car) {
         }
 
         $from->send($res);
+
+        // Clean up cached route once the trip is over
+        if ($trip && in_array($trip->status, ['completed', 'cancelled', 'expired'])) {
+            unset($this->routeCache[$routeKey]);
+        }
     }
     public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
     {
