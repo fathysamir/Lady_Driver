@@ -832,7 +832,7 @@ $discount   = $priceResult['discount'];
                     "ROUND((6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))), ?) AS distance",
                     [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                 )
-                ->having('distance', '<=', 3)
+                ->having('distance', '<=', 0.5)
                 ->get()
                 ->filter(function ($car) use ($trip) {
                     $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
@@ -894,7 +894,7 @@ $discount   = $priceResult['discount'];
                     "ROUND((6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))), ?) AS distance",
                     [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                 )
-                ->having('distance', '<=', 3)
+                ->having('distance', '<=', 0.5)
                 ->get();
 
             $eligibleDriverIds = [];
@@ -947,7 +947,7 @@ $discount   = $priceResult['discount'];
                     "ROUND((6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))), ?) AS distance",
                     [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                 )
-                ->having('distance', '<=', 3)
+                ->having('distance', '<=', 0.5)
                 ->get();
                 echo "🛵 Eligible scooters count: " . $eligibleScooters->count() . "\n";
                 $allScooters = Scooter::where('status', 'confirmed')
@@ -1147,7 +1147,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     ) AS distance",
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
-                        ->having('distance', '<=', 3)
+                        ->having('distance', '<=', 0.5)
                         ->get();
                     /*    ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
@@ -1238,7 +1238,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     ) AS distance",
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
-                        ->having('distance', '<=', 3)
+                        ->having('distance', '<=', 0.5)
                         ->get();
                      /*   ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
@@ -1320,7 +1320,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     ) AS distance",
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
-                        ->having('distance', '<=', 3)
+                        ->having('distance', '<=', 0.5)
                         ->get();
                       /*  ->filter(function ($scooter) use ($trip) {
                             $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
@@ -2083,7 +2083,7 @@ if ($trip->car_id != null && $trip->car) {
                     ) AS distance",
                                 [$n_trip->start_lat, $n_trip->start_lng, $n_trip->start_lat, $decimalPlaces]
                             )
-                            ->having('distance', '<=', 3)
+                            ->having('distance', '<=', 0.5)
                             ->get();
                           /*  ->filter(function ($car) use ($n_trip) {
                                 $response = calculate_distance($car->lat, $car->lng, $n_trip->start_lat, $n_trip->start_lng);
@@ -2165,7 +2165,7 @@ if ($trip->car_id != null && $trip->car) {
                     ) AS distance",
                                 [$n_trip->start_lat, $n_trip->start_lng, $n_trip->start_lat, $decimalPlaces]
                             )
-                            ->having('distance', '<=', 3)
+                            ->having('distance', '<=', 0.5)
                             ->get();
                           /*  ->filter(function ($car) use ($n_trip) {
                                 $response = calculate_distance($car->lat, $car->lng, $n_trip->start_lat, $n_trip->start_lng);
@@ -2238,7 +2238,7 @@ if ($trip->car_id != null && $trip->car) {
                     ) AS distance",
                                 [$n_trip->start_lat, $n_trip->start_lng, $n_trip->start_lat, $decimalPlaces]
                             )
-                            ->having('distance', '<=', 3)
+                            ->having('distance', '<=', 0.5)
                             ->get();
                            /* ->filter(function ($scooter) use ($n_trip) {
                                 $response = calculate_distance($scooter->lat, $scooter->lng, $n_trip->start_lat, $n_trip->start_lng);
@@ -2933,7 +2933,7 @@ if ($trip->car_id != null && $trip->car) {
                     ) AS distance",
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
-                        ->having('distance', '<=', 3)
+                        ->having('distance', '<=', 0.5)
                         ->get();
                        /* ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
@@ -3010,7 +3010,7 @@ if ($trip->car_id != null && $trip->car) {
                     ) AS distance",
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
-                        ->having('distance', '<=', 3)
+                        ->having('distance', '<=', 0.5)
                         ->get();
                       /*  ->filter(function ($car) use ($trip) {
                             $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
@@ -3078,7 +3078,7 @@ if ($trip->car_id != null && $trip->car) {
                     ) AS distance",
                             [$trip->start_lat, $trip->start_lng, $trip->start_lat, $decimalPlaces]
                         )
-                        ->having('distance', '<=', 3)
+                        ->having('distance', '<=', 0.5)
                         ->get();
                         /*->filter(function ($scooter) use ($trip) {
                             $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
