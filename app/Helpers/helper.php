@@ -360,3 +360,17 @@ function getUserFcmTokens($user): array
         ->values()
         ->toArray();
 }
+function busyCarIds()
+{
+    return Trip::whereIn('status', ['pending', 'in_progress'])
+        ->whereNotNull('car_id')
+        ->pluck('car_id')
+        ->toArray();
+}
+function busyScooterIds()
+{
+    return Trip::whereIn('status', ['pending', 'in_progress'])
+        ->whereNotNull('scooter_id')
+        ->pluck('scooter_id')
+        ->toArray();
+}

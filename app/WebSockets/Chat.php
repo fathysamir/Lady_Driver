@@ -818,6 +818,7 @@ $discount   = $priceResult['discount'];
             $decimalPlaces          = 2;
             $eligibleCars           = Car::where('status', 'confirmed')
                 ->where('is_comfort', '0')
+                ->whereNotIn('id', busyCarIds())
                 ->whereHas('owner', function ($query) {
                     $query->where('is_online', '1')->where('status', 'confirmed');
                 })
@@ -880,6 +881,7 @@ $discount   = $priceResult['discount'];
             $decimalPlaces          = 2;
             $eligibleCars           = Car::where('status', 'confirmed')
                 ->where('is_comfort', '1')
+                ->whereNotIn('id', busyCarIds())
                 ->whereHas('owner', function ($query) {
                     $query->where('is_online', '1')->where('status', 'confirmed');
                 })
@@ -936,6 +938,7 @@ $discount   = $priceResult['discount'];
             $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
             $decimalPlaces          = 2;
             $eligibleScooters       = Scooter::where('status', 'confirmed')
+            ->whereNotIn('id', busyScooterIds())   // لـ scooter
                 ->whereHas('owner', function ($query) {
                     $query->where('is_online', '1')->where('status', 'confirmed');
                 })
@@ -1119,6 +1122,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
                     $decimalPlaces          = 2;
                     $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '0')
+                    ->whereNotIn('id', busyCarIds())
 
                         ->whereHas('owner', function ($query) {
                             $query->where('is_online', '1')
@@ -1211,6 +1215,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
                     $decimalPlaces          = 2;
                     $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '1')
+                    ->whereNotIn('id', busyCarIds())
 
                         ->whereHas('owner', function ($query) {
                             $query->where('is_online', '1')
@@ -1300,6 +1305,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
                     $decimalPlaces          = 2;
                     $eligibleScooters       = Scooter::where('status', 'confirmed')
+                    ->whereNotIn('id', busyScooterIds())
 
                         ->whereHas('owner', function ($query) {
                             $query->where('is_online', '1')
@@ -2052,6 +2058,7 @@ if ($trip->car_id != null && $trip->car) {
                         $application_commission = Setting::where('key', 'application_commission')->where('category', 'Car Trips')->where('type', 'boolean')->first()->value;
                         $decimalPlaces          = 2;
                         $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '0')
+                        ->whereNotIn('id', busyCarIds())
 
                             ->whereHas('owner', function ($query) {
                                 $query->where('is_online', '1')
@@ -2135,6 +2142,7 @@ if ($trip->car_id != null && $trip->car) {
                         $application_commission = Setting::where('key', 'application_commission')->where('category', 'Comfort Trips')->where('type', 'boolean')->first()->value;
                         $decimalPlaces          = 2;
                         $eligibleCars           = Car::where('status', 'confirmed')->where('is_comfort', '1')
+                        ->whereNotIn('id', busyCarIds())
 
                             ->whereHas('owner', function ($query) {
                                 $query->where('is_online', '1')
@@ -2215,6 +2223,7 @@ if ($trip->car_id != null && $trip->car) {
                         $application_commission = Setting::where('key', 'application_commission')->where('category', 'Scooter Trips')->where('type', 'boolean')->first()->value;
                         $decimalPlaces          = 2;
                         $eligibleScooters       = Scooter::where('status', 'confirmed')
+                        ->whereNotIn('id', busyScooterIds())
 
                             ->whereHas('owner', function ($query) {
                                 $query->where('is_online', '1')
