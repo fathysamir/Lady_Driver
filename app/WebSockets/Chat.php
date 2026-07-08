@@ -2295,114 +2295,129 @@ if ($trip->car_id != null && $trip->car) {
     }
 
     private function update_location(ConnectionInterface $from, $AuthUserID, $trackCarRequest)
-    {
-        $data = json_decode($trackCarRequest, true);
+{
+    $data = json_decode($trackCarRequest, true);
 
-        if (!$data) {
-            return;
-        }
+    if (!$data) {
+        return;
+    }
 
-        $lat = (float) ($data['lat'] ?? 0);
-        $lng = (float) ($data['lng'] ?? 0);
+    $lat = (float) ($data['lat'] ?? 0);
+    $lng = (float) ($data['lng'] ?? 0);
 
-        $heading = isset($data['heading']) ? (float) $data['heading'] : 0;
-        $speed   = isset($data['speed']) ? (float) $data['speed'] : 0;
+    $heading = isset($data['heading']) ? (float) $data['heading'] : 0;
+    $speed   = isset($data['speed']) ? (float) $data['speed'] : 0;
 
-        $driver = User::with(['car', 'scooter'])->find($AuthUserID);
+    $driver = User::with(['car', 'scooter'])->find($AuthUserID);
 
-        if (!$driver) return;
+    if (!$driver) return;
 
-        $driver->update([
-            'lat' => $lat,
-            'lng' => $lng,
-            'heading' => $heading,
-            'speed' => $speed,
-        ]);
+    $driver->update([
+        'lat' => $lat,
+        'lng' => $lng,
+        'heading' => $heading,
+        'speed' => $speed,
+    ]);
 
-        $tracker = app(\App\Services\TripTrackingService::class);
-        $trip = null;
+    $trip = null;
 
-        // ================= TRIP =================
-        if ($driver->car) {
-            $driver->car->update(compact('lat','lng','heading','speed'));
+    // ================= TRIP =================
+    if ($driver->car) {
+        $driver->car->update(compact('lat','lng','heading','speed'));
 
-            $trip = Trip::where('car_id', $driver->car->id)
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->first();
-        }
+        $trip = Trip::where('car_id', $driver->car->id)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->first();
+    }
 
-        elseif ($driver->scooter) {
-            $driver->scooter->update(compact('lat','lng','heading','speed'));
+    elseif ($driver->scooter) {
+        $driver->scooter->update(compact('lat','lng','heading','speed'));
 
-            $trip = Trip::where('scooter_id', $driver->scooter->id)
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->first();
-        }
+        $trip = Trip::where('scooter_id', $driver->scooter->id)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->first();
+    }
 
-        $result = $trip ? $tracker->calculate($lat, $lng, $trip) : null;
+    // ================= ROUTE (client-supplied, free — no Google cost) =================
+    $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$AuthUserID}";
 
-        // ================= ROUTE (polyline) =================
-        // Driver app only sends "route" when it actually changed.
-        // Cache last known route per trip so every track_car broadcast
-        // still carries the current route.
-        $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$AuthUserID}";
-
-        if (isset($data['route']) && is_array($data['route'])) {
-            $this->routeCache[$routeKey] = [
-                'polyline'   => $data['route']['polyline']   ?? null,
-                'version'    => $data['route']['version']    ?? null,
-                'kind'       => $data['route']['kind']       ?? null,
-                'distance_m' => $data['route']['distance_m'] ?? null,
-                'duration_s' => $data['route']['duration_s'] ?? null,
-            ];
-            echo "🛣️ Route updated for {$routeKey} (v{$this->routeCache[$routeKey]['version']}, {$this->routeCache[$routeKey]['kind']})\n";
-        }
-
-        $route = $this->routeCache[$routeKey] ?? null;
-
-        // ================= SAFE PAYLOAD (matches spec field order) =================
-        $payload = [
-            'type' => 'track_car',
-            'data' => [
-                'lat'     => $lat,
-                'lng'     => $lng,
-                'heading' => $heading,
-                'speed'   => $speed,
-
-                'eta'      => $result['eta'] ?? null,
-                'distance' => $route['distance_m'] ?? ($result['distance'] ?? null),
-                'duration' => $route['duration_s'] ?? ($result['duration'] ?? null),
-                'status'   => $result['status'] ?? 'on_the_way',
-
-                'message_en' => $result['message']['en'] ?? null,
-                'message_ar' => $result['message']['ar'] ?? null,
-
-                'route_polyline' => $route['polyline'] ?? null,
-                'route_version'  => $route['version']  ?? null,
-                'route_kind'     => $route['kind']     ?? null,
-            ],
+    if (isset($data['route']) && is_array($data['route'])) {
+        $this->routeCache[$routeKey] = [
+            'polyline'   => $data['route']['polyline']   ?? null,
+            'version'    => $data['route']['version']    ?? null,
+            'kind'       => $data['route']['kind']       ?? null,
+            'distance_m' => $data['route']['distance_m'] ?? null,
+            'duration_s' => $data['route']['duration_s'] ?? null,
         ];
+        echo "🛣️ Route updated for {$routeKey} (v{$this->routeCache[$routeKey]['version']}, {$this->routeCache[$routeKey]['kind']})\n";
+    }
 
-        $res = json_encode($payload, JSON_UNESCAPED_UNICODE);
+    $route = $this->routeCache[$routeKey] ?? null;
 
-        // ================= SEND =================
-        if ($trip) {
-            if ($client = $this->getClientByUserId($trip->user_id)) {
-                $client->send($res);
-            }
-        }
+    // ================= GOOGLE API FALLBACK (cost-efficient, throttled) =================
+    // Only call TripTrackingService (which hits Google) if:
+    // 1) We have a trip AND
+    // 2) The client did NOT send its own route data AND
+    // 3) We haven't called Google for this trip in the last N seconds
+    $result = null;
+    if ($trip && !$route) {
+        $lastCallKey = "last_google_call_{$routeKey}";
+        $now         = time();
+        $lastCall    = $this->routeCache[$lastCallKey] ?? 0;
+        $throttleSeconds = 20; // adjust based on how "live" you need it — bigger = cheaper
 
-        if ($driverClient = $this->getClientByUserId($AuthUserID)) {
-            $driverClient->send($res);
-        }
-
-        $from->send($res);
-
-        // Clean up cached route once the trip is over
-        if ($trip && in_array($trip->status, ['completed', 'cancelled', 'expired'])) {
-            unset($this->routeCache[$routeKey]);
+        if (($now - $lastCall) >= $throttleSeconds) {
+            $tracker = app(\App\Services\TripTrackingService::class);
+            $result  = $tracker->calculate($lat, $lng, $trip);
+            $this->routeCache[$lastCallKey] = $now;
+            echo "💰 Google API called for {$routeKey} (throttled every {$throttleSeconds}s)\n";
         }
     }
+
+    // ================= SAFE PAYLOAD =================
+    $payload = [
+        'type' => 'track_car',
+        'data' => [
+            'lat'     => $lat,
+            'lng'     => $lng,
+            'heading' => $heading,
+            'speed'   => $speed,
+
+            'eta'      => $result['eta'] ?? null,
+            'distance' => $route['distance_m'] ?? ($result['distance'] ?? null),
+            'duration' => $route['duration_s'] ?? ($result['duration'] ?? null),
+            'status'   => $result['status'] ?? 'on_the_way',
+
+            'message_en' => $result['message']['en'] ?? null,
+            'message_ar' => $result['message']['ar'] ?? null,
+
+            'route_polyline' => $route['polyline'] ?? null,
+            'route_version'  => $route['version']  ?? null,
+            'route_kind'     => $route['kind']     ?? null,
+        ],
+    ];
+
+    $res = json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+    // ================= SEND =================
+    if ($trip) {
+        if ($client = $this->getClientByUserId($trip->user_id)) {
+            $client->send($res);
+        }
+    }
+
+    if ($driverClient = $this->getClientByUserId($AuthUserID)) {
+        $driverClient->send($res);
+    }
+
+    $from->send($res);
+
+    // Clean up cached route + throttle timestamp once the trip is over
+    if ($trip && in_array($trip->status, ['completed', 'cancelled', 'expired'])) {
+        unset($this->routeCache[$routeKey]);
+        unset($this->routeCache["last_google_call_{$routeKey}"]);
+    }
+}
     public function check_barcode(ConnectionInterface $from, $AuthUserID, $checkBarcodeRequest)
     {
         $data = json_decode($checkBarcodeRequest, true);
