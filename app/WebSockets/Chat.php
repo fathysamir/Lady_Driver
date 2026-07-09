@@ -32,6 +32,8 @@ class Chat implements MessageComponentInterface
     private $cachedAccessToken = null;
 private $tokenExpiresAt = 0;
 private $routeCache = [];
+private $lastPong = [];
+
 
     public function __construct($loop)
     {
@@ -50,38 +52,84 @@ try {
 }
 */
         $this->clientUserIdMap = [];
-        $factory               = new Factory($loop);
-        $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) {
-            echo "✅ Connected to Redis\n";
-            $redis->psubscribe('*');
+        $this->connectRedis(new Factory($loop));
 
-            $redis->on('pmessage', function ($pattern, $channel, $message) {
-                $payload = json_decode($message, true);
-
-                $parts  = explode('.', $channel);
-                $userId = $parts[count($parts) - 1] ?? null;
-
-                echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
-
-                if ($userId && isset($this->clientUserIdMap[$userId])) {
-                    $event = [
-                        'type' => $payload['event'] ?? null,
-                        'data' => $payload['data'] ?? $payload,
-                    ];
-
-                    $this->clientUserIdMap[$userId]->send(json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-                    if ($payload['event'] === 'driver_arriving') {
-                        $this->driverArrivingBroadcast($payload);
-                    }
-                    echo "➡️ Sent to user {$userId}\n";
-                } else {
-                    echo "❌ No active WS client for user {$userId}\n";
-                }
-            });
-        }, function (\Exception $e) {
-            echo "❌ Redis connection failed: " . $e->getMessage() . "\n";
-        });
     }
+    private function connectRedis($factory)
+{
+    $factory->createClient('redis://127.0.0.1:6379')->then(function ($redis) use ($factory) {
+        echo "✅ Connected to Redis\n";
+        $redis->psubscribe('*');
+
+        $redis->on('pmessage', function ($pattern, $channel, $message) {
+            $payload = json_decode($message, true);
+            $parts   = explode('.', $channel);
+            $userId  = $parts[count($parts) - 1] ?? null;
+
+            if (!$userId) return;
+
+            echo "📡 Received from Redis channel={$channel}, userId={$userId}\n";
+
+            $event = [
+                'type' => $payload['event'] ?? null,
+                'data' => $payload['data'] ?? $payload,
+            ];
+
+            $delivered = false;
+
+            if (isset($this->clientUserIdMap[$userId])) {
+                try {
+                    $this->clientUserIdMap[$userId]->send(
+                        json_encode($event, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                    );
+                    $delivered = true;
+                    echo "➡️ Sent via WS to user {$userId}\n";
+                } catch (\Exception $e) {
+                    echo "❌ WS send failed for user {$userId}, purging dead connection: " . $e->getMessage() . "\n";
+                    unset($this->clientUserIdMap[$userId]);
+                }
+            }
+
+            if (!$delivered) {
+                $user = \App\Models\User::find($userId);
+                if ($user) {
+                    $this->sendPushToUser($user, [
+                        'screen'   => $payload['screen']   ?? 'general',
+                        'id'       => (string) ($payload['data']['trip_id'] ?? ($payload['data']['id'] ?? '')),
+                        'title_en' => $payload['title_en'] ?? 'Lady Driver',
+                        'body_en'  => $payload['body_en']  ?? ($payload['message'] ?? 'You have a new update'),
+                        'title_ar' => $payload['title_ar'] ?? 'Lady Driver',
+                        'body_ar'  => $payload['body_ar']  ?? ($payload['message'] ?? 'لديك تحديث جديد'),
+                    ]);
+                    echo "📲 Fallback push sent to user {$userId}\n";
+                } else {
+                    echo "❌ No active WS client and no user found for {$userId}\n";
+                }
+            }
+
+            if (($payload['event'] ?? null) === 'driver_arriving') {
+                $this->driverArrivingBroadcast($payload);
+            }
+        });
+
+        $redis->on('close', function () use ($factory) {
+            echo "⚠️ Redis connection closed, reconnecting in 3s...\n";
+            $this->loop->addTimer(3, function () use ($factory) {
+                $this->connectRedis($factory);
+            });
+        });
+
+        $redis->on('error', function (\Exception $e) {
+            echo "❌ Redis error: " . $e->getMessage() . "\n";
+        });
+
+    }, function (\Exception $e) use ($factory) {
+        echo "❌ Redis connection failed, retrying in 3s: " . $e->getMessage() . "\n";
+        $this->loop->addTimer(3, function () use ($factory) {
+            $this->connectRedis($factory);
+        });
+    });
+}
 ///////////////////////////////////////////////////////////////////////////////////////
 private function getUserFcmTokens($user): array
 {
@@ -376,6 +424,7 @@ private function getFirebaseAccessToken(): ?string
             } else {
                 $this->clients->attach($conn, "live_{$live->id}");
                 $this->clientUserIdMap["live_{$live->id}"] = $conn;
+                $this->lastPong["live_{$live->id}"] = time();
 
                 $date_time = date('Y-m-d h:i:s a');
                 $this->periodicPing($conn);
@@ -424,6 +473,7 @@ private function getFirebaseAccessToken(): ?string
                     // Token matches
                     $this->clients->attach($conn, $userId);
                     $this->clientUserIdMap[$userId] = $conn;
+                    $this->lastPong[$userId] = time();
                     $date_time                      = date('Y-m-d h:i:s a');
                     //$conn->send(json_encode(['type' => 'ping']));
                     $this->periodicPing($conn);
@@ -442,18 +492,30 @@ private function getFirebaseAccessToken(): ?string
 
     private function periodicPing(ConnectionInterface $conn)
     {
-        $timer = 30; // Send a ping every 60 seconds
+        $timer = 30;
 
         $this->loop->addPeriodicTimer($timer, function () use ($conn) {
+            $userId = $this->getUserIdByConn($conn);
+
+            if ($userId && isset($this->lastPong[$userId]) && (time() - $this->lastPong[$userId] > 90)) {
+                echo "💀 Connection {$conn->resourceId} (user {$userId}) stale, closing & purging.\n";
+                unset($this->clientUserIdMap[$userId]);
+                unset($this->lastPong[$userId]);
+                $this->clients->detach($conn);
+                try { $conn->close(); } catch (\Exception $e) {}
+                return;
+            }
+
             try {
-                                                              // Try sending a ping message, if connection is closed, it'll throw an error
-                $conn->send(json_encode(['type' => 'ping'])); // Send a ping
-                $date_time = date('Y-m-d h:i:s a');
-                echo "[ {$date_time} ], Ping sent to Connection {$conn->resourceId}\n";
+                $conn->send(json_encode(['type' => 'ping']));
+                echo "[ " . date('Y-m-d h:i:s a') . " ], Ping sent to Connection {$conn->resourceId}\n";
             } catch (\Exception $e) {
-                // If there's an error sending the ping, the connection is probably closed
-                $date_time = date('Y-m-d h:i:s a');
-                echo "[ {$date_time} ], Connection {$conn->resourceId} has closed during ping\n";
+                $userId = $this->getUserIdByConn($conn);
+                if ($userId) {
+                    unset($this->clientUserIdMap[$userId]);
+                    unset($this->lastPong[$userId]);
+                }
+                echo "[ " . date('Y-m-d h:i:s a') . " ], Connection {$conn->resourceId} closed during ping\n";
             }
         });
     }
@@ -2538,7 +2600,10 @@ if ($trip->car_id != null && $trip->car) {
         $data = json_decode($msg, true);
 
         if (array_key_exists('pong', $data)) {
-            echo sprintf("sss");
+            $userId = $this->getUserIdByConn($from);
+            if ($userId) {
+                $this->lastPong[$userId] = time();
+            }
         } else {
             $AuthUserID = $this->getUserIdByConn($from);
             if (!$AuthUserID) {
@@ -2664,6 +2729,7 @@ if ($trip->car_id != null && $trip->car) {
         $userId = $this->getUserIdByConn($conn);
 
         unset($this->clientUserIdMap[$userId]);
+        unset($this->lastPong[$userId]);
         $this->clients->detach($conn);
         $date_time = date('Y-m-d h:i:s a');
         echo "[ {$date_time} ],Connection {$conn->resourceId} has disconnected\n";
