@@ -889,8 +889,8 @@ class DriverController extends ApiController
                     ), 2
                 ) as client_location_away
             "))
-
-            ->having('client_location_away', '<=', 3)
+            ->having('client_location_away', '>=', 0.5)
+            ->having('client_location_away', '<=', 7)
             ->latest()
             ->get();
 
