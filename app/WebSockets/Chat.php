@@ -33,6 +33,8 @@ class Chat implements MessageComponentInterface
 private $tokenExpiresAt = 0;
 private $routeCache = [];
 private $lastPong = [];
+private $pingTimers = [];
+
 
 
     public function __construct($loop)
@@ -492,9 +494,10 @@ private function getFirebaseAccessToken(): ?string
 
     private function periodicPing(ConnectionInterface $conn)
     {
-        $timer = 30;
+        $interval = 30;
+        $connId   = spl_object_id($conn);
 
-        $this->loop->addPeriodicTimer($timer, function () use ($conn) {
+        $timer = $this->loop->addPeriodicTimer($interval, function () use ($conn, $connId) {
             $userId = $this->getUserIdByConn($conn);
 
             if ($userId && isset($this->lastPong[$userId]) && (time() - $this->lastPong[$userId] > 90)) {
@@ -503,6 +506,7 @@ private function getFirebaseAccessToken(): ?string
                 unset($this->lastPong[$userId]);
                 $this->clients->detach($conn);
                 try { $conn->close(); } catch (\Exception $e) {}
+                $this->cancelPingTimer($connId);
                 return;
             }
 
@@ -516,8 +520,19 @@ private function getFirebaseAccessToken(): ?string
                     unset($this->lastPong[$userId]);
                 }
                 echo "[ " . date('Y-m-d h:i:s a') . " ], Connection {$conn->resourceId} closed during ping\n";
+                $this->cancelPingTimer($connId);
             }
         });
+
+        $this->pingTimers[$connId] = $timer;
+    }
+
+    private function cancelPingTimer($connId)
+    {
+        if (isset($this->pingTimers[$connId])) {
+            $this->loop->cancelTimer($this->pingTimers[$connId]);
+            unset($this->pingTimers[$connId]);
+        }
     }
     private function create_trip_and_find_drivers(ConnectionInterface $from, $AuthUserID, $tripRequest)
 {
@@ -2730,6 +2745,7 @@ if ($trip->car_id != null && $trip->car) {
 
         unset($this->clientUserIdMap[$userId]);
         unset($this->lastPong[$userId]);
+        $this->cancelPingTimer(spl_object_id($conn));
         $this->clients->detach($conn);
         $date_time = date('Y-m-d h:i:s a');
         echo "[ {$date_time} ],Connection {$conn->resourceId} has disconnected\n";
