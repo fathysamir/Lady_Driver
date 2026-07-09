@@ -1008,7 +1008,7 @@ $discount   = $priceResult['discount'];
     private function startTripBroadcast($trip, $newTrip, $type)
     {
                             // Broadcast trip every 5 seconds for max 3 minutes
-        $maxDuration = 300; // seconds    //its 15 min but its now 5 min temporary!!
+        $maxDuration = 600; // seconds    //it was 15 min but its now 10 min
         $interval    = 5;   // seconds
         $startTime   = time();
 
