@@ -1186,6 +1186,21 @@ $newTrip['discount']         = (float) $trip->discount;
                                     'driver_id' => $eligibleDriverId,
                                     'trip_id'   => $trip->id,
                                 ]);
+
+                                // 🔔 send push to newly eligible driver
+                                $car_push = Car::where('user_id', $eligibleDriverId)->first();
+                                if ($car_push) {
+                                    $response_push = calculate_distance($car_push->lat, $car_push->lng, $trip->start_lat, $trip->start_lng);
+                                    $this->sendPushToUser($car_push->owner, [
+                                        'screen'   => 'new_trip',
+                                        'id'       => (string) $trip->id,
+                                        'title_en' => 'New Trip Near You',
+                                        'body_en'  => 'There is a trip ' . round($response_push['distance_in_km'], 1) . ' km away (' . intval($response_push['duration_in_M']) . ' min)',
+                                        'title_ar' => 'رحلة جديدة بالقرب منك',
+                                        'body_ar'  => 'يوجد رحلة على بُعد ' . round($response_push['distance_in_km'], 1) . ' كم (' . intval($response_push['duration_in_M']) . ' دقيقة)',
+                                    ]);
+                                }
+
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -1277,6 +1292,21 @@ $newTrip['discount']         = (float) $trip->discount;
                                     'driver_id' => $eligibleDriverId,
                                     'trip_id'   => $trip->id,
                                 ]);
+
+                                // 🔔 send push to newly eligible driver
+                                $car_push = Car::where('user_id', $eligibleDriverId)->first();
+                                if ($car_push) {
+                                    $response_push = calculate_distance($car_push->lat, $car_push->lng, $trip->start_lat, $trip->start_lng);
+                                    $this->sendPushToUser($car_push->owner, [
+                                        'screen'   => 'new_trip',
+                                        'id'       => (string) $trip->id,
+                                        'title_en' => 'New Trip Near You',
+                                        'body_en'  => 'There is a trip ' . round($response_push['distance_in_km'], 1) . ' km away (' . intval($response_push['duration_in_M']) . ' min)',
+                                        'title_ar' => 'رحلة جديدة بالقرب منك',
+                                        'body_ar'  => 'يوجد رحلة على بُعد ' . round($response_push['distance_in_km'], 1) . ' كم (' . intval($response_push['duration_in_M']) . ' دقيقة)',
+                                    ]);
+                                }
+
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
@@ -1360,6 +1390,22 @@ $newTrip['discount']         = (float) $trip->discount;
                                     'driver_id' => $eligibleDriverId,
                                     'trip_id'   => $trip->id,
                                 ]);
+
+                                // 🔔 send push to newly eligible driver
+                               // 🔔 send push to newly eligible driver
+                               $scooter_push = Scooter::where('user_id', $eligibleDriverId)->first();
+                               if ($scooter_push) {
+                                   $response_push = calculate_distance($scooter_push->lat, $scooter_push->lng, $trip->start_lat, $trip->start_lng);
+                                   $this->sendPushToUser($scooter_push->owner, [
+                                       'screen'   => 'new_trip',
+                                       'id'       => (string) $trip->id,
+                                       'title_en' => 'New Trip Near You',
+                                       'body_en'  => 'There is a trip ' . round($response_push['distance_in_km'], 1) . ' km away (' . intval($response_push['duration_in_M']) . ' min)',
+                                       'title_ar' => 'رحلة جديدة بالقرب منك',
+                                       'body_ar'  => 'يوجد رحلة على بُعد ' . round($response_push['distance_in_km'], 1) . ' كم (' . intval($response_push['duration_in_M']) . ' دقيقة)',
+                                   ]);
+                               }
+
                                 $driver                               = User::findOrFail($eligibleDriverId);
                                 $app_ratio                            = floatval(Setting::where('key', 'app_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
