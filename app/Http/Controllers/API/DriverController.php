@@ -799,6 +799,21 @@ class DriverController extends ApiController
         return $this->sendResponse($driving_license, null, 200);
     }
 
+    public function activation()
+       {
+            $user = auth()->user();
+            if ($user->is_online == '1') {
+                $user->is_online = '0';
+                $user->save();
+                return $this->sendResponse(null, 'you are Offline', 200);
+            } else {
+                $user->is_online = '1';
+                $user->save();
+                return $this->sendResponse(null, 'you are online', 200);
+
+            }
+
+        }
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function created_trips(Request $request)
