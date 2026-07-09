@@ -837,7 +837,7 @@ $discount   = $priceResult['discount'];
                 ->get()
                 ->filter(function ($car) use ($trip) {
                     $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                    return $response['distance_in_km'] <= 0.5;
+                    return $response['distance_in_km'] >= 0.5 && $response['distance_in_km'] <= 7;
                 });
 
             $eligibleDriverIds = [];
