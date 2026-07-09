@@ -2629,110 +2629,131 @@ if ($trip->car_id != null && $trip->car) {
 
             }
 
-            switch ($data['type']) {
-                case 'new_trip':
-                    $this->create_trip_and_find_drivers($from, $AuthUserID, $requestData);
-                    break;
+            try {
+                switch ($data['type']) {
+                    case 'new_trip':
+                        $this->create_trip_and_find_drivers($from, $AuthUserID, $requestData);
+                        break;
 
-                case 'new_offer':
-                    $this->create_offer($from, $AuthUserID, $requestData);
-                    break;
+                    case 'new_offer':
+                        $this->create_offer($from, $AuthUserID, $requestData);
+                        break;
 
-                case 'cancel_trip':
-                    $this->cancel_trip($from, $AuthUserID, $requestData);
-                    break;
+                    case 'cancel_trip':
+                        $this->cancel_trip($from, $AuthUserID, $requestData);
+                        break;
 
-                case 'cancel_offer':
-                    $this->cancel_offer($from, $AuthUserID, $requestData);
-                    break;
+                    case 'cancel_offer':
+                        $this->cancel_offer($from, $AuthUserID, $requestData);
+                        break;
 
-                case 'expire_trip':
-                    $this->expire_trip($from, $AuthUserID, $requestData);
-                    break;
-                case 'accept_offer':
-                    $this->accept_offer($from, $AuthUserID, $requestData);
-                    break;
-                case 'start_end_trip':
-                    $this->start_end_trip($from, $AuthUserID, $requestData);
-                    break;
-                case 'update_location':
-                    $this->update_location($from, $AuthUserID, $requestData);
-                    break;
-                // case 'send_message':
-                //     $this->send_message($from, $AuthUserID, $requestData);
-                //     break;
-                case 'barcode_verification_request':
-                    $this->check_barcode($from, $AuthUserID, $requestData);
-                    break;
-                    case 'sos_triggered':
-                        $sosData = json_decode($requestData, true);
+                    case 'expire_trip':
+                        $this->expire_trip($from, $AuthUserID, $requestData);
+                        break;
+                    case 'accept_offer':
+                        $this->accept_offer($from, $AuthUserID, $requestData);
+                        break;
+                    case 'start_end_trip':
+                        $this->start_end_trip($from, $AuthUserID, $requestData);
+                        break;
+                    case 'update_location':
+                        $this->update_location($from, $AuthUserID, $requestData);
+                        break;
+                    // case 'send_message':
+                    //     $this->send_message($from, $AuthUserID, $requestData);
+                    //     break;
+                    case 'barcode_verification_request':
+                        $this->check_barcode($from, $AuthUserID, $requestData);
+                        break;
+                        case 'sos_triggered':
+                            $sosData = json_decode($requestData, true);
 
-                        $trip_id   = $sosData['trip_id'] ?? null;
-                        $user_id   = $sosData['user_id'] ?? null;
-                        $driver_id = $sosData['driver_id'] ?? $AuthUserID;
-                        $lat       = $sosData['lat'] ?? null;
-                        $lng       = $sosData['lng'] ?? null;
+                            $trip_id   = $sosData['trip_id'] ?? null;
+                            $user_id   = $sosData['user_id'] ?? null;
+                            $driver_id = $sosData['driver_id'] ?? $AuthUserID;
+                            $lat       = $sosData['lat'] ?? null;
+                            $lng       = $sosData['lng'] ?? null;
 
-                        $payload = [
-                            'type' => 'sos_triggered',
-                            'data' => [
-                                'trip_id'   => $trip_id,
-                                'user_id'   => $user_id,
-                                'driver_id' => $driver_id,
-                                'lat'       => $lat,
-                                'lng'       => $lng,
-                            ],
-                        ];
+                            $payload = [
+                                'type' => 'sos_triggered',
+                                'data' => [
+                                    'trip_id'   => $trip_id,
+                                    'user_id'   => $user_id,
+                                    'driver_id' => $driver_id,
+                                    'lat'       => $lat,
+                                    'lng'       => $lng,
+                                ],
+                            ];
 
-                        $res = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+                            $res = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
 
 
-                        if ($user_id) {
-                            $client = $this->getClientByUserId($user_id);
-                            if ($client) {
-                                $client->send($res);
+                            if ($user_id) {
+                                $client = $this->getClientByUserId($user_id);
+                                if ($client) {
+                                    $client->send($res);
+                                }
                             }
-                        }
 
-                        $from->send($res);
+                            $from->send($res);
 
+                            $date_time = date('Y-m-d h:i:s a');
+                            echo sprintf('[ %s ] SOS triggered "%s"' . "\n", $date_time, $res);
+
+                            break;
+                    case 'set_availability':
+                            $user = User::findOrFail($AuthUserID);
+                            $user->is_online = $data['data']['is_online'];
+                            $user->save();
+                            $from->send(json_encode([
+                                'type' => 'online_status_updated',
+                                'data' => ['is_online' => $user->is_online]
+                            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                            $date_time = date('Y-m-d h:i:s a');
+                            echo sprintf('[ %s ] Driver %d is now %s' . "\n", $date_time, $AuthUserID, $user->is_online == '1' ? 'ONLINE' : 'OFFLINE');
+                            break;
+                    case 'ping':
+                        $from->send(json_encode(['type' => 'pong']));
                         $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] SOS triggered "%s"' . "\n", $date_time, $res);
-
+                        echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
                         break;
-                case 'set_availability':
-                        $user = User::findOrFail($AuthUserID);
-                        $user->is_online = $data['data']['is_online'];
-                        $user->save();
-                        $from->send(json_encode([
-                            'type' => 'online_status_updated',
-                            'data' => ['is_online' => $user->is_online]
-                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                    case 'live_location':
+                        $data = json_decode($requestData, true);
+                        $live = LiveLocation::where('token', $data['token'])
+                            ->where('expires_at', '>', now())
+                            ->first();
+                        $x['lat']  = $live->lat;
+                        $x['lng']  = $live->lng;
+                        $x['name'] = $live->user->name;
+                        $from->send(json_encode(['type' => 'live_location', 'data' => $x]));
                         $date_time = date('Y-m-d h:i:s a');
-                        echo sprintf('[ %s ] Driver %d is now %s' . "\n", $date_time, $AuthUserID, $user->is_online == '1' ? 'ONLINE' : 'OFFLINE');
+                        echo sprintf('[ %s ], live location has been sent' . "\n", $date_time);
                         break;
-                case 'ping':
-                    $from->send(json_encode(['type' => 'pong']));
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
-                    break;
-                case 'live_location':
-                    $data = json_decode($requestData, true);
-                    $live = LiveLocation::where('token', $data['token'])
-                        ->where('expires_at', '>', now())
-                        ->first();
-                    $x['lat']  = $live->lat;
-                    $x['lng']  = $live->lng;
-                    $x['name'] = $live->user->name;
-                    $from->send(json_encode(['type' => 'live_location', 'data' => $x]));
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ], live location has been sent' . "\n", $date_time);
-                    break;
-                default:
-                    $from->send(json_encode(['type' => 'pong']));
-                    $date_time = date('Y-m-d h:i:s a');
-                    echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
-                    break;
+                    default:
+                        $from->send(json_encode(['type' => 'pong']));
+                        $date_time = date('Y-m-d h:i:s a');
+                        echo sprintf('[ %s ], New pong has been sent' . "\n", $date_time);
+                        break;
+                }
+            } catch (\Throwable $e) {
+                $date_time = date('Y-m-d h:i:s a');
+                echo sprintf(
+                    '[ %s ] ❌ onMessage error [type=%s, user=%s]: %s in %s:%d' . "\n",
+                    $date_time,
+                    $data['type'] ?? 'unknown',
+                    $AuthUserID,
+                    $e->getMessage(),
+                    $e->getFile(),
+                    $e->getLine()
+                );
+                try {
+                    $from->send(json_encode([
+                        'type'    => 'error',
+                        'message' => 'Something went wrong processing your request.',
+                    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                } catch (\Exception $inner) {
+                    // connection may already be dead, nothing more we can do
+                }
             }
 
         }
