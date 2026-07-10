@@ -801,15 +801,14 @@ class DriverController extends ApiController
 
     public function activation(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'is_online' => 'required|boolean',
-        ]);
-        if ($validator->fails()) {
-            return $this->sendError(null, $validator->errors()->first(), 400);
+        $user = auth()->user();
+
+        if ($request->has('is_online')) {
+            $user->is_online = $request->boolean('is_online') ? '1' : '0';
+        } else {
+            $user->is_online = $user->is_online == '1' ? '0' : '1';
         }
 
-        $user = auth()->user();
-        $user->is_online = $request->boolean('is_online') ? '1' : '0';
         $user->save();
 
         return $this->sendResponse(
