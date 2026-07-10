@@ -93,19 +93,28 @@ try {
             }
 
             if (!$delivered) {
-                $user = \App\Models\User::find($userId);
-                if ($user) {
-                    $this->sendPushToUser($user, [
-                        'screen'   => $payload['screen']   ?? 'general',
-                        'id'       => (string) ($payload['data']['trip_id'] ?? ($payload['data']['id'] ?? '')),
-                        'title_en' => $payload['title_en'] ?? 'Lady Driver',
-                        'body_en'  => $payload['body_en']  ?? ($payload['message'] ?? 'You have a new update'),
-                        'title_ar' => $payload['title_ar'] ?? 'Lady Driver',
-                        'body_ar'  => $payload['body_ar']  ?? ($payload['message'] ?? 'لديك تحديث جديد'),
-                    ]);
-                    echo "📲 Fallback push sent to user {$userId}\n";
+                $eventType = $payload['event'] ?? null;
+
+                // إشعارات الـ push (فولباك) مسموحة بس لنوع "new_trip"، وبس للكباتن (سواق/سكوتر)
+                if ($eventType !== 'new_trip') {
+                    echo "🔕 Skipped fallback push for user {$userId} (event: " . ($eventType ?? 'unknown') . ") — only 'new_trip' pushes allowed.\n";
                 } else {
-                    echo "❌ No active WS client and no user found for {$userId}\n";
+                    $user = \App\Models\User::find($userId);
+                    $isDriver = $user && ($user->car()->exists() || $user->scooter()->exists());
+
+                    if ($isDriver) {
+                        $this->sendPushToUser($user, [
+                            'screen'   => 'new_trip',
+                            'id'       => (string) ($payload['data']['trip_id'] ?? ($payload['data']['id'] ?? '')),
+                            'title_en' => 'New Trip Near You',
+                            'body_en'  => $payload['body_en'] ?? 'There is a new trip near you',
+                            'title_ar' => 'رحلة جديدة بالقرب منك',
+                            'body_ar'  => $payload['body_ar'] ?? 'يوجد رحلة جديدة بالقرب منك',
+                        ]);
+                        echo "📲 Fallback 'new_trip' push sent to driver {$userId}\n";
+                    } else {
+                        echo "🔕 Skipped fallback push for user {$userId} (client or user not found — no push allowed).\n";
+                    }
                 }
             }
 
