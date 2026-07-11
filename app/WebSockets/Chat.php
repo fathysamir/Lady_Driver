@@ -141,6 +141,28 @@ try {
         });
     });
 }
+/**
+ * فلتر تمهيدي بالـ SQL (خط مستقيم) + فلتر نهائي دقيق بمسافة الطريق الفعلي.
+ * بيرجع نفس الـ Collection بس بعد استبعاد اللي مسافتهم الحقيقية برا النطاق،
+ * وبيخزن المسافة/المدة الحقيقية على كل عنصر عشان متعملش نفس الـ API call مرتين.
+ */
+private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
+{
+    return $items->filter(function ($item) use ($lat, $lng, $min, $max) {
+        $response = calculate_distance($item->lat, $item->lng, $lat, $lng);
+        $real = $response['distance_in_km'] ?? null;
+
+        // لو الـ API فشل، متضمّنوش السائق بدل ما نبعتله رحلة بمسافة غلط
+        if ($real === null) {
+            return false;
+        }
+
+        $item->_real_distance_km = round($real, 2);
+        $item->_real_duration_m  = intval($response['duration_in_M'] ?? 0);
+
+        return $real >= $min && $real <= $max;
+    })->values();
+}
 ///////////////////////////////////////////////////////////////////////////////////////
 private function getUserFcmTokens($user): array
 {
@@ -920,11 +942,9 @@ $discount   = $priceResult['discount'];
                 )
                 ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
-                ->get()
-                ->filter(function ($car) use ($trip) {
-                    $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                    return $response['distance_in_km'] >= 0.5 && $response['distance_in_km'] <= 7;
-                });
+                ->get();
+                $eligibleCars = $this->filterByRealDistance($eligibleCars, $trip->start_lat, $trip->start_lng);
+
 
             $eligibleDriverIds = [];
             foreach ($eligibleCars as $car) {
@@ -984,6 +1004,8 @@ $discount   = $priceResult['discount'];
                 ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                 ->get();
+                $eligibleCars = $this->filterByRealDistance($eligibleCars, $trip->start_lat, $trip->start_lng);
+
 
             $eligibleDriverIds = [];
             foreach ($eligibleCars as $car) {
@@ -1038,6 +1060,8 @@ $discount   = $priceResult['discount'];
                 ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                 ->get();
+                $eligibleScooters = $this->filterByRealDistance($eligibleScooters, $trip->start_lat, $trip->start_lng);
+
                 echo "🛵 Eligible scooters count: " . $eligibleScooters->count() . "\n";
                 $allScooters = Scooter::where('status', 'confirmed')
                     ->whereHas('owner', function ($query) {
@@ -1239,10 +1263,8 @@ $newTrip['discount']         = (float) $trip->discount;
                         ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                         ->get();
-                    /*    ->filter(function ($car) use ($trip) {
-                            $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
-                        });*/
+                        $eligibleCars = $this->filterByRealDistance($eligibleCars, $trip->start_lat, $trip->start_lng);
+
 
                     $eligibleDriverIds = [];
 
@@ -1346,10 +1368,8 @@ $newTrip['discount']         = (float) $trip->discount;
                         ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                         ->get();
-                     /*   ->filter(function ($car) use ($trip) {
-                            $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
-                        });*/
+                        $eligibleCars = $this->filterByRealDistance($eligibleCars, $trip->start_lat, $trip->start_lng);
+
 
                     $eligibleDriverIds = [];
 
@@ -1444,10 +1464,8 @@ $newTrip['discount']         = (float) $trip->discount;
                         ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                         ->get();
-                      /*  ->filter(function ($scooter) use ($trip) {
-                            $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
-                            return $response['distance_in_km'] <= 3;
-                        });*/
+                        $eligibleScooters = $this->filterByRealDistance($eligibleScooters, $trip->start_lat, $trip->start_lng);
+
 
                     $eligibleDriverIds = [];
 
@@ -2224,10 +2242,8 @@ if ($trip->car_id != null && $trip->car) {
                             ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                             ->get();
-                          /*  ->filter(function ($car) use ($n_trip) {
-                                $response = calculate_distance($car->lat, $car->lng, $n_trip->start_lat, $n_trip->start_lng);
-                                return $response['distance_in_km'] <= 3;
-                            });*/
+                            $eligibleCars = $this->filterByRealDistance($eligibleCars, $trip->start_lat, $trip->start_lng);
+
 
                         $eligibleDriverIds = [];
 
@@ -2307,10 +2323,8 @@ if ($trip->car_id != null && $trip->car) {
                             ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                             ->get();
-                          /*  ->filter(function ($car) use ($n_trip) {
-                                $response = calculate_distance($car->lat, $car->lng, $n_trip->start_lat, $n_trip->start_lng);
-                                return $response['distance_in_km'] <= 3;
-                            });*/
+                            $eligibleCars = $this->filterByRealDistance($eligibleCars, $trip->start_lat, $trip->start_lng);
+
 
                         $eligibleDriverIds = [];
 
@@ -2381,10 +2395,8 @@ if ($trip->car_id != null && $trip->car) {
                             ->having('distance', '>=', 0.5)
 ->having('distance', '<=', 7)
                             ->get();
-                           /* ->filter(function ($scooter) use ($n_trip) {
-                                $response = calculate_distance($scooter->lat, $scooter->lng, $n_trip->start_lat, $n_trip->start_lng);
-                                return $response['distance_in_km'] <= 3;
-                            });*/
+                            $eligibleScooters = $this->filterByRealDistance($eligibleScooters, $trip->start_lat, $trip->start_lng);
+
 
                         $eligibleDriverIds = [];
 
