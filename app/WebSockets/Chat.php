@@ -512,6 +512,9 @@ private function getFirebaseAccessToken(): ?string
                     $this->periodicPing($conn);
                     //echo "New connection! ({$conn->resourceId})\n";
                     echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
+                    if ($user->is_online == '1') {
+                        $this->pushPendingTripsToDriver($user, $conn);
+                    }
 
                 } else {
                     // Token does not match
@@ -2722,17 +2725,23 @@ if ($trip->car_id != null && $trip->car) {
                             echo sprintf('[ %s ] SOS triggered "%s"' . "\n", $date_time, $res);
 
                             break;
-                    case 'set_availability':
-                            $user = User::findOrFail($AuthUserID);
-                            $user->is_online = $data['data']['is_online'];
-                            $user->save();
-                            $from->send(json_encode([
-                                'type' => 'online_status_updated',
-                                'data' => ['is_online' => $user->is_online]
-                            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-                            $date_time = date('Y-m-d h:i:s a');
-                            echo sprintf('[ %s ] Driver %d is now %s' . "\n", $date_time, $AuthUserID, $user->is_online == '1' ? 'ONLINE' : 'OFFLINE');
-                            break;
+                            case 'set_availability':
+                                $user = User::findOrFail($AuthUserID);
+                                $user->is_online = $data['data']['is_online'];
+                                $user->save();
+
+                                $from->send(json_encode([
+                                    'type' => 'online_status_updated',
+                                    'data' => ['is_online' => $user->is_online]
+                                ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+                                if ($user->is_online == '1') {
+                                    $this->pushPendingTripsToDriver($user, $from);
+                                }
+
+                                $date_time = date('Y-m-d h:i:s a');
+                                echo sprintf('[ %s ] Driver %d is now %s' . "\n", $date_time, $AuthUserID, $user->is_online == '1' ? 'ONLINE' : 'OFFLINE');
+                                break;
                     case 'ping':
                         $from->send(json_encode(['type' => 'pong']));
                         $date_time = date('Y-m-d h:i:s a');
@@ -2782,15 +2791,29 @@ if ($trip->car_id != null && $trip->car) {
 
     public function onClose(ConnectionInterface $conn)
     {
-        // The connection is closed, remove it, as we can no longer send it messages
         $userId = $this->getUserIdByConn($conn);
 
         unset($this->clientUserIdMap[$userId]);
         unset($this->lastPong[$userId]);
         $this->cancelPingTimer(spl_object_id($conn));
         $this->clients->detach($conn);
+
         $date_time = date('Y-m-d h:i:s a');
         echo "[ {$date_time} ],Connection {$conn->resourceId} has disconnected\n";
+
+        if ($userId && strpos((string) $userId, 'live_') === false) {
+            $this->loop->addTimer(15, function () use ($userId) {
+                // لو رجع اتصل خلال 15 ثانية، متعملش أوفلاين
+                if (isset($this->clientUserIdMap[$userId])) return;
+
+                $user = User::find($userId);
+                if ($user && $user->is_online == '1') {
+                    $user->is_online = '0';
+                    $user->save();
+                    echo "[ " . date('Y-m-d h:i:s a') . " ] Driver {$userId} auto-set OFFLINE after disconnect grace period\n";
+                }
+            });
+        }
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e)
@@ -3326,4 +3349,153 @@ if ($trip->car_id != null && $trip->car) {
         }
         return null;
     }
+    private function pushPendingTripsToDriver(User $driver, ConnectionInterface $conn)
+{
+    $car     = Car::where('user_id', $driver->id)->where('status', 'confirmed')->first();
+    $scooter = Scooter::where('user_id', $driver->id)->where('status', 'confirmed')->first();
+
+    if (!$car && !$scooter) return;
+    if ($driver->status != 'confirmed') return;
+
+    // الرحلات النشطة اللي محتاجة سواق (created = فورية غير مأخوذة، scheduled = مجدولة لسه من غير offer مقبول)
+    $activeTrips = Trip::whereIn('status', ['created', 'scheduled'])
+        ->where(function ($q) {
+            $q->whereNull('car_id')->whereNull('scooter_id');
+        })
+        ->get();
+
+    foreach ($activeTrips as $trip) {
+
+        // لو الدرايفر شاف الرحلة دي بالفعل، تجاهلها (ال periodic broadcast هيتكفل بيها)
+        $alreadySeen = DB::table('drivers_trips')
+            ->where('driver_id', $driver->id)
+            ->where('trip_id', $trip->id)
+            ->exists();
+        if ($alreadySeen) continue;
+
+        // لو رحلة مجدولة وعندها عرض scheduled مقبول بالفعل، متبعتهاش
+        if ($trip->status == 'scheduled' && $trip->offers()->where('status', 'scheduled')->exists()) {
+            continue;
+        }
+
+        $eligible = false;
+        $vehicle  = null;
+        $category = null;
+
+        if ($trip->type == 'car' && $car && $car->is_comfort == '0') {
+            $eligible = true;
+            $vehicle  = $car;
+            $category = 'Car Trips';
+        } elseif ($trip->type == 'comfort_car' && $car && $car->is_comfort == '1') {
+            $eligible = true;
+            $vehicle  = $car;
+            $category = 'Comfort Trips';
+        } elseif ($trip->type == 'scooter' && $scooter) {
+            $eligible = true;
+            $vehicle  = $scooter;
+            $category = 'Scooter Trips';
+        }
+
+        if (!$eligible) continue;
+
+        // فلاتر إضافية زي الموجودة في create_trip_and_find_drivers
+        if ($trip->type != 'scooter') {
+            if ($trip->air_conditioned == '1' && $trip->type == 'car' && $vehicle->air_conditioned != '1') continue;
+            if ($trip->animals == '1' && $vehicle->animals != '1') continue;
+            if ($trip->user->gendor == 'Male' && $vehicle->passenger_type != 'male_female') continue;
+        }
+
+        // فلترة busy (نفس القواعد المستخدمة في create_trip_and_find_drivers)
+        if ($trip->type != 'scooter' && in_array($vehicle->id, busyCarIds())) continue;
+        if ($trip->type == 'scooter' && in_array($vehicle->id, busyScooterIds())) continue;
+
+        // فلتر المسافة الحقيقية (نفس filterByRealDistance)
+        $response = calculate_distance($vehicle->lat, $vehicle->lng, $trip->start_lat, $trip->start_lng);
+        $realDistance = $response['distance_in_km'] ?? null;
+        if ($realDistance === null || $realDistance < 0.5 || $realDistance > 7) continue;
+
+        // ✅ الدرايفر مؤهل - سجّله وابعتله الرحلة
+        DB::table('drivers_trips')->insert(['driver_id' => $driver->id, 'trip_id' => $trip->id]);
+
+        $application_commission = Setting::where('key', 'application_commission')->where('category', $category)->where('type', 'boolean')->first()->value;
+        $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', $category)->where('type', 'number')->where('level', $driver->level)->first()->value);
+
+        $u = $trip->user;
+        $user_image = getFirstMedia($u, $u->avatarCollection) ? 'https://api.lady-driver.com' . getFirstMedia($u, $u->avatarCollection) : null;
+
+        $newTrip = [
+            'id'                  => $trip->id,
+            'code'                => $trip->code,
+            'barcode'             => 'https://api.lady-driver.com' . getFirstMedia($trip, $trip->barcodeImageCollection),
+            'user_id'             => intval($trip->user_id),
+            'start_date'          => $trip->start_date,
+            'end_date'            => null,
+            'start_time'          => $trip->start_time,
+            'end_time'            => null,
+            'start_lat'           => floatval($trip->start_lat),
+            'start_lng'           => floatval($trip->start_lng),
+            'address1'            => $trip->address1,
+            'total_price'         => (float) $trip->total_price,
+            'app_rate'            => $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00,
+            'discount'            => (float) $trip->discount,
+            'paid_amount'         => 0.00,
+            'remaining_amount'    => (float) $trip->total_price,
+            'distance'            => (float) $trip->distance,
+            'duration'            => (int) $trip->duration,
+            'scheduled'           => $trip->scheduled,
+            'type'                => $trip->type,
+            'status'              => $trip->status,
+            'payment_method'      => $trip->payment_method,
+            'air_conditioned'     => $trip->air_conditioned,
+            'animals'             => $trip->animals,
+            'bags'                => $trip->bags,
+            'seen_count'          => ['count' => 0, 'images' => []],
+            'client_stare_rate'   => 0,
+            'client_comment'      => null,
+            'cancelled_by_id'     => null,
+            'trip_cancelling_reason_id' => null,
+            'driver_stare_rate'   => 0,
+            'student_trip'        => $trip->student_trip,
+            'driver_comment'      => null,
+            'driver_arrived'      => null,
+            'payment_status'      => 'unpaid',
+            'current_offer'       => null,
+            'created_at'          => $trip->created_at,
+            'updated_at'          => $trip->updated_at,
+        ];
+
+        $newTrip['driver_rate'] = (float) $trip->total_price - $newTrip['app_rate'];
+
+        $newTrip['user'] = [
+            'id'           => intval($trip->user_id),
+            'name'         => $u->name,
+            'country_code' => $u->country_code,
+            'phone'        => $u->phone,
+            'image'        => $user_image,
+            'rate'         => Trip::where('user_id', $trip->user_id)
+                                ->where('status', 'completed')
+                                ->where('driver_stare_rate', '>', 0)
+                                ->avg('driver_stare_rate') ?? 5.00,
+        ];
+
+        $newTrip['client_location_distance']  = $response['distance_in_km'];
+        $newTrip['client_location_duration']  = $response['duration_in_M'];
+        $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', $category)->where('type', 'number')->where('level', $driver->level)->first()->value);
+
+        // مصايف نهايات الرحلة
+        $destinations = TripDestination::where('trip_id', $trip->id)->orderBy('id', 'asc')->get();
+        $xxx = 1;
+        foreach ($destinations as $dest) {
+            $newTrip['end_lat_' . $xxx] = $dest->lat;
+            $newTrip['end_lng_' . $xxx] = $dest->lng;
+            $newTrip['address' . ($xxx + 1)] = $dest->address;
+            $xxx++;
+        }
+
+        $conn->send(json_encode(['type' => 'new_trip', 'data' => $newTrip], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION));
+
+        $date_time = date('Y-m-d h:i:s a');
+        echo sprintf('[ %s ] ⚡ Instant pending-trip push: Trip %d sent to newly-online driver %d' . "\n", $date_time, $trip->id, $driver->id);
+    }
+}
 }
