@@ -2649,12 +2649,14 @@ if ($trip->car_id != null && $trip->car) {
         //     , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
         $data = json_decode($msg, true);
+        $userId_forPong = $this->getUserIdByConn($from);
+    if ($userId_forPong) {
+        $this->lastPong[$userId_forPong] = time();
+    }
 
         if (array_key_exists('pong', $data)) {
-            $userId = $this->getUserIdByConn($from);
-            if ($userId) {
-                $this->lastPong[$userId] = time();
-            }
+           return;
+
         } else {
             $AuthUserID = $this->getUserIdByConn($from);
             if (!$AuthUserID) {
