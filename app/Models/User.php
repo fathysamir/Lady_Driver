@@ -83,6 +83,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
         'otp_expires_at'    => 'datetime',
+        'auto_offline_at' => 'datetime',
+
     ];
     protected $appends = [
         'image',

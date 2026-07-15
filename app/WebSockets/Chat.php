@@ -512,6 +512,18 @@ private function getFirebaseAccessToken(): ?string
                     $this->periodicPing($conn);
                     //echo "New connection! ({$conn->resourceId})\n";
                     echo "[ {$date_time} ],New connection! User ID: {$userId}, Connection ID: ({$conn->resourceId})\n";
+                    if ($user->is_online == '0' && $user->auto_offline_at) {
+                        if ($user->auto_offline_at->diffInMinutes(now()) <= 10) {
+                            $user->is_online       = '1';
+                            $user->auto_offline_at = null;
+                            $user->save();
+
+                            $conn->send(json_encode([
+                                'type' => 'online_status_updated',
+                                'data' => ['is_online' => $user->is_online]
+                            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                        }
+                    }
                     if ($user->is_online == '1') {
                         $this->pushPendingTripsToDriver($user, $conn);
                     }
@@ -2728,6 +2740,7 @@ if ($trip->car_id != null && $trip->car) {
                             case 'set_availability':
                                 $user = User::findOrFail($AuthUserID);
                                 $user->is_online = $data['data']['is_online'];
+                                $user->auto_offline_at  = null;
                                 $user->save();
 
                                 $from->send(json_encode([
@@ -2802,15 +2815,15 @@ if ($trip->car_id != null && $trip->car) {
         echo "[ {$date_time} ],Connection {$conn->resourceId} has disconnected\n";
 
         if ($userId && strpos((string) $userId, 'live_') === false) {
-            $this->loop->addTimer(15, function () use ($userId) {
-                // لو رجع اتصل خلال 15 ثانية، متعملش أوفلاين
+            $this->loop->addTimer(45, function () use ($userId) {
                 if (isset($this->clientUserIdMap[$userId])) return;
 
                 $user = User::find($userId);
                 if ($user && $user->is_online == '1') {
-                    $user->is_online = '0';
+                    $user->is_online        = '0';
+                    $user->auto_offline_at  = now();
                     $user->save();
-                    echo "[ " . date('Y-m-d h:i:s a') . " ] Driver {$userId} auto-set OFFLINE after disconnect grace period\n";
+                    echo "[ " . date('Y-m-d h:i:s a') . " ] Driver {$userId} auto-set OFFLINE (system)\n";
                 }
             });
         }
