@@ -1101,41 +1101,37 @@ if ($deletedPhone) {
     }
 
     public function profile($id)
-    {
-        $user = User::where('id', $id)->with('city:id,name,name_ar')->first();
+{
+    $user = User::where('id', $id)->with('city:id,name,name_ar')->first();
 
-        // نفس منطق الـ auto-offline restore الموجود في onOpen بتاع الـ WebSocket
-        if ($user->mode == 'driver'
-            && $user->is_online == '0'
-            && $user->auto_offline_at
-            && $user->auto_offline_at->diffInMinutes(now()) <= 10) {
-            $user->is_online       = '1';
-            $user->auto_offline_at = null;
-            $user->save();
-        }
-
-        $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
-        $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
-        $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
-        $user->PassportImage = getFirstMediaUrl($user, $user->passportImageCollection);
-        $user->medical_examination_image = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
-        $user->criminal_record_image     = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
-
-        if ($user->mode == 'client') {
-            $clientTrips        = Trip::where('user_id', $user->id)->where('status', 'completed');
-            $user->rate         = $clientTrips->clone()->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
-            $user->trips_count  = $clientTrips->count();
-
-        } elseif ($user->mode == 'driver') {
-            $driverTrips        = Trip::whereHas('car', function ($query) use ($user) {
-                                    $query->where('user_id', $user->id);
-                                  })->where('status', 'completed');
-            $user->rate         = $driverTrips->clone()->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
-            $user->trips_count  = $driverTrips->count();
-        }
-
-        return $this->sendResponse($user, null, 200);
+    if ($user->mode == 'driver' && $user->is_online != '1') {
+        $user->is_online       = '1';
+        $user->auto_offline_at = null;
+        $user->save();
     }
+
+    $user->image         = getFirstMediaUrl($user, $user->avatarCollection);
+    $user->ID_frontImage = getFirstMediaUrl($user, $user->IDfrontImageCollection);
+    $user->ID_backImage  = getFirstMediaUrl($user, $user->IDbackImageCollection);
+    $user->PassportImage = getFirstMediaUrl($user, $user->passportImageCollection);
+    $user->medical_examination_image = getFirstMediaUrl($user, $user->medicalExaminationImageCollection);
+    $user->criminal_record_image     = getFirstMediaUrl($user, $user->criminalRecordImageCollection);
+
+    if ($user->mode == 'client') {
+        $clientTrips        = Trip::where('user_id', $user->id)->where('status', 'completed');
+        $user->rate         = $clientTrips->clone()->where('driver_stare_rate', '>', 0)->avg('driver_stare_rate') ?? 0.00;
+        $user->trips_count  = $clientTrips->count();
+
+    } elseif ($user->mode == 'driver') {
+        $driverTrips        = Trip::whereHas('car', function ($query) use ($user) {
+                                $query->where('user_id', $user->id);
+                              })->where('status', 'completed');
+        $user->rate         = $driverTrips->clone()->where('client_stare_rate', '>', 0)->avg('client_stare_rate') ?? 0.00;
+        $user->trips_count  = $driverTrips->count();
+    }
+
+    return $this->sendResponse($user, null, 200);
+}
 public function edit_personal_info(Request $request)
 {
     $user = auth()->user();
