@@ -1104,7 +1104,11 @@ if ($deletedPhone) {
 {
     $user = User::where('id', $id)->with('city:id,name,name_ar')->first();
 
-    if ($user->mode == 'driver' && $user->is_online != '1') {
+    // Restore driver to online only if the system took them offline automatically
+    // (never override a driver's manual offline choice from set_availability)
+    if ($user->mode == 'driver'
+        && $user->is_online != '1'
+        && $user->auto_offline_at !== null) {
         $user->is_online       = '1';
         $user->auto_offline_at = null;
         $user->save();
