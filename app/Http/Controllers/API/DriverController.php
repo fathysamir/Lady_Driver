@@ -808,7 +808,7 @@ class DriverController extends ApiController
         } else {
             $user->is_online = $user->is_online == '1' ? '0' : '1';
         }
-
+        $user->auto_offline_at = null;
         $user->save();
 
         return $this->sendResponse(
