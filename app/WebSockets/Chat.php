@@ -152,7 +152,8 @@ private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
         $response = calculate_distance($item->lat, $item->lng, $lat, $lng);
         $real = $response['distance_in_km'] ?? null;
 
-        // لو الـ API فشل، متضمّنوش السائق بدل ما نبعتله رحلة بمسافة غلط
+        echo "📏 Item {$item->id} real distance: " . ($real ?? 'NULL') . " km\n";
+
         if ($real === null) {
             return false;
         }
