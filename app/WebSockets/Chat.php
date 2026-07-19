@@ -2815,7 +2815,7 @@ if ($trip->car_id != null && $trip->car) {
 
         $date_time = date('Y-m-d h:i:s a');
         echo "[ {$date_time} ],Connection {$conn->resourceId} has disconnected\n";
-
+/*
         if ($userId && strpos((string) $userId, 'live_') === false) {
             $this->loop->addTimer(3600, function () use ($userId) {
                 if (isset($this->clientUserIdMap[$userId])) return;
@@ -2829,6 +2829,7 @@ if ($trip->car_id != null && $trip->car) {
                 }
             });
         }
+            */
 
     }
 
