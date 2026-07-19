@@ -665,7 +665,7 @@ public function current_trip()
         $prevLng = $destination->lng;
     }
 
-    $trip->duration = $totalDuration;
+   // $trip->duration = $totalDuration;
 
     $barcode_image = url(barcodeImage($trip->id));
     $trip->barcode = $barcode_image;
