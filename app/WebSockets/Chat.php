@@ -2541,21 +2541,21 @@ if ($trip->car_id != null && $trip->car) {
             ->first();
     }
 
-    // ================= ROUTE (client-supplied, free — no Google cost) =================
-    $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$AuthUserID}";
+   // ================= ROUTE (client-supplied, free — no Google cost) =================
+   $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$AuthUserID}";
 
-    if (isset($data['route']) && is_array($data['route'])) {
-        $this->routeCache[$routeKey] = [
-            'polyline'   => $data['route']['polyline']   ?? null,
-            'version'    => $data['route']['version']    ?? null,
-            'kind'       => $data['route']['kind']       ?? null,
-            'distance_m' => $data['route']['distance_m'] ?? null,
-            'duration_s' => $data['route']['duration_s'] ?? null,
-        ];
-        echo "🛣️ Route updated for {$routeKey} (v{$this->routeCache[$routeKey]['version']}, {$this->routeCache[$routeKey]['kind']})\n";
-    }
+   if (isset($data['route']) && is_array($data['route'])) {
+       $this->routeCache[$routeKey] = [
+           'polyline' => $data['route']['polyline'] ?? null,
+           'version'  => $data['route']['version']  ?? null,
+           'kind'     => $data['route']['kind']     ?? null,
+           'distance' => $data['distance'] ?? null,
+           'duration' => $data['duration'] ?? null,
+       ];
+       echo "🛣️ Route updated for {$routeKey} (v{$this->routeCache[$routeKey]['version']}, {$this->routeCache[$routeKey]['kind']})\n";
+   }
 
-    $route = $this->routeCache[$routeKey] ?? null;
+   $route = $this->routeCache[$routeKey] ?? null;
 
     // ================= GOOGLE API FALLBACK (cost-efficient, throttled) =================
     // Only call TripTrackingService (which hits Google) if:
@@ -2587,16 +2587,18 @@ if ($trip->car_id != null && $trip->car) {
             'speed'   => $speed,
 
             'eta'      => $result['eta'] ?? null,
-            'distance' => $route['distance_m'] ?? ($result['distance'] ?? null),
-            'duration' => $route['duration_s'] ?? ($result['duration'] ?? null),
+            'distance' => $route['distance'] ?? ($result['distance'] ?? null),
+            'duration' => $route['duration'] ?? ($result['duration'] ?? null),
             'status'   => $result['status'] ?? 'on_the_way',
 
             'message_en' => $result['message']['en'] ?? null,
             'message_ar' => $result['message']['ar'] ?? null,
 
-            'route_polyline' => $route['polyline'] ?? null,
-            'route_version'  => $route['version']  ?? null,
-            'route_kind'     => $route['kind']     ?? null,
+            'route' => $route ? [
+                'polyline' => $route['polyline'] ?? null,
+                'version'  => $route['version']  ?? null,
+                'kind'     => $route['kind']     ?? null,
+            ] : null,
         ],
     ];
 
