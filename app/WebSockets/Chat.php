@@ -547,7 +547,7 @@ private function getFirebaseAccessToken(): ?string
         $timer = $this->loop->addPeriodicTimer($interval, function () use ($conn, $connId) {
             $userId = $this->getUserIdByConn($conn);
 
-            if ($userId && isset($this->lastPong[$userId]) && (time() - $this->lastPong[$userId] > 90)) {
+            if ($userId && isset($this->lastPong[$userId]) && (time() - $this->lastPong[$userId] > 3600)) {  //will back 90 testing with 3600
                 echo "💀 Connection {$conn->resourceId} (user {$userId}) stale, closing & purging.\n";
                 unset($this->clientUserIdMap[$userId]);
                 unset($this->lastPong[$userId]);
