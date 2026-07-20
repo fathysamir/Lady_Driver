@@ -851,7 +851,10 @@ class DriverController extends ApiController
     }
 
     if ($user->status != 'confirmed') {
-        $message = $lang === 'ar' ? 'الحساب قيد المراجعة.' : 'Account under review';
+        $message = $lang === 'ar'
+            ? 'حسابك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت التسجيل. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتفعل الحساب هيوصلك إشعار.'
+            : 'Your account is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your account is activated.';
+
         return $this->sendError(null, $message, 400);
     }
 
