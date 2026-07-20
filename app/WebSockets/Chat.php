@@ -2662,7 +2662,8 @@ if ($trip->car_id != null && $trip->car) {
             if (!$AuthUserID) {
                 return;
             }
-            if (array_key_exists('data', $data)) {
+            if (is_array($data) && array_key_exists('data', $data)) {
+
                 $requestData = json_encode($data['data'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
 
             }
