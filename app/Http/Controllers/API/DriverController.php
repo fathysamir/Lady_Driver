@@ -821,6 +821,8 @@ class DriverController extends ApiController
 
     public function created_trips(Request $request)
 {
+    $lang = $request->header('Accept-Language', 'en');
+
     $check_account = $this->check_banned();
 
     if ($check_account != true) {
@@ -835,7 +837,8 @@ class DriverController extends ApiController
     $user = auth()->user();
 
     if (!$user->is_online) {
-        return $this->sendError(null, "You are offline", 400);
+        $message = $lang === 'ar' ? 'أنت غير متصل حاليًا.' : 'You are offline';
+        return $this->sendError(null, $message, 400);
     }
 
     $vehicle = $user->driver_type == 'scooter'
@@ -843,11 +846,13 @@ class DriverController extends ApiController
         : Car::where('user_id', $user->id)->first();
 
     if (!$vehicle) {
-        return $this->sendError(null, "No vehicle found", 400);
+        $message = $lang === 'ar' ? 'لا توجد مركبة مسجلة.' : 'No vehicle found';
+        return $this->sendError(null, $message, 400);
     }
 
     if ($user->status != 'confirmed') {
-        return $this->sendError(null, "Account under review", 400);
+        $message = $lang === 'ar' ? 'الحساب قيد المراجعة.' : 'Account under review';
+        return $this->sendError(null, $message, 400);
     }
 
     // Prefer lat/lng sent with the request; fall back to the vehicle's last saved location
@@ -855,7 +860,8 @@ class DriverController extends ApiController
     $lng = $request->filled('lng') ? $request->lng : $vehicle->lng;
 
     if (empty($lat) || empty($lng)) {
-        return $this->sendError(null, "Please update your location first", 400);
+        $message = $lang === 'ar' ? 'يرجى تحديث موقعك أولاً.' : 'Please update your location first';
+        return $this->sendError(null, $message, 400);
     }
 
     $lat = (float) $lat;
