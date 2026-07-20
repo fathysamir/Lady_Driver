@@ -885,7 +885,11 @@ if ($deletedPhone) {
                     ]);
                 }
 
-                return $this->sendError(null, 'Invalid credentials', 401);
+                $message = $lang === 'ar'
+                ? 'بيانات الدخول غير صحيحة.'
+                : 'Invalid credentials';
+
+            return $this->sendError(null, $message, 401);
             }
 
             // Password correct + reset limiter
