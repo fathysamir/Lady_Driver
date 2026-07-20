@@ -2021,7 +2021,16 @@ $cancelling_cost = 0;
             // 'message'=>'Trip canceled successfully'
         ];
         if ($data['reason_id']) {
-            $reason = TripCancellingReason::findOrFail($trip->trip_cancelling_reason_id);
+            $reason = TripCancellingReason::find($trip->trip_cancelling_reason_id);
+            if (!$reason) {
+                echo "⚠️ TripCancellingReason ID {$trip->trip_cancelling_reason_id} not found — falling back to default cancelling cost.\n";
+                $arr = [
+                    'car'         => 'Car Trips',
+                    'comfort_car' => 'Comfort Trips',
+                    'scooter'     => 'Scooter Trips',
+                ];
+                $cancelling_cost = floatval(Setting::where('key', 'cancelling_cost')->where('category', $arr[$trip->type])->where('type', 'number')->first()->value);
+            }
         } else {
             $arr = [
                 'car'         => 'Car Trips',
