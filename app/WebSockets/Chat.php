@@ -1631,6 +1631,20 @@ $newTrip['discount']         = (float) $trip->discount;
     {
         $data      = json_decode($offerRequest, true);
         $driver    = User::findOrFail($AuthUserID);
+
+        $trip = Trip::findOrFail($data['trip_id']);
+
+        // 🛡️ فحص فوري قبل عمل أي offer: الرحلة لسه متاحة؟
+        if (!in_array($trip->status, ['created', 'scheduled'])) {
+            $from->send(json_encode([
+                'type'    => 'offer_rejected',
+                'data'    => ['trip_id' => $trip->id],
+                'message' => 'Sorry, this trip is no longer available.',
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            echo "🚫 Rejected offer attempt on trip {$trip->id} (status: {$trip->status}) by user {$AuthUserID}\n";
+            return;
+        }
+
         $lastOffer = Offer::orderBy('id', 'desc')->first();
 
         if ($lastOffer) {
@@ -1639,7 +1653,6 @@ $newTrip['discount']         = (float) $trip->discount;
         } else {
             $code = 'OFR-000001';
         }
-        $trip = Trip::findOrFail($data['trip_id']);
         switch ($trip->type) {
             case 'car':
                 $app_ratio = floatval(Setting::where('key', 'app_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
@@ -1810,9 +1823,13 @@ $newTrip['discount']         = (float) $trip->discount;
 
     private function accept_offer(ConnectionInterface $from, $AuthUserID, $acceptOfferRequest)
     {
+
         $data = json_decode($acceptOfferRequest, true);
 
         $offer = Offer::where('id', $data['offer_id'])->where('status', 'pending')->first();
+        if ($offer && $offer->trip->status !== 'created' && $offer->trip->status !== 'scheduled') {
+            $offer = null; // اعتبرها منتهية الصلاحية زي أي offer expired تاني
+        }
         if (! $offer) {
             $x['offer_id'] = $data['offer_id'];
             $data1         = [

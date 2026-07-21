@@ -118,15 +118,21 @@ function generateOTP()
 
 function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
 {
+    static $cache = [];
 
-    //$api_key = 'AIzaSyATC_r7Y-U6Th1RQLHWJv2JcufJb-x2VJ0';
+    // 🕐 كاش لمدة 5 ثواني لنفس الإحداثيات/النوع، بيقلل الـ blocking calls المتكررة في نفس الفترة
+    $cacheKey = round($lat1, 4) . ',' . round($lng1, 4) . '|' . round($lat2, 4) . ',' . round($lng2, 4) . '|' . $vehicleType;
+    if (isset($cache[$cacheKey]) && (time() - $cache[$cacheKey]['time']) < 5) {
+        return $cache[$cacheKey]['data'];
+    }
+
     $api_key = 'AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es'; // New Key
 
     switch (strtolower($vehicleType)) {
         case 'scooter':
         case 'motorbike':
         case 'bike':
-            $mode = 'two_wheeler'; // special mode for scooters / motorbikes
+            $mode = 'two_wheeler';
             break;
         case 'walking':
             $mode = 'walking';
@@ -137,33 +143,43 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
         default:
             $mode = 'driving';
     }
-    //$base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+
     $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&mode=$mode&departure_time=now&traffic_model=best_guess&key=$api_key";
-    //$request_url = $base_url . '?origins=' . floatval($lat1) . ',' . floatval($lng1) . '&destinations=' . floatval($lat2) . ',' . floatval($lng2) . '&key=' . $api_key;
 
-    // $response = file_get_contents($request_url);
-    $context = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
-$response = file_get_contents($request_url, false, $context);
-    $data     = json_decode($response, true);
+    // 🛡️ timeout قصير يمنع تجميد الـ event loop بالكامل لو الـ API اتأخر أو مفيش رد
+    $context = stream_context_create([
+        'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
+        'http' => ['timeout' => 2],
+    ]);
 
-    if ($data['status'] == 'OK') {
+    $response = @file_get_contents($request_url, false, $context);
 
-        $element  = $data['rows'][0]['elements'][0];
-        $distance = $element['distance']['value'] ?? 0;                                             // meters
-        $duration = $element['duration_in_traffic']['value'] ?? $element['duration']['value'] ?? 0; // seconds
-
-       // $response2['distance_in_km'] = ceil($distance / 1000); // Convert distance to kilometers
-       // $response2['duration_in_M']  = ceil($duration / 60);
-
-
-       $response2['distance_in_km'] = round(($distance / 1000), 2); // Convert distance to kilometers
-       $response2['duration_in_M']  = (int) ceil($duration / 60);
-
-
-        return $response2;
-    } else {
-        return 'Error: Unable to calculate the distance.';
+    // 🛡️ فشل الطلب (timeout / no network) — نرجع نفس شكل الـ array بتاع النجاح عشان مفيش كود يتكسر
+    if ($response === false) {
+        echo "❌ Distance API request failed/timed out\n";
+        $result = ['distance_in_km' => null, 'duration_in_M' => null];
+        $cache[$cacheKey] = ['time' => time(), 'data' => $result];
+        return $result;
     }
+
+    $data = json_decode($response, true);
+
+    if (($data['status'] ?? null) === 'OK') {
+        $element  = $data['rows'][0]['elements'][0];
+        $distance = $element['distance']['value'] ?? 0;
+        $duration = $element['duration_in_traffic']['value'] ?? $element['duration']['value'] ?? 0;
+
+        $result = [
+            'distance_in_km' => round($distance / 1000, 2),
+            'duration_in_M'  => (int) ceil($duration / 60),
+        ];
+    } else {
+        echo "❌ Distance API error: " . ($data['status'] ?? 'unknown') . "\n";
+        $result = ['distance_in_km' => null, 'duration_in_M' => null];
+    }
+
+    $cache[$cacheKey] = ['time' => time(), 'data' => $result];
+    return $result;
 }
 
 function barcodeImage($id)
