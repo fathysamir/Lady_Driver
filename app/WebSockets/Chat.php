@@ -147,6 +147,7 @@ try {
  * بيرجع نفس الـ Collection بس بعد استبعاد اللي مسافتهم الحقيقية برا النطاق،
  * وبيخزن المسافة/المدة الحقيقية على كل عنصر عشان متعملش نفس الـ API call مرتين.
  */
+/*
 private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
 {
     return $items->filter(function ($item) use ($lat, $lng, $min, $max) {
@@ -164,6 +165,18 @@ private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
 
         return $real >= $min && $real <= $max;
     })->values();
+}
+*/
+private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
+{
+    return $items->values();   // ← ✅ ده الشغال دلوقتي: بيرجع كل العناصر زي ما هي، من غير نداء Google
+
+    /* ===== الكود الأصلي (متعطل، جاهز يترجع بضغطة زر) =====
+    return $items->filter(function ($item) use ($lat, $lng, $min, $max) {
+        ...
+        return $real >= $min && $real <= $max;
+    })->values();
+    ===== نهاية الكود الأصلي ===== */
 }
 ///////////////////////////////////////////////////////////////////////////////////////
 private function getUserFcmTokens($user): array
