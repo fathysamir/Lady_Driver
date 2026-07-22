@@ -2561,18 +2561,22 @@ if ($trip->car_id != null && $trip->car) {
    // ================= ROUTE (client-supplied, free — no Google cost) =================
    $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$AuthUserID}";
 
-   if (isset($data['route']) && is_array($data['route'])) {
-       $this->routeCache[$routeKey] = [
-           'polyline' => $data['route']['polyline'] ?? null,
-           'version'  => $data['route']['version']  ?? null,
-           'kind'     => $data['route']['kind']     ?? null,
-           'distance' => $data['distance'] ?? null,
-           'duration' => $data['duration'] ?? null,
-       ];
-       echo "🛣️ Route updated for {$routeKey} (v{$this->routeCache[$routeKey]['version']}, {$this->routeCache[$routeKey]['kind']})\n";
-   }
+// polyline/kind/version بيتحدّثوا بس لو الكلاينت بعتهم
+if (isset($data['route']) && is_array($data['route'])) {
+    $this->routeCache[$routeKey]['polyline'] = $data['route']['polyline'] ?? null;
+    $this->routeCache[$routeKey]['version']  = $data['route']['version']  ?? null;
+    $this->routeCache[$routeKey]['kind']     = $data['route']['kind']     ?? null;
+}
 
-   $route = $this->routeCache[$routeKey] ?? null;
+// distance/duration لازم تتحدّث مع كل رسالة location، مش بس لو فيه route
+if (array_key_exists('distance', $data)) {
+    $this->routeCache[$routeKey]['distance'] = $data['distance'];
+}
+if (array_key_exists('duration', $data)) {
+    $this->routeCache[$routeKey]['duration'] = $data['duration'];
+}
+
+$route = $this->routeCache[$routeKey] ?? null;
 
     // ================= GOOGLE API FALLBACK (cost-efficient, throttled) =================
     // Only call TripTrackingService (which hits Google) if:
