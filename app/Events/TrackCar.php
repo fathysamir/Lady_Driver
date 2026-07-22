@@ -25,6 +25,8 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
     public $message;
     public $status;
 
+    public $route;          // ✅ جديد
+
     public $receiverId;
 
     public function __construct(
@@ -37,7 +39,8 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
         $eta = null,
         $message = null,
         $status = 'on_the_way',
-        $receiverId = null
+        $receiverId = null,
+        $route = null        // ✅ جديد
     ) {
         $this->lat        = floatval($lat);
         $this->lng        = floatval($lng);
@@ -50,6 +53,8 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
 
         $this->message    = $message;
         $this->status     = $status;
+
+        $this->route       = $route;   // ✅ جديد
 
         $this->receiverId = $receiverId;
     }
@@ -78,6 +83,8 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
 
             'message'   => $this->message,
             'status'    => $this->status,
+
+            'route'     => $this->route,   // ✅ جديد
         ];
     }
 }
