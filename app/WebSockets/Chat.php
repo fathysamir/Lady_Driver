@@ -167,13 +167,50 @@ private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
     })->values();
 }
 */
-private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
-{
-    return $items->values();   // ← ✅ ده الشغال دلوقتي: بيرجع كل العناصر زي ما هي، من غير نداء Google
+
+
+//private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
+//{
+  //  return $items->values();   // ← ✅ ده الشغال دلوقتي: بيرجع كل العناصر زي ما هي، من غير نداء Google
 
     /* ===== الكود الأصلي (متعطل، جاهز يترجع بضغطة زر) =====
     return $items->filter(function ($item) use ($lat, $lng, $min, $max) {
         ...
+        return $real >= $min && $real <= $max;
+    })->values();
+    ===== نهاية الكود الأصلي ===== */
+//}
+
+
+private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
+{
+    // ✅ الفلترة متعطلة - بيرجع كل العناصر، بس بنسجل المسافة الحقيقية في الـ log للمراقبة
+    foreach ($items as $item) {
+        $response = calculate_distance($item->lat, $item->lng, $lat, $lng);
+        $real = $response['distance_in_km'] ?? null;
+
+        echo "📏 Item {$item->id} real distance: " . ($real ?? 'NULL') . " km (filter bypassed)\n";
+
+        $item->_real_distance_km = $real !== null ? round($real, 2) : null;
+        $item->_real_duration_m  = intval($response['duration_in_M'] ?? 0);
+    }
+
+    return $items->values();
+
+    /* ===== الكود الأصلي مع الفلترة (متعطل، جاهز يترجع بضغطة زر) =====
+    return $items->filter(function ($item) use ($lat, $lng, $min, $max) {
+        $response = calculate_distance($item->lat, $item->lng, $lat, $lng);
+        $real = $response['distance_in_km'] ?? null;
+
+        echo "📏 Item {$item->id} real distance: " . ($real ?? 'NULL') . " km\n";
+
+        if ($real === null) {
+            return false;
+        }
+
+        $item->_real_distance_km = round($real, 2);
+        $item->_real_duration_m  = intval($response['duration_in_M'] ?? 0);
+
         return $real >= $min && $real <= $max;
     })->values();
     ===== نهاية الكود الأصلي ===== */
