@@ -20,6 +20,7 @@ use Illuminate\Validation\Rule;
 use App\Events\TripStarted;
 use App\Events\TripEnded;
 use App\Events\TrackCar;
+use Illuminate\Support\Facades\Cache;
 
 
 
@@ -1263,130 +1264,184 @@ class DriverController extends ApiController
 
 
     public function update_location_car(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'lat'     => 'required',
-        'lng'     => 'required',
-        'heading' => 'nullable|numeric',
-        'speed'   => 'nullable|numeric',
-    ]);
-
-    if ($validator->fails()) {
-        $errors = implode(" / ", $validator->errors()->all());
-        return $this->sendError(null, $errors, 400);
-    }
-
-    $user = auth()->user();
-
-    $user->update([
-        'lat' => floatval($request->lat),
-        'lng' => floatval($request->lng),
-        'heading' => $request->heading ?? $user->heading,
-        'speed'   => $request->speed ?? $user->speed,
-    ]);
-
-    // ================= CAR =================
-    if (in_array($user->driver_type, ['car', 'comfort_car'])) {
-
-        $car = Car::where('user_id', $user->id)->first();
-
-        if (!$car) {
-            return $this->sendError(null, "You don't create your car yet", 400);
-        }
-
-        if ($user->is_online == '0') {
-            return $this->sendError(null, "You are Offline, You should be online first", 400);
-        }
-
-        $car->update([
-            'lat' => $request->lat,
-            'lng' => $request->lng,
-            'heading' => $request->heading,
-            'speed' => $request->speed,
+    {
+        $validator = Validator::make($request->all(), [
+            'lat'      => 'required',
+            'lng'      => 'required',
+            'heading'  => 'nullable|numeric',
+            'speed'    => 'nullable|numeric',
+            'distance' => 'nullable',
+            'duration' => 'nullable',
+            'route'    => 'nullable|array',
         ]);
 
-        $trip = Trip::where('car_id', $car->id)
-            ->whereIn('status', ['pending', 'in_progress'])
-            ->first();
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
 
-        if ($trip) {
+        $user = auth()->user();
 
-            $tracker = app(\App\Services\TripTrackingService::class);
-            $result = $tracker->calculate($request->lat, $request->lng, $trip);
+        $lat     = floatval($request->lat);
+        $lng     = floatval($request->lng);
+        $heading = $request->heading !== null ? floatval($request->heading) : ($user->heading ?? 0);
+        $speed   = $request->speed !== null ? floatval($request->speed) : ($user->speed ?? 0);
 
-            if ($result) {
+        $user->update([
+            'lat'     => $lat,
+            'lng'     => $lng,
+            'heading' => $heading,
+            'speed'   => $speed,
+        ]);
 
-                foreach ([$trip->user_id, $car->user_id] as $id) {
-                    event(new \App\Events\TrackCar(
-                        $request->lat,
-                        $request->lng,
-                        $request->heading ?? 0,
-                        $request->speed ?? 0,
-                        $result['distance'],
-                        $result['duration'],
-                        $result['eta'],
-                        $result['message'],
-                        $result['status'],
-                        $id
-                    ));
-                }
+        // ================= Determine vehicle + trip =================
+        $vehicle = null;
+        $trip    = null;
+
+        if (in_array($user->driver_type, ['car', 'comfort_car'])) {
+
+            $vehicle = Car::where('user_id', $user->id)->first();
+
+            if (!$vehicle) {
+                return $this->sendError(null, "You don't create your car yet", 400);
+            }
+
+            if ($user->is_online == '0') {
+                return $this->sendError(null, "You are Offline, You should be online first", 400);
+            }
+
+            $vehicle->update([
+                'lat'     => $lat,
+                'lng'     => $lng,
+                'heading' => $heading,
+                'speed'   => $speed,
+            ]);
+
+            $trip = Trip::where('car_id', $vehicle->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+
+        } elseif ($user->driver_type == 'scooter') {
+
+            $vehicle = Scooter::where('user_id', $user->id)->first();
+
+            if (!$vehicle) {
+                return $this->sendError(null, "You don't create your scooter yet", 400);
+            }
+
+            if ($user->is_online == '0') {
+                return $this->sendError(null, "You are Offline, You should be online first", 400);
+            }
+
+            $vehicle->update([
+                'lat'     => $lat,
+                'lng'     => $lng,
+                'heading' => $heading,
+                'speed'   => $speed,
+            ]);
+
+            $trip = Trip::where('scooter_id', $vehicle->id)
+                ->whereIn('status', ['pending', 'in_progress'])
+                ->first();
+
+        } else {
+            return $this->sendError(null, "Invalid driver type", 400);
+        }
+
+        // ================= ROUTE (client-supplied, free — no Google cost) =================
+        $routeKey = $trip ? "trip_{$trip->id}" : "driver_{$user->id}";
+        $cacheKey = "route_cache_{$routeKey}";
+
+        $route = Cache::get($cacheKey, []);
+
+        // polyline/kind/version بيتحدّثوا بس لو الكلاينت بعتهم
+        if ($request->has('route') && is_array($request->route)) {
+            $route['polyline'] = $request->route['polyline'] ?? null;
+            $route['version']  = $request->route['version']  ?? null;
+            $route['kind']     = $request->route['kind']     ?? null;
+        }
+
+        // distance/duration لازم تتحدّث مع كل رسالة location، مش بس لو فيه route
+        if ($request->has('distance')) {
+            $route['distance'] = $request->distance;
+        }
+        if ($request->has('duration')) {
+            $route['duration'] = $request->duration;
+        }
+
+        if (!empty($route)) {
+            Cache::put($cacheKey, $route, now()->addMinutes(30));
+        } else {
+            $route = null;
+        }
+
+        // ================= GOOGLE API FALLBACK (cost-efficient, throttled) =================
+        $result = null;
+        if ($trip && !$route) {
+            $throttleKey     = "last_google_call_{$routeKey}";
+            $throttleSeconds = 20;
+
+            if (!Cache::has($throttleKey)) {
+                $tracker = app(\App\Services\TripTrackingService::class);
+                $result  = $tracker->calculate($lat, $lng, $trip);
+                Cache::put($throttleKey, time(), $throttleSeconds);
             }
         }
 
-        return $this->sendResponse(null, 'car location updated successfully', 200);
-    }
+        // ================= SAFE PAYLOAD (same shape as WebSocket track_car) =================
+        $payloadData = [
+            'lat'     => $lat,
+            'lng'     => $lng,
+            'heading' => $heading,
+            'speed'   => $speed,
 
-    // ================= SCOOTER =================
-    elseif ($user->driver_type == 'scooter') {
+            'eta'      => $result['eta'] ?? null,
+            'distance' => $route['distance'] ?? ($result['distance'] ?? null),
+            'duration' => $route['duration'] ?? ($result['duration'] ?? null),
+            'status'   => $result['status'] ?? 'on_the_way',
 
-        $scooter = Scooter::where('user_id', $user->id)->first();
+            'message_en' => $result['message']['en'] ?? null,
+            'message_ar' => $result['message']['ar'] ?? null,
 
-        if (!$scooter) {
-            return $this->sendError(null, "You don't create your scooter yet", 400);
-        }
+            'route' => $route ? [
+                'polyline' => $route['polyline'] ?? null,
+                'version'  => $route['version']  ?? null,
+                'kind'     => $route['kind']     ?? null,
+            ] : null,
+        ];
 
-        if ($user->is_online == '0') {
-            return $this->sendError(null, "You are Offline, You should be online first", 400);
-        }
-
-        $scooter->update([
-            'lat' => $request->lat,
-            'lng' => $request->lng,
-            'heading' => $request->heading,
-            'speed' => $request->speed,
-        ]);
-
-        $trip = Trip::where('scooter_id', $scooter->id)
-            ->whereIn('status', ['pending', 'in_progress'])
-            ->first();
-
+        // ================= BROADCAST (same recipients as WebSocket) =================
         if ($trip) {
-
-            $tracker = app(\App\Services\TripTrackingService::class);
-            $result = $tracker->calculate($request->lat, $request->lng, $trip);
-
-            if ($result) {
-
-                foreach ([$trip->user_id, $scooter->user_id] as $id) {
-                    event(new \App\Events\TrackCar(
-                        $request->lat,
-                        $request->lng,
-                        $request->heading ?? 0,
-                        $request->speed ?? 0,
-                        $result['distance'],
-                        $result['duration'],
-                        $result['eta'],
-                        $result['message'],
-                        $result['status'],
-                        $id
-                    ));
-                }
-            }
+            event(new \App\Events\TrackCar(
+                $lat, $lng, $heading, $speed,
+                $payloadData['distance'], $payloadData['duration'],
+                $payloadData['eta'],
+                ['en' => $payloadData['message_en'], 'ar' => $payloadData['message_ar']],
+                $payloadData['status'],
+                $trip->user_id
+            ));
         }
 
-        return $this->sendResponse(null, 'scooter location updated successfully', 200);
+        event(new \App\Events\TrackCar(
+            $lat, $lng, $heading, $speed,
+            $payloadData['distance'], $payloadData['duration'],
+            $payloadData['eta'],
+            ['en' => $payloadData['message_en'], 'ar' => $payloadData['message_ar']],
+            $payloadData['status'],
+            $user->id
+        ));
+
+        // Clean up cache once trip is over
+        if ($trip && in_array($trip->status, ['completed', 'cancelled', 'expired'])) {
+            Cache::forget($cacheKey);
+            Cache::forget("last_google_call_{$routeKey}");
+        }
+
+        return $this->sendResponse([
+            'type' => 'track_car',
+            'data' => $payloadData,
+        ], ($vehicle instanceof Car ? 'car' : 'scooter') . ' location updated successfully', 200);
     }
-}
 public function driver_completed_trips()
 {
     $user  = auth()->user();
