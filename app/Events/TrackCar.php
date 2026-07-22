@@ -22,10 +22,11 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
     public $duration;
     public $eta;
 
-    public $message;
+    public $messageEn;   // ✅ بدل message
+    public $messageAr;   // ✅ بدل message
     public $status;
 
-    public $route;          // ✅ جديد
+    public $route;
 
     public $receiverId;
 
@@ -37,10 +38,11 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
         $distance = null,
         $duration = null,
         $eta = null,
-        $message = null,
+        $messageEn = null,   // ✅ بدل message
+        $messageAr = null,   // ✅ جديد
         $status = 'on_the_way',
         $receiverId = null,
-        $route = null        // ✅ جديد
+        $route = null
     ) {
         $this->lat        = floatval($lat);
         $this->lng        = floatval($lng);
@@ -51,10 +53,11 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
         $this->duration   = $duration;
         $this->eta        = $eta;
 
-        $this->message    = $message;
+        $this->messageEn  = $messageEn;   // ✅
+        $this->messageAr  = $messageAr;   // ✅
         $this->status     = $status;
 
-        $this->route       = $route;   // ✅ جديد
+        $this->route      = $route;
 
         $this->receiverId = $receiverId;
     }
@@ -81,10 +84,11 @@ class TrackCar implements ShouldBroadcast, ShouldQueue
             'duration'  => $this->duration,
             'eta'       => $this->eta,
 
-            'message'   => $this->message,
-            'status'    => $this->status,
+            'message_en' => $this->messageEn,   // ✅ flat
+            'message_ar' => $this->messageAr,   // ✅ flat
+            'status'     => $this->status,
 
-            'route'     => $this->route,   // ✅ جديد
+            'route'     => $this->route,
         ];
     }
 }

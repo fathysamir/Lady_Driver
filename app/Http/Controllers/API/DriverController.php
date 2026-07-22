@@ -1406,10 +1406,8 @@ class DriverController extends ApiController
     $finalDistance = $sentDistance ?? ($route['distance'] ?? ($result['distance'] ?? null));
     $finalDuration = $sentDuration ?? ($route['duration'] ?? ($result['duration'] ?? null));
 
-    $messagePayload = [
-        'en' => $result['message']['en'] ?? null,
-        'ar' => $result['message']['ar'] ?? null,
-    ];
+    $messageEn = $result['message']['en'] ?? null;
+$messageAr = $result['message']['ar'] ?? null;
 
     $routePayload = $route ? [
         'polyline' => $route['polyline'] ?? null,
@@ -1438,7 +1436,8 @@ class DriverController extends ApiController
             $finalDistance,
             $finalDuration,
             $eta,
-            $messagePayload,
+            $messageEn,      // ✅
+            $messageAr,
             $status,
             $recipientId,
             $routePayload
@@ -1465,7 +1464,8 @@ class DriverController extends ApiController
             'duration' => $finalDuration,
             'status'   => $status,
 
-            'message'  => $messagePayload,
+            'message_en' => $messageEn,   // ✅ flat
+        'message_ar' => $messageAr,
 
             'route'    => $routePayload,
         ],
