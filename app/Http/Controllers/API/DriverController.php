@@ -821,109 +821,110 @@ class DriverController extends ApiController
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function created_trips(Request $request)
-{
-    $lang = $request->header('Accept-Language', 'en');
+    {
+        $lang = $request->header('Accept-Language', 'en');
 
-    $check_account = $this->check_banned();
+        $check_account = $this->check_banned();
 
-    if ($check_account != true) {
-        return $this->sendError(null, $check_account, 400);
-    }
+        if ($check_account != true) {
+            return $this->sendError(null, $check_account, 400);
+        }
 
-    $request->validate([
-        'lat' => 'nullable|numeric',
-        'lng' => 'nullable|numeric',
-    ]);
-
-    $user = auth()->user();
-
-    if (!$user->is_online) {
-        $message = $lang === 'ar' ? 'أنت غير متصل حاليًا.' : 'You are offline';
-        return $this->sendError(null, $message, 400);
-    }
-
-    $vehicle = $user->driver_type == 'scooter'
-        ? Scooter::where('user_id', $user->id)->first()
-        : Car::where('user_id', $user->id)->first();
-
-    if (!$vehicle) {
-        $message = $lang === 'ar' ? 'لا توجد مركبة مسجلة.' : 'No vehicle found';
-        return $this->sendError(null, $message, 400);
-    }
-
-    if ($user->status != 'confirmed') {
-        $message = $lang === 'ar'
-            ? 'حسابك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت التسجيل. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتفعل الحساب هيوصلك إشعار.'
-            : 'Your account is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your account is activated.';
-
-        return $this->sendError(null, $message, 400);
-    }
-
-    // Prefer lat/lng sent with the request; fall back to the vehicle's last saved location
-    $lat = $request->filled('lat') ? $request->lat : $vehicle->lat;
-    $lng = $request->filled('lng') ? $request->lng : $vehicle->lng;
-
-    if (empty($lat) || empty($lng)) {
-        $message = $lang === 'ar' ? 'يرجى تحديث موقعك أولاً.' : 'Please update your location first';
-        return $this->sendError(null, $message, 400);
-    }
-
-    $lat = (float) $lat;
-    $lng = (float) $lng;
-
-    // Save the fresh location back to the vehicle, if it was sent in the request
-    if ($request->filled('lat') && $request->filled('lng')) {
-        $vehicle->update([
-            'lat' => $lat,
-            'lng' => $lng,
+        $request->validate([
+            'lat' => 'nullable|numeric',
+            'lng' => 'nullable|numeric',
         ]);
-    }
 
-    $radius = 6371;
+        $user = auth()->user();
 
-    $trips = Trip::query()
-        ->whereIn('status', ['created', 'scheduled', 'in_progress'])
-        ->where('type', $user->driver_type)
-        ->where(function ($q) {
-            $q->where('status', 'scheduled')
-              ->orWhere('created_at', '>=', now()->subMinutes(5));
-        })
+        if (!$user->is_online) {
+            $message = $lang === 'ar' ? 'أنت غير متصل حاليًا.' : 'You are offline';
+            return $this->sendError(null, $message, 400);
+        }
 
-        // IMPORTANT: avoid selectRaw("*")
-        ->select('trips.*')
+        $vehicle = $user->driver_type == 'scooter'
+            ? Scooter::where('user_id', $user->id)->first()
+            : Car::where('user_id', $user->id)->first();
 
-        ->with([
-            'car.mark',
-            'car.model',
-            'car.owner:id,name,country_code,phone',
-            'scooter.motorcycleMark',
-            'scooter.motorcycleModel',
-            'scooter.owner:id,name,country_code,phone',
-            'user:id,name,country_code,phone',
-            'finalDestination:id,trip_id,lat,lng,address',
-        ])
+        if (!$vehicle) {
+            $message = $lang === 'ar' ? 'لا توجد مركبة مسجلة.' : 'No vehicle found';
+            return $this->sendError(null, $message, 400);
+        }
 
-        // safe computed distance (straight-line pre-filter)
-        ->addSelect(\DB::raw("
-            ROUND(
-                (
-                    $radius * acos(
-                        cos(radians($lat)) *
-                        cos(radians(start_lat)) *
-                        cos(radians(start_lng) - radians($lng)) +
-                        sin(radians($lat)) *
-                        sin(radians(start_lat))
-                    )
-                ), 2
-            ) as client_location_away
-        "))
-        ->having('client_location_away', '>=', 0.5)
-        ->having('client_location_away', '<=', 7)
-        ->latest()
-        ->get();
+        if ($user->status != 'confirmed') {
+            $message = $lang === 'ar'
+                ? 'حسابك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت التسجيل. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتفعل الحساب هيوصلك إشعار.'
+                : 'Your account is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your account is activated.';
 
-        // فلتر إضافي بمسافة الطريق الحقيقي (نفس منطق filterByRealDistance في Chat.php)
-        // عشان الريفريش يطابق سلوك إشعارات الـ WebSocket بالظبط ومايرجعش رحل خارج النطاق الفعلي
+            return $this->sendError(null, $message, 400);
+        }
+
+        // Prefer lat/lng sent with the request; fall back to the vehicle's last saved location
+        $lat = $request->filled('lat') ? $request->lat : $vehicle->lat;
+        $lng = $request->filled('lng') ? $request->lng : $vehicle->lng;
+
+        if (empty($lat) || empty($lng)) {
+            $message = $lang === 'ar' ? 'يرجى تحديث موقعك أولاً.' : 'Please update your location first';
+            return $this->sendError(null, $message, 400);
+        }
+
+        $lat = (float) $lat;
+        $lng = (float) $lng;
+
+        // Save the fresh location back to the vehicle, if it was sent in the request
+        if ($request->filled('lat') && $request->filled('lng')) {
+            $vehicle->update([
+                'lat' => $lat,
+                'lng' => $lng,
+            ]);
+        }
+
+        $radius = 6371;
+
+        $trips = Trip::query()
+            ->whereIn('status', ['created', 'scheduled', 'in_progress'])
+            ->where('type', $user->driver_type)
+            ->where(function ($q) {
+                $q->where('status', 'scheduled')
+                  ->orWhere('created_at', '>=', now()->subMinutes(5));
+            })
+
+            // IMPORTANT: avoid selectRaw("*")
+            ->select('trips.*')
+
+            ->with([
+                'car.mark',
+                'car.model',
+                'car.owner:id,name,country_code,phone',
+                'scooter.motorcycleMark',
+                'scooter.motorcycleModel',
+                'scooter.owner:id,name,country_code,phone',
+                'user:id,name,country_code,phone',
+                'finalDestination:id,trip_id,lat,lng,address',
+            ])
+
+            // safe computed distance (straight-line pre-filter)
+            ->addSelect(\DB::raw("
+                ROUND(
+                    (
+                        $radius * acos(
+                            cos(radians($lat)) *
+                            cos(radians(start_lat)) *
+                            cos(radians(start_lng) - radians($lng)) +
+                            sin(radians($lat)) *
+                            sin(radians(start_lat))
+                        )
+                    ), 2
+                ) as client_location_away
+            "))
+            ->having('client_location_away', '>=', 0.5)
+            ->having('client_location_away', '<=', 7)
+            ->latest()
+            ->get();
+
+        // ===== الفلتر الحقيقي بمسافة الطريق (متعطل مؤقتًا، جاهز يترجع بضغطة زر) =====
+        // عشان الريفريش يطابق سلوك إشعارات الـ WebSocket بالظبط ومايرجعش رحلات خارج النطاق الفعلي
+        /*
         $trips = $trips->filter(function ($trip) use ($lat, $lng) {
             $response = calculate_distance($lat, $lng, $trip->start_lat, $trip->start_lng);
             $real = $response['distance_in_km'] ?? null;
@@ -938,83 +939,93 @@ class DriverController extends ApiController
 
             return $real >= 0.5 && $real <= 7;
         })->values();
+        */
+        // ===== نهاية الفلتر الحقيقي =====
 
-    $trips->transform(function ($trip) use ($lat, $lng) {
+        // ✅ الشغال دلوقتي: زي الـ Socket بالظبط — بس الـ SQL circle (Haversine) من غير نداء Google
+        // بنستخدم client_location_away (اللي اتحسبت في نفس استعلام الـ SQL) كمسافة تقريبية بدل ما ننادي Google
+        $trips = $trips->values();
+        $trips->transform(function ($trip) {
+            $trip->_real_distance_km = $trip->client_location_away ?? null;
+            $trip->_real_duration_m  = null; // مفيش مدة حقيقية من غير Google
+            return $trip;
+        });
 
-        // استخدم المسافة/المدة الحقيقية اللي اتحسبت فعلاً وقت الفلترة
-        // بدل ما ننادي calculate_distance تاني ونضاعف تكلفة الـ Google API
-        $trip->client_location_distance = $trip->_real_distance_km;
-        $trip->client_location_duration = $trip->_real_duration_m;
-        unset($trip->_real_distance_km, $trip->_real_duration_m);
+        $trips->transform(function ($trip) use ($lat, $lng) {
 
-        // barcode
-        $trip->barcode = url(barcodeImage($trip->id));
+            // استخدم المسافة التقريبية (خط مستقيم) بدل ما ننادي calculate_distance وندفع تكلفة Google
+            $trip->client_location_distance = $trip->_real_distance_km;
+            $trip->client_location_duration = $trip->_real_duration_m;
+            unset($trip->_real_distance_km, $trip->_real_duration_m);
 
-        // Clean car plate
-        if ($trip->car) {
-            $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
-        }
+            // barcode
+            $trip->barcode = url(barcodeImage($trip->id));
 
-        // Clean scooter plate
-        if ($trip->scooter) {
-            $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
-        }
+            // Clean car plate
+            if ($trip->car) {
+                $trip->car->car_plate = str_replace('|', '', $trip->car->car_plate);
+            }
 
-        // driver arrived
-        $trip->is_driver_arrived = !is_null($trip->driver_arrived);
+            // Clean scooter plate
+            if ($trip->scooter) {
+                $trip->scooter->scooter_plate = str_replace('|', '', $trip->scooter->scooter_plate);
+            }
 
-        // user data
-        if ($trip->user) {
-            $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+            // driver arrived
+            $trip->is_driver_arrived = !is_null($trip->driver_arrived);
 
-            $trip->user->rate = round(
-                Trip::where('user_id', $trip->user->id)
+            // user data
+            if ($trip->user) {
+                $trip->user->image = getFirstMediaUrl($trip->user, $trip->user->avatarCollection);
+
+                $trip->user->rate = round(
+                    Trip::where('user_id', $trip->user->id)
+                        ->where('status', 'completed')
+                        ->where('driver_stare_rate', '>', 0)
+                        ->avg('driver_stare_rate') ?? 5,
+                    1
+                );
+            }
+
+            // car owner
+            if ($trip->car && $trip->car->owner) {
+                $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+
+                $trip->car->owner->rate = round(
+                    Trip::whereHas('car', function ($q) use ($trip) {
+                        $q->where('user_id', $trip->car->owner->id);
+                    })
                     ->where('status', 'completed')
-                    ->where('driver_stare_rate', '>', 0)
-                    ->avg('driver_stare_rate') ?? 5,
-                1
-            );
-        }
+                    ->where('client_stare_rate', '>', 0)
+                    ->avg('client_stare_rate') ?? 5,
+                    1
+                );
+            }
 
-        // car owner
-        if ($trip->car && $trip->car->owner) {
-            $trip->car->owner->image = getFirstMediaUrl($trip->car->owner, $trip->car->owner->avatarCollection);
+            // scooter owner
+            if ($trip->scooter && $trip->scooter->owner) {
+                $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
 
-            $trip->car->owner->rate = round(
-                Trip::whereHas('car', function ($q) use ($trip) {
-                    $q->where('user_id', $trip->car->owner->id);
-                })
-                ->where('status', 'completed')
-                ->where('client_stare_rate', '>', 0)
-                ->avg('client_stare_rate') ?? 5,
-                1
-            );
-        }
+                $trip->scooter->owner->rate = round(
+                    Trip::whereHas('scooter', function ($q) use ($trip) {
+                        $q->where('user_id', $trip->scooter->owner->id);
+                    })
+                    ->where('status', 'completed')
+                    ->where('client_stare_rate', '>', 0)
+                    ->avg('client_stare_rate') ?? 5,
+                    1
+                );
+            }
 
-        // scooter owner
-        if ($trip->scooter && $trip->scooter->owner) {
-            $trip->scooter->owner->image = getFirstMediaUrl($trip->scooter->owner, $trip->scooter->owner->avatarCollection);
+            // rename
+            $trip->final_destination = $trip->finalDestination;
+            unset($trip->finalDestination);
 
-            $trip->scooter->owner->rate = round(
-                Trip::whereHas('scooter', function ($q) use ($trip) {
-                    $q->where('user_id', $trip->scooter->owner->id);
-                })
-                ->where('status', 'completed')
-                ->where('client_stare_rate', '>', 0)
-                ->avg('client_stare_rate') ?? 5,
-                1
-            );
-        }
+            return $trip;
+        });
 
-        // rename
-        $trip->final_destination = $trip->finalDestination;
-        unset($trip->finalDestination);
-
-        return $trip;
-    });
-
-    return $this->sendResponse($trips->values(), null, 200);
-}
+        return $this->sendResponse($trips->values(), null, 200);
+    }
     public function driver_current_trip()
     {
         $check_account = $this->check_banned();
