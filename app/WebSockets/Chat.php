@@ -1967,6 +1967,7 @@ $newTrip['discount']         = (float) $trip->discount;
     {
         $data = json_decode($startTripRequest, true);
         $trip = Trip::find($data['trip_id']);
+
         if (!$trip) {
             $from->send(json_encode([
                 'type'    => 'error',
@@ -1975,14 +1976,34 @@ $newTrip['discount']         = (float) $trip->discount;
             echo "🚫 start_end_trip: Trip ID {$data['trip_id']} not found (user {$AuthUserID}).\n";
             return;
         }
+
+        // ✅ Authorization: تأكد إن الـ AuthUserID هو فعلاً سواق الرحلة دي (صاحب الـ car أو الـ scooter)
+        $driverUserId = null;
+        if ($trip->car_id && $trip->car) {
+            $driverUserId = $trip->car->user_id;
+        } elseif ($trip->scooter_id && $trip->scooter) {
+            $driverUserId = $trip->scooter->user_id;
+        }
+
+        if (!$driverUserId || $driverUserId != $AuthUserID) {
+            $from->send(json_encode([
+                'type'    => 'error',
+                'message' => 'You are not authorized to start/end this trip.',
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            echo "🚫 start_end_trip: Unauthorized attempt on trip {$trip->id} by user {$AuthUserID} (expected driver: " . ($driverUserId ?? 'none') . ").\n";
+            return;
+        }
+
+        $type    = null;
+        $message = null;
+
         if ($trip->status == 'pending') {
             $trip->status     = 'in_progress';
             $trip->start_date = date('Y-m-d');
             $trip->start_time = date('H:i:s');
             if ($trip->driver_arrived) {
-                $arrivedAt = Carbon::parse($trip->driver_arrived);
-                $now       = now();
-
+                $arrivedAt    = Carbon::parse($trip->driver_arrived);
+                $now          = now();
                 $minutesDelay = $arrivedAt->diffInMinutes($now);
 
                 if ($minutesDelay > 5) {
@@ -2002,6 +2023,7 @@ $newTrip['discount']         = (float) $trip->discount;
             $trip->save();
             $type    = 'started_trip';
             $message = 'trip started now';
+
         } elseif ($trip->status == 'in_progress') {
             $trip->status   = 'completed';
             $trip->end_date = date('Y-m-d');
@@ -2010,9 +2032,18 @@ $newTrip['discount']         = (float) $trip->discount;
             $type    = 'ended_trip';
             $message = 'trip ended now';
 
+        } else {
+            // ✅ حماية من أي status تاني (completed/cancelled/expired/إلخ)
+            $from->send(json_encode([
+                'type'    => 'error',
+                'message' => "Cannot start/end trip: current status is '{$trip->status}'.",
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            echo "🚫 start_end_trip: Trip {$trip->id} has invalid status '{$trip->status}' for this action (user {$AuthUserID}).\n";
+            return;
         }
-        $trip             = Trip::find($data['trip_id']);
-        $data1            = [
+
+        $trip  = Trip::find($data['trip_id']);
+        $data1 = [
             'type'    => $type,
             'data'    => $trip,
             'message' => $message,
@@ -2029,9 +2060,11 @@ $newTrip['discount']         = (float) $trip->discount;
             $client->send($res);
             $date_time = date('Y-m-d h:i:s a');
             echo sprintf('[ %s ] Message of ' . $message . ' "%s" sent to user %d' . "\n", $date_time, $res, $trip->user_id);
+        } else {
+            echo "⚠️ Client (user {$trip->user_id}) offline, message not delivered live.\n";
         }
-
     }
+
     private function cancel_trip(ConnectionInterface $from, $AuthUserID, $cancelTripRequest)
     {
         $data       = json_decode($cancelTripRequest, true);
