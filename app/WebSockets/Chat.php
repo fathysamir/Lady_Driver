@@ -1967,6 +1967,14 @@ $newTrip['discount']         = (float) $trip->discount;
     {
         $data = json_decode($startTripRequest, true);
         $trip = Trip::find($data['trip_id']);
+        if (!$trip) {
+            $from->send(json_encode([
+                'type'    => 'error',
+                'message' => 'Trip not found.',
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            echo "🚫 start_end_trip: Trip ID {$data['trip_id']} not found (user {$AuthUserID}).\n";
+            return;
+        }
         if ($trip->status == 'pending') {
             $trip->status     = 'in_progress';
             $trip->start_date = date('Y-m-d');
