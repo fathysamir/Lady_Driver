@@ -843,8 +843,12 @@ class DriverController extends ApiController
         }
 
         $vehicle = $user->driver_type == 'scooter'
-            ? Scooter::where('user_id', $user->id)->first()
-            : Car::where('user_id', $user->id)->first();
+    ? Scooter::where('user_id', $user->id)
+        ->where('status', 'confirmed')
+        ->first()
+    : Car::where('user_id', $user->id)
+        ->where('status', 'confirmed')
+        ->first();
 
         if (!$vehicle) {
             $message = $lang === 'ar' ? 'لا توجد مركبة مسجلة.' : 'No vehicle found';
