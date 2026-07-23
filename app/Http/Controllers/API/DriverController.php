@@ -843,20 +843,27 @@ class DriverController extends ApiController
         }
 
         $vehicle = $user->driver_type == 'scooter'
-    ? Scooter::where('user_id', $user->id)
-        ->where('status', 'confirmed')
-        ->first()
-    : Car::where('user_id', $user->id)
-        ->where('status', 'confirmed')
-        ->first();
+        ? Scooter::where('user_id', $user->id)
+            ->where('status', 'confirmed')
+            ->first()
+        : Car::where('user_id', $user->id)
+            ->where('status', 'confirmed')
+            ->first();
 
-        if (!$vehicle) {
+    if (!$vehicle) {
+
+        if ($user->driver_type == 'scooter') {
             $message = $lang === 'ar'
-                ? 'مركبتك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت تسجيلها. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتم اعتمادها هيوصلك إشعار.'
-                : 'Your vehicle is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your vehicle has been approved.';
-
-            return $this->sendError(null, $message, 400);
+                ? 'السكوتر الخاص بك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت تسجيله. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتم اعتماده هيوصلك إشعار.'
+                : 'Your scooter is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your scooter has been approved.';
+        } else {
+            $message = $lang === 'ar'
+                ? 'السيارة الخاصة بك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت تسجيلها. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتم اعتمادها هيوصلك إشعار.'
+                : 'Your Car is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your vehicle has been approved.';
         }
+
+        return $this->sendError(null, $message, 400);
+    }
 
         if ($user->status != 'confirmed') {
             $message = $lang === 'ar'
