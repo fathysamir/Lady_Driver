@@ -851,7 +851,10 @@ class DriverController extends ApiController
         ->first();
 
         if (!$vehicle) {
-            $message = $lang === 'ar' ? 'لا توجد مركبة مسجلة.' : 'No vehicle found';
+            $message = $lang === 'ar'
+                ? 'مركبتك حالياً تحت المراجعة، وده بيستغرق لحد 24 ساعة من وقت تسجيلها. خلال الفترة دي مش هتقدر تستقبل طلبات أو تظهر للعملاء. أول ما يتم اعتمادها هيوصلك إشعار.'
+                : 'Your vehicle is currently under review, and this process may take up to 24 hours from the time of registration. During this period, you will not be able to receive requests or be visible to customers. You will receive a notification once your vehicle has been approved.';
+
             return $this->sendError(null, $message, 400);
         }
 
