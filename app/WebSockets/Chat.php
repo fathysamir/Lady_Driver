@@ -1028,7 +1028,7 @@ $discount   = $priceResult['discount'];
                     $query->where('is_online', '1')->where('status', 'confirmed');
                 })
                 ->where(function ($query) use ($trip) {
-                    if ($trip->animals == '1') $query->where('animals', '1');
+                   // if ($trip->animals == '1') $query->where('animals', '1');
                     if ($trip->user->gendor == 'Male') $query->where('passenger_type', 'male_female');
                 })
                 ->select('*')
@@ -1397,9 +1397,9 @@ $newTrip['discount']         = (float) $trip->discount;
                     })
                     ->where(function ($query) use ($trip) {
 
-                        if ($trip->animals == '1') {
-                            $query->where('animals', '1');
-                        }
+                      //  if ($trip->animals == '1') {
+                        //    $query->where('animals', '1');
+                        //}
                         if ($trip->user->gendor == 'Male') {
                             $query->where('passenger_type', 'male_female');
                         }
@@ -2422,9 +2422,9 @@ if ($trip->car_id != null && $trip->car) {
                             })
                             ->where(function ($query) use ($n_trip) {
 
-                                if ($n_trip->animals == '1') {
-                                    $query->where('animals', '1');
-                                }
+                            //    if ($n_trip->animals == '1') {
+                              //      $query->where('animals', '1');
+                                //}
                                 if ($n_trip->user->gendor == 'Male') {
                                     $query->where('passenger_type', 'male_female');
                                 }
