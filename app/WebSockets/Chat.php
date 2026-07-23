@@ -967,7 +967,7 @@ $discount   = $priceResult['discount'];
                 })
                 ->where(function ($query) use ($trip) {
                  //   if ($trip->air_conditioned == '1') $query->where('air_conditioned', '1');
-                    if ($trip->animals == '1') $query->where('animals', '1');
+                 //   if ($trip->animals == '1') $query->where('animals', '1');
                     if ($trip->user->gendor == 'Male') $query->where('passenger_type', 'male_female');
                 })
                 ->select('*')
@@ -1291,9 +1291,9 @@ $newTrip['discount']         = (float) $trip->discount;
                      //   if ($trip->air_conditioned == '1') {
                        //     $query->where('air_conditioned', '1');
                         //}
-                        if ($trip->animals == '1') {
-                            $query->where('animals', '1');
-                        }
+                      //  if ($trip->animals == '1') {
+                        //    $query->where('animals', '1');
+                        //}
                         if ($trip->user->gendor == 'Male') {
                             $query->where('passenger_type', 'male_female');
                         }
@@ -2341,9 +2341,9 @@ if ($trip->car_id != null && $trip->car) {
                              //   if ($n_trip->air_conditioned == '1') {
                                //     $query->where('air_conditioned', '1');
                                 //}
-                                if ($n_trip->animals == '1') {
-                                    $query->where('animals', '1');
-                                }
+                              //  if ($n_trip->animals == '1') {
+                                //    $query->where('animals', '1');
+                                //}
                                 if ($n_trip->user->gendor == 'Male') {
                                     $query->where('passenger_type', 'male_female');
                                 }
@@ -3474,7 +3474,7 @@ $route = $this->routeCache[$routeKey] ?? null;
         }
         return null;
     }
-    private function pushPendingTripsToDriver(User $driver, ConnectionInterface $conn)
+private function pushPendingTripsToDriver(User $driver, ConnectionInterface $conn)
 {
     $car     = Car::where('user_id', $driver->id)->where('status', 'confirmed')->first();
     $scooter = Scooter::where('user_id', $driver->id)->where('status', 'confirmed')->first();
@@ -3526,7 +3526,7 @@ $route = $this->routeCache[$routeKey] ?? null;
         // فلاتر إضافية زي الموجودة في create_trip_and_find_drivers
         if ($trip->type != 'scooter') {
            // if ($trip->air_conditioned == '1' && $trip->type == 'car' && $vehicle->air_conditioned != '1') continue;
-            if ($trip->animals == '1' && $vehicle->animals != '1') continue;
+          //  if ($trip->animals == '1' && $vehicle->animals != '1') continue;
             if ($trip->user->gendor == 'Male' && $vehicle->passenger_type != 'male_female') continue;
         }
 
