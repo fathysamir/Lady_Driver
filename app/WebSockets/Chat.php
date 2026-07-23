@@ -966,7 +966,7 @@ $discount   = $priceResult['discount'];
                     $query->where('is_online', '1')->where('status', 'confirmed');
                 })
                 ->where(function ($query) use ($trip) {
-                    if ($trip->air_conditioned == '1') $query->where('air_conditioned', '1');
+                 //   if ($trip->air_conditioned == '1') $query->where('air_conditioned', '1');
                     if ($trip->animals == '1') $query->where('animals', '1');
                     if ($trip->user->gendor == 'Male') $query->where('passenger_type', 'male_female');
                 })
@@ -1288,9 +1288,9 @@ $newTrip['discount']         = (float) $trip->discount;
                             ->where('status', 'confirmed');
                     })
                     ->where(function ($query) use ($trip) {
-                        if ($trip->air_conditioned == '1') {
-                            $query->where('air_conditioned', '1');
-                        }
+                     //   if ($trip->air_conditioned == '1') {
+                       //     $query->where('air_conditioned', '1');
+                        //}
                         if ($trip->animals == '1') {
                             $query->where('animals', '1');
                         }
@@ -2338,9 +2338,9 @@ if ($trip->car_id != null && $trip->car) {
                                     ->where('status', 'confirmed');
                             })
                             ->where(function ($query) use ($n_trip) {
-                                if ($n_trip->air_conditioned == '1') {
-                                    $query->where('air_conditioned', '1');
-                                }
+                             //   if ($n_trip->air_conditioned == '1') {
+                               //     $query->where('air_conditioned', '1');
+                                //}
                                 if ($n_trip->animals == '1') {
                                     $query->where('animals', '1');
                                 }
@@ -3525,7 +3525,7 @@ $route = $this->routeCache[$routeKey] ?? null;
 
         // فلاتر إضافية زي الموجودة في create_trip_and_find_drivers
         if ($trip->type != 'scooter') {
-            if ($trip->air_conditioned == '1' && $trip->type == 'car' && $vehicle->air_conditioned != '1') continue;
+           // if ($trip->air_conditioned == '1' && $trip->type == 'car' && $vehicle->air_conditioned != '1') continue;
             if ($trip->animals == '1' && $vehicle->animals != '1') continue;
             if ($trip->user->gendor == 'Male' && $vehicle->passenger_type != 'male_female') continue;
         }
