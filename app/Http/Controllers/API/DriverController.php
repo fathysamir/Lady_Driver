@@ -904,6 +904,23 @@ class DriverController extends ApiController
                   ->orWhere('created_at', '>=', now()->subMinutes(5));
             })
 
+            // 🛡️ استبعاد الرحلات اللي الكابتن ده مشغول فيها بالفعل
+            ->where(function ($q) use ($user) {
+                if ($user->driver_type == 'scooter') {
+                    $q->whereNotIn('scooter_id', busyScooterIds());
+                } else {
+                    $q->whereNotIn('car_id', busyCarIds());
+                }
+            })
+
+            // 🛡️ استبعاد الرحلات المجدولة اللي عندها عرض scheduled مقبول بالفعل (مأخوذة من كابتن تاني)
+            ->where(function ($q) {
+                $q->where('status', '!=', 'scheduled')
+                  ->orWhereDoesntHave('offers', function ($oq) {
+                      $oq->where('status', 'scheduled');
+                  });
+            })
+
             // IMPORTANT: avoid selectRaw("*")
             ->select('trips.*')
 
@@ -936,7 +953,6 @@ class DriverController extends ApiController
             ->having('client_location_away', '<=', 7)
             ->latest()
             ->get();
-
         // ===== الفلتر الحقيقي بمسافة الطريق (متعطل مؤقتًا، جاهز يترجع بضغطة زر) =====
         // عشان الريفريش يطابق سلوك إشعارات الـ WebSocket بالظبط ومايرجعش رحلات خارج النطاق الفعلي
         /*
