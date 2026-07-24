@@ -151,7 +151,7 @@ try {
 private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
 {
     return $items->filter(function ($item) use ($lat, $lng, $min, $max) {
-        $response = calculate_distance($item->lat, $item->lng, $lat, $lng);
+        $response = $this->haversineDistance($item->lat, $item->lng, $lat, $lng);
         $real = $response['distance_in_km'] ?? null;
 
         echo "📏 Item {$item->id} real distance: " . ($real ?? 'NULL') . " km\n";
@@ -180,7 +180,36 @@ private function filterByRealDistance($items, $lat, $lng, $min = 0.5, $max = 7)
     })->values();
     ===== نهاية الكود الأصلي ===== */
 }
+///////////////////////////////////////////////////////////////////////////////////////
+/**
+ * بديل محلي سريع لـ $this->haversineDistance() — بيحسب المسافة بمعادلة Haversine
+ * (خط مستقيم) بدل ما ينادي Google API، فمفيهوش أي blocking على الـ event loop.
+ * بيرجع نفس شكل الـ array اللي كانت $this->haversineDistance() بترجعه، عشان الكود
+ * اللي بيستخدمها متأثرش خالص.
+ */
+private function haversineDistance($lat1, $lng1, $lat2, $lng2): array
+{
+    $earthRadius = 6371; // km
 
+    $lat1 = deg2rad($lat1);
+    $lng1 = deg2rad($lng1);
+    $lat2 = deg2rad($lat2);
+    $lng2 = deg2rad($lng2);
+
+    $dLat = $lat2 - $lat1;
+    $dLng = $lng2 - $lng1;
+
+    $a = sin($dLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dLng / 2) ** 2;
+    $c = 2 * asin(sqrt($a));
+
+    $distanceKm  = round($earthRadius * $c, 2);
+    $durationMin = intval(($distanceKm / 25) * 60); // بافتراض متوسط سرعة 25 كم/س
+
+    return [
+        'distance_in_km' => $distanceKm,
+        'duration_in_M'  => $durationMin,
+    ];
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -865,7 +894,7 @@ $discount   = $priceResult['discount'];
             $eligibleDriverIds = [];
             foreach ($eligibleCars as $car) {
                 $eligibleDriverIds[] = $car->user_id;
-                $response2           = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                $response2           = $this->haversineDistance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                 $distance2           = round($response2['distance_in_km'], 1);
                 $duration2           = intval($response2['duration_in_M']);
                 $this->sendPushToUser($car->owner, [
@@ -887,7 +916,7 @@ $discount   = $priceResult['discount'];
                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                     $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                     $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                    $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                    $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                     $newTrip['client_location_distance']  = $response2['distance_in_km'];
                     $newTrip['client_location_duration']  = $response2['duration_in_M'];
                     $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Car Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
@@ -926,7 +955,7 @@ $discount   = $priceResult['discount'];
             $eligibleDriverIds = [];
             foreach ($eligibleCars as $car) {
                 $eligibleDriverIds[] = $car->user_id;
-                $response2           = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                $response2           = $this->haversineDistance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                 $distance2           = round($response2['distance_in_km'], 1);
                 $duration2           = intval($response2['duration_in_M']);
                 $this->sendPushToUser($car->owner, [
@@ -948,7 +977,7 @@ $discount   = $priceResult['discount'];
                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                     $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                     $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                    $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                    $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                     $newTrip['client_location_distance']  = $response2['distance_in_km'];
                     $newTrip['client_location_duration']  = $response2['duration_in_M'];
                     $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Comfort Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
@@ -991,7 +1020,7 @@ $discount   = $priceResult['discount'];
             $eligibleDriverIds = [];
             foreach ($eligibleScooters as $scooter) {
                 $eligibleDriverIds[] = $scooter->user_id;
-                $response2           = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
+                $response2           = $this->haversineDistance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                 $distance2           = round($response2['distance_in_km'], 1);
                 $duration2           = intval($response2['duration_in_M']);
                 $owner = $scooter->owner;
@@ -1016,7 +1045,7 @@ $discount   = $priceResult['discount'];
                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                     $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                     $scooter2                             = Scooter::where('user_id', $eligibleDriverId)->first();
-                    $response2                            = calculate_distance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
+                    $response2                            = $this->haversineDistance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
                     $newTrip['client_location_distance']  = $response2['distance_in_km'];
                     $newTrip['client_location_duration']  = $response2['duration_in_M'];
                     $newTrip['Price_increase_percentage'] = floatval(Setting::where('key', 'maximum_price_ratio')->where('category', 'Scooter Trips')->where('type', 'number')->where('level', $driver->level)->first()->value);
@@ -1225,7 +1254,7 @@ $newTrip['discount']         = (float) $trip->discount;
                             // 🔔 send push to newly eligible driver
                             $car_push = Car::where('user_id', $eligibleDriverId)->first();
                             if ($car_push) {
-                                $response_push = calculate_distance($car_push->lat, $car_push->lng, $trip->start_lat, $trip->start_lng);
+                                $response_push = $this->haversineDistance($car_push->lat, $car_push->lng, $trip->start_lat, $trip->start_lng);
                                 $this->sendPushToUser($car_push->owner, [
                                     'screen'   => 'new_trip',
                                     'id'       => (string) $trip->id,
@@ -1241,7 +1270,7 @@ $newTrip['discount']         = (float) $trip->discount;
                             $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
                             $newTrip['driver_rate']               = $trip->total_price - $newTrip['app_rate'];
                             $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                            $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                            $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                             $distance2                            = $response2['distance_in_km'];
                             $duration2                            = $response2['duration_in_M'];
                             $newTrip['client_location_distance']  = $distance2;
@@ -1330,7 +1359,7 @@ $newTrip['discount']         = (float) $trip->discount;
                             // 🔔 send push to newly eligible driver
                             $car_push = Car::where('user_id', $eligibleDriverId)->first();
                             if ($car_push) {
-                                $response_push = calculate_distance($car_push->lat, $car_push->lng, $trip->start_lat, $trip->start_lng);
+                                $response_push = $this->haversineDistance($car_push->lat, $car_push->lng, $trip->start_lat, $trip->start_lng);
                                 $this->sendPushToUser($car_push->owner, [
                                     'screen'   => 'new_trip',
                                     'id'       => (string) $trip->id,
@@ -1346,7 +1375,7 @@ $newTrip['discount']         = (float) $trip->discount;
                             $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
                             $newTrip['driver_rate']               = $trip->total_price - $newTrip['app_rate'];
                             $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                            $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                            $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                             $distance2                            = $response2['distance_in_km'];
                             $duration2                            = $response2['duration_in_M'];
                             $newTrip['client_location_distance']  = $distance2;
@@ -1428,7 +1457,7 @@ $newTrip['discount']         = (float) $trip->discount;
                            // 🔔 send push to newly eligible driver
                            $scooter_push = Scooter::where('user_id', $eligibleDriverId)->first();
                            if ($scooter_push) {
-                               $response_push = calculate_distance($scooter_push->lat, $scooter_push->lng, $trip->start_lat, $trip->start_lng);
+                               $response_push = $this->haversineDistance($scooter_push->lat, $scooter_push->lng, $trip->start_lat, $trip->start_lng);
                                $this->sendPushToUser($scooter_push->owner, [
                                    'screen'   => 'new_trip',
                                    'id'       => (string) $trip->id,
@@ -1444,7 +1473,7 @@ $newTrip['discount']         = (float) $trip->discount;
                             $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($trip->total_price + $trip->discount) * $app_ratio) / 100) - $trip->discount, 2) : 0.00;
                             $newTrip['driver_rate']               = $trip->total_price - $newTrip['app_rate'];
                             $scooter2                             = Scooter::where('user_id', $eligibleDriverId)->first();
-                            $response2                            = calculate_distance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
+                            $response2                            = $this->haversineDistance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
                             $distance2                            = $response2['distance_in_km'];
                             $duration2                            = $response2['duration_in_M'];
                             $newTrip['client_location_distance']  = $distance2;
@@ -1563,7 +1592,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     'trip_id'                              => intval($data['trip_id']),
                     'offer'                                => floatval($data['offer'])]);
                 $offer_result['car_id'] = $offer->car()->first()->id;
-                $response               = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+                $response               = $this->haversineDistance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
 
                 break;
             case 'comfort_car':
@@ -1576,7 +1605,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     'trip_id'                              => intval($data['trip_id']),
                     'offer'                                => floatval($data['offer'])]);
                 $offer_result['car_id'] = $offer->car()->first()->id;
-                $response               = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+                $response               = $this->haversineDistance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
 
                 break;
             case 'scooter':
@@ -1589,7 +1618,7 @@ $newTrip['discount']         = (float) $trip->discount;
                     'trip_id'                                  => intval($data['trip_id']),
                     'offer'                                    => floatval($data['offer'])]);
                 $offer_result['scooter_id'] = $offer->scooter()->first()->id;
-                $response                   = calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
+                $response                   = $this->haversineDistance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
 
                 break;
             default:
@@ -2272,7 +2301,7 @@ if ($trip->car_id != null && $trip->car) {
                                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                                     $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                     $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                                    $response2                            = calculate_distance($car2->lat, $car2->lng, $n_trip->start_lat, $n_trip->start_lng);
+                                    $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $n_trip->start_lat, $n_trip->start_lng);
                                     $distance2                            = $response2['distance_in_km'];
                                     $duration2                            = $response2['duration_in_M'];
                                     $newTrip['client_location_distance']  = $distance2;
@@ -2352,7 +2381,7 @@ if ($trip->car_id != null && $trip->car) {
                                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                                     $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                     $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                                    $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                                    $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                                     $distance2                            = $response2['distance_in_km'];
                                     $duration2                            = $response2['duration_in_M'];
                                     $newTrip['client_location_distance']  = $distance2;
@@ -2424,7 +2453,7 @@ if ($trip->car_id != null && $trip->car) {
                                     $newTrip['app_rate']                  = $application_commission == 'On' ? round(((($total_cost + $discount) * $app_ratio) / 100) - $discount, 2) : 0.00;
                                     $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                     $scooter2                             = Scooter::where('user_id', $eligibleDriverId)->first();
-                                    $response2                            = calculate_distance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
+                                    $response2                            = $this->haversineDistance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
                                     $distance2                            = $response2['distance_in_km'];
                                     $duration2                            = $response2['duration_in_M'];
                                     $newTrip['client_location_distance']  = $distance2;
@@ -2900,16 +2929,16 @@ $route = $this->routeCache[$routeKey] ?? null;
         $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
         $peakTimes = json_decode($peakJson, true);
 
-        // $response_x = calculate_distance($data['start_lat'], $data['start_lng'], $data['end_lat_1'], $data['end_lng_1']);
+        // $response_x = $this->haversineDistance($data['start_lat'], $data['start_lng'], $data['end_lat_1'], $data['end_lng_1']);
         // $distance   = $response_x['distance_in_km'];
         // $duration   = $response_x['duration_in_M'];
         // if ($data['end_lat_2'] != null && $data['end_lng_2'] != null) {
-        //     $response_x = calculate_distance($data['end_lat_1'], $data['end_lng_1'], $data['end_lat_2'], $data['end_lng_2']);
+        //     $response_x = $this->haversineDistance($data['end_lat_1'], $data['end_lng_1'], $data['end_lat_2'], $data['end_lng_2']);
         //     $distance   = $distance + $response_x['distance_in_km'];
         //     $duration   = $duration + $response_x['duration_in_M'];
         // }
         // if ($data['end_lat_3'] != null && $data['end_lng_3'] != null) {
-        //     $response_x = calculate_distance($data['end_lat_2'], $data['end_lng_2'], $data['end_lat_3'], $data['end_lng_3']);
+        //     $response_x = $this->haversineDistance($data['end_lat_2'], $data['end_lng_2'], $data['end_lat_3'], $data['end_lng_3']);
         //     $distance   = $distance + $response_x['distance_in_km'];
         //     $duration   = $duration + $response_x['duration_in_M'];
         // }
@@ -3145,7 +3174,7 @@ $route = $this->routeCache[$routeKey] ?? null;
 ->having('distance', '<=', 7)
                         ->get();
                        /* ->filter(function ($car) use ($trip) {
-                            $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                            $response = $this->haversineDistance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
                         });*/
 
@@ -3174,7 +3203,7 @@ $route = $this->routeCache[$routeKey] ?? null;
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(($total_cost * $app_ratio) / 100, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                                $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                                $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                                 $distance2                            = $response2['distance_in_km'];
                                 $duration2                            = $response2['duration_in_M'];
                                 $newTrip['client_location_distance']  = $distance2;
@@ -3223,7 +3252,7 @@ $route = $this->routeCache[$routeKey] ?? null;
 ->having('distance', '<=', 7)
                         ->get();
                       /*  ->filter(function ($car) use ($trip) {
-                            $response = calculate_distance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
+                            $response = $this->haversineDistance($car->lat, $car->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
                         });*/
 
@@ -3251,7 +3280,7 @@ $route = $this->routeCache[$routeKey] ?? null;
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(($total_cost * $app_ratio) / 100, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $car2                                 = Car::where('user_id', $eligibleDriverId)->first();
-                                $response2                            = calculate_distance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
+                                $response2                            = $this->haversineDistance($car2->lat, $car2->lng, $trip->start_lat, $trip->start_lng);
                                 $distance2                            = $response2['distance_in_km'];
                                 $duration2                            = $response2['duration_in_M'];
                                 $newTrip['client_location_distance']  = $distance2;
@@ -3292,7 +3321,7 @@ $route = $this->routeCache[$routeKey] ?? null;
 ->having('distance', '<=', 7)
                         ->get();
                         /*->filter(function ($scooter) use ($trip) {
-                            $response = calculate_distance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
+                            $response = $this->haversineDistance($scooter->lat, $scooter->lng, $trip->start_lat, $trip->start_lng);
                             return $response['distance_in_km'] <= 3;
                         });*/
 
@@ -3320,7 +3349,7 @@ $route = $this->routeCache[$routeKey] ?? null;
                                 $newTrip['app_rate']                  = $application_commission == 'On' ? round(($total_cost * $app_ratio) / 100, 2) : 0.00;
                                 $newTrip['driver_rate']               = $total_cost - $newTrip['app_rate'];
                                 $scooter2                             = Scooter::where('user_id', $eligibleDriverId)->first();
-                                $response2                            = calculate_distance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
+                                $response2                            = $this->haversineDistance($scooter2->lat, $scooter2->lng, $trip->start_lat, $trip->start_lng);
                                 $distance2                            = $response2['distance_in_km'];
                                 $duration2                            = $response2['duration_in_M'];
                                 $newTrip['client_location_distance']  = $distance2;
@@ -3416,7 +3445,7 @@ private function pushPendingTripsToDriver(User $driver, ConnectionInterface $con
         if ($trip->type == 'scooter' && in_array($vehicle->id, busyScooterIds())) continue;
 
         // فلتر المسافة الحقيقية (نفس filterByRealDistance)
-        $response = calculate_distance($vehicle->lat, $vehicle->lng, $trip->start_lat, $trip->start_lng);
+        $response = $this->haversineDistance($vehicle->lat, $vehicle->lng, $trip->start_lat, $trip->start_lng);
         $realDistance = $response['distance_in_km'] ?? null;
         if ($realDistance === null || $realDistance < 0.5 || $realDistance > 7) continue;
 
