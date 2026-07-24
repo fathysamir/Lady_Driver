@@ -893,6 +893,13 @@ class DriverController extends ApiController
                 'lng' => $lng,
             ]);
         }
+        $isBusy = $user->driver_type == 'scooter'
+    ? in_array($vehicle->id, busyScooterIds())
+    : in_array($vehicle->id, busyCarIds());
+
+if ($isBusy) {
+    return $this->sendResponse([], null, 200);
+}
 
         $radius = 6371;
 
@@ -903,23 +910,13 @@ class DriverController extends ApiController
                 $q->where('status', 'scheduled')
                   ->orWhere('created_at', '>=', now()->subMinutes(5));
             })
-
-            // 🛡️ استبعاد الرحلات اللي الكابتن ده مشغول فيها بالفعل
-            ->where(function ($q) use ($user) {
-                if ($user->driver_type == 'scooter') {
-                    $q->whereNotIn('scooter_id', busyScooterIds());
-                } else {
-                    $q->whereNotIn('car_id', busyCarIds());
-                }
-            })
-
-            // 🛡️ استبعاد الرحلات المجدولة اللي عندها عرض scheduled مقبول بالفعل (مأخوذة من كابتن تاني)
-            ->where(function ($q) {
-                $q->where('status', '!=', 'scheduled')
-                  ->orWhereDoesntHave('offers', function ($oq) {
-                      $oq->where('status', 'scheduled');
-                  });
-            })
+// 🛡️ استبعاد الرحلات المجدولة اللي عندها عرض scheduled مقبول بالفعل (مأخوذة من كابتن تاني)
+->where(function ($q) {
+    $q->where('status', '!=', 'scheduled')
+      ->orWhereDoesntHave('offers', function ($oq) {
+          $oq->where('status', 'scheduled');
+      });
+})
 
             // IMPORTANT: avoid selectRaw("*")
             ->select('trips.*')
