@@ -105,6 +105,7 @@ class DriverController extends ApiController
             'year'                => 'required|integer|min:1900|max:' . date('Y'),
             'car_plate'           => 'required|string|max:255',
             'air_conditioned'     => 'nullable|boolean',
+            'animals' => 'nullable|boolean',
             'image'               => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'plate_image'         => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
             'license_front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -150,7 +151,7 @@ class DriverController extends ApiController
             $car->air_conditioned = '0';
         }
 
-        if ($request->animal == '1') {
+        if ($request->animals == '1') {
             $car->animals = '1';
         } else {
             $car->animals = '0';
