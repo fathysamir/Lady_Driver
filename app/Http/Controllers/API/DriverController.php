@@ -410,13 +410,30 @@ class DriverController extends ApiController
             return $this->sendError(null, $errors, 400);
         }
 
+        // 🛡️ نحدد الأول هل التعديل بيمس بيانات حساسة محتاجة مراجعة إدمن (ماركة/موديل/صورة)
+        // ولا بس تعديل بسيط زي اللون ماينفعش يوقف السكوتر pending
+        $existingScooter = Scooter::find($request->scooter_id);
+        if (!$existingScooter) {
+            return $this->sendError(null, 'Scooter not found.', 404);
+        }
 
-        Scooter::where('id', $request->scooter_id)->update([
+        $needsReview = (
+            $existingScooter->motorcycle_mark_id != $request->motorcycle_mark_id ||
+            $existingScooter->motorcycle_model_id != $request->motorcycle_model_id ||
+            $request->file('image')
+        );
+
+        $updatePayload = [
             'color'               => $request->color,
             'motorcycle_mark_id'  => $request->motorcycle_mark_id,
             'motorcycle_model_id' => $request->motorcycle_model_id,
-            'status'              => 'pending',
-        ]);
+        ];
+
+        if ($needsReview) {
+            $updatePayload['status'] = 'pending';
+        }
+
+        Scooter::where('id', $request->scooter_id)->update($updatePayload);
 
         $scooter = Scooter::find($request->scooter_id);
         if (!$scooter) {
