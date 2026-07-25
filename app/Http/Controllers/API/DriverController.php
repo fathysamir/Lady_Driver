@@ -924,6 +924,13 @@ if ($isBusy) {
         $trips = Trip::query()
             ->whereIn('status', ['created', 'scheduled', 'in_progress'])
             ->where('type', $user->driver_type)
+            // 🛡️ فلتر التكييف: لو نوع السواق "car" (مش comfort_car ومش scooter)
+    // وعربيته مش مكيفة، منستبعدش الرحلات الطالبة تكييف
+    ->when($user->driver_type === 'car', function ($q) use ($vehicle) {
+        if ($vehicle->air_conditioned != '1') {
+            $q->where('air_conditioned', '!=', '1');
+        }
+    })
             ->where(function ($q) {
                 $q->where('status', 'scheduled')
                   ->orWhere('created_at', '>=', now()->subMinutes(5));
