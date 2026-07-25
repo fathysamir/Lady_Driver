@@ -214,15 +214,29 @@ class DriverController extends ApiController
             return $this->sendError(null, $errors, 400);
         }
 
-        Car::where('id', $request->car_id)->update([
+        // 🛡️ نحدد الأول هل التعديل بيمس بيانات حساسة محتاجة مراجعة إدمن (ماركة/موديل/صورة)
+        // ولا بس toggle بسيط زي air_conditioned/animals ماينفعش يوقف حساب السواق
+        $existingCar  = Car::find($request->car_id);
+        $needsReview  = (
+            $existingCar->car_mark_id != $request->car_mark_id ||
+            $existingCar->car_model_id != $request->car_model_id ||
+            $request->file('image')
+        );
+
+        $updatePayload = [
              'car_mark_id'         => $request->car_mark_id,
              'car_model_id'        => $request->car_model_id,
             'color'          => $request->color,
             // 'year'                => $request->year,
             // 'car_plate'           => $request->car_plate,
-            'status'         => 'pending',
             'passenger_type' => $request->passenger_type,
-        ]);
+        ];
+
+        if ($needsReview) {
+            $updatePayload['status'] = 'pending';
+        }
+
+        Car::where('id', $request->car_id)->update($updatePayload);
         $car = Car::find($request->car_id);
 
         if ($request->air_conditioned == '1') {
@@ -282,9 +296,12 @@ class DriverController extends ApiController
         $car->license_back_image  = getFirstMediaUrl($car, $car->LicenseBackImageCollection);
         $car->inspection_image    = getFirstMediaUrl($car, $car->CarInspectionImageCollection);
 
-        $driver         = auth()->user();
-        $driver->status = 'pending';
-        $driver->save();
+        // 🛡️ حساب السواق يترجع pending بس لو التعديل فعلاً مسّ بيانات حساسة محتاجة مراجعة
+        if ($needsReview) {
+            $driver         = auth()->user();
+            $driver->status = 'pending';
+            $driver->save();
+        }
         return $this->sendResponse($car, 'Car Updated Successfully.', 200);
     }
 
