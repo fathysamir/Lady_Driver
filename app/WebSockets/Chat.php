@@ -2107,11 +2107,12 @@ if ($trip->car_id != null && $trip->car) {
 } elseif ($trip->scooter_id != null && $trip->scooter) {
     $driver = $this->getClientByUserId($trip->scooter->user_id);
 }
-            if ($driver) {
-                $driver->send($message);
-                $date_time = date('Y-m-d h:i:s a');
-                echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $trip->car->user_id);
-            }
+if ($driver) {
+    $driverUserId = $trip->car_id ? $trip->car->user_id : $trip->scooter->user_id;
+    $driver->send($message);
+    $date_time = date('Y-m-d h:i:s a');
+    echo sprintf('[ %s ] Message of canceled trip "%s" sent to user %d' . "\n", $date_time, $message, $driverUserId);
+}
             if ($reason != null) {
                 if ($reason->value_type == 'ratio') {
                     $value = round(($reason->value * $trip->total_price) / 100);
