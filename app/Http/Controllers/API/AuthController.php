@@ -1107,6 +1107,9 @@ if ($deletedPhone) {
     public function profile($id)
 {
     $user = User::where('id', $id)->with('city:id,name,name_ar')->first();
+    if (!$user) {
+        return $this->sendError(null, 'User not found', 404);
+    }
 
     // Restore driver to online only if the system took them offline automatically
     // (never override a driver's manual offline choice from set_availability)
@@ -1944,6 +1947,15 @@ return $this->sendResponse($cities, null, 200);
             $category = $trip->car
                 ? 'Car Trips'
                 : ($trip->scooter ? 'Scooter Trips' : 'Comfort Trips');
+
+                /*
+                $category = match($trip->type) {
+    'car'         => 'Car Trips',
+    'comfort_car' => 'Comfort Trips',
+    'scooter'     => 'Scooter Trips',
+    default       => 'Car Trips',
+};
+*/
 
             $level = $trip->car->owner->level
                 ?? $trip->scooter->owner->level
