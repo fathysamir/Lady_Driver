@@ -975,19 +975,23 @@ if ($deletedPhone) {
         $validator = Validator::make($request->all(), [
             'device_token' => 'required',
         ]);
-        // dd($request->all());
+
         if ($validator->fails()) {
-
             $errors = implode(" / ", $validator->errors()->all());
-
             return $this->sendError(null, $errors, 400);
         }
 
-        $user               = auth()->user();
+        $user = auth()->user();
+
+        DB::table('users')
+            ->where('device_token', $request->device_token)
+            ->where('id', '!=', $user->id)
+            ->update(['device_token' => null]);
+
         $user->device_token = $request->device_token;
         $user->save();
-        return $this->sendResponse(null, 'FCM-Tocken saved successfully.', 200);
 
+        return $this->sendResponse(null, 'FCM-Tocken saved successfully.', 200);
     }
 
     public function verifyOTP(Request $request)
@@ -1093,11 +1097,13 @@ if ($deletedPhone) {
             $user = $token->tokenable; // get user from token
             if ($user) {
                 $user->is_online = '0';
+                $user->device_token = null;
               //  $user->last_seen_at = now();
 
                 $user->save();
             }
             $token->delete(); // delete token from DB
+
         }
 
         // Always return 200 no matter what
