@@ -476,7 +476,7 @@ private function getFirebaseAccessToken(): ?string
         $timer = $this->loop->addPeriodicTimer($interval, function () use ($conn, $connId) {
             $userId = $this->getUserIdByConn($conn);
 
-            if ($userId && isset($this->lastPong[$userId]) && (time() - $this->lastPong[$userId] > 3600)) {  //will back 90 testing with 3600
+            if ($userId && isset($this->lastPong[$userId]) && (time() - $this->lastPong[$userId] > 90)) {  //will back 90 testing with 3600
                 echo "💀 Connection {$conn->resourceId} (user {$userId}) stale, closing & purging.\n";
                 unset($this->clientUserIdMap[$userId]);
                 unset($this->lastPong[$userId]);
@@ -1529,6 +1529,14 @@ $newTrip['discount']         = (float) $trip->discount;
     {
         $data         = json_decode($expireTripRequest, true);
         $trip         = Trip::findOrFail($data['trip_id']);
+        if ($trip->user_id != $AuthUserID) {
+            $from->send(json_encode([
+                'type'    => 'error',
+                'message' => 'You are not authorized to expire this trip.',
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            echo "🚫 expire_trip: Unauthorized attempt on trip {$trip->id} by user {$AuthUserID} (owner: {$trip->user_id}).\n";
+            return;
+        }
         $trip->status = 'expired';
         $trip->save();
         $expired_trip['trip_id'] = $trip->id;
@@ -1715,6 +1723,13 @@ $newTrip['discount']         = (float) $trip->discount;
     {
         $data          = json_decode($expireOfferRequest, true);
         $offer         = Offer::findOrFail($data['offer_id']);
+        if ($offer->user_id != $AuthUserID && $offer->trip->user_id != $AuthUserID) {
+            $from->send(json_encode([
+                'type'    => 'error',
+                'message' => 'You are not authorized to cancel this offer.',
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            return;
+        }
         $offer->status = 'expired';
         $offer->save();
 
@@ -2007,7 +2022,7 @@ $cancelling_cost = 0;
             $sss_status = 'scheduled';
         }
         $create_new_trip = false;
-        if ($trip->status == 'pending' && $trip->status == 'scheduled') {
+        if ($trip->status == 'pending' || $trip->status == 'scheduled') {    // لما الكابتن يلغي رحلة، المفروض العميل تتعمله رحلة جديدة تتبث تاني للسواقين
             $create_new_trip = true;
         }
         $trip->status                      = 'cancelled';
