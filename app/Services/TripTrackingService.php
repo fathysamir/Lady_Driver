@@ -4,28 +4,11 @@ namespace App\Services;
 
 class TripTrackingService
 {
+    // هامش أمان بالمتر — لو المسافة الخط المستقيم أكبر منه، الرسالة أكيد هتكون "far" برضو
+    private const FAR_THRESHOLD_METERS = 800;
+
     public function calculate($lat, $lng, $trip)
     {
-        $response = calculate_distance(
-            $lat,
-            $lng,
-            $trip->start_lat,
-            $trip->start_lng
-        );
-
-        // Bug 3 fix: validate response fields
-        if (!$response ||
-            !isset($response['distance_in_km']) ||
-            !isset($response['duration_in_M']) ||
-            $response['distance_in_km'] < 0 ||
-            $response['duration_in_M'] < 0) {
-            return null;
-        }
-
-        $distanceKm = round($response['distance_in_km'], 2);
-        $meters     = $distanceKm * 1000;
-        $duration   = (int) $response['duration_in_M'];
-
         $messages = [
             'en' => [
                 '500'     => 'Driver is 500 meters away',
@@ -46,6 +29,43 @@ class TripTrackingService
                 'far'     => 'الكابتن في الطريق',
             ],
         ];
+
+        // Cost fix: Haversine gate — مجاني تمامًا، بيحسب مسافة خط مستقيم بدل نداء جوجل
+        $airMeters = $this->haversineMeters($lat, $lng, $trip->start_lat, $trip->start_lng);
+
+        if ($airMeters > self::FAR_THRESHOLD_METERS) {
+            return [
+                'distance' => round($airMeters / 1000, 2),
+                'duration' => 0,
+                'eta'      => null,
+                'status'   => 'on_the_way',
+                'message'  => [
+                    'en' => $messages['en']['far'],
+                    'ar' => $messages['ar']['far'],
+                ],
+            ];
+        }
+
+        // من هنا بس (السواق قرب فعلاً) بننادي جوجل عشان الدقة تفرق
+        $response = calculate_distance(
+            $lat,
+            $lng,
+            $trip->start_lat,
+            $trip->start_lng
+        );
+
+        // Bug 3 fix: validate response fields
+        if (!$response ||
+            !isset($response['distance_in_km']) ||
+            !isset($response['duration_in_M']) ||
+            $response['distance_in_km'] < 0 ||
+            $response['duration_in_M'] < 0) {
+            return null;
+        }
+
+        $distanceKm = round($response['distance_in_km'], 2);
+        $meters     = $distanceKm * 1000;
+        $duration   = (int) $response['duration_in_M'];
 
         // Bug 1 fix: correct thresholds
         if ($meters <= 40) {
@@ -86,5 +106,20 @@ class TripTrackingService
                 'ar' => $messages['ar'][$key],
             ],
         ];
+    }
+
+    private function haversineMeters($lat1, $lng1, $lat2, $lng2): float
+    {
+        $earthRadius = 6371000; // meters
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 }

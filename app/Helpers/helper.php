@@ -216,6 +216,7 @@ function saveQrToMedia($qrData, $collection_name, $model)
 
     return $path;
 }
+/*
 function getRouteWithToll($lat1, $lng1, $lat2, $lng2, $api_key)
 {
     // بناء رابط API الخاص بالـ Google Directions
@@ -256,6 +257,7 @@ $response = file_get_contents($url, false, $context);
         echo "-----------------\n";
     }
 }
+    */
 
 function highlight($text, $search)
 {

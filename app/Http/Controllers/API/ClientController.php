@@ -501,20 +501,9 @@ class ClientController extends ApiController
     // ══════════════════════════════════════════
     // COMFORT CAR — calculate distance
     // ══════════════════════════════════════════
-    $r_comfort    = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'comfort_car');
-    $comfort_dist = $r_comfort['distance_in_km'];
-    $comfort_dur  = $r_comfort['duration_in_M'];
-
-    if ($request->end_lat_2 && $request->end_lng_2) {
-        $r = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'comfort_car');
-        $comfort_dist += $r['distance_in_km'];
-        $comfort_dur  += $r['duration_in_M'];
-    }
-    if ($request->end_lat_3 && $request->end_lng_3) {
-        $r = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'comfort_car');
-        $comfort_dist += $r['distance_in_km'];
-        $comfort_dur  += $r['duration_in_M'];
-    }
+    // Comfort car uses the same route as car — no need to call Google again
+    $comfort_dist = $car_dist;
+    $comfort_dur  = $car_dur;
 
     if ($comfort_dist > floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value)) {
         return $this->sendError(null, "Comfort trip distance ({$comfort_dist} km) exceeds maximum allowed.", 400);
@@ -626,7 +615,7 @@ public function current_trip()
     if (!$trip) {
         return $this->sendError(null, 'no current trip existed', 400);
     }
-
+/*
     $totalDistance = 0;
     $totalDuration = 0;
 
@@ -658,6 +647,7 @@ public function current_trip()
             $type
         );
 
+
         $totalDistance += $response['distance_in_km'];
         $totalDuration += $response['duration_in_M'];
 
@@ -666,7 +656,7 @@ public function current_trip()
     }
 
    // $trip->duration = $totalDuration;
-
+*/
     $barcode_image = url(barcodeImage($trip->id));
     $trip->barcode = $barcode_image;
 
