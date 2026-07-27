@@ -2123,7 +2123,7 @@ return $this->sendResponse($cities, null, 200);
 
     if ($validator->fails()) {
         $errors = implode(" / ", $validator->errors()->all());
-        return $this->sendError(null, $errors, 400);
+        return $this->sendError([], $errors, 400);
     }
 
     $tripChat = TripChat::find($request->after_id);
