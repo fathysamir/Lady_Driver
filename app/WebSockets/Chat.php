@@ -2569,7 +2569,7 @@ $route = $this->routeCache[$routeKey] ?? null;
     // 2) The client did NOT send its own route data AND
     // 3) We haven't called Google for this trip in the last N seconds
     $result = null;
-    if ($trip && !$route) {
+    if ($trip) {
         $lastCallKey = "last_google_call_{$routeKey}";
         $now         = time();
         $lastCall    = $this->routeCache[$lastCallKey] ?? 0;
@@ -2592,10 +2592,10 @@ $route = $this->routeCache[$routeKey] ?? null;
             'heading' => $heading,
             'speed'   => $speed,
 
-            'eta'      => $result['eta'] ?? null,
-            'distance' => $route['distance'] ?? ($result['distance'] ?? null),
-            'duration' => $route['duration'] ?? ($result['duration'] ?? null),
-            'status'   => $result['status'] ?? 'on_the_way',
+          'eta'      => $result['eta'] ?? null,
+          'distance' => $route['distance'] ?? ($result['distance'] ?? null),
+'duration' => $route['duration'] ?? ($result['duration'] ?? null),
+'status'   => $result['status'] ?? 'on_the_way',
 
             'message_en' => $result['message']['en'] ?? null,
             'message_ar' => $result['message']['ar'] ?? null,
