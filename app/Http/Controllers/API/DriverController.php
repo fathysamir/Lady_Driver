@@ -1711,7 +1711,7 @@ private function getDriverTrips($user, string $status)
         $startLng  = $trip->start_lng;
         $distance  = $this->calculateDistance($driverLat, $driverLng, $startLat, $startLng);
 
-        if ($distance <= 70) {
+        if ($distance <= 40) {
 
             // Only save first time of arriving
             if (!$trip->driver_arrived) {
