@@ -2593,8 +2593,8 @@ $route = $this->routeCache[$routeKey] ?? null;
             'speed'   => $speed,
 
           'eta'      => $result['eta'] ?? null,
-          'distance' => $route['distance'] ?? ($result['distance'] ?? null),
-'duration' => $route['duration'] ?? ($result['duration'] ?? null),
+         'distance' => $result['distance'] ?? ($route['distance'] ?? null),
+'duration' => $result['duration'] ?? ($route['duration'] ?? null),
 'status'   => $result['status'] ?? 'on_the_way',
 
             'message_en' => $result['message']['en'] ?? null,
