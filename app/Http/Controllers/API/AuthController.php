@@ -943,9 +943,9 @@ if ($deletedPhone) {
         $user->is_online    = '1';
         $user->save();
 
-        if ($request->device_token) {
-            $user->tokens()->where('name', 'fcm::' . $request->device_token)->delete();
-        }
+        // امسح كل الـ sessions/tokens القديمة بتاعة اليوزر ده
+        // عشان لو كان مسجل دخول من جهاز/مكان تاني يتقفل توكنه فورًا (single active session)
+        $user->tokens()->delete();
 
         $user->token        = $user->createToken('fcm::' . ($request->device_token ?? 'no-device'))->plainTextToken;
         $user->image        = getFirstMediaUrl($user, $user->avatarCollection);
