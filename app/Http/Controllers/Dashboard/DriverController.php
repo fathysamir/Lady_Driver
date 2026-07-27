@@ -32,7 +32,7 @@ class DriverController extends Controller
 
 public function index(Request $request)
 {
-    $all_users = User::where('mode', 'driver')->where('is_verified', '1');
+    $all_users = User::where('mode', 'driver')->where('is_verified', '1')->where('is_test', '0');
 
     // ── Attach a trips_count subquery (completed trips via car OR scooter) ──
     $all_users->select('users.*')->selectSub(function ($q) {
@@ -134,7 +134,7 @@ public function index(Request $request)
 
 public function index_archives(Request $request)
 {
-    $all_users = User::withTrashed()->where('mode', 'driver');
+    $all_users = User::withTrashed()->where('mode', 'driver')->where('is_test', '0');
 
     if ($request->type == 'cars') {
         $all_users->whereHas('car', function ($q) {
@@ -395,7 +395,7 @@ public function exportCsv(Request $request)
         return redirect()->back()->with('error', 'Supervisors can only export by date range.');
     }
 
-    $query = User::where('mode', 'driver')->where('is_verified', '1');
+    $query = User::where('mode', 'driver')->where('is_verified', '1')->where('is_test', '0');
 
     if ($authUser->hasRole('Supervisor')) {
         $query->where('city_id', 3);
