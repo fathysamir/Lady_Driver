@@ -35,5 +35,8 @@ return [
         'secure_key'    => env('FAWRY_SECURE_KEY'),
         'base_url'      => env('FAWRY_BASE_URL', 'https://atfawry.fawrystaging.com/ECommerceWeb'),
     ],
+    'google' => [
+    'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
+],
 
 ];

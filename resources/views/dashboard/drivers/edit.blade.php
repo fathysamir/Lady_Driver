@@ -748,7 +748,7 @@
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}"></script>
     <script>
         function initMap() {
             var userLocation = { lat: {{ $user->lat }}, lng: {{ $user->lng }} };

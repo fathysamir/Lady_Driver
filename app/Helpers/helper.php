@@ -126,7 +126,7 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
         return $cache[$cacheKey]['data'];
     }
 
-    $api_key = 'AIzaSyCWDitjrboDO2zHDtZHzLlgRLduXi7-3Es'; // New Key
+    $api_key = config('services.google.maps_api_key');
 
     switch (strtolower($vehicleType)) {
         case 'scooter':
