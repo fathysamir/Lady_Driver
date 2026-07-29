@@ -244,341 +244,359 @@ class ClientController extends ApiController
     // }
 
     public function create_temporary_trip(Request $request)
-{
-    if ($request->mock) {
-        $response = [
-            'start_date'      => '2025-12-08',
-            'start_time'      => '18:06',
-            'start_lat'       => 29.2154558,
-            'start_lng'       => 31.2154875,
-            'end_lat_1'       => 29.2154558,
-            'end_lng_1'       => 30.3333333,
-            'end_lat_2'       => 29.2154558,
-            'end_lng_2'       => 30.3333333,
-            'end_lat_3'       => null,
-            'end_lng_3'       => null,
-            'air_conditioned' => true,
-            'car'             => [
-                'total_cost_before_discount' => 125.50,
-                'discount'                   => 0,
-                'total_cost'                 => 125.50,
-                'distance'                   => 100.21,
-                'duration'                   => 50,
-            ],
-            'comfort_car'     => [
-                'total_cost_before_discount' => 135.50,
-                'discount'                   => 10,
-                'total_cost'                 => 125.50,
-                'distance'                   => 100.21,
-                'duration'                   => 50,
-            ],
-            'scooter'         => [
-                'total_cost_before_discount' => 145.50,
-                'discount'                   => 20,
-                'total_cost'                 => 125.50,
-                'distance'                   => 100.21,
-                'duration'                   => 50,
-            ],
-        ];
-        return $this->sendResponse($response, null, 200);
-    }
+    {
+        if ($request->mock) {
+            $response = [
+                'start_date'      => '2025-12-08',
+                'start_time'      => '18:06',
+                'start_lat'       => 29.2154558,
+                'start_lng'       => 31.2154875,
+                'end_lat_1'       => 29.2154558,
+                'end_lng_1'       => 30.3333333,
+                'end_lat_2'       => 29.2154558,
+                'end_lng_2'       => 30.3333333,
+                'end_lat_3'       => null,
+                'end_lng_3'       => null,
+                'air_conditioned' => true,
+                'car'             => [
+                    'total_cost_before_discount' => 125.50,
+                    'discount'                   => 0,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
+                ],
+                'comfort_car'     => [
+                    'total_cost_before_discount' => 135.50,
+                    'discount'                   => 10,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
+                ],
+                'scooter'         => [
+                    'total_cost_before_discount' => 145.50,
+                    'discount'                   => 20,
+                    'total_cost'                 => 125.50,
+                    'distance'                   => 100.21,
+                    'duration'                   => 50,
+                ],
+            ];
+            return $this->sendResponse($response, null, 200);
+        }
 
-    $check_account = $this->check_banned();
-    if ($check_account != true) {
-        return $this->sendError(null, $check_account, 400);
-    }
+        $check_account = $this->check_banned();
+        if ($check_account != true) {
+            return $this->sendError(null, $check_account, 400);
+        }
 
-    $validator = Validator::make($request->all(), [
-        // Location
-        'start_lat'      => 'required|numeric|between:-90,90',
-        'start_lng'      => 'required|numeric|between:-180,180',
-        'end_lat_1'      => 'required|numeric|between:-90,90',
-        'end_lng_1'      => 'required|numeric|between:-180,180',
-        'end_lat_2'      => 'nullable|numeric|between:-90,90',
-        'end_lng_2'      => 'nullable|numeric|between:-180,180',
-        'end_lat_3'      => 'nullable|numeric|between:-90,90',
-        'end_lng_3'      => 'nullable|numeric|between:-180,180',
+        $validator = Validator::make($request->all(), [
+            // Location
+            'start_lat'      => 'required|numeric|between:-90,90',
+            'start_lng'      => 'required|numeric|between:-180,180',
+            'end_lat_1'      => 'required|numeric|between:-90,90',
+            'end_lng_1'      => 'required|numeric|between:-180,180',
+            'end_lat_2'      => 'nullable|numeric|between:-90,90',
+            'end_lng_2'      => 'nullable|numeric|between:-180,180',
+            'end_lat_3'      => 'nullable|numeric|between:-90,90',
+            'end_lng_3'      => 'nullable|numeric|between:-180,180',
 
-        // Addresses
-        'address1'       => 'required|string',
-        'address2'       => 'required|string',
-        'address3'       => 'nullable|string',
-        'address4'       => 'nullable|string',
+            // Addresses
+            'address1'       => 'required|string',
+            'address2'       => 'required|string',
+            'address3'       => 'nullable|string',
+            'address4'       => 'nullable|string',
 
-        // Trip options
-        'type'           => 'required|in:car,comfort_car,scooter',
-        'air_conditioned'=> 'nullable|boolean',
-        'bags'           => 'nullable|boolean',
-        'animals'        => 'nullable|boolean',
-        'luggage'        => 'nullable|boolean',
-        'payment_method' => 'required|in:cash,wallet',
+            // Trip options
+            'type'           => 'required|in:car,comfort_car,scooter',
+            'air_conditioned'=> 'nullable|boolean',
+            'bags'           => 'nullable|boolean',
+            'animals'        => 'nullable|boolean',
+            'luggage'        => 'nullable|boolean',
+            'payment_method' => 'required|in:cash,wallet',
 
-        // Scheduling
-        'start_date'     => 'nullable|date|date_format:Y-m-d',
-        'start_time'     => 'nullable|date_format:H:i',
+            // Scheduling
+            'start_date'     => 'nullable|date|date_format:Y-m-d',
+            'start_time'     => 'nullable|date_format:H:i',
 
 
-        // 'discount', 'distance', 'total_cost', 'duration' ← server-calculated
-    ]);
+            // 'discount', 'distance', 'total_cost', 'duration' ← server-calculated
+        ]);
 
-    if ($validator->fails()) {
-        $errors = implode(" / ", $validator->errors()->all());
-        return $this->sendError(null, $errors, 400);
-    }
+        if ($validator->fails()) {
+            $errors = implode(" / ", $validator->errors()->all());
+            return $this->sendError(null, $errors, 400);
+        }
 
-    //Peak time
-    $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
-    $peakTimes = json_decode($peakJson, true);
+        //Peak time
+        $peakJson  = Setting::where('key', 'peak_times')->where('category', 'Trips')->where('type', 'options')->first()->value;
+        $peakTimes = json_decode($peakJson, true);
 
-    if ($request->start_date == null || $request->start_time == null) {
-        $start_date = now()->toDateString();
-        $start_time = now()->format('H:i');
-    } else {
-        $start_date = date('Y-m-d', strtotime($request->start_date));
-        $start_time = date('H:i', strtotime($request->start_time));
-    }
+        if ($request->start_date == null || $request->start_time == null) {
+            $start_date = now()->toDateString();
+            $start_time = now()->format('H:i');
+        } else {
+            $start_date = date('Y-m-d', strtotime($request->start_date));
+            $start_time = date('H:i', strtotime($request->start_time));
+        }
 
-    $day    = date('l', strtotime($start_date));
-    $isPeak = false;
+        $day    = date('l', strtotime($start_date));
+        $isPeak = false;
 
-    if (isset($peakTimes[$day])) {
-        foreach ($peakTimes[$day] as $period) {
-            if ($start_time >= $period['from'] && $start_time <= $period['to']) {
-                $isPeak = true;
-                break;
+        if (isset($peakTimes[$day])) {
+            foreach ($peakTimes[$day] as $period) {
+                if ($start_time >= $period['from'] && $start_time <= $period['to']) {
+                    $isPeak = true;
+                    break;
+                }
             }
         }
-    }
 
 
-    $response                    = [];
-    $response['start_date']      = $start_date;
-    $response['start_time']      = $start_time;
-    $response['start_lat']       = (float) $request->start_lat;
-    $response['start_lng']       = (float) $request->start_lng;
-    $response['air_conditioned'] = $request->boolean('air_conditioned');
-    $response['end_lat_1']       = (float) $request->end_lat_1;
-    $response['end_lng_1']       = (float) $request->end_lng_1;
-    $response['end_lat_2']       = $request->end_lat_2 ? (float) $request->end_lat_2 : null;
-    $response['end_lng_2']       = $request->end_lng_2 ? (float) $request->end_lng_2 : null;
-    $response['end_lat_3']       = $request->end_lat_3 ? (float) $request->end_lat_3 : null;
-    $response['end_lng_3']       = $request->end_lng_3 ? (float) $request->end_lng_3 : null;
+        $response                    = [];
+        $response['start_date']      = $start_date;
+        $response['start_time']      = $start_time;
+        $response['start_lat']       = (float) $request->start_lat;
+        $response['start_lng']       = (float) $request->start_lng;
+        $response['air_conditioned'] = $request->boolean('air_conditioned');
+        $response['end_lat_1']       = (float) $request->end_lat_1;
+        $response['end_lng_1']       = (float) $request->end_lng_1;
+        $response['end_lat_2']       = $request->end_lat_2 ? (float) $request->end_lat_2 : null;
+        $response['end_lng_2']       = $request->end_lng_2 ? (float) $request->end_lng_2 : null;
+        $response['end_lat_3']       = $request->end_lat_3 ? (float) $request->end_lat_3 : null;
+        $response['end_lng_3']       = $request->end_lng_3 ? (float) $request->end_lng_3 : null;
 
-    // ── Student check ──
-    $student = Student::where('user_id', auth()->user()->id)
-        ->where('status', 'confirmed')
-        ->where('student_discount_service', '1')
-        ->first();
+        // ── Student check ──
+        $student = Student::where('user_id', auth()->user()->id)
+            ->where('status', 'confirmed')
+            ->where('student_discount_service', '1')
+            ->first();
 
-    $student_trips_count = Trip::where('user_id', auth()->user()->id)
-        ->where('student_trip', '1')
-        ->where('status', 'completed')
-        ->where('start_date', now()->toDateString())
-        ->count();
+        $student_trips_count = Trip::where('user_id', auth()->user()->id)
+            ->where('student_trip', '1')
+            ->where('status', 'completed')
+            ->where('start_date', now()->toDateString())
+            ->count();
 
-    $is_student = $student && $student_trips_count < 3;
+        $is_student = $student && $student_trips_count < 3;
 
-    //calculate price for one vehicle type
-    $calcPrice = function(
-        $distance,
-        $km_short, $km_medium, $km_long,
-        $max_short, $max_medium, $max_long,
-        $less_cost,
-        $peak_rate,
-        $student_discount,
-        $air_conditioning_rate,
-        $air_conditioned,
-        $isPeak,
-        $is_student
-    ) {
-        $base = 0;
+        //calculate price for one vehicle type
+        $calcPrice = function(
+            $distance,
+            $km_short, $km_medium, $km_long,
+            $max_short, $max_medium, $max_long,
+            $less_cost,
+            $peak_rate,
+            $student_discount,
+            $air_conditioning_rate,
+            $air_conditioned,
+            $isPeak,
+            $is_student
+        ) {
+            $base = 0;
 
-        // Short tier
-        if ($distance >= $max_short) {
-            $base += $km_short * $max_short;
-        } else {
-            $base += $km_short * $distance;
+            // Short tier
+            if ($distance >= $max_short) {
+                $base += $km_short * $max_short;
+            } else {
+                $base += $km_short * $distance;
+            }
+
+            // Medium tier
+            if ($distance >= $max_medium) {
+                $base += $km_medium * ($max_medium - $max_short);
+            } elseif ($distance > $max_short) {
+                $base += $km_medium * ($distance - $max_short);
+            }
+
+            // Long tier
+            if ($distance >= $max_long) {
+                $base += $km_long * ($max_long - $max_medium);
+            } elseif ($distance > $max_medium) {
+                $base += $km_long * ($distance - $max_medium);
+            }
+
+            // Air conditioning (only when provided rate > 0)
+            $air_cost = 0;
+            if ($air_conditioning_rate > 0 && $air_conditioned) {
+                $air_cost = round($base * ($air_conditioning_rate / 100), 2);
+            }
+
+            // Peak time
+            $peak_cost = 0;
+            if ($isPeak && $peak_rate > 0) {
+                $peak_cost = round($base * ($peak_rate / 100), 2);
+            }
+
+            $total_before_discount = ceil($base + $air_cost + $peak_cost);
+
+            // Apply minimum price
+            if ($total_before_discount < $less_cost) {
+                $total_before_discount = $less_cost;
+            }
+
+            // Student discount
+            $discount = 0;
+            if ($is_student) {
+                $discount = round($total_before_discount * ($student_discount / 100), 2);
+            }
+
+            $total_cost = $total_before_discount - $discount;
+
+            // Apply minimum again after discount
+            if ($total_cost < $less_cost) {
+                $total_cost = $less_cost;
+                $discount   = $total_before_discount - $less_cost;
+            }
+
+            return [
+                'total_cost_before_discount' => (float) $total_before_discount,
+                'discount'                   => (float) $discount,
+                'total_cost'                 => (float) $total_cost,
+            ];
+        };
+
+        // ══════════════════════════════════════════
+        // CAR — calculate distance
+        // ══════════════════════════════════════════
+        $cacheKeyCar1 = 'distance_route_' . round($request->start_lat, 4) . ',' . round($request->start_lng, 4) . '|' . round($request->end_lat_1, 4) . ',' . round($request->end_lng_1, 4) . '|car';
+        $r_car        = \Illuminate\Support\Facades\Cache::remember($cacheKeyCar1, 30, function () use ($request) {
+            return calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'car');
+        });
+        $car_dist   = $r_car['distance_in_km'];
+        $car_dur    = $r_car['duration_in_M'];
+
+        if ($request->end_lat_2 && $request->end_lng_2) {
+            $cacheKeyCar2 = 'distance_route_' . round($request->end_lat_1, 4) . ',' . round($request->end_lng_1, 4) . '|' . round($request->end_lat_2, 4) . ',' . round($request->end_lng_2, 4) . '|car';
+            $r            = \Illuminate\Support\Facades\Cache::remember($cacheKeyCar2, 30, function () use ($request) {
+                return calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'car');
+            });
+            $car_dist += $r['distance_in_km'];
+            $car_dur  += $r['duration_in_M'];
+        }
+        if ($request->end_lat_3 && $request->end_lng_3) {
+            $cacheKeyCar3 = 'distance_route_' . round($request->end_lat_2, 4) . ',' . round($request->end_lng_2, 4) . '|' . round($request->end_lat_3, 4) . ',' . round($request->end_lng_3, 4) . '|car';
+            $r            = \Illuminate\Support\Facades\Cache::remember($cacheKeyCar3, 30, function () use ($request) {
+                return calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'car');
+            });
+            $car_dist += $r['distance_in_km'];
+            $car_dur  += $r['duration_in_M'];
         }
 
-        // Medium tier
-        if ($distance >= $max_medium) {
-            $base += $km_medium * ($max_medium - $max_short);
-        } elseif ($distance > $max_short) {
-            $base += $km_medium * ($distance - $max_short);
+        if ($car_dist > floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->first()->value)) {
+            return $this->sendError(null, "Car trip distance ({$car_dist} km) exceeds maximum allowed.", 400);
         }
 
-        // Long tier
-        if ($distance >= $max_long) {
-            $base += $km_long * ($max_long - $max_medium);
-        } elseif ($distance > $max_medium) {
-            $base += $km_long * ($distance - $max_medium);
+        $car_price = $calcPrice(
+            $car_dist,
+            floatval(Setting::where('key', 'kilometer_price_car_short_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'kilometer_price_car_medium_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'kilometer_price_car_long_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_car_short_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_car_medium_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'less_cost_for_car_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'increase_rate_peak_time_car_trip')->where('category', 'Car Trips')->first()->value),
+            floatval(Setting::where('key', 'student_discount')->where('category', 'Car Trips')->first()->value),
+            0,
+            $request->boolean('air_conditioned'),
+            $isPeak,
+            $is_student
+        );
+
+        $response['car'] = array_merge($car_price, [
+            'distance' => round($car_dist, 2),
+            'duration' => intval($car_dur),
+        ]);
+
+        // ══════════════════════════════════════════
+        // COMFORT CAR — calculate distance
+        // ══════════════════════════════════════════
+        // Comfort car uses the same route as car — no need to call Google again
+        $comfort_dist = $car_dist;
+        $comfort_dur  = $car_dur;
+
+        if ($comfort_dist > floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value)) {
+            return $this->sendError(null, "Comfort trip distance ({$comfort_dist} km) exceeds maximum allowed.", 400);
         }
 
-        // Air conditioning (only when provided rate > 0)
-        $air_cost = 0;
-        if ($air_conditioning_rate > 0 && $air_conditioned) {
-            $air_cost = round($base * ($air_conditioning_rate / 100), 2);
+        $comfort_price = $calcPrice(
+            $comfort_dist,
+            floatval(Setting::where('key', 'kilometer_price_comfort_short_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'kilometer_price_comfort_medium_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'kilometer_price_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_comfort_short_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_comfort_medium_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'increase_rate_peak_time_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->first()->value),
+            floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Car Trips')->first()->value), // rate = 10
+            true, // ← always AC for comfort
+            $isPeak,
+            $is_student
+        );
+
+        $response['comfort_car'] = array_merge($comfort_price, [
+            'distance' => round($comfort_dist, 2),
+            'duration' => intval($comfort_dur),
+        ]);
+
+        // ══════════════════════════════════════════
+        // SCOOTER — calculate distance
+        // ══════════════════════════════════════════
+        $cacheKeyScooter1 = 'distance_route_' . round($request->start_lat, 4) . ',' . round($request->start_lng, 4) . '|' . round($request->end_lat_1, 4) . ',' . round($request->end_lng_1, 4) . '|scooter';
+        $r_scooter        = \Illuminate\Support\Facades\Cache::remember($cacheKeyScooter1, 30, function () use ($request) {
+            return calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'scooter');
+        });
+        $scooter_dist = $r_scooter['distance_in_km'];
+        $scooter_dur  = $r_scooter['duration_in_M'];
+
+        if ($request->end_lat_2 && $request->end_lng_2) {
+            $cacheKeyScooter2 = 'distance_route_' . round($request->end_lat_1, 4) . ',' . round($request->end_lng_1, 4) . '|' . round($request->end_lat_2, 4) . ',' . round($request->end_lng_2, 4) . '|scooter';
+            $r                = \Illuminate\Support\Facades\Cache::remember($cacheKeyScooter2, 30, function () use ($request) {
+                return calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'scooter');
+            });
+            $scooter_dist += $r['distance_in_km'];
+            $scooter_dur  += $r['duration_in_M'];
+        }
+        if ($request->end_lat_3 && $request->end_lng_3) {
+            $cacheKeyScooter3 = 'distance_route_' . round($request->end_lat_2, 4) . ',' . round($request->end_lng_2, 4) . '|' . round($request->end_lat_3, 4) . ',' . round($request->end_lng_3, 4) . '|scooter';
+            $r                = \Illuminate\Support\Facades\Cache::remember($cacheKeyScooter3, 30, function () use ($request) {
+                return calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'scooter');
+            });
+            $scooter_dist += $r['distance_in_km'];
+            $scooter_dur  += $r['duration_in_M'];
+        }
+        $scooter_dur = intval($scooter_dur * 0.8);
+
+
+        if ($scooter_dist > floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value)) {
+            return $this->sendError(null, "Scooter trip distance ({$scooter_dist} km) exceeds maximum allowed.", 400);
         }
 
-        // Peak time
-        $peak_cost = 0;
-        if ($isPeak && $peak_rate > 0) {
-            $peak_cost = round($base * ($peak_rate / 100), 2);
-        }
+        $scooter_price = $calcPrice(
+            $scooter_dist,
+            floatval(Setting::where('key', 'kilometer_price_scooter_short_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'kilometer_price_scooter_medium_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'kilometer_price_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_scooter_short_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_scooter_medium_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->first()->value),
+            floatval(Setting::where('key', 'student_discount')->where('category', 'Scooter Trips')->first()->value),
+            0, // no air conditioning for scooter
+            false,
+            $isPeak,
+            $is_student
+        );
 
-        $total_before_discount = ceil($base + $air_cost + $peak_cost);
+        $response['scooter'] = array_merge($scooter_price, [
+            'distance' => round($scooter_dist, 2),
+            'duration' => intval($scooter_dur),
+        ]);
 
-        // Apply minimum price
-        if ($total_before_discount < $less_cost) {
-            $total_before_discount = $less_cost;
-        }
-
-        // Student discount
-        $discount = 0;
-        if ($is_student) {
-            $discount = round($total_before_discount * ($student_discount / 100), 2);
-        }
-
-        $total_cost = $total_before_discount - $discount;
-
-        // Apply minimum again after discount
-        if ($total_cost < $less_cost) {
-            $total_cost = $less_cost;
-            $discount   = $total_before_discount - $less_cost;
-        }
-
-        return [
-            'total_cost_before_discount' => (float) $total_before_discount,
-            'discount'                   => (float) $discount,
-            'total_cost'                 => (float) $total_cost,
-        ];
-    };
-
-    // ══════════════════════════════════════════
-    // CAR — calculate distance
-    // ══════════════════════════════════════════
-    $r_car      = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'car');
-    $car_dist   = $r_car['distance_in_km'];
-    $car_dur    = $r_car['duration_in_M'];
-
-    if ($request->end_lat_2 && $request->end_lng_2) {
-        $r = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'car');
-        $car_dist += $r['distance_in_km'];
-        $car_dur  += $r['duration_in_M'];
+        return $this->sendResponse($response, null, 200);
     }
-    if ($request->end_lat_3 && $request->end_lng_3) {
-        $r = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'car');
-        $car_dist += $r['distance_in_km'];
-        $car_dur  += $r['duration_in_M'];
-    }
-
-    if ($car_dist > floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->first()->value)) {
-        return $this->sendError(null, "Car trip distance ({$car_dist} km) exceeds maximum allowed.", 400);
-    }
-
-    $car_price = $calcPrice(
-        $car_dist,
-        floatval(Setting::where('key', 'kilometer_price_car_short_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'kilometer_price_car_medium_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'kilometer_price_car_long_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_car_short_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_car_medium_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_car_long_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'less_cost_for_car_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'increase_rate_peak_time_car_trip')->where('category', 'Car Trips')->first()->value),
-        floatval(Setting::where('key', 'student_discount')->where('category', 'Car Trips')->first()->value),
-        0,
-        $request->boolean('air_conditioned'),
-        $isPeak,
-        $is_student
-    );
-
-    $response['car'] = array_merge($car_price, [
-        'distance' => round($car_dist, 2),
-        'duration' => intval($car_dur),
-    ]);
-
-    // ══════════════════════════════════════════
-    // COMFORT CAR — calculate distance
-    // ══════════════════════════════════════════
-    // Comfort car uses the same route as car — no need to call Google again
-    $comfort_dist = $car_dist;
-    $comfort_dur  = $car_dur;
-
-    if ($comfort_dist > floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value)) {
-        return $this->sendError(null, "Comfort trip distance ({$comfort_dist} km) exceeds maximum allowed.", 400);
-    }
-
-    $comfort_price = $calcPrice(
-        $comfort_dist,
-        floatval(Setting::where('key', 'kilometer_price_comfort_short_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'kilometer_price_comfort_medium_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'kilometer_price_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_comfort_short_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_comfort_medium_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_comfort_long_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'less_cost_for_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'increase_rate_peak_time_comfort_trip')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'student_discount')->where('category', 'Comfort Trips')->first()->value),
-        floatval(Setting::where('key', 'Air_conditioning_service_price')->where('category', 'Car Trips')->first()->value), // rate = 10
-        true, // ← always AC for comfort
-        $isPeak,
-        $is_student
-    );
-
-    $response['comfort_car'] = array_merge($comfort_price, [
-        'distance' => round($comfort_dist, 2),
-        'duration' => intval($comfort_dur),
-    ]);
-
-    // ══════════════════════════════════════════
-    // SCOOTER — calculate distance
-    // ══════════════════════════════════════════
-    $r_scooter    = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1, 'scooter');
-    $scooter_dist = $r_scooter['distance_in_km'];
-    $scooter_dur  = $r_scooter['duration_in_M'];
-
-    if ($request->end_lat_2 && $request->end_lng_2) {
-        $r = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2, 'scooter');
-        $scooter_dist += $r['distance_in_km'];
-        $scooter_dur  += $r['duration_in_M'];
-    }
-    if ($request->end_lat_3 && $request->end_lng_3) {
-        $r = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3, 'scooter');
-        $scooter_dist += $r['distance_in_km'];
-        $scooter_dur  += $r['duration_in_M'];
-    }
-    $scooter_dur = intval($scooter_dur * 0.8);
-
-
-    if ($scooter_dist > floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value)) {
-        return $this->sendError(null, "Scooter trip distance ({$scooter_dist} km) exceeds maximum allowed.", 400);
-    }
-
-    $scooter_price = $calcPrice(
-        $scooter_dist,
-        floatval(Setting::where('key', 'kilometer_price_scooter_short_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'kilometer_price_scooter_medium_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'kilometer_price_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_scooter_short_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_scooter_medium_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'maximum_distance_scooter_long_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'less_cost_for_scooter_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'increase_rate_peak_time_scooter_trip')->where('category', 'Scooter Trips')->first()->value),
-        floatval(Setting::where('key', 'student_discount')->where('category', 'Scooter Trips')->first()->value),
-        0, // no air conditioning for scooter
-        false,
-        $isPeak,
-        $is_student
-    );
-
-    $response['scooter'] = array_merge($scooter_price, [
-        'distance' => round($scooter_dist, 2),
-        'duration' => intval($scooter_dur),
-    ]);
-
-    return $this->sendResponse($response, null, 200);
-}
 public function current_trip()
 {
     $check_account = $this->check_banned();
@@ -740,13 +758,16 @@ public function current_trip()
 
             if ($trip->car) {
 
-                $response = calculate_distance(
-                    $trip->car->lat,
-                    $trip->car->lng,
-                    $trip->start_lat,
-                    $trip->start_lng,
-                    'car'
-                );
+                $cacheKey = "current_trip_distance_{$trip->id}";
+                $response = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($trip) {
+                    return calculate_distance(
+                        $trip->car->lat,
+                        $trip->car->lng,
+                        $trip->start_lat,
+                        $trip->start_lng,
+                        'car'
+                    );
+                });
 
                 $distance = $response['distance_in_km'];
                 $duration = $response['duration_in_M'];
@@ -759,13 +780,16 @@ public function current_trip()
 
             if ($trip->scooter) {
 
-                $response = calculate_distance(
-                    $trip->scooter->lat,
-                    $trip->scooter->lng,
-                    $trip->start_lat,
-                    $trip->start_lng,
-                    'scooter'
-                );
+                $cacheKey = "current_trip_distance_{$trip->id}";
+                $response = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($trip) {
+                    return calculate_distance(
+                        $trip->scooter->lat,
+                        $trip->scooter->lng,
+                        $trip->start_lat,
+                        $trip->start_lng,
+                        'scooter'
+                    );
+                });
 
                 $distance = $response['distance_in_km'];
                 $duration = $response['duration_in_M'];
@@ -801,13 +825,16 @@ public function current_trip()
                         return null;
                     }
 
-                    $response = calculate_distance(
-                        $offer->car->lat,
-                        $offer->car->lng,
-                        $trip->start_lat,
-                        $trip->start_lng,
-                        'car'
-                    );
+                    $cacheKey = "offer_distance_{$offer->id}";
+                    $response = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($offer, $trip) {
+                        return calculate_distance(
+                            $offer->car->lat,
+                            $offer->car->lng,
+                            $trip->start_lat,
+                            $trip->start_lng,
+                            'car'
+                        );
+                    });
 
                 } elseif ($trip->type == 'scooter') {
 
@@ -815,13 +842,16 @@ public function current_trip()
                         return null;
                     }
 
-                    $response = calculate_distance(
-                        $offer->scooter->lat,
-                        $offer->scooter->lng,
-                        $trip->start_lat,
-                        $trip->start_lng,
-                        'scooter'
-                    );
+                    $cacheKey = "offer_distance_{$offer->id}";
+                    $response = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($offer, $trip) {
+                        return calculate_distance(
+                            $offer->scooter->lat,
+                            $offer->scooter->lng,
+                            $trip->start_lat,
+                            $trip->start_lng,
+                            'scooter'
+                        );
+                    });
                 }
 
                 $distance = $response['distance_in_km'];
@@ -940,8 +970,7 @@ public function current_trip()
 
     return $this->sendResponse($trip, null, 200);
 }
-
-    // public function pay_trip(Request $request)
+// public function pay_trip(Request $request)
     // {
     //     $validator = Validator::make($request->all(), [
     //         'trip_id' => [
@@ -984,7 +1013,6 @@ public function current_trip()
     //     }
     //     return $this->sendResponse(null, 'trip is paid', 200);
     // }
-
     public function completed_trips()
 {
     $user = auth()->user();
@@ -1862,18 +1890,27 @@ public function mark_messages_seen(Request $request)
             : 0;
 
         //Calculate total distance
-        $r             = calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
+        $cacheKey1     = 'distance_route_' . round($request->start_lat, 4) . ',' . round($request->start_lng, 4) . '|' . round($request->end_lat_1, 4) . ',' . round($request->end_lng_1, 4);
+        $r             = \Illuminate\Support\Facades\Cache::remember($cacheKey1, 30, function () use ($request) {
+            return calculate_distance($request->start_lat, $request->start_lng, $request->end_lat_1, $request->end_lng_1);
+        });
         $calc_distance = $r['distance_in_km'];
         $calc_duration = $r['duration_in_M'];
 
         if ($request->end_lat_2 && $request->end_lng_2) {
-            $r2             = calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2);
+            $cacheKey2       = 'distance_route_' . round($request->end_lat_1, 4) . ',' . round($request->end_lng_1, 4) . '|' . round($request->end_lat_2, 4) . ',' . round($request->end_lng_2, 4);
+            $r2              = \Illuminate\Support\Facades\Cache::remember($cacheKey2, 30, function () use ($request) {
+                return calculate_distance($request->end_lat_1, $request->end_lng_1, $request->end_lat_2, $request->end_lng_2);
+            });
             $calc_distance += $r2['distance_in_km'];
             $calc_duration += $r2['duration_in_M'];
         }
 
         if ($request->end_lat_3 && $request->end_lng_3) {
-            $r3             = calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3);
+            $cacheKey3       = 'distance_route_' . round($request->end_lat_2, 4) . ',' . round($request->end_lng_2, 4) . '|' . round($request->end_lat_3, 4) . ',' . round($request->end_lng_3, 4);
+            $r3              = \Illuminate\Support\Facades\Cache::remember($cacheKey3, 30, function () use ($request) {
+                return calculate_distance($request->end_lat_2, $request->end_lng_2, $request->end_lat_3, $request->end_lng_3);
+            });
             $calc_distance += $r3['distance_in_km'];
             $calc_duration += $r3['duration_in_M'];
         }

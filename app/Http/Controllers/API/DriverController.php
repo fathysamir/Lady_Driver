@@ -1097,6 +1097,7 @@ if ($isBusy) {
 
         return $this->sendResponse($trips->values(), null, 200);
     }
+
     public function driver_current_trip()
     {
         $check_account = $this->check_banned();
@@ -1142,12 +1143,15 @@ if ($isBusy) {
         $vehicle = $lastAcceptedOffer->car ?? $lastAcceptedOffer->scooter;
 
         if ($vehicle) {
-            $response = calculate_distance(
-                $vehicle->lat,
-                $vehicle->lng,
-                $trip->start_lat,
-                $trip->start_lng
-            );
+            $cacheKey = "driver_current_trip_distance_{$trip->id}";
+            $response = Cache::remember($cacheKey, 15, function () use ($vehicle, $trip) {
+                return calculate_distance(
+                    $vehicle->lat,
+                    $vehicle->lng,
+                    $trip->start_lat,
+                    $trip->start_lng
+                );
+            });
 
             $trip->client_location_distance = round($response['distance_in_km'], 2);
             $trip->client_location_duration  = (int) $response['duration_in_M'];
@@ -1833,64 +1837,67 @@ public function driver_reached(Request $request)
         return $earthRadius * $c; // distance in meters
     }
     public function track_vehicle(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'lat'     => 'required|numeric|between:-90,90',
-        'lng'     => 'required|numeric|between:-180,180',
-        'trip_id' => 'required|exists:trips,id',
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'lat'     => 'required|numeric|between:-90,90',
+            'lng'     => 'required|numeric|between:-180,180',
+            'trip_id' => 'required|exists:trips,id',
+        ]);
 
-    if ($validator->fails()) {
-        return $this->sendError(
-            null,
-            implode(" / ", $validator->errors()->all()),
-            422
-        );
+        if ($validator->fails()) {
+            return $this->sendError(
+                null,
+                implode(" / ", $validator->errors()->all()),
+                422
+            );
+        }
+
+        $trip = Trip::find($request->trip_id);
+
+        if (!$trip) {
+            return $this->sendError(null, 'Trip not found', 404);
+        }
+
+        if ($trip->status !== 'pending') {
+            return $this->sendError(
+                null,
+                'Tracking not available',
+                403
+            );
+        }
+
+        $cacheKey = "track_vehicle_distance_{$trip->id}";
+        $response = Cache::remember($cacheKey, 15, function () use ($request, $trip) {
+            return calculate_distance(
+                $request->lat,
+                $request->lng,
+                $trip->start_lat,
+                $trip->start_lng
+            );
+        });
+
+        if (!$response) {
+            return $this->sendError(null, 'Distance calculation failed', 500);
+        }
+
+        $distance = round($response['distance_in_km'], 2);
+        $duration = intval($response['duration_in_M']);
+        $eta      = now()->addMinutes($duration)->format('h:i A');
+
+        event(new \App\Events\TrackVehicle(
+            $distance,
+            $duration,
+            $eta,
+            $trip->user_id
+        ));
+
+        return $this->sendResponse([
+            'distance' => $distance,
+            'duration' => $duration,
+            'eta'      => $eta,
+            'status'   => 'pending'
+        ], 'Location tracked successfully', 200);
     }
-
-    $trip = Trip::find($request->trip_id);
-
-    if (!$trip) {
-        return $this->sendError(null, 'Trip not found', 404);
-    }
-
-    if ($trip->status !== 'pending') {
-        return $this->sendError(
-            null,
-            'Tracking not available',
-            403
-        );
-    }
-
-    $response = calculate_distance(
-        $request->lat,
-        $request->lng,
-        $trip->start_lat,
-        $trip->start_lng
-    );
-
-    if (!$response) {
-        return $this->sendError(null, 'Distance calculation failed', 500);
-    }
-
-    $distance = round($response['distance_in_km'], 2);
-    $duration = intval($response['duration_in_M']);
-    $eta      = now()->addMinutes($duration)->format('h:i A');
-
-    event(new \App\Events\TrackVehicle(
-        $distance,
-        $duration,
-        $eta,
-        $trip->user_id
-    ));
-
-    return $this->sendResponse([
-        'distance' => $distance,
-        'duration' => $duration,
-        'eta'      => $eta,
-        'status'   => 'pending'
-    ], 'Location tracked successfully', 200);
-}
     // public function create_offer(Request $request)
     // {
     //     $check_account = $this->check_banned();

@@ -1875,12 +1875,15 @@ return $this->sendResponse($cities, null, 200);
             $vehicle = $trip->car ?? $trip->scooter;
 
             if ($vehicle) {
-                $response = calculate_distance(
-                    $vehicle->lat,
-                    $vehicle->lng,
-                    $trip->start_lat,
-                    $trip->start_lng
-                );
+                $cacheKey = "trip_by_id_distance_{$trip->id}";
+                $response = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($vehicle, $trip) {
+                    return calculate_distance(
+                        $vehicle->lat,
+                        $vehicle->lng,
+                        $trip->start_lat,
+                        $trip->start_lng
+                    );
+                });
                 $trip->client_location_distance = round($response['distance_in_km'], 2);
                 $trip->client_location_duration = intval($response['duration_in_M']);
             }
@@ -2060,9 +2063,15 @@ return $this->sendResponse($cities, null, 200);
                     'offers' => $validOffers->map(function ($offer) use ($trip, $isScooter, $statsByDriver) {
 
                         if ($isScooter && $offer->scooter) {
-                            $distance = calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
+                            $cacheKey = "get_offer_distance_{$offer->id}";
+                            $distance = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($offer, $trip) {
+                                return calculate_distance($offer->scooter->lat, $offer->scooter->lng, $trip->start_lat, $trip->start_lng);
+                            });
                         } elseif ($offer->car) {
-                            $distance = calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+                            $cacheKey = "get_offer_distance_{$offer->id}";
+                            $distance = \Illuminate\Support\Facades\Cache::remember($cacheKey, 15, function () use ($offer, $trip) {
+                                return calculate_distance($offer->car->lat, $offer->car->lng, $trip->start_lat, $trip->start_lng);
+                            });
                         } else {
                             $distance = ['distance_in_km' => 0, 'duration_in_M' => 0];
                         }

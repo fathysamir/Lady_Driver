@@ -122,7 +122,7 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
 
     // 🕐 كاش لمدة 5 ثواني لنفس الإحداثيات/النوع، بيقلل الـ blocking calls المتكررة في نفس الفترة
     $cacheKey = round($lat1, 4) . ',' . round($lng1, 4) . '|' . round($lat2, 4) . ',' . round($lng2, 4) . '|' . $vehicleType;
-    if (isset($cache[$cacheKey]) && (time() - $cache[$cacheKey]['time']) < 5) {
+    if (isset($cache[$cacheKey]) && (time() - $cache[$cacheKey]['time']) < 60) {
         return $cache[$cacheKey]['data'];
     }
 
@@ -144,8 +144,7 @@ function calculate_distance($lat1, $lng1, $lat2, $lng2, $vehicleType = 'car')
             $mode = 'driving';
     }
 
-    $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&mode=$mode&departure_time=now&traffic_model=best_guess&key=$api_key";
-
+    $request_url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=$lat1,$lng1&destinations=$lat2,$lng2&mode=$mode&key=$api_key";
     // 🛡️ timeout قصير يمنع تجميد الـ event loop بالكامل لو الـ API اتأخر أو مفيش رد
     $context = stream_context_create([
         'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false],
